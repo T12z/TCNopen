@@ -1,0 +1,34 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION    Config file to make TRDP for LINUX_PPC target
+#//
+#// AUTHOR         Bombardier Transportation GmbH
+#//
+#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
+#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
+#// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2014. All rights reserved.
+#//
+
+# path to compiler incl. the trailing slash
+TCPATH = /scm/gbe/repository/toolchain/nrtos/1.0.0.0/x86-linux2/bin/
+
+# verbose description for the target
+# ARCH controls the output path for the binaries
+ARCH = powerpc-linux-gnu
+CPU =
+TARGET_VOS = posix
+TARGET_OS = LINUX
+
+# the required cross compile prefix incl. the dash
+TCPREFIX = powerpc-linux-gnu-
+TCPOSTFIX =
+DOXYPATH = /usr/local/bin/
+
+# path to sysroot includes also the trailing slash
+CFLAGS += -Wall -DPOSIX -D_GNU_SOURCE -DB_ENDIAN --sysroot=/scm/gbe/repository/sysroot/nrtos/2.4.0.1/sysroot/
+
+LDFLAGS += -lrt
+
+#LINT section  
+LINT_SYSINCLUDE_DIRECTIVES = -D__linux -D__GNUC__ -i "./src/vos/posix" -i "/scm/gbe/repository/sysroot/nrtos/2.4.0.1/sysroot/usr/include" -i "/scm/gbe/repository/sysroot/nrtos/2.4.0.1/sysroot/usr/include/linux" -i "/opt/cross/freescale-2010.09/lib/gcc/powerpc-linux-gnu/4.5.1/include" +libdir "/scm/gbe/repository/sysroot/nrtos/2.4.0.1/sysroot/usr/include" -wlib 0 

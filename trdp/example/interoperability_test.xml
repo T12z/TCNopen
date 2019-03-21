@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device host-name="examplehost" leader-name="leaderhost" type="dummy">
+	<device-configuration memory-size="65535">
+		<mem-block-list>
+			<mem-block size="32" preallocate="0" />
+		</mem-block-list>
+	</device-configuration>
+	
+   <bus-interface-list>
+      <bus-interface network-id="1" name="eth0">
+		<trdp-process />
+		<pd-com-parameter />
+		<md-com-parameter udp-port="17225" tcp-port="17225" />
+         <telegram name="compelte_telegram" com-id="999" data-set-id="999" >
+             <!-- inside "md-parameter" or "pd-parameter" with optional stuff -->
+         </telegram>
+         <telegram name="complete_telegram_echo" com-id="998" data-set-id="998" />
+      </bus-interface>
+   </bus-interface-list>
+   
+   <mapped-device-list>
+      <mapped-device host-name="host1" leader-name="leaderhost">
+         <mapped-bus-interface name="eth0" host-ip="10.0.0.100" leader-ip="10.0.0.1" >
+            <mapped-telegram com-id="999" name="all_types_telegram" /><!-- not really used -->
+         </mapped-bus-interface>
+      </mapped-device>
+   </mapped-device-list>
+
+   <com-parameter-list>
+      <com-parameter id="1" qos="5" ttl="64" /><!-- Suitable for PD communication (found this configuration in Usermanual) -->
+      <com-parameter id="2" qos="3" ttl="64" /><!-- Suitable for MD communication (found this configuration in Usermanual) -->
+   </com-parameter-list>
+   
+   <data-set-list>
+      <data-set name="testecho_dataset" id="998">
+		<element name="cycletime" type="10" />
+		<element name="custom_message" type="2" array-size="0" />
+		<element name="marshall_test_data" type="999" />	
+      </data-set>
+      <data-set name="marshall_test" id="999">
+		<!-- present all element once -->
+		<element name="BOOL" type="1" />
+		<element name="CHAR8" type="2" />
+		<element name="UTF16" type="3" />
+        <element name="INT8" type="4" />
+        <element name="INT16" type="5" />
+        <element name="INT32" type="6" />
+        <element name="INT64" type="7" />
+        <element name="UINT8" type="8" />
+        <element name="UINT16" type="9" />
+        <element name="UINT32" type="10" />
+        <element name="UINT64" type="11" />
+        <element name="REAL32" type="12" />
+        <element name="REAL64" type="13" />
+        <element name="TIMEDATE32" type="14" />
+		<element name="TIMEDATE48" type="15" />
+		<element name="TIMEDATE64" type="16" />
+		<!-- multiple occurance of one element: -->
+		<element name="four_BOOL" type="1" array-size="4" />
+		<element name="string_of_max_chars" type="2" array-size="4" />
+		<element name="utf16_string_of_max_16chars" type="3" array-size="16" />
+		<element name="IP_address" type="4" array-size="4" />
+		<element name="four_INT16" type="5" array-size="4" />
+		<element name="four_INT32" type="6" array-size="4" />
+		<element name="four_INT64" type="7" array-size="4" />
+		<element name="four_UINT8" type="8" array-size="4" />
+		<element name="four_UINT16" type="9" array-size="4" />
+		<element name="four_UINT32" type="10" array-size="4" />
+		<element name="four_UINT64" type="11" array-size="4" />
+		<element name="four_REAL32" type="12" array-size="4" />
+		<element name="four_REAL64" type="13" array-size="4" />
+		<element name="four_TIMEDATE32" type="14" array-size="4" />
+		<element name="four_TIMEDATE48" type="15" array-size="4" />
+		<element name="four_TIMEDATE64" type="16" array-size="4" />
+		<!-- test dynamic list: -->
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_BOOL" type="1" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_chars" type="2" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amounat_of_16chars" type="3" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_INT8" type="4" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_INT16" type="5" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_INT32" type="6" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_INT64" type="7" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_UINT8" type="8" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_UINT16" type="9" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_UINT32" type="10" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_UINT64" type="11" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_REAL32" type="12" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_REAL64" type="13" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_TIMEDATE32" type="14" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_TIMEDATE48" type="15" array-size="0" />
+		<element name="UINT16" type="9" />
+		<element name="unkown_amount_of_TIMEDATE64" type="16" array-size="0" />
+		
+		<!-- add our own definded datasets: -->
+		<element name="cascading_test" type="993" />
+      </data-set>
+	  <!-- Some  cascading datasets -->
+	  <data-set name="grand_father_dataset" id="993">
+		<element name="UINT8" type="8" array-size="1" />
+		<element name="next_gen_of_the_only_child" type="992" array-size="1" />
+      </data-set>
+	  <data-set name="father_dataset" id="992">
+		<element name="UINT8" type="8" array-size="1" />
+		<element name="the_only_child" type="991" array-size="1" />
+      </data-set>
+	  <data-set name="child_dataset" id="991">
+		<element name="UINT8" type="8" array-size="1" />
+		<element name="on_basic_dataset" type="990" array-size="1" />
+      </data-set>
+	  <data-set name="basic_dataset" id="990">
+		<element name="UINT8" type="8" array-size="1" />
+		<element name="CHAR8" type="2" array-size="1" />
+      </data-set>
+   </data-set-list>
+   <!-- All possible datatypes:
+BOOL8    1	=UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true)
+CHAR8		2	char, can be used also as UTF8 
+UTF16		3	Unicode UTF-16 character
+INT8		4	Signed integer, 8 bit
+INT16		5	Signed integer, 16 bit
+INT32		6	Signed integer, 32 bit
+INT64		7	Signed integer, 64 bit
+UINT8		8	Unsigned integer, 8 bit
+UINT16		9	Unsigned integer, 16 bit
+UINT32		10	Unsigned integer, 32 bit
+UINT64		11	Unsigned integer, 64 bit
+REAL32		12	Floating point real, 32 bit
+REAL64		13	Floating point real, 64 bit
+TIMEDATE32	14	32 bit UNIX time
+TIMEDATE48	15	48 bit TCN time (32 bit seconds and 16 bit ticks)
+TIMEDATE64	16	32 bit seconds and 32 bit microseconds
+   -->
+   
+   <debug  />
+</device>

@@ -1,0 +1,1459 @@
+/**********************************************************************************************************************/
+/**
+ * @file            tau_tti.c
+ *
+ * @brief           Functions for train topology information access
+ *
+ * @details         The TTI subsystem maintains a pointer to the TAU_TTDB struct in the TRDP session struct.
+ *                  That TAU_TTDB struct keeps the subscription and listener handles, the current TTDB directories and
+ *                  a pointer list to consist infos (in network format). On init, most TTDB data is requested from the
+ *                  ECSP plus the own consist info.
+ *                  This data is automatically updated if an inauguration is detected. Additional consist infos are
+ *                  requested on demand, only.
+ *                  Because of the asynchronous behavior of the TTI subsystem, most functions in tau_tti.c may return
+ *                  TRDP_NODATA_ERR on first invocation.
+ *                  They should be called again after 1...3 seconds (3s is the timeout for most MD replies).
+ *
+ *
+ * @note            Project: TCNOpen TRDP prototype stack
+ *
+ * @author          B. Loehr (initial version)
+ *
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2016. All rights reserved.
+ */
+ /*
+ * $Id$
+ *
+ *      SB 2019-02-06: Added OpTrn topocnt changed log message (PD100), wait in mdCallback only when topocnt changed
+ *      SB 2019-01-31: fixed reference of waitForInaug semaphore pointer in ttiMDCallback
+ *      BL 2019-01-24: ttiStoreOpTrnDir returns changed flag
+ *      BL 2019-01-24: Missing PD100 -> WARNING (not ERROR) log
+ *      BL 2018-08-07: Ticket #183 tau_getOwnIds declared but not defined
+ *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+ *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
+ *      BL 2017-11-13: Ticket #176 TRDP_LABEL_T breaks field alignment -> TRDP_NET_LABEL_T
+ *     AHW 2017-11-08: Ticket #179 Max. number of retries (part of sendParam) of a MD request needs to be checked
+ *      BL 2017-05-08: Compiler warnings, doxygen comment errors
+ *      BL 2017-04-28: Ticket #155: Kill trdp_proto.h - move definitions to iec61375-2-3.h
+ *      BL 2017-03-13: Ticket #154 ComIds and DSIds literals (#define TRDP_...) in trdp_proto.h too long
+ *      BL 2017-02-10: Ticket #129 Found a bug which yields wrong output params and potentially segfaults
+ *      BL 2017-02-08: Ticket #142 Compiler warnings / MISRA-C 2012 issues
+ *      BL 2016-02-18: Ticket #7: Add train topology information support
+ */
+
+/***********************************************************************************************************************
+ * INCLUDES
+ */
+
+#include <string.h>
+#include <stdio.h>
+
+#include "trdp_if_light.h"
+#include "trdp_utils.h"
+#include "tau_marshall.h"
+#include "tau_tti.h"
+#include "vos_sock.h"
+#include "tau_dnr.h"
+
+#include "tau_cstinfo.c"
+
+/***********************************************************************************************************************
+ * DEFINES
+ */
+
+#define TTI_CACHED_CONSISTS  8u             /**< We hold this number of consist infos (ca. 105kB) */
+
+/***********************************************************************************************************************
+ * TYPEDEFS
+ */
+
+typedef struct TAU_TTDB
+{
+    TRDP_SUB_T                      pd100SubHandle;
+    TRDP_LIS_T                      md101Listener;
+    TRDP_LIS_T                      md102Listener;
+    TRDP_OP_TRAIN_DIR_STATUS_INFO_T opTrnState;
+    TRDP_OP_TRAIN_DIR_T             opTrnDir;
+    TRDP_TRAIN_DIR_T                trnDir;
+    TRDP_TRAIN_NET_DIR_T            trnNetDir;
+    UINT32                          noOfCachedCst;
+    UINT32                          cstSize[TRDP_MAX_CST_CNT];
+    TRDP_CONSIST_INFO_T             *cstInfo[TRDP_MAX_CST_CNT];
+} TAU_TTDB_T;
+
+/***********************************************************************************************************************
+ *   Locals
+ */
+
+static void ttiRequestTTDBdata (TRDP_APP_SESSION_T  appHandle,
+                                UINT32              comID,
+                                const TRDP_UUID_T   cstUUID);
+
+static void ttiGetUUIDfromLabel (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_UUID_T         cstUUID,
+    const TRDP_LABEL_T  cstLabel);
+
+static TRDP_IP_ADDR_T ipFromURI (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_URI_HOST_T     uri)
+{
+    TRDP_IP_ADDR_T ipAddr = VOS_INADDR_ANY;
+
+    (void) tau_uri2Addr(appHandle, &ipAddr, uri);
+
+    return ipAddr;
+}
+
+/**********************************************************************************************************************/
+/**    Function returns the UUID for the given UIC ID
+ *      We need to search in the OP_TRAIN_DIR the OP_VEHICLE where the vehicle is the
+ *      first one in the consist and its name matches.
+ *      Note: The first vehicle in a consist has the same ID as the consist it is belonging to (5.3.3.2.5)
+ */
+static void ttiGetUUIDfromLabel (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_UUID_T         cstUUID,
+    const TRDP_LABEL_T  cstLabel)
+{
+    UINT32  i;
+    UINT32  j;
+
+    /* Search the vehicles in the OP_TRAIN_DIR for a matching vehID */
+
+    for (i = 0u; i < appHandle->pTTDB->opTrnDir.opVehCnt; i++)
+    {
+        if (vos_strnicmp(appHandle->pTTDB->opTrnDir.opVehList[i].vehId, cstLabel, sizeof(TRDP_NET_LABEL_T)) == 0)
+        {
+            /* vehicle found, is it the first in the consist?   */
+            UINT8 opCstNo = appHandle->pTTDB->opTrnDir.opVehList[i].ownOpCstNo;
+            for (j = 0u; j < appHandle->pTTDB->opTrnDir.opCstCnt; j++)
+            {
+                if (opCstNo == appHandle->pTTDB->opTrnDir.opCstList[j].opCstNo)
+                {
+                    memcpy(cstUUID, appHandle->pTTDB->opTrnDir.opCstList[j].cstUUID, sizeof(TRDP_UUID_T));
+                    return;
+                }
+            }
+        }
+    }
+    /* not found    */
+    memset(cstUUID, 0, sizeof(TRDP_UUID_T));
+}
+
+static BOOL8   ttiIsOwnCstInfo (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_CONSIST_INFO_T *pTelegram)
+{
+    UINT32 i;
+    for (i = 0u; i < appHandle->pTTDB->opTrnDir.opCstCnt; i++)
+    {
+        if (appHandle->pTTDB->opTrnState.ownTrnCstNo == appHandle->pTTDB->opTrnDir.opCstList[i].trnCstNo)
+        {
+            return memcmp(appHandle->pTTDB->opTrnDir.opCstList[i].cstUUID, pTelegram->cstUUID,
+                          sizeof(TRDP_UUID_T)) == 0u;
+        }
+    }
+    return FALSE;
+}
+
+/**********************************************************************************************************************/
+/**    Function called on reception of process data
+ *
+ *  Handle and process incoming data, update our data store
+ *
+ *  @param[in]      pRefCon         unused.
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      pMsg            Pointer to the message info (header etc.)
+ *  @param[in]      pData           Pointer to the network buffer.
+ *  @param[in]      dataSize        Size of the received data
+ *
+ *  @retval         none
+ *
+ */
+static void ttiPDCallback (
+    void                    *pRefCon,
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_PD_INFO_T    *pMsg,
+    UINT8                   *pData,
+    UINT32                  dataSize)
+{
+    int changed = 0;
+    VOS_SEMA_T waitForInaug = (VOS_SEMA_T) pMsg->pUserRef;
+
+    pRefCon = pRefCon;
+
+    if (pMsg->comId == TTDB_STATUS_COMID)
+    {
+        if ((pMsg->resultCode == TRDP_NO_ERR) &&
+            (dataSize <= sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T)))
+        {
+            TRDP_OP_TRAIN_DIR_STATUS_INFO_T *pTelegram = (TRDP_OP_TRAIN_DIR_STATUS_INFO_T *) pData;
+            UINT32 crc;
+
+            /* check the crc:   */
+            crc = vos_sc32(0xFFFFFFFFu, (const UINT8 *) &pTelegram->state, sizeof(TRDP_OP_TRAIN_DIR_STATE_T) - 4);
+            if (crc != vos_ntohl(pTelegram->state.crc))
+            {
+                vos_printLog(VOS_LOG_WARNING, "CRC error of received operational status info (%08x != %08x)!\n",
+                             crc, vos_ntohl(pTelegram->state.crc))
+                    (void) tlc_setOpTrainTopoCount(appHandle, 0);
+                return;
+            }
+
+            /* Store the state locally */
+            memcpy(&appHandle->pTTDB->opTrnState, &pTelegram->state,
+                   (sizeof(TRDP_OP_TRAIN_DIR_STATE_T) < dataSize) ? sizeof(TRDP_OP_TRAIN_DIR_STATE_T) : dataSize);
+
+            /* unmarshall manually:   */
+            appHandle->pTTDB->opTrnState.etbTopoCnt         = vos_ntohl(pTelegram->etbTopoCnt);
+            appHandle->pTTDB->opTrnState.state.opTrnTopoCnt = vos_ntohl(pTelegram->state.opTrnTopoCnt);
+            appHandle->pTTDB->opTrnState.state.crc = vos_ntohl(pTelegram->state.crc);
+
+            /* vos_printLog(VOS_LOG_INFO, "---> Operational status info received on %p\n", appHandle); */
+
+            /* Has the etbTopoCnt changed? */
+            if (appHandle->etbTopoCnt != appHandle->pTTDB->opTrnState.etbTopoCnt)
+            {
+                vos_printLog(VOS_LOG_INFO, "ETB topocount changed (old: 0x%08x, new: 0x%08x) on %p!\n",
+                             appHandle->etbTopoCnt, appHandle->pTTDB->opTrnState.etbTopoCnt, (void *) appHandle);
+                changed++;
+                (void) tlc_setETBTopoCount(appHandle, appHandle->pTTDB->opTrnState.etbTopoCnt);
+            }
+
+            if (appHandle->opTrnTopoCnt != appHandle->pTTDB->opTrnState.state.opTrnTopoCnt)
+            {
+                vos_printLog(VOS_LOG_INFO,
+                             "OpTrn topocount changed (old: 0x%08x, new: 0x%08x) on %p!\n",
+                             appHandle->opTrnTopoCnt,
+                             appHandle->pTTDB->opTrnState.state.opTrnTopoCnt,
+                             (void *) appHandle);
+                changed++;
+                (void) tlc_setOpTrainTopoCount(appHandle, appHandle->pTTDB->opTrnState.state.opTrnTopoCnt);
+            }
+
+        }
+        else if (pMsg->resultCode == TRDP_TIMEOUT_ERR )
+        {
+            vos_printLog(VOS_LOG_WARNING, "---> Operational status info timed out! Invalidating topocounts on %p!\n",
+                         (void *)appHandle);
+
+            if (appHandle->etbTopoCnt != 0u)
+            {
+                changed++;
+                (void) tlc_setETBTopoCount(appHandle, 0u);
+            }
+            if (appHandle->opTrnTopoCnt != 0u)
+            {
+                changed++;
+                (void) tlc_setOpTrainTopoCount(appHandle, 0u);
+            }
+        }
+        else
+        {
+            vos_printLog(VOS_LOG_INFO, "---> Unsolicited msg received on %p!\n",
+                         (void *)appHandle);
+        }
+        if ((changed > 0) && (waitForInaug != NULL))
+        {
+            vos_semaGive(waitForInaug);
+        }
+    }
+}
+
+/**********************************************************************************************************************/
+/*  Functions to convert TTDB network packets into local (static) representation                                      */
+/**********************************************************************************************************************/
+static BOOL8 ttiStoreOpTrnDir (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT8               *pData)
+{
+    TRDP_OP_TRAIN_DIR_T *pTelegram = (TRDP_OP_TRAIN_DIR_T *) pData;
+    UINT32  size;
+    BOOL8   changedTopoCnt;
+
+    /* we have to unpack the data, copy up to OP_CONSIST */
+    if (pTelegram->opCstCnt > TRDP_MAX_CST_CNT)
+    {
+        vos_printLog(VOS_LOG_WARNING, "Max count of consists of received operational dir exceeded (%d)!\n",
+                     pTelegram->opCstCnt);
+        return 0;
+    }
+
+    /* 8 Bytes up to opCstCnt plus number of Consists  */
+    size = 8 + pTelegram->opCstCnt * sizeof(TRDP_OP_CONSIST_T);
+    memcpy(&appHandle->pTTDB->opTrnDir, pData, size);
+    pData   += size + 3;            /* jump to cnt  */
+    size    = *pData++ *sizeof(TRDP_OP_VEHICLE_T) + sizeof(UINT32); /* copy opTrnTopoCnt as well    */
+    memcpy(&appHandle->pTTDB->opTrnDir, pData, size);
+
+    /* unmarshall manually and update the opTrnTopoCount   */
+    appHandle->pTTDB->opTrnDir.opTrnTopoCnt = vos_ntohl(appHandle->pTTDB->opTrnDir.opTrnTopoCnt);
+    changedTopoCnt = (tlc_getOpTrainTopoCount(appHandle) != appHandle->pTTDB->opTrnDir.opTrnTopoCnt);
+    (void) tlc_setOpTrainTopoCount(appHandle, appHandle->pTTDB->opTrnDir.opTrnTopoCnt);
+    return changedTopoCnt;
+}
+
+static void ttiStoreTrnDir (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT8               *pData)
+{
+    TRDP_TRAIN_DIR_T *pTelegram = (TRDP_TRAIN_DIR_T *) pData;
+    UINT32 size, i;
+
+    /* we have to unpack the data, copy up to CONSIST */
+    if (pTelegram->cstCnt > TRDP_MAX_CST_CNT)
+    {
+        vos_printLog(VOS_LOG_WARNING, "Max count of consists of received train dir exceeded (%d)!\n",
+                     pTelegram->cstCnt);
+        return;
+    }
+
+    /* 4 Bytes up to cstCnt plus number of Consists  */
+    size = 4 + pTelegram->cstCnt * sizeof(TRDP_CONSIST_T);
+    memcpy(&appHandle->pTTDB->trnDir, pData, size);
+    pData += size;              /* jump to trnTopoCount  */
+
+    /* unmarshall manually and update the trnTopoCount   */
+    appHandle->pTTDB->trnDir.trnTopoCnt = vos_ntohl((*(UINT32 *)pData));   /* copy trnTopoCnt as well    */
+
+    /* swap the consist topoCnts    */
+    for (i = 0; i < appHandle->pTTDB->trnDir.cstCnt; i++)
+    {
+        appHandle->pTTDB->trnDir.cstList[i].cstTopoCnt = vos_ntohl(appHandle->pTTDB->trnDir.cstList[i].cstTopoCnt);
+    }
+}
+
+static void ttiStoreTrnNetDir (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT8               *pData)
+{
+    TRDP_TRAIN_NET_DIR_T *pTelegram = (TRDP_TRAIN_NET_DIR_T *) pData;
+    UINT32 size, i;
+
+    /* we have to unpack the data, copy up to CONSIST */
+
+    appHandle->pTTDB->trnNetDir.reserved01  = 0;
+    appHandle->pTTDB->trnNetDir.entryCnt    = vos_ntohs(pTelegram->entryCnt);
+    if (appHandle->pTTDB->trnNetDir.entryCnt > TRDP_MAX_CST_CNT)
+    {
+        vos_printLog(VOS_LOG_WARNING, "Max count of consists of received train net dir exceeded (%d)!\n",
+                     vos_ntohs(appHandle->pTTDB->trnNetDir.entryCnt));
+        return;
+    }
+
+    /* 4 Bytes up to cstCnt plus number of Consists  */
+    size = appHandle->pTTDB->trnNetDir.entryCnt * sizeof(TRDP_TRAIN_NET_DIR_ENTRY_T);
+    memcpy(&appHandle->pTTDB->trnNetDir.trnNetDir[0], pData, size);
+    pData += 4 + size;              /* jump to etbTopoCnt  */
+
+    /* unmarshall manually and update the etbTopoCount   */
+    appHandle->pTTDB->trnNetDir.etbTopoCnt = vos_ntohl((*(UINT32 *)pData));   /* copy etbTopoCnt as well    */
+
+    /* swap the consist network properties    */
+    for (i = 0; i < appHandle->pTTDB->trnNetDir.entryCnt; i++)
+    {
+        appHandle->pTTDB->trnNetDir.trnNetDir[i].cstNetProp = vos_ntohl(
+                appHandle->pTTDB->trnNetDir.trnNetDir[i].cstNetProp);
+    }
+}
+
+/***********************************************************************************************************************
+ * Find an appropriate location to store the received consist info
+ */
+static void ttiStoreCstInfo (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT8               *pData,
+    UINT32              dataSize)
+{
+    TRDP_CONSIST_INFO_T *pTelegram = (TRDP_CONSIST_INFO_T *) pData;
+    UINT32 curEntry = 0;
+
+    if (ttiIsOwnCstInfo(appHandle, pTelegram) == TRUE)
+    {
+        if (appHandle->pTTDB->cstInfo[curEntry] != NULL)
+        {
+            vos_memFree(appHandle->pTTDB->cstInfo[curEntry]);
+            appHandle->pTTDB->cstInfo[curEntry] = NULL;
+        }
+    }
+    else
+    {
+        UINT32 l_index;
+        curEntry = 1;
+        /* check if already loaded */
+        for (l_index = 1; l_index < TRDP_MAX_CST_CNT; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                appHandle->pTTDB->cstInfo[l_index]->cstTopoCnt != 0 &&
+                memcmp(appHandle->pTTDB->cstInfo[l_index]->cstUUID, pTelegram->cstUUID, sizeof(TRDP_UUID_T)) == 0)
+            {
+                vos_memFree(appHandle->pTTDB->cstInfo[l_index]);
+                appHandle->pTTDB->cstInfo[l_index] = NULL;
+                curEntry = l_index;
+                break;
+            }
+        }
+    }
+    appHandle->pTTDB->cstInfo[curEntry] = (TRDP_CONSIST_INFO_T *) vos_memAlloc(dataSize);
+    if (appHandle->pTTDB->cstInfo[curEntry] == NULL)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "Consist info could not be stored!");
+        return;
+    }
+
+    /* We do not convert but just copy the consist info slot   */
+
+    memcpy(appHandle->pTTDB->cstInfo[curEntry], pTelegram, dataSize);
+    appHandle->pTTDB->cstSize[curEntry] = dataSize;
+}
+
+/**********************************************************************************************************************/
+/**    Function called on reception of message data
+ *
+ *  Handle and process incoming data, update our data store
+ *
+ *  @param[in]      pRefCon         unused.
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      pMsg            Pointer to the message info (header etc.)
+ *  @param[in]      pData           Pointer to the network buffer.
+ *  @param[in]      dataSize        Size of the received data
+ *
+ *  @retval         none
+ *
+ */
+static void ttiMDCallback (
+    void                    *pRefCon,
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_MD_INFO_T    *pMsg,
+    UINT8                   *pData,
+    UINT32                  dataSize)
+{
+    VOS_SEMA_T waitForInaug = (VOS_SEMA_T) pMsg->pUserRef;
+
+    (void) pRefCon;
+
+    if (pMsg->comId == TTDB_OP_DIR_INFO_COMID ||      /* TTDB notification */
+        pMsg->comId == TTDB_OP_DIR_INFO_REP_COMID)
+    {
+        if (pMsg->resultCode == TRDP_NO_ERR &&
+            dataSize <= sizeof(TRDP_OP_TRAIN_DIR_T))
+        {
+            if (ttiStoreOpTrnDir(appHandle, pData))
+            {
+                if (waitForInaug != NULL)
+                {
+                    vos_semaGive(waitForInaug);           /* Signal new inauguration    */
+                }
+            }
+        }
+    }
+    else if (pMsg->comId == TTDB_TRN_DIR_REP_COMID)
+    {
+        if (pMsg->resultCode == TRDP_NO_ERR &&
+            dataSize <= sizeof(TRDP_TRAIN_DIR_T))
+        {
+            UINT32 i;
+            ttiStoreTrnDir(appHandle, pData);
+            /* Request consist infos now (fill cache)   */
+            for (i = 0; i < TTI_CACHED_CONSISTS; i++)
+            {
+                /* invalidate entry */
+                if (appHandle->pTTDB->cstInfo[i] != NULL)
+                {
+                    vos_memFree(appHandle->pTTDB->cstInfo[i]);
+                    appHandle->pTTDB->cstInfo[i] = NULL;
+                }
+                ;
+            }
+            for (i = 0; i < TTI_CACHED_CONSISTS; i++)
+            {
+                if (appHandle->pTTDB->trnDir.cstList[i].cstTopoCnt == 0)
+                {
+                    break;  /* no of available consists reached   */
+                }
+                ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, appHandle->pTTDB->trnDir.cstList[i].cstUUID);
+            }
+        }
+    }
+    else if (pMsg->comId == TTDB_NET_DIR_REP_COMID)
+    {
+        if (pMsg->resultCode == TRDP_NO_ERR &&
+            dataSize <= sizeof(TRDP_TRAIN_NET_DIR_T))
+        {
+            ttiStoreTrnNetDir(appHandle, pData);
+        }
+    }
+    else if (pMsg->comId == TTDB_READ_CMPLT_REP_COMID)
+    {
+        if (pMsg->resultCode == TRDP_NO_ERR &&
+            dataSize <= sizeof(TRDP_READ_COMPLETE_REPLY_T))
+        {
+            TRDP_READ_COMPLETE_REPLY_T *pTelegram = (TRDP_READ_COMPLETE_REPLY_T *) pData;
+            UINT32 crc;
+
+            /* Handle the op_state  */
+
+            /* check the crc:   */
+            crc = vos_crc32(0xFFFFFFFF, (const UINT8 *) &pTelegram->state, dataSize - 4);
+            if (crc != MAKE_LE(pTelegram->state.crc))
+            {
+                vos_printLog(VOS_LOG_WARNING, "CRC error of received operational status info (%08x != %08x)!\n",
+                             crc, vos_ntohl(pTelegram->state.crc))
+                    (void) tlc_setOpTrainTopoCount(appHandle, 0);
+                return;
+            }
+            memcpy(&appHandle->pTTDB->opTrnState.state, &pTelegram->state,
+                   (dataSize > sizeof(TRDP_OP_TRAIN_DIR_STATE_T)) ? sizeof(TRDP_OP_TRAIN_DIR_STATE_T) : dataSize);
+
+            /* unmarshall manually:   */
+            appHandle->pTTDB->opTrnState.state.opTrnTopoCnt = vos_ntohl(pTelegram->state.opTrnTopoCnt);
+            (void) tlc_setOpTrainTopoCount(appHandle, appHandle->pTTDB->opTrnState.state.opTrnTopoCnt);
+            appHandle->pTTDB->opTrnState.state.crc = MAKE_LE(pTelegram->state.crc);
+
+            /* handle the other parts of the message    */
+            (void) ttiStoreOpTrnDir(appHandle, (UINT8 *) &pTelegram->opTrnDir);
+            ttiStoreTrnDir(appHandle, (UINT8 *) &pTelegram->trnDir);
+            ttiStoreTrnNetDir(appHandle, (UINT8 *) &pTelegram->trnNetDir);
+        }
+    }
+    else if (pMsg->comId == TTDB_STAT_CST_REP_COMID)
+    {
+
+        if (pMsg->resultCode == TRDP_NO_ERR &&
+            dataSize <= sizeof(TRDP_CONSIST_INFO_T))
+        {
+            /* find a free place in the cache, or overwrite oldest entry   */
+            ttiStoreCstInfo(appHandle, pData, dataSize);
+        }
+    }
+}
+
+/**********************************************************************************************************************/
+/**    Function to request TTDB data from ECSP
+ *
+ *  Request update of our data store
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      comID           Communication ID of request
+ *  @param[in]      cstUUID         Pointer to the additional info
+ *
+ *  @retval         none
+ *
+ */
+static void ttiRequestTTDBdata (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT32              comID,
+    const TRDP_UUID_T   cstUUID)
+{
+    switch (comID)
+    {
+       case TTDB_OP_DIR_INFO_REQ_COMID:
+       {
+           UINT8 param = 0;
+           (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_OP_DIR_INFO_REQ_COMID, appHandle->etbTopoCnt,
+                              appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                                                                    TTDB_OP_DIR_INFO_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                              TTDB_OP_DIR_INFO_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+           /* Make sure the request is sent: */
+       }
+       break;
+       case TTDB_TRN_DIR_REQ_COMID:
+       {
+           UINT8 param = 0;         /* ETB0 */
+           (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_TRN_DIR_REQ_COMID, appHandle->etbTopoCnt,
+                              appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                                                                    TTDB_TRN_DIR_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                              TTDB_TRN_DIR_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+       }
+       break;
+       case TTDB_NET_DIR_REQ_COMID:
+       {
+           UINT8 param = 0;         /* ETB0 */
+           (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_NET_DIR_REQ_COMID, appHandle->etbTopoCnt,
+                              appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                                                                    TTDB_NET_DIR_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                              TTDB_NET_DIR_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+       }
+       break;
+       case TTDB_READ_CMPLT_REQ_COMID:
+       {
+           UINT8 param = 0;         /* ETB0 */
+           (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_READ_CMPLT_REQ_COMID, appHandle->etbTopoCnt,
+                              appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                                                                    TTDB_READ_CMPLT_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                              TTDB_READ_CMPLT_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+       }
+       break;
+       case TTDB_STAT_CST_REQ_COMID:
+       {
+           (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_STAT_CST_REQ_COMID, appHandle->etbTopoCnt,
+                              appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                                                                    TTDB_STAT_CST_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                              TTDB_STAT_CST_REQ_TO, NULL, cstUUID, sizeof(TRDP_UUID_T), NULL, NULL);
+       }
+       break;
+
+    }
+    /* Make sure the request is sent: */
+    (void) tlc_process(appHandle, NULL, NULL);
+}
+
+#pragma mark ----------------------- Public -----------------------------
+
+/**********************************************************************************************************************/
+/*    Train configuration information access                                                                          */
+/**********************************************************************************************************************/
+
+/**********************************************************************************************************************/
+/**    Function to init TTI access
+ *
+ *  Subscribe to necessary process data for correct ECSP handling, further calls need DNS!
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      userAction      Semaphore to fire if inauguration took place.
+ *  @param[in]      ecspIpAddr      ECSP IP address. Currently not used.
+ *  @param[in]      hostsFileName   Optional host file name as ECSP replacement. Currently not implemented.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_INIT_ERR   initialisation error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_initTTIaccess (
+    TRDP_APP_SESSION_T  appHandle,
+    VOS_SEMA_T          userAction,
+    TRDP_IP_ADDR_T      ecspIpAddr,
+    CHAR8               *hostsFileName)
+{
+    if (appHandle == NULL || appHandle->pTTDB != NULL)
+    {
+        return TRDP_INIT_ERR;
+    }
+
+    ecspIpAddr      = ecspIpAddr;
+    hostsFileName   = hostsFileName;
+
+    appHandle->pTTDB = (TAU_TTDB_T *) vos_memAlloc(sizeof(TAU_TTDB_T));
+    if (appHandle->pTTDB == NULL)
+    {
+        return TRDP_MEM_ERR;
+    }
+
+    /*  subscribe to PD 100 */
+
+    if (tlp_subscribe(appHandle,
+                      &appHandle->pTTDB->pd100SubHandle,
+                      userAction, ttiPDCallback,
+                      TRDP_TTDB_OP_TRN_DIR_STAT_INF_COMID,
+                      0u, 0u,
+                      VOS_INADDR_ANY, VOS_INADDR_ANY,
+                      vos_dottedIP(TTDB_STATUS_DEST_IP),
+                      (TRDP_FLAGS_T) (TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB),
+                      TTDB_STATUS_TO * 1000u,
+                      TRDP_TO_SET_TO_ZERO) != TRDP_NO_ERR)
+    {
+        vos_memFree(appHandle->pTTDB);
+        return TRDP_INIT_ERR;
+    }
+
+    /*  Listen for MD 101 */
+
+    if (tlm_addListener(appHandle,
+                        &appHandle->pTTDB->md101Listener,
+                        userAction,
+                        ttiMDCallback,
+                        TRUE,
+                        TTDB_OP_DIR_INFO_COMID,
+                        0,
+                        0,
+                        VOS_INADDR_ANY, VOS_INADDR_ANY,
+                        vos_dottedIP(TTDB_OP_DIR_INFO_IP),
+                        TRDP_FLAGS_CALLBACK, NULL, NULL) != TRDP_NO_ERR)
+    {
+        vos_memFree(appHandle->pTTDB);
+        return TRDP_INIT_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+/**********************************************************************************************************************/
+/**    Release any resources allocated by TTI
+ *  Must be called before closing the session.
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *
+ *  @retval         none
+ *
+ */
+EXT_DECL void tau_deInitTTI (
+    TRDP_APP_SESSION_T appHandle)
+{
+    if (appHandle->pTTDB != NULL)
+    {
+        UINT32 i;
+        for (i = 0; i < appHandle->pTTDB->noOfCachedCst; i++)
+        {
+            if (appHandle->pTTDB->cstInfo[i] != NULL)
+            {
+                vos_memFree(appHandle->pTTDB->cstInfo[i]);
+                appHandle->pTTDB->cstInfo[i] = NULL;
+            }
+        }
+        (void) tlm_delListener(appHandle, appHandle->pTTDB->md101Listener);
+        (void) tlp_unsubscribe(appHandle, appHandle->pTTDB->pd100SubHandle);
+        vos_memFree(appHandle->pTTDB);
+        appHandle->pTTDB = NULL;
+    }
+}
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the operational train directory state.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pOpTrnDirState  Pointer to an operational train directory state structure to be returned.
+ *  @param[out]     pOpTrnDir       Pointer to an operational train directory structure to be returned.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *  @retval         TRDP_NODATA_ERR Data currently not available, try again later
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getOpTrDirectory (
+    TRDP_APP_SESSION_T          appHandle,
+    TRDP_OP_TRAIN_DIR_STATE_T   *pOpTrnDirState,
+    TRDP_OP_TRAIN_DIR_T         *pOpTrnDir)
+{
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+    if (appHandle->pTTDB->opTrnDir.opCstCnt == 0 ||
+        appHandle->pTTDB->opTrnDir.opTrnTopoCnt != appHandle->opTrnTopoCnt)     /* need update? */
+    {
+        ttiRequestTTDBdata(appHandle, TTDB_OP_DIR_INFO_REQ_COMID, NULL);
+        return TRDP_NODATA_ERR;
+    }
+    if (pOpTrnDirState != NULL)
+    {
+        *pOpTrnDirState = appHandle->pTTDB->opTrnState.state;
+    }
+    if (pOpTrnDir != NULL)
+    {
+        *pOpTrnDir = appHandle->pTTDB->opTrnDir;
+    }
+    return TRDP_NO_ERR;
+}
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the operational train directory state info.
+ *  Return a copy of the last received PD 100 telegram.
+ *  Note: The values are in host endianess! When validating (SDTv2), network endianess must be ensured.
+ *
+ *  @param[in]      appHandle               Handle returned by tlc_openSession().
+ *  @param[out]     pOpTrnDirStatusInfo     Pointer to an operational train directory state structure to be returned.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getOpTrnDirectoryStatusInfo (
+    TRDP_APP_SESSION_T              appHandle,
+    TRDP_OP_TRAIN_DIR_STATUS_INFO_T *pOpTrnDirStatusInfo)
+{
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pOpTrnDirStatusInfo == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+    *pOpTrnDirStatusInfo = appHandle->pTTDB->opTrnState;
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the train directory.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pTrnDir         Pointer to a train directory structure to be returned.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *  @retval         TRDP_NODATA_ERR Try later
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getTrDirectory (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_TRAIN_DIR_T    *pTrnDir)
+{
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pTrnDir == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+    if (appHandle->pTTDB->trnDir.cstCnt == 0 ||
+        appHandle->pTTDB->trnDir.trnTopoCnt != appHandle->etbTopoCnt)     /* need update? */
+    {
+        ttiRequestTTDBdata(appHandle, TTDB_TRN_DIR_REQ_COMID, NULL);
+        return TRDP_NODATA_ERR;
+    }
+    *pTrnDir = appHandle->pTTDB->trnDir;
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the consist info.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pCstInfo        Pointer to a consist info structure to be returned.
+ *  @param[in]      cstUUID         UUID of the consist the consist info is rquested for.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getStaticCstInfo (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_CONSIST_INFO_T *pCstInfo,
+    TRDP_UUID_T const   cstUUID)
+{
+    UINT32 l_index;
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pCstInfo == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (cstUUID == NULL)
+    {
+        l_index = 0;
+    }
+    else
+    {
+        /* find the consist in our cache list */
+        for (l_index = 0; l_index < TTI_CACHED_CONSISTS; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                memcmp(appHandle->pTTDB->cstInfo[l_index]->cstUUID, cstUUID, sizeof(TRDP_UUID_T)) == 0)
+            {
+                break;
+            }
+        }
+    }
+    if (l_index < TTI_CACHED_CONSISTS &&
+        appHandle->pTTDB->cstInfo[l_index] != NULL)
+    {
+        memcpy(pCstInfo, appHandle->pTTDB->cstInfo[l_index], appHandle->pTTDB->cstSize[l_index]);
+    }
+    else    /* not found, get it and return directly */
+    {
+        ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the operational train directory.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pOpTrnDirState   Pointer to an operational train directory state structure to be returned.
+ *  @param[out]     pOpTrnDir        Pointer to an operational train directory structure to be returned.
+ *  @param[out]     pTrnDir          Pointer to a train directory structure to be returned.
+ *  @param[out]     pTrnNetDir       Pointer to a train network directory structure to be returned.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getTTI (
+    TRDP_APP_SESSION_T          appHandle,
+    TRDP_OP_TRAIN_DIR_STATE_T   *pOpTrnDirState,
+    TRDP_OP_TRAIN_DIR_T         *pOpTrnDir,
+    TRDP_TRAIN_DIR_T            *pTrnDir,
+    TRDP_TRAIN_NET_DIR_T        *pTrnNetDir)
+{
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (pOpTrnDirState != NULL)
+    {
+        *pOpTrnDirState = appHandle->pTTDB->opTrnState.state;
+    }
+    if (pOpTrnDir != NULL)
+    {
+        *pOpTrnDir = appHandle->pTTDB->opTrnDir;
+    }
+    if (pTrnDir != NULL)
+    {
+        *pTrnDir = appHandle->pTTDB->trnDir;
+    }
+    if (pTrnNetDir != NULL)
+    {
+        *pTrnNetDir = appHandle->pTTDB->trnNetDir;
+    }
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the total number of consists in the train.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pTrnCstCnt      Pointer to the number of consists to be returned
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *  @retval         TRDP_NODATA_ERR Try again
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getTrnCstCnt (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT16              *pTrnCstCnt)
+{
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pTrnCstCnt == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+    if (appHandle->pTTDB->trnDir.cstCnt == 0 ||
+        appHandle->pTTDB->opTrnState.etbTopoCnt != appHandle->etbTopoCnt)     /* need update? */
+    {
+        ttiRequestTTDBdata(appHandle, TTDB_TRN_DIR_REQ_COMID, NULL);
+        return TRDP_NODATA_ERR;
+    }
+
+    *pTrnCstCnt = appHandle->pTTDB->trnDir.cstCnt;
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the total number of vehicles in the train.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pTrnVehCnt      Pointer to the number of vehicles to be returned
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *  @retval         TRDP_NODATA_ERR Try again
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getTrnVehCnt (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT16              *pTrnVehCnt)
+{
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pTrnVehCnt == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (appHandle->pTTDB->trnDir.cstCnt == 0 ||
+        appHandle->pTTDB->opTrnState.etbTopoCnt != appHandle->etbTopoCnt)     /* need update? */
+    {
+        ttiRequestTTDBdata(appHandle, TTDB_TRN_DIR_REQ_COMID, NULL);
+        return TRDP_NODATA_ERR;
+    }
+
+    *pTrnVehCnt = appHandle->pTTDB->opTrnDir.opVehCnt;
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the total number of vehicles in a consist.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pCstVehCnt      Pointer to the number of vehicles to be returned
+ *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *  @retval         TRDP_NODATA_ERR Try again
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getCstVehCnt (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT16              *pCstVehCnt,
+    const TRDP_LABEL_T  pCstLabel)
+{
+    UINT32 l_index;
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pCstVehCnt == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (pCstLabel == NULL)
+    {
+        l_index = 0;
+    }
+    else
+    {
+        /* find the consist in our cache list */
+        for (l_index = 0; l_index < TTI_CACHED_CONSISTS; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                vos_strnicmp(appHandle->pTTDB->cstInfo[l_index]->cstId, pCstLabel, sizeof(TRDP_NET_LABEL_T)) == 0)
+            {
+                break;
+            }
+        }
+    }
+    if (l_index < TTI_CACHED_CONSISTS)
+    {
+        *pCstVehCnt = vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->vehCnt);
+    }
+    else    /* not found, get it and return directly */
+    {
+        TRDP_UUID_T cstUUID;
+        ttiGetUUIDfromLabel(appHandle, cstUUID, pCstLabel);
+        ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the total number of functions in a consist.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pCstFctCnt      Pointer to the number of functions to be returned
+ *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getCstFctCnt (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT16              *pCstFctCnt,
+    const TRDP_LABEL_T  pCstLabel)
+{
+    UINT32 l_index;
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pCstFctCnt == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (pCstLabel == NULL)
+    {
+        l_index = 0;
+    }
+    else
+    {
+        /* find the consist in our cache list */
+        for (l_index = 0; l_index < TTI_CACHED_CONSISTS; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                vos_strnicmp(appHandle->pTTDB->cstInfo[l_index]->cstId, pCstLabel, sizeof(TRDP_NET_LABEL_T)) == 0)
+            {
+                break;
+            }
+        }
+    }
+    if (l_index < TTI_CACHED_CONSISTS)
+    {
+        *pCstFctCnt = vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->fctCnt);
+    }
+    else    /* not found, get it and return directly */
+    {
+        TRDP_UUID_T cstUUID;
+        ttiGetUUIDfromLabel(appHandle, cstUUID, pCstLabel);
+        ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+
+/* ---------------------------------------------------------------------------- */
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the function information of the consist.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pFctInfo        Pointer to function info list to be returned.
+ *                                  Memory needs to be provided by application. Set NULL if not used.
+ *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
+ *  @param[in]      maxFctCnt       Maximal number of functions to be returned in provided buffer.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
+    TRDP_APP_SESSION_T      appHandle,
+    TRDP_FUNCTION_INFO_T    *pFctInfo,
+    const TRDP_LABEL_T      pCstLabel,
+    UINT16                  maxFctCnt)
+{
+    UINT32 l_index, l_index2;
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pFctInfo == NULL ||
+        maxFctCnt == 0)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (pCstLabel == NULL)
+    {
+        l_index = 0;
+    }
+    else
+    {
+        /* find the consist in our cache list */
+        for (l_index = 0; l_index < TTI_CACHED_CONSISTS; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                vos_strnicmp(appHandle->pTTDB->cstInfo[l_index]->cstId, pCstLabel, sizeof(TRDP_NET_LABEL_T)) == 0)
+            {
+                break;
+            }
+        }
+    }
+    if (l_index < TTI_CACHED_CONSISTS)
+    {
+        for (l_index2 = 0; l_index2 < vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->fctCnt) &&
+             l_index2 < maxFctCnt; ++l_index2)
+        {
+            pFctInfo[l_index2] = appHandle->pTTDB->cstInfo[l_index]->pFctInfoList[l_index2];
+            pFctInfo[l_index2].fctId = vos_ntohs(pFctInfo[l_index2].fctId);
+        }
+    }
+    else    /* not found, get it and return directly */
+    {
+        TRDP_UUID_T cstUUID;
+        ttiGetUUIDfromLabel(appHandle, cstUUID, pCstLabel);
+        ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the vehicle information of a consist's vehicle.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pVehInfo        Pointer to the vehicle info to be returned.
+ *  @param[in]      pVehLabel       Pointer to a vehicle label. NULL means own vehicle  if cstLabel refers to own consist.
+ *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getVehInfo (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_VEHICLE_INFO_T *pVehInfo,
+    const TRDP_LABEL_T  pVehLabel,
+    const TRDP_LABEL_T  pCstLabel)
+{
+    UINT32 l_index, l_index2;
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pVehInfo == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (pCstLabel == NULL)
+    {
+        l_index = 0;
+    }
+    else
+    {
+        /* find the consist in our cache list */
+        for (l_index = 0; l_index < TTI_CACHED_CONSISTS; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                vos_strnicmp(appHandle->pTTDB->cstInfo[l_index]->cstId, pCstLabel, sizeof(TRDP_NET_LABEL_T)) == 0)
+            {
+                break;
+            }
+        }
+    }
+    if (l_index < TTI_CACHED_CONSISTS)
+    {
+        for (l_index2 = 0; l_index2 < vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->vehCnt); ++l_index2)
+        {
+            if (pVehLabel == NULL ||
+                vos_strnicmp(pVehLabel, appHandle->pTTDB->cstInfo[l_index]->pVehInfoList[l_index2].vehId,
+                             sizeof(TRDP_NET_LABEL_T)) == 0)
+            {
+                *pVehInfo = appHandle->pTTDB->cstInfo[l_index]->pVehInfoList[l_index2];
+            }
+        }
+    }
+    else    /* not found, get it and return directly */
+    {
+        TRDP_UUID_T cstUUID;
+        ttiGetUUIDfromLabel(appHandle, cstUUID, pCstLabel);
+        ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the consist information of a train's consist.
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pCstInfo        Pointer to the consist info to be returned.
+ *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getCstInfo (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_CONSIST_INFO_T *pCstInfo,
+    const TRDP_LABEL_T  pCstLabel)
+{
+    UINT32 l_index;
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pCstInfo == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    if (pCstLabel == NULL)
+    {
+        l_index = 0;
+    }
+    else
+    {
+        /* find the consist in our cache list */
+        for (l_index = 0; l_index < TTI_CACHED_CONSISTS; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                vos_strnicmp(appHandle->pTTDB->cstInfo[l_index]->cstId, pCstLabel, sizeof(TRDP_NET_LABEL_T)) == 0)
+            {
+                break;
+            }
+        }
+    }
+    if (l_index < TTI_CACHED_CONSISTS)
+    {
+        *pCstInfo = *appHandle->pTTDB->cstInfo[l_index];
+        pCstInfo->etbCnt    = vos_ntohs(pCstInfo->etbCnt);
+        pCstInfo->vehCnt    = vos_ntohs(pCstInfo->vehCnt);
+        pCstInfo->fctCnt    = vos_ntohs(pCstInfo->fctCnt);
+    }
+    else    /* not found, get it and return directly */
+    {
+        TRDP_UUID_T cstUUID;
+        ttiGetUUIDfromLabel(appHandle, cstUUID, pCstLabel);
+        ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+
+/* ---------------------------------------------------------------------------- */
+
+
+/**********************************************************************************************************************/
+/**    Function to retrieve the orientation of the given vehicle.
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     pVehOrient      Pointer to the vehicle orientation to be returned
+ *                                   '00'B = not known (corrected vehicle)
+ *                                   '01'B = same as operational train direction
+ *                                   '10'B = inverse to operational train direction
+ *  @param[out]     pCstOrient      Pointer to the consist orientation to be returned
+ *                                   '00'B = not known (corrected vehicle)
+ *                                   '01'B = same as operational train direction
+ *                                   '10'B = inverse to operational train direction
+ *  @param[in]      pVehLabel       vehLabel = NULL means own vehicle if cstLabel == NULL, currently ignored.
+ *  @param[in]      pCstLabel       cstLabel = NULL means own consist
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getVehOrient (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT8               *pVehOrient,
+    UINT8               *pCstOrient,
+    TRDP_LABEL_T        pVehLabel,
+    TRDP_LABEL_T        pCstLabel)
+{
+    UINT32 l_index, l_index2, l_index3;
+
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL ||
+        pVehOrient == NULL ||
+        pCstOrient == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    pVehLabel = pVehLabel;
+
+    *pVehOrient = 0;
+    *pCstOrient = 0;
+
+    if (pCstLabel == NULL)
+    {
+        l_index = 0;
+    }
+    else
+    {
+        /* find the consist in our cache list */
+        for (l_index = 0; l_index < TTI_CACHED_CONSISTS; l_index++)
+        {
+            if (appHandle->pTTDB->cstInfo[l_index] != NULL &&
+                vos_strnicmp(appHandle->pTTDB->cstInfo[l_index]->cstId, pCstLabel, sizeof(TRDP_NET_LABEL_T)) == 0)
+            {
+                break;
+            }
+        }
+    }
+    if (l_index < TTI_CACHED_CONSISTS)
+    {
+        /* Search the vehicles in the OP_TRAIN_DIR for a matching vehID */
+
+        for (l_index2 = 0; l_index2 < appHandle->pTTDB->opTrnDir.opCstCnt; l_index2++)
+        {
+            if (vos_strnicmp((CHAR8 *) appHandle->pTTDB->opTrnDir.opCstList[l_index2].cstUUID,
+                             (CHAR8 *) appHandle->pTTDB->cstInfo[l_index]->cstUUID, sizeof(TRDP_UUID_T)) == 0)
+            {
+                /* consist found   */
+                *pCstOrient = appHandle->pTTDB->opTrnDir.opCstList[l_index2].opCstOrient;
+
+                for (l_index3 = 0; l_index3 < appHandle->pTTDB->opTrnDir.opVehCnt; l_index3++)
+                {
+                    if (appHandle->pTTDB->opTrnDir.opVehList[l_index3].ownOpCstNo ==
+                        appHandle->pTTDB->opTrnDir.opCstList[l_index2].opCstNo)
+                    {
+                        *pVehOrient = appHandle->pTTDB->opTrnDir.opVehList[l_index3].vehOrient;
+                        return TRDP_NO_ERR;
+                    }
+                }
+            }
+        }
+    }
+    else    /* not found, get it and return directly */
+    {
+        TRDP_UUID_T cstUUID;
+        ttiGetUUIDfromLabel(appHandle, cstUUID, pCstLabel);
+        ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+    return TRDP_NO_ERR;
+}
+
+/**********************************************************************************************************************/
+/**    Who am I ?.
+ *  Realizes a kind of 'Who am I' function. It is used to determine the own identifiers (i.e. the own labels),
+ *  which may be used as host part of the own fully qualified domain name.
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession()
+ *  @param[out]     pDevId          Returns the device label (host name)
+ *  @param[out]     pVehId          Returns the vehicle label
+ *  @param[out]     pCstId          Returns the consist label
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *  @retval         TRDP_NODATA_ERR Data currently not available, call again
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_getOwnIds (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_LABEL_T        *pDevId,
+    TRDP_LABEL_T        *pVehId,
+    TRDP_LABEL_T        *pCstId)
+{
+    if (appHandle == NULL ||
+        appHandle->pTTDB == NULL)
+    {
+        return TRDP_PARAM_ERR;
+    }
+    /* if not already there, get the network directory */
+    if ((appHandle->pTTDB->trnNetDir.entryCnt == 0) ||
+        (appHandle->pTTDB->opTrnState.ownTrnCstNo == 0))            /* from PD 100  */
+    {    /* not found, get it and return immediately */
+        ttiRequestTTDBdata(appHandle, TTDB_NET_DIR_REQ_COMID, NULL);
+        return TRDP_NODATA_ERR;
+    }
+
+    /* if not already there, get the consist info for our consist */
+    if (appHandle->pTTDB->noOfCachedCst == 0)                 /* own Consist info  */
+    {    /* not found, get it and return immediately */
+        ttiRequestTTDBdata(appHandle, TRDP_TTDB_STATIC_CST_INF_REQ_COMID,
+                           appHandle->pTTDB->trnNetDir.trnNetDir[appHandle->pTTDB->opTrnState.ownTrnCstNo - 1].cstUUID);
+        return TRDP_NODATA_ERR;
+    }
+
+    /* here we should have all the infos we need to fullfill the request */
+
+    if (pDevId != NULL)
+    {
+        unsigned int    index;
+        /* deduct our device / function ID from our IP address */
+        UINT16          ownIP = (UINT16) (appHandle->realIP & 0x00000FFF);
+        /* Problem: What if it is not set? Default interface is 0! */
+
+        /* we traverse the consist info's functions */
+        for (index = 0; index < appHandle->pTTDB->cstInfo[0]->fctCnt; index++)
+        {
+            if (ownIP == appHandle->pTTDB->cstInfo[0]->pFctInfoList[index].fctId)
+            {
+                /* Get the name */
+                if (pDevId != NULL)
+                {
+                    memcpy(pDevId, appHandle->pTTDB->cstInfo[0]->pFctInfoList[index].fctName, TRDP_MAX_LABEL_LEN);
+                }
+
+                /* Get the vehicle name this device is in */
+                if (pVehId != NULL)
+                {
+                    UINT8 vehNo = appHandle->pTTDB->cstInfo[0]->pFctInfoList[index].cstVehNo;
+                    memcpy(pVehId, appHandle->pTTDB->cstInfo[0]->pVehInfoList[vehNo].vehId, TRDP_MAX_LABEL_LEN);
+                }
+                break;
+            }
+        }
+    }
+    /* Get the consist label (UIC identifier) */
+    if (pCstId != NULL)
+    {
+        memcpy(pCstId, appHandle->pTTDB->cstInfo[0]->cstId, TRDP_MAX_LABEL_LEN);
+    }
+    return TRDP_NO_ERR;
+}

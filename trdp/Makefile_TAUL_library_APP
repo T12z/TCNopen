@@ -1,0 +1,372 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION    trdp Makefile
+#//
+#// AUTHOR         Bernd Loehr, NewTec GmbH
+#//
+#// All rights reserved. Reproduction, modification, use or disclosure
+#// to third parties without express authority is forbidden.
+#// Copyright Bombardier Transportation GmbH, Germany, 2012.
+#//
+
+# Preliminary: Currently, posix support only
+# Check if configuration is present
+ifeq (config/config.mk,$(wildcard config/config.mk)) 
+# load target specific configuration
+include config/config.mk
+endif
+
+# --------------------------------------------------------------------
+
+VOS_PATH = src/vos/$(TARGET_VOS)
+
+vpath %.c ladder src/common src/example src/vos/common test/udpmdcom $(VOS_PATH) test
+vpath %.h src/api src/vos/api ladder src/common src/vos/common
+
+INCPATH = src/api
+#VOS_INCPATH = src/vos/api -I src/common -I example/ladder -I example/TAUL
+VOS_INCPATH = src/vos/api -I ladder -I src/common
+BUILD_PATH = bld/$(TARGET_VOS)
+
+ifdef TARGET
+DIR_PATH=$(TARGET)/
+CROSS=$(TARGET)-
+
+CC=$(CROSS)gcc
+AR=$(CROSS)ar
+LD=$(CROSS)ld
+STRIP=$(CROSS)strip
+else
+CC = $(GNUPATH)gcc
+AR = $(GNUPATH)ar
+LD = $(GNUPATH)ld
+STRIP = $(GNUPATH)strip
+endif
+
+ECHO = echo
+RM = rm -f
+MD = mkdir -p
+CP = cp
+MV = mv
+
+DEBUG=1
+TRDP_OPTION_LADDER=1
+MD_SUPPORT=0
+XML_CONFIG_ENABLE=1
+
+LIBXMLLIB = /usr/lib/libxml2
+LIBXMLINC = /usr/include/libxml2
+
+ifeq ($(MD_SUPPORT),1)
+CFLAGS += -D_GNU_SOURCE -D_DARWIN_C_SOURCE -D_XOPEN_SOURCE=500 -pthread -fPIC -Wall -DMD_SUPPORT=1
+else
+CFLAGS += -D_GNU_SOURCE -D_DARWIN_C_SOURCE -D_XOPEN_SOURCE=500 -pthread -fPIC -Wall -DMD_SUPPORT=0
+endif
+
+ifeq ($(TRDP_OPTION_LADDER),1)
+CFLAGS += -DTRDP_OPTION_LADDER -DCLOCK_MONOTONIC
+endif
+
+ifeq ($(XML_CONFIG_ENABLE),1)
+CFLAGS += -DXML_CONFIG_ENABLE
+endif
+
+SUBDIRS	= src
+LADDER_PDTEST_DIRS = test/ladderpdtest
+INCLUDES = -I $(INCPATH) -I $(VOS_INCPATH) -I $(VOS_PATH) -I $(LIBXMLINC)
+OUTDIR = $(BUILD_PATH)
+#LADDER_DIR = example/TAUL
+#TAUL_DIR = example/TAUL
+LADDER_DIR = ladder
+TAUL_DIR = src/common
+TAUL_APP_DIR = example/TAUL_PD
+
+
+ifeq ($(TRDP_OPTION_LADDER),1)
+LDFLAGS = -lpthread -lrt -ltrdp -lladder -L $(OUTDIR) -lxml2
+else
+LDFLAGS = -L $(OUTDIR)
+endif
+# files, all tests need to run 
+SRC_TEST = test/test_general.c
+
+ifeq ($(DEBUG),1)
+CFLAGS += -g -O -DDEBUG
+#CFLAGS += -g -DDEBUG
+LDFLAGS += -g
+# Display the strip command and do not execut it
+STRIP = $(ECHO) "do NOT strip: " 
+else
+CFLAGS += -Os  -DNO_DEBUG
+endif
+
+VOS_OBJS = vos_utils.o vos_sock.o vos_mem.o vos_thread.o vos_shared_mem.o
+TRDP_OBJS = trdp_pdcom.o trdp_utils.o trdp_if.o trdp_stats.o tau_marshall.o tau_xml.o $(VOS_OBJS)
+#TRDP_OBJS = trdp_pdcom.o trdp_utils.o trdp_if.o trdp_stats.o tau_marshall.o $(VOS_OBJS)
+#LADDER_OBJS = tau_pdcom_ladder.o tau_ladder.o tau_ldLadder.o $(TRDP_OBJS)
+LADDER_OBJS = tau_ladder.o tau_ldLadder_config.o tau_ldLadder.o $(TRDP_OBJS)
+
+ifeq ($(MD_SUPPORT),1)
+TRDP_OBJS += trdp_mdcom.o
+endif
+
+#all:		outdir libtrdp demo
+#all:		outdir libtrdp libladder example laddertest
+#all:		outdir libtrdp libladder taul
+#all:		outdir libtrdp libladder
+all:		outdir libtrdp libladder taul
+
+libtrdp:	outdir $(OUTDIR)/libtrdp.a
+libladder:	outdir $(OUTDIR)/libladder.a
+
+demo:		outdir $(OUTDIR)/receiveSelect $(OUTDIR)/cmdlineSelect $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/mdManagerTCP outdir
+#example:	outdir $(OUTDIR)/mdManager
+example:	outdir $(OUTDIR)/ladderApplication
+test:		outdir $(OUTDIR)/getstats
+laddertest:	outdir $(OUTDIR)/ladderApplication_publisher $(OUTDIR)/ladderApplication_subscriber $(OUTDIR)/ladderApplication_multiPD
+#taul:		outdir $(OUTDIR)/taulApp
+taul:		outdir $(OUTDIR)/taulApp_PD_sample
+
+mdtest:		outdir $(OUTDIR)/mdTest0001		$(OUTDIR)/mdTest0002
+
+doc:		doc/latex/refman.pdf
+
+$(OUTDIR)/vos_shared_mem.o:	vos_shared_mem.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c src/vos/posix/vos_shared_mem.c -o $(OUTDIR)/vos_shared_mem.o
+
+$(OUTDIR)/tau_marshall.o:	tau_marshall.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c src/common/tau_marshall.c -o $(OUTDIR)/tau_marshall.o
+
+$(OUTDIR)/trdp_xml.o:	tau_xml.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(OUTDIR)/trdp_if.o:	trdp_if.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(OUTDIR)/%.o: %.c %.h trdp_if_light.h trdp_types.h vos_types.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+
+$(OUTDIR)/libtrdp.a:	$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
+			@$(ECHO) ' ### Building the lib $(@F)'
+			$(RM) $@
+			$(AR) cq $@ $^
+
+$(OUTDIR)/tau_ladder.o:	$(LADDER_DIR)/tau_ladder.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c $(LADDER_DIR)/tau_ladder.c -o $(OUTDIR)/tau_ladder.o
+
+#$(OUTDIR)/tau_pdcom_ladder.o:	$(LADDER_DIR)/tau_pdcom_ladder.c
+#			$(CC) $(CFLAGS) $(INCLUDES) -c $(LADDER_DIR)/tau_pdcom_ladder.c -o $(OUTDIR)/tau_pdcom_ladder.o
+
+$(OUTDIR)/tau_ldLadder_config.o:	$(LADDER_DIR)/tau_ldLadder_config.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c $(LADDER_DIR)/tau_ldLadder_config.c -o $(OUTDIR)/tau_ldLadder_config.o
+
+$(OUTDIR)/tau_ldLadder.o:	$(LADDER_DIR)/tau_ldLadder.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c $(LADDER_DIR)/tau_ldLadder.c -o $(OUTDIR)/tau_ldLadder.o
+
+$(OUTDIR)/libladder.a:	$(addprefix $(OUTDIR)/,$(notdir $(LADDER_OBJS)))
+			@$(ECHO) ' ### Building the lib $(@F)'
+			$(RM) $@
+			$(AR) cq $@ $^
+
+ifeq ($(DEBUG),0)
+$(OUTDIR)/ladderApplication:   $(LADDER_DIR)/ladderApplication.c  $(OUTDIR)/libtrdp.a $(OUTDIR)/libladder.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_DIR)/ladderApplication.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+else
+$(OUTDIR)/ladderApplication:   $(LADDER_DIR)/ladderApplication.c  $(OUTDIR)/libtrdp.a $(OUTDIR)/libladder.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_DIR)/ladderApplication.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+endif
+
+ifeq ($(DEBUG),0)
+#$(OUTDIR)/taulApp_PD_sample:   $(TAUL_APP_DIR)/taulApp_PD_sample.c  $(OUTDIR)/libtrdp.a $(OUTDIR)/libladder.a 
+$(OUTDIR)/taulApp_PD_sample:   $(TAUL_APP_DIR)/taulApp_PD_sample.c  $(OUTDIR)/libladder.a 
+#$(OUTDIR)/taulApp:   $(TAUL_DIR)/taulApp.c  $(OUTDIR)/libladder.a 
+			@$(ECHO) ' ### Building application (release) $(@F)'
+			$(CC) $(TAUL_APP_DIR)/taulApp_PD_sample.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+			$(CP) $(TAUL_APP_DIR)/xmlconfig.xml $(OUTDIR)
+else
+$(OUTDIR)/taulApp_PD_sample:   $(TAUL_APP_DIR)/taulApp_PD_sample.c  $(OUTDIR)/libtrdp.a $(OUTDIR)/libladder.a
+#$(OUTDIR)/taulApp_PD_sample:   $(TAUL_APP_DIR)/taulApp_PD_sample.c  $(OUTDIR)/libladder.a
+#$(OUTDIR)/taulApp:   $(TAUL_DIR)/taulApp.c	$(OUTDIR)/libladder.a  
+			@$(ECHO) ' ### Building application (debug) $(@F)'
+			$(CC) $(TAUL_APP_DIR)/taulApp_PD_sample.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			    $(CP) $(TAUL_APP_DIR)/xmlconfig.xml $(OUTDIR)
+endif
+
+ifeq ($(DEBUG),0)
+$(OUTDIR)/ladderApplication_publisher:   ladderpdtest/ladderApplication_publisher.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_PDTEST_DIRS)/ladderApplication_publisher.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+else
+$(OUTDIR)/ladderApplication_publisher:   ladderpdtest/ladderApplication_publisher.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_PDTEST_DIRS)/ladderApplication_publisher.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+endif
+
+ifeq ($(DEBUG),0)
+$(OUTDIR)/ladderApplication_subscriber:   ladderpdtest/ladderApplication_subscriber.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_PDTEST_DIRS)/ladderApplication_subscriber.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+else
+$(OUTDIR)/ladderApplication_subscriber:   ladderpdtest/ladderApplication_subscriber.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_PDTEST_DIRS)/ladderApplication_subscriber.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+endif
+
+ifeq ($(DEBUG),0)
+$(OUTDIR)/ladderApplication_multiPD:   ladderpdtest/ladderpdtest/ladderApplication_multiPD.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_PDTEST_DIRS)/ladderApplication_multiPD.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+else
+$(OUTDIR)/ladderApplication_multiPD:   ladderpdtest/ladderApplication_multiPD.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(LADDER_PDTEST_DIRS)/ladderApplication_multiPD.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+endif
+
+
+$(OUTDIR)/receiveSelect:  echoSelect.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(SUBDIRS)/example/echoSelect.c \
+				$(CFLAGS) $(INCLUDES) -o $@\
+				-ltrdp \
+			    $(LDFLAGS) \
+			    
+			$(STRIP) $@
+			
+$(OUTDIR)/cmdlineSelect:  echoSelect.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(SUBDIRS)/example/echoSelectcmdline.c \
+				$(CFLAGS) $(INCLUDES) -o $@\
+				-ltrdp \
+			    $(LDFLAGS) \
+			    
+			$(STRIP) $@
+			
+$(OUTDIR)/receivePolling:  echoPolling.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(SUBDIRS)/example/echoPolling.c \
+				$(CFLAGS) $(INCLUDES) -o $@\
+				-ltrdp \
+			    $(LDFLAGS) \
+			    
+			$(STRIP) $@
+
+$(OUTDIR)/sendHello:   sendHello.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(SUBDIRS)/example/sendHello.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+
+$(OUTDIR)/getstats:   getStats.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building statistics commandline tool $(@F)'
+			$(CC) test/getStats.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+			
+
+$(OUTDIR)/mdTest0001: mdTest0001.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building UDPMDCom test application $(@F)'
+			$(CC) test/udpmdcom/mdTest0001.c \
+			    -ltrdp \
+			    -luuid -lrt \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+
+$(OUTDIR)/mdTest0002: mdTest0002.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building UDPMDCom test application $(@F)'
+			$(CC) test/udpmdcom/mdTest0002.c \
+			    -ltrdp \
+			    -luuid -lrt \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+
+ifeq ($(DEBUG),0)
+$(OUTDIR)/test_marshalling:   test_marshalling.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(SUBDIRS)/example/test_marshalling.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			$(STRIP) $@
+else
+$(OUTDIR)/test_marshalling:   test_marshalling.c  $(OUTDIR)/libtrdp.a 
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $(SUBDIRS)/example/test_marshalling.c \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+endif
+
+outdir:
+		$(MD) $(OUTDIR)
+
+
+doc/latex/refman.pdf: Doxyfile trdp_if_light.h trdp_types.h
+			@$(ECHO) ' ### Making the PDF document'
+			doxygen Doxyfile
+			make -C doc/latex
+			$(CP) doc/latex/refman.pdf doc
+
+
+
+help:
+	@echo " " >&2
+	@echo "BUILD TARGETS FOR TRDP" >&2
+	@echo "Edit the paths in the top part of this Makefile to suit your environment." >&2
+	@echo "Then call 'make' or 'make all' to build everything." >&2
+	@echo "To build debug binaries, append 'DEBUG=TRUE' to the make command " >&2
+	@echo "To include message data support, append 'MD_SUPPORT=1' to the make command " >&2
+	@echo " " >&2
+	@echo "Other builds:" >&2
+	@echo "  * make demo      - build the sample applications" >&2
+	@echo "  * make test      - build the test server application" >&2
+	@echo "  * make mdtest    - build the UDPMDcom test application" >&2
+	@echo "  * make example   - build the example for MD communication, but needs libuuid!" >&2
+	@echo "  * make clean     - remove all binaries and objects of the current target" >&2
+	@echo "  * make libtrdp	  - build the static library, only" >&2
+	@echo " " >&2
+	@echo "  * make doc	      - build the documentation (refman.pdf)" >&2
+	@echo "                   - (needs doxygen installed in executable path)" >&2
+	@echo " " >&2
+
+#########################################################################
+
+
+clean:
+	$(RM) -r bld/*
+	$(RM) -r doc/latex/*
+
+
+#########################################################################

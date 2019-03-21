@@ -1,0 +1,101 @@
+
+--- Module:   ..\..\src\vos\common\vos_mem.c (C++)
+
+--- Module:   ..\..\src\vos\common\vos_utils.c (C++)
+
+--- Module:   ..\..\src\vos\posix\vos_thread.c (C++)
+        _
+#define PTHREAD_MUTEX_RECURSIVE  PTHREAD_MUTEX_RECURSIVE_NP     /*lint !e652 Does Lint ignore the #ifndef ? */
+..\..\src\vos\posix\vos_thread.c  61  Warning 652: #define of symbol
+    'PTHREAD_MUTEX_RECURSIVE' declared previously at line 55, file
+    posix\usr\include\pthread.h, module ..\..\src\vos\common\vos_mem.c
+posix\usr\include\pthread.h  55  Info 830: Location cited in prior message
+                                                                                                   _
+#define PTHREAD_MUTEX_RECURSIVE  PTHREAD_MUTEX_RECURSIVE_NP     /*lint !e652 Does Lint ignore the #ifndef ? */
+..\..\src\vos\posix\vos_thread.c  61  Error 95: Expected a macro parameter but
+    instead found 'ifndef'
+
+--- Module:   ..\..\src\vos\posix\vos_sock.c (C++)
+
+--- Module:   ..\..\src\vos\posix\vos_shared_mem.c (C++)
+
+--- Module:   ..\..\src\common\trdp_if.c (C++)
+
+--- Module:   ..\..\src\common\trdp_mdcom.c (C++)
+
+--- Module:   ..\..\src\common\trdp_pdcom.c (C++)
+
+--- Module:   ..\..\src\common\trdp_utils.c (C++)
+
+--- Module:   ..\..\src\common\trdp_stats.c (C++)
+
+--- Module:   ..\..\src\common\tau_marshall.c (C++)
+
+--- Module:   ..\..\src\common\tau_ctrl.c (C++)
+
+--- Module:   ..\..\src\common\tau_dnr.c (C++)
+
+--- Module:   ..\..\src\common\tau_tti.c (C++)
+
+--- Thread messages:
+
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'gPDebugFunction'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'gRefCon'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'sCurrentMaxSocketCnt'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'sSessionMutex'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'sSession'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'cDefaultIface'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'pTimeString'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'count'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'dotted'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'gMem'
+Warning 459: Function 'ttiMDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_MD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'vosSockInitialised'
+Warning 459: Function 'ttiPDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_PD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'gPDebugFunction'
+Warning 459: Function 'ttiPDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_PD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'gRefCon'
+Warning 459: Function 'ttiPDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_PD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'sSessionMutex'
+Warning 459: Function 'ttiPDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_PD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'sSession'
+Warning 459: Function 'ttiPDCallback(void *, TRDP_APP_SESSION_T, const
+    TRDP_PD_INFO_T *, UINT8 *, UINT32)' whose address was taken has an
+    unprotected access to variable 'pTimeString'
+
+--- Global Wrap-up
+
+Warning 526: Symbol '__builtin_offsetof()' (line 122, file ..\..\src\common\tau_marshall.c)
+    not defined
+..\..\src\common\tau_marshall.c  122  Info 830: Location cited in prior message
+Warning 628: no argument information provided for function '__builtin_offsetof()'
+    (line 122, file ..\..\src\common\tau_marshall.c)
+..\..\src\common\tau_marshall.c  122  Info 830: Location cited in prior message
+Note 974: Worst case function for stack usage: 'marshallDs' is recursive, loop
+    contains call to 'marshallDs'. See +stack for a full report. [MISRA 2012
+    Rule 17.2, required]

@@ -1,0 +1,46 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION    Config file to make TRDP for VXWORKS_PPC target
+#//
+#// AUTHOR         Bombardier Transportation GmbH
+#//
+#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
+#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
+#// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2014. All rights reserved.
+#//
+
+# Setup all relevant variables for the VxWorks 6.6 toolchain if not already provided as env. variables
+
+ifndef WIND_PLATFORM
+WIND_PLATFORM=vxworks-6.6
+endif
+
+ifndef WIND_HOST_TYPE
+WIND_HOST_TYPE=x86-linux2
+endif
+
+ifndef WIND_HOME
+WIND_HOME=/opt/cross/vxworks-6.6
+endif
+
+# as a 'standard' VxWorks installation shall be assumed the following variables only depend from the
+# variables above
+
+WIND_BASE=$(WIND_HOME)/$(WIND_PLATFORM)
+WIND_GNU_PATH=$(WIND_HOME)/gnu/4.1.2-vxworks-6.6
+TCPATH = $(WIND_HOME)/gnu/4.1.2-vxworks-6.6/x86-linux2/bin/
+
+ARCH = vxworks-ppc
+CPU = PPC603
+TARGET_VOS = vxworks
+TARGET_OS = VXWORKS
+TCPREFIX = $(TCPATH)
+TCPOSTFIX = ppc
+DOXYPATH = /usr/local/bin/
+
+CFLAGS += -ansi -Wall -fstrength-reduce -fno-builtin -mlongcall -fsigned-char -DCPU=$(CPU) -I$(WIND_BASE)/target/h  -I$(WIND_BASE)/target/h/wrn/coreip -DB_ENDIAN
+
+
+#LINT section  
+LINT_SYSINCLUDE_DIRECTIVES =  -D_WRS_KERNEL -D_POSIX_C_SOURCE -DCPU=$(CPU) -I./src/vos/vxworks -I$(WIND_BASE)/target/usr/h -I$(WIND_BASE)/target/h  -I$(WIND_BASE)/target/h/wrn/coreip +libdir $(WIND_BASE)/target/usr/h,$(WIND_BASE)/target/h,$(WIND_BASE)/target/h/wrn/coreip -wlib 0 

@@ -1,0 +1,21 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION    Config file to make TRDP for POSIX_X86 target
+#//
+#// AUTHOR         Christoph Schneider, Bombardier Transportation GmbH
+#//
+#// All rights reserved. Reproduction, modification, use or disclosure
+#// to third parties without express authority is forbidden.
+#// Copyright Bombardier Transportation GmbH, Germany, 2013.
+#//
+
+TARGET_VOS = posix
+TARGET_FLAG = POSIX
+TCPREFIX = 
+TCPOSTFIX = 
+DOXYPATH = /usr/local/bin/
+
+CFLAGS += -O2 -Wall -fstrength-reduce -fno-builtin -fsigned-char -D$(TARGET_FLAG) -pthread -fPIC -DL_ENDIAN
+LDFLAGS += -lrt
+INCPATH += -I /usr/include/uuid

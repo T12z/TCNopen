@@ -1,0 +1,20 @@
+#!/bin/sh  
+#//
+#// $Id$
+#//
+#// DESCRIPTION   TRDP build settings for vxworks target
+#//
+#// AUTHOR         Christoph Schneider, Bombardier Transportation GmbH
+#//
+#// All rights reserved. Reproduction, modification, use or disclosure
+#// to third parties without express authority is forbidden.
+#// Copyright Bombardier Transportation GmbH, Germany, 2013.
+#//
+export WIND_HOME="/opt/cross/vxworks-6.6"
+export WIND_BASE=$WIND_HOME"/vxworks-6.6"
+export WIND_LIC_PROXY=$WIND_HOME"/setup/x86-linux2/bin"
+export PATH=":/usr/bin"
+export PATH+=":/bin"
+export PATH+=:$WIND_HOME"/gnu/4.1.2-vxworks-6.6/x86-linux2/bin"
+export INCPATH="-I "$WIND_BASE"/target/h"
+export DOXYPATH="/usr/local/bin"

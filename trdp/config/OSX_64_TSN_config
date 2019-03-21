@@ -1,0 +1,24 @@
+#//
+#// $Id: OSX_X86_64_config 1832 2019-01-28 14:02:32Z bloehr $
+#//
+#// DESCRIPTION    Config file to make TRDP for OSX_X86_64 target
+#//
+#// AUTHOR         Bernd Loehr, NewTec GmbH GmbH
+#//
+#// Copyright NewTec GmbH, 2019. All rights reserved.
+#//
+
+ARCH = osx_64_TSN
+TARGET_VOS = posix
+TARGET_OS = POSIX
+TCPREFIX = 
+TCPOSTFIX = 
+DOXYPATH = /Applications/Doxygen.app/Contents/Resources/
+
+CFLAGS += -Wall -m64 -fno-builtin -fsigned-char -pthread -fPIC -D__USE_BSD -D_DARWIN_C_SOURCE -DPOSIX -DL_ENDIAN -DTRDP_TSN
+CFLAGS += -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
+INCPATH += -I /usr/include/uuid
+
+# Additional sources for TSN support
+ADD_INC += ../TSN
+ADD_SRC += ../TSN

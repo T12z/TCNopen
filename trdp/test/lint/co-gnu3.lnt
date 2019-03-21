@@ -1,0 +1,264 @@
+
+//    co-gnu3.lnt
+//    Compiler Options for GCC versions 2.95.3 and later
+//
+//    This file contains options to allow FlexeLint to process source
+//    files for the Gnu compiler (GCC).
+//
+//    This file represents an early effort to support gcc.  It is
+//    somewhat dated and has been supplanted by the file co-gcc.lnt
+//    (from directory gcc).  There is a write-up on the use of that
+//    file called gcc-readme.txt
+//
+//    flint  co-gnu3.lnt  source-file(s)
+//
+//    If you are using GCC on some other system you will need to change
+//    the following options:
+
+-cgnu       // Notifies FlexeLint that gcc is being used.
+// +fus     // activate this option if your compiler supports an assumed
+            // using namespace std at the beginning of processing
+
+// Begin: System Dependent Options
+// -------------------------------
+
+-d__i386__  // a define of this type is machine-dependent
+            // modify if you are running on non-intel hardware.
+-d__linux__ // Linux define!
+//-d__mc68000__  //a machine dependent define
+
+-di386=1         // needed for some Unix's
+-a#machine(i386) //  #assert's machine(i386)  (SVR4 facility).
+
+// To let FlexeLint know where to find header files you need one
+// or more -i options where each -i option is followed immediately
+// by a single directory.
+// For example:     -i/usr/include
+// Use 'cpp -v emptyfile.cpp' to get a list of C++ search directories.
+// Use 'cpp -v emptyfile.c' to get a list of C search directories.
+
+// You may use the following option to include standard C headers.
+// This would normally come before other -i options.
+
+-i/FlexeLint/supp/ansi  // This is offered as a collection of ...
+            // ANSI (i.e ISO) header files.  Replace the word "FlexeLint"
+            // with the name of the directory in which FlexeLint has
+            // been installed.  Note, you might want to replace "ansi"
+            // with "posix".
+
+-si4    // int's are typically 4 bytes
+-sp4    // ptr's are typically 4 bytes           
+
+// -----------------------------
+// End: System Dependent Options
+
++cpp(.cc,.C)  // extensions for C++ that are commonly used in addition
+            // to the default extensions of .cpp and .cxx
++fld        // support gcc's label designators
+
+            // while processing library headers
+-wlib(1)    // sets the warning level within library headers to 1
+	    // (no warnings, just syntax errors).  Comment out if you
+	    // are actually linting library headers.  This
+	    // option makes obsolete options of the form -elib(axxx) where
+	    // xxx >= 400 which may be retained for historical reasons.
+-elib(15)   // redeclaration of symbol
+-elib(516)  // lots of redeclarations in Linux stdlib.h
+-elib(652)  // suppress message about #define of earlier declared symbols
+-elib(762)  // suppress message about multiple identical declarations and
+-elib(760)  // suppress message about multiple identical macro defs
+-elib(553)  // undefined preprocessor variables are taken as 0
+-elib(410)  // unusual size_t
+-elib(767)  // differently defined macro
+-elib(624)  // typedef symbol redeclared
+-elib(607)  // parameter substitution within string
+-elib(602)  // in dial.h there are comments within comments ?
+-elib(537)  // repeated include files
+-elib(2)    // unclosed quotes in nserve.h
+-elib(123)  // size is both a variable and a macro with args
+-elib(1014) // class member definition within extern "C++"
+
+-emacro(734,putc)   // don't complain about items being too large.
+-emacro((???),va_arg)   // the va_arg() macro can yield 415, 416, 661, 662
+			// 796 and 797 (out-of-bounds errors).
+-emacro(413,offsetof)  // use of NULL pointer creates a stir
+-emacro(545,offsetof)  // addressing an array member is OK
+
+-elib(793)   // Linux has minor ANSI violation in stddef.h 
+-elib(569)   // Linux truncates some data in huge_val.h
+-esym(528,__huge_val,__nan,__qnan,__qnanf,__snan,__snanf)
+           // We don't care if we don't reference some GNU funcs
+-esym(528,__gnu_malloc,__gnu_calloc)
+
+
+//  The following options were found necessary when processing
+//  the Unix headers within /usr/include
+
++fdi            // Use the directory of the including file
+
++ppw(ident)     // Tolerate #ident
++rw(__inline)   // enable the (non-standard) __inline keyword
++rw(__inline__)   // enable the (non-standard) __inline__ keyword
+
+//  The following functions exhibit variable return modes.
+//  That is, they may equally-usefully be called for a value
+//  as called just for their effects.  Accordingly we inhibit
+//  Warning 534 for these functions.
+//  Feel free to add to or subtract from this list.
+
+-esym(534,close,creat,fclose,fprintf,fputc)
+-esym(534,fputs,fscanf,fseek,fwrite,lseek,memcpy,memmove,memset)
+-esym(534,printf,puts,scanf,sprintf,sscanf,strcat,strcpy)
+-esym(534,strncat,strncpy,unlink,write)
+
+// For non-ANSI compilers we suppress messages 515 and 516
+// for functions known to have variable argument lists.
+// For ANSI compilers, header files should take care of this.
+
+-esym(515,fprintf,printf,sprintf,fscanf,scanf,sscanf)
+-esym(516,fprintf,printf,sprintf,fscanf,scanf,sscanf)
+
+// The following options are required by most compilers to
+// noiselessly process iostream.h
+
+-elib(1717) //empty prototypes
+-elib(522) //function return value ignored
+-elib(1053) //prototypes cannot be distinguished
+-elib(1721) //unusual operator =() declaration
+-elib(1720) //assignment op has non-const parameter
+-elib(655)  // bitwise operator combining compatible enum's
+-elib(641)  // converting enum's to int
+-elib(537)  // repeated include file (ios.h)
+-elib(1511) // member (rdbuf) hides nonvirtual member
+-elib(1712) // default constructor not defined for class
+-esym(1702,operator<<,operator>>)
+
+// These functions return things that are frequently ignored.
+
+-esym(534,ostream::operator<<,istream::operator>>)
+
+-elib(747) //significant prototype coercion
+-elib(740) //unusual pointer casts
+-elib(1029) //default argument repeated -- can't dist. char, signed char
+-elib(1055) //call to rdbuf() questioned?
+-elib(1708,1709) // minor C/C++ declaration conflict
+
+-elib(763)   // redundant declaration
+-elib(1510)  // base class has no destructor
+-elib(1516)  // data member hiding inherited member
+-elib(1730)  // class/struct inconsistancy
+-elib(569)   // loss of information 8-bits - 7bits
+
+// What follows here is a collection of options we have found
+// to be needed to support Version 3 of GCC.  The need for these
+// options actually predate Version 3 and are of the 2.9... time frame
+
+-e93         // allow newlines within quoted string arguments to macros
+-dasm()=     // support inline assembly code by ignoring asm(...)
+-d__attribute__()=   // ignore this keyword and following parenthetical
+-d__extension__=            // ignore this keyword
+-d__builtin_va_list=void*   // used by stdarg.h
+-d__builtin_stdarg_start()=_to_semi  // ditto
+-d__builtin_va_end()=_to_semi        // ditto
+-d__builtin_fabsf=(float)
+-d"__builtin_fabsl=(long double)"
+-d__builtin_cosf=(float)
+-d"__builtin_cosl=(long double)"
+-d__builtin_sinf=(float)
+-d"__builtin_sinl=(long double)"
+-d__builtin_sqrtf=(float)
+-d"__builtin_sqrtl=(long double)"
+-d"__builtin_fabs=(double)"
++rw(_to_semi)               // needed for the two macros above.
+-d__const=const             // gconv.h uses __const rather than const
+-d__STDC_VERSION__=199901L  // required by C99
+-d__FUNCTION__="somefunction"
+-d__PRETTY_FUNCTION__="somefunction"
++fwc                    // wchar_t is builtin
+-d_WCHAR_T              // tell the header files as much
+-elib(148)              // Some of the libraries are redefining member
+                        // functions
+-elib(1073)             // reverse_iterator<> is being invoked with
+                        // an insufficient number of parameters.
++rw(__typeof__)         // activate __typeof__ keyword
+-d__typeof=__typeof__   // an alternative to using __typeof__
++rw( __volatile__ )         // unusual reserved word ignored.
++rw( _to_brackets )         // a pair of options to ignore an elaborated
++d__asm__=_to_brackets      // assembly language escape.
+-rw(__except)               // This MS reserved word is used as an identifier
++rw( __complex__, __real__, __imag__ )  // reserved words that can be ignored.
++d__builtin_strchr=(char*)  // permits the inline definition ...
++d__builtin_strpbrk=(char*) // of these functions to be linted ...
++d__builtin_strrchr=(char*) // without drawing a complaint
++d__builtin_strstr=(char*)  // about the use of a non-standard name
+-esym( 718, __builtin_* )   // The compiler does not need these ...
+-esym( 746, __builtin_* )   // declared and it knows their prototypes.
+-d__EXCEPTIONS              // make sure try and catch are not redefined out
+                            // from under you as execeptions_defines.h could do
+--uconst                    // keep const from being defined away
+
++rw(__restrict)             // ignore this keyword.
+
+// The following was produced by `gcc -v`, and may not be necessary.
+// Naturally if you include these options, you should make sure they
+// match your version of GCC:
+//  -d__GNUC__=3
+//  -d__GNUC_MINOR__=3
+//  -d__GNUC_PATCHLEVEL__=2
+-d_GNU_SOURCE
+
+// Built-in identifiers follow.  These constants are compiled into gcc and are not
+// defined in any GCC headers.  They might vary from platform to platform.  To
+// see what they are on yours, put the following into a source file and run it
+// through gcc with the -E option; copy the result into your local copy of
+// co-gnu3.lnt if your output differs from the constants used for the -d Lint options below:
+	// //---begin builtin.c---
+	//  __CHAR_BIT__
+	//  __FLT_MANT_DIG__
+	//  __FLT_DIG__
+	//  __FLT_RADIX__
+	//  __FLT_MIN_EXP__
+	//  __FLT_MIN_10_EXP__
+	//  __FLT_MAX_EXP__
+	//  __FLT_MAX_10_EXP__
+	//  __FLT_DENORM_MIN__
+	//  __DBL_MANT_DIG__
+	//  __DBL_DIG__
+	//  __FLT_RADIX__
+	//  __DBL_MIN_EXP__
+	//  __DBL_MIN_10_EXP__
+	//  __DBL_MAX_EXP__
+	//  __DBL_MAX_10_EXP__
+	//  __DBL_DENORM_MIN__
+	//  __LDBL_MANT_DIG__
+	//  __LDBL_DIG__
+	//  __LDBL_MIN_EXP__
+	//  __LDBL_MIN_10_EXP__
+	//  __LDBL_MAX_EXP__
+	//  __LDBL_MAX_10_EXP__
+	//  __LDBL_DENORM_MIN__
+	// //--end builtin.c---
+-d__CHAR_BIT__=8
+-d__FLT_MANT_DIG__=24
+-d__FLT_DIG__=6
+-d__FLT_RADIX__=2
+-d__FLT_MIN_EXP__=(-125)
+-d__FLT_MIN_10_EXP__=(-37)
+-d__FLT_MAX_EXP__=128
+-d__FLT_MAX_10_EXP__=38
+-d__FLT_DENORM_MIN__=1.40129846e-45F
+-d__DBL_MANT_DIG__=53
+-d__DBL_DIG__=15
+-d__FLT_RADIX__=2
+-d__DBL_MIN_EXP__=(-1021)
+-d__DBL_MIN_10_EXP__=(-307)
+-d__DBL_MAX_EXP__=1024
+-d__DBL_MAX_10_EXP__=308
+-d__DBL_DENORM_MIN__=4.9406564584124654e-324
+-d__LDBL_MANT_DIG__=64
+-d__LDBL_DIG__=18
+-d__LDBL_MIN_EXP__=(-16381)
+-d__LDBL_MIN_10_EXP__=(-4931)
+-d__LDBL_MAX_EXP__=16384
+-d__LDBL_MAX_10_EXP__=4932
+-d__LDBL_DENORM_MIN__=3.64519953188247460253e-4951L

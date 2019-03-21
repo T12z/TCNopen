@@ -1,0 +1,10 @@
+# used for api_test
+# Hosts Database
+#
+##
+
+10.64.8.3        dev1Test
+10.64.8.12       dev2Test
+239.0.0.21       grpDevTest
+10.0.0.1         devECSP.anyVeh.lCst
+10.0.0.1         devECSP.anyVeh.lCst.lClTrn.lTrn
