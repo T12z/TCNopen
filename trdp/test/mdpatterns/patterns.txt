@@ -1,0 +1,32 @@
+Message data tests
+------------------------------------------------------------
+
+MD tests verify exchange of message data between two devices A and B. 
+All defined MD patterns are tested on both supported transmission protocols TCP and UDP.
+Test cases and their parameters are summarized in table bellow. 
+
+Protocol    Pattern                 Destination         Replies Data size   Direction
+--------------------------------------------------------------------------------------
+UDP         notify                  unicast             0       64B/32kB    A->B
+UDP         request/reply           unicast/unicast     1       64B/32kB    A->B->A
+UDP         request/reply/confirm   unicast/unicast     1       64B/32kB    A->B->A->B
+UDP         notify                  multicast           0       64B/32kB    A->B
+UDP         request/reply           multicast/unicast   1       64B/32kB    A->B->A
+UDP         request/reply/confirm   multicast/unicast   1       64B/32kB    A->B->A->B
+UDP         request/reply           multicast/unicast   ?       64B/32kB    A->B->A
+UDP         request/reply/confirm   multicast/unicast   ?       64B/32kB    A->B->A->B
+TCP         notify                  ---                 0       64B/32kB    A->B
+TCP         request/reply           ---                 1       64B/32kB    A->B->A
+TCP         request/reply/confirm   ---                 1       64B/32kB    A->B->A->B
+
+All the test cases are run on two target plattforms - Linux and Windows. 
+TCNOpen implementation of TRDP stack is also tested against TRDP implementation developed by UniControls.
+Following table sumarizes the tests performed on the two plattforms and implementations:
+
+Device A           Device B
+------------------------------------
+Windows/TCNOpen    Linux/TCNOpen
+Linux/TCNOpen      Windows/TCNOpen
+Windows/TCNOpen    Windows/TCNOpen
+Windows/UC         Linux/TCNOpen
+Linux/TCNOpen      Windows/UC         

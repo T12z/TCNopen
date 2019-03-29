@@ -1,0 +1,23 @@
+TCNOpen TRDP prototype stack
+$Id$
+
+
+Deviation Requests:
+Exceptions from the Coding Rules TCN-TRDP1-A-BOM-008-04
+
+1. Rule	20106	(M)	File names shall be unique within the project.
+- Because of the multi-target nature and the implementation of the Virtual Operating System (vos), filenames for the same
+  functionality in different targets are kept equal.
+  Each file without unique filename has a check for the corresponding target define (POSIX, WIN32 etc.)
+
+2. Rule	20601	(M)	Use standard type names for commonly used types
+- In the target-dependent VOS implementation files, the standard types of that target will be used to fit the OS API.
+
+3. Rule	30103	(M)	Every function definition shall be documented with an introductory comment.
+- The format should be compatible with the Doxygen commenting rules.
+
+4. Rule	40006	(M)	Accesses to fix addresses in memory (for example registers) and members in communication telegrams
+                    shall be done by address constants.
+- PD and MD Header definitions are defined as packed structs respecting target compilers (GCC and MS-VC).
+  Definitions nevertheless follow natural alignement (UINT32 on 4 Bytes, UINT16 on 2 Byte boundaries, no padding involved).
+

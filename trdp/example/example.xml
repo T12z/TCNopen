@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device host-name="examplehost" leader-name="leaderhost" type="dummy">
+   <device-configuration memory-size="65535">
+      <mem-block-list>
+         <mem-block size="32" preallocate="0" />
+      </mem-block-list>
+   </device-configuration>
+	
+   <bus-interface-list>
+      <bus-interface network-id="1" name="eth0" host-ip="10.0.0.221">
+         <trdp-process blocking="yes" traffic-shaping="on" />
+         <pd-com-parameter port="17224"  marshall="on" validity-behavior="zero"/>
+         <md-com-parameter udp-port="17225" tcp-port="17225" />
+         <telegram name="send_hello" com-id="1000" data-set-id="1000">
+            <pd-parameter cycle="1000000" />
+         </telegram>
+         <telegram name="telegram1" com-id="1001" data-set-id="1001" >
+            <pd-parameter cycle="1000000" />
+         </telegram>
+         <telegram name="telegram2" com-id="1002" data-set-id="1002" >
+           <pd-parameter cycle="1000000" />
+           <source id="1" uri1="dev01.car01.cst01.lTrain" uri2="dev02.car01.cst01" name="test_connection_1">
+               <sdt-parameter smi1="1002" udv="56" rx-period="100" tx-period="1000" />
+           </source>
+           <destination id="10" uri="dev03.car01.cst01.lTrain" name="Another_connection">
+                <sdt-parameter smi1="2345" udv="67" rx-period="100" tx-period="500" />
+           </destination>
+         </telegram>
+         <telegram name="demo" com-id="40010" data-set-id="40010" >
+           <pd-parameter cycle="1000000" />
+           <source id="1" uri1="dev01.car01.cst01" uri2="dev02.car01.cst01" name="test_connection_2" />
+           <destination id="10" uri="grpAll.aCar.aCst" name="broadcast" />
+         </telegram>
+      </bus-interface>
+   </bus-interface-list>
+   
+   <mapped-device-list>
+      <mapped-device host-name="host1" leader-name="leaderhost">
+         <mapped-bus-interface name="eth0" host-ip="10.0.0.20" leader-ip="10.0.0.1" >
+            <mapped-telegram com-id="1001" name="hello_world" />
+         </mapped-bus-interface>
+      </mapped-device>
+   </mapped-device-list>
+
+   <com-parameter-list>
+      <com-parameter id="1" qos="5" ttl="64" /><!-- Suitable for PD communication (found this configuration in Usermanual) -->
+      <com-parameter id="2" qos="3" ttl="64" /><!-- Suitable for MD communication (found this configuration in Usermanual) -->
+   </com-parameter-list>
+   
+   <!--
+BOOL8		1	=UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true)
+CHAR8		2	char, can be used also as UTF8 
+UTF16		3	Unicode UTF-16 character
+INT8		4	Signed integer, 8 bit
+INT16		5	Signed integer, 16 bit
+INT32		6	Signed integer, 32 bit
+INT64		7	Signed integer, 64 bit
+UINT8		8	Unsigned integer, 8 bit
+UINT16		9	Unsigned integer, 16 bit
+UINT32		10	Unsigned integer, 32 bit
+UINT64		11	Unsigned integer, 64 bit
+REAL32	12	Floating point real, 32 bit
+REAL64	13	Floating point real, 64 bit
+TIMEDATE32	14	32 bit UNIX time
+TIMEDATE48	15	48 bit TCN time (32 bit seconds and 16 bit ticks)
+TIMEDATE64	16	32 bit seconds and 32 bit microseconds
+   -->
+   <data-set-list>
+      <data-set name="hello_world_dataset" id="1001">
+		<element name="index" type="5" />
+		<element name="name" type="14" array-size="0" /><!-- dynamic size, so until the end -->
+      </data-set>
+      <data-set name="dummy_service_status" id="1002">
+        <element name="alive" type="1" />
+        <element name="ip" type="8" array-size="4" />
+        <element name="load" type="5" unit="load-unit" scale="0.01"  offset="-1" />
+      </data-set>
+	  <data-set name="send_hello_data" id="1000">
+        <element name="string"  type="2" array-size="0" />
+		<element name="string2" type="2" array-size="0" />
+      </data-set>
+      <data-set name="marshall_test" id="1003">
+        <element name="INT8" type="4" />
+        <element name="INT16" type="5" />
+        <element name="INT32" type="6" />
+        <element name="INT64" type="7" />
+        <element name="UINT8" type="8" />
+        <element name="UINT16" type="9" />
+        <element name="UINT32" type="10" />
+        <element name="UINT64" type="11" />
+        <element name="REAL32" type="12" />
+        <element name="REAL64" type="13" />
+      </data-set>
+      <data-set name="demo" id="40010">
+        <element name="cpu_temp" type="10" />
+        <element name="rx_bytes" type="10" />
+        <element name="rx_frames" type="10" />
+        <element name="tx_bytes" type="10" />
+        <element name="tx_frames" type="10" />
+        <element name="user_value" type="10" />
+        </data-set>
+   </data-set-list>
+   
+   <debug  />
+</device>

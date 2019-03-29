@@ -1,0 +1,31 @@
+#//
+#// $Id: $
+#//
+#// DESCRIPTION    Config file to make TRDP for YOCTO Linux
+#//
+#// AUTHOR         B. Loehr
+#//
+#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
+#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
+#// Copyright NewTec GmbH, 2018. All rights reserved.
+#//
+
+# The yocto directory must be set/exported as environment variable
+TCPATH = $(YOCTO_DIR)/build/tmp/sysroots/x86_64-linux/usr/bin/arm-poky-linux-gnueabi/
+
+ARCH = imx7d-phyboard-zeta-001
+TARGET_VOS = posix
+TARGET_OS = LINUX
+TCPREFIX = arm-poky-linux-gnueabi-
+TCPOSTFIX = 
+DOXYPATH = /usr/local/bin/
+
+# the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
+
+CFLAGS += --sysroot=$(YOCTO_DIR)/build/tmp/sysroots/$(ARCH)
+CFLAGS += -Wall -Wno-unknown-pragmas -Wno-format -fstrength-reduce -fno-builtin -fsigned-char
+CFLAGS += -pthread -fPIC -D_GNU_SOURCE -DPOSIX -mfloat-abi=hard
+
+LDFLAGS += -lrt -mfloat-abi=hard
+
+LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN

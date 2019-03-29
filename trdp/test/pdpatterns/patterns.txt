@@ -1,0 +1,32 @@
+Process data tests
+------------------------------------------------------------
+
+PD tests verify exchange of process data between two devices A and B. All defined PD patterns are tested.
+Test cases and their parameters are summarized in table bellow. 
+All the test cases are run in parallel during the test session.
+
+Pattern     Destination     Data size   PD Period       Direction
+-------------------------------------------------------------------------
+PUSH        unicast              256B       100ms       A->B, B->A
+PUSH        unicast              256B       250ms       A->B, B->A
+PUSH        unicast             1432B       100ms       A->B, B->A
+PUSH        unicast             1432B       250ms       A->B, B->A
+PUSH        multicast            256B       100ms       A->B, B->A
+PUSH        multicast            256B       250ms       A->B, B->A
+PUSH        multicast           1432B       100ms       A->B, B->A
+PUSH        multicast           1432B       250ms       A->B, B->A
+PULL        unicast/unicast      256B       500ms       A->B->A, B->A->B
+PULL        unicast/unicast     1432B       500ms       A->B->A, B->A->B
+PULL        multicast/multicast  256B       500ms       A->B->A, B->A->B
+PULL        multicast/multicast 1432B       500ms       A->B->A, B->A->B
+
+All the test cases are run on two target plattforms - Linux and Windows. 
+TCNOpen implementation of TRDP stack is also tested against TRDP implementation developed by UniControls.
+Following table sumarizes the tests performed on the two plattforms and implementations:
+
+Device A           Device B
+------------------------------------
+Windows/TCNOpen    Linux/TCNOpen
+Linux/TCNOpen      Windows/TCNOpen
+Windows/TCNOpen    Windows/TCNOpen
+Windows/UC         Linux/TCNOpen

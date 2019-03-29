@@ -1,0 +1,113 @@
+\documentclass[a4paper]{book}
+\usepackage[top=10mm, bottom=50mm, left=18mm, right=10mm]{geometry}
+\usepackage{makeidx}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{ifthen}
+\usepackage[table]{xcolor}
+\usepackage{textcomp}
+\usepackage{alltt}
+\usepackage{ifpdf}
+\ifpdf
+\usepackage[pdftex,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue,
+            unicode
+           ]{hyperref}
+\else
+\usepackage[ps2pdf,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue,
+            unicode
+           ]{hyperref}
+\usepackage{pspicture}
+\fi
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}
+\usepackage[scaled=.90]{helvet}
+\usepackage{courier}
+\usepackage{sectsty}
+\usepackage[titles]{tocloft}
+\usepackage{doxygen}
+\usepackage{moresize}
+\lstset{language=C,inputencoding=utf8,basicstyle=\footnotesize,breaklines=true,breakatwhitespace=true,tabsize=4,numbers=left }
+\makeindex
+\setcounter{tocdepth}{3}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\familydefault}{\sfdefault}
+\hfuzz=15pt
+\setlength{\emergencystretch}{15pt}
+\hbadness=750
+\tolerance=750
+
+
+\newcommand{\documentTitle}{TRDP SPY - Reference Manual}
+
+\graphicspath{{../custom/}}
+\fancyhead[LE,RO]{{\bfseries Page \thepage / \pageref*{lastpage}} \\ \documentTitle \\ \leftmark}
+\fancyhead[CE,CO]{}
+\fancyhead[RE,LO]{\fancyplain{}{\includegraphics[width=5cm]{TCNOpen}}}
+
+\fancypagestyle{plain}
+{
+    \fancyhead[LE,RO]{{\bfseries Page \thepage / \pageref*{lastpage}} \\ \documentTitle \\ \leftmark}
+    \fancyhead[CE,CO]{}
+    \fancyhead[RE,LO]{\fancyplain{}{\includegraphics[width=5cm]{TCNOpen}}}
+}
+
+\addtolength{\headheight}{20mm}
+
+\begin{document}
+\hypersetup{pageanchor=false,citecolor=blue}
+
+\begin{titlepage}
+\pagestyle{empty}
+
+\hspace{-1cm}
+\begin{minipage}[c]{0.40\linewidth}
+\includegraphics[width=7cm]{TCNOpen}
+\end{minipage}
+\hspace{3.0cm}
+\begin{minipage}[c]{0.70\linewidth}
+{\huge Open Source Development}
+\end{minipage}
+
+\vspace{2.5cm}
+
+\begin{minipage}[c]{2cm}
+\includegraphics[width=1.5cm]{blueTitleGraphic}
+\end{minipage}
+\hspace{0.0cm}
+\begin{minipage}[c]{0.90\linewidth}
+\textcolor{Blue}{\fontsize{80}{80} \selectfont \emph{TRDP}}
+
+\vspace*{1.0cm}
+
+{\fontsize{24}{24} \selectfont \emph{Train Real Time Data Protocol}}
+
+\end{minipage}
+
+\vspace*{1.0cm}
+
+\begin{center}
+{\fontsize{38}{38} \selectfont \documentTitle}\\
+\vspace*{1cm}
+\end{center}
+
+
+\end{titlepage}
+
+\pagestyle{fancy}
+
+\clearemptydoublepage
+\pagenumbering{roman}
+\tableofcontents
+\clearemptydoublepage
+\pagenumbering{arabic}
+\hypersetup{pageanchor=true,citecolor=blue}

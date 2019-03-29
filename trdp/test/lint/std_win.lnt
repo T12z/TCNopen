@@ -1,0 +1,42 @@
+//  Gnu C/C++, -si4 -sp4, lib-stl.lnt
+//  Standard lint options
+
+co-msc80.lnt
+lib-w32.lnt lib-wnt.lnt
+//lib-stl.lnt
+au-misra.lnt
+-si4 -sp4
+
+-i"..\..\src\api"
+-i"..\..\src\common"
+-i"..\..\src\vos\api"
+-i"..\..\src\vos\common"
+-i"..\..\src\vos\windows"
+
+-i"C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt"
+-i"C:\Program Files (x86)\Windows Kits\8.1\Include\um"
+-i"C:\Program Files (x86)\Windows Kits\8.1\Include\shared"
+-i"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include"
+
+-D__ARMEB__=0
+-D__MIPSEB__=0
+-D__AARCH64EB__=0
+
+-w2
+-passes(2)
++macros
++ppw(warning)
+
++libdir(C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include)
++libdir(C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Include)
+-elib(*)
+-e537   // "Repeated include file 'FileName'"
+-e755   // "global macro 'Symbol' (Location) not referenced"
+-e40    // undefeined errno
+-emacro({26},vos_printLog)    // due to definition of internal used __VA_ARGS__ if used without arguments
+-emacro((10),MAKEWORD)        // due to definition of internal used macros
+-e131
+-emacro((530,526,628,516,78,26,10,155,1055),ALIGNOF) // due to definition of internal used __alignof
+-e131
+-e655   // bit-wise operation uses (compatible) enum's
+-e641   // Converting enum to int

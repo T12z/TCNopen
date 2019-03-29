@@ -1,0 +1,14 @@
+#!/bin/sh
+#//
+#// $Id$
+#//
+#// DESCRIPTION   TRDP build settings for posix target
+#//
+#// AUTHOR         Christoph Schneider, Bombardier Transportation GmbH
+#//
+#// All rights reserved. Reproduction, modification, use or disclosure
+#// to third parties without express authority is forbidden.
+#// Copyright Bombardier Transportation GmbH, Germany, 2013.
+#//
+export DOXYPATH="/usr/local/bin/"
+unset INCPATH

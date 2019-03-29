@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="trdp-config.xsd" host-name="device1" leader-name="device1" type="dummy">
+    <device-configuration memory-size="265535">
+        <mem-block-list>
+            <mem-block size="72" preallocate="256"/>
+            <mem-block size="65536" preallocate="2"/>
+        </mem-block-list>
+    </device-configuration>
+    
+    <bus-interface-list>
+        <bus-interface network-id="1" name="eth0" host-ip="10.64.8.3">
+            <trdp-process blocking="no" cycle-time="10000" priority="80" traffic-shaping="on" />
+            <pd-com-parameter marshall="on" port="17224" qos="5" ttl="64" timeout-value="100000" validity-behavior="keep" />
+            <md-com-parameter udp-port="17225" tcp-port="17225"
+                                confirm-timeout="1000000" connect-timeout="60000000" reply-timeout="5000000"
+                                marshall="off" protocol="UDP" qos="3" retries="2" ttl="64" />
+            <telegram name="tlg1000" com-id="1000" data-set-id="1000" com-parameter-id="1">
+                <pd-parameter cycle="100000" marshall="off" timeout ="1000000" validity-behavior="keep"/>
+                <source id="1" uri1="10.64.8.3">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </source>
+                <destination id="1" uri="10.64.8.12">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </destination>
+            </telegram>
+            <telegram name="tlg1001" com-id="1001" data-set-id="1001" com-parameter-id="1">
+                <pd-parameter cycle="10000" marshall="on" timeout ="100000" validity-behavior="keep"/>
+                <source id="1" uri1="10.64.8.3">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </source>
+                <destination id="1" uri="10.64.8.12">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </destination>
+            </telegram>
+            <telegram name="tlg1002" com-id="1002" data-set-id="1002" com-parameter-id="1">
+                <pd-parameter cycle="10000" marshall="on" timeout ="100000" validity-behavior="keep"/>
+                <source id="1" uri1="10.64.8.3">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </source>
+                <destination id="1" uri="10.64.8.12">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </destination>
+            </telegram>
+            <telegram name="tlg1003" com-id="1003" data-set-id="1003" com-parameter-id="1">
+                <pd-parameter cycle="10000" marshall="on" timeout ="100000" validity-behavior="keep"/>
+                <source id="1" uri1="10.64.8.3">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </source>
+                <destination id="1" uri="10.64.8.12">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </destination>
+            </telegram>
+            <telegram name="tlg1004" com-id="1004" data-set-id="1004" com-parameter-id="1">
+                <pd-parameter cycle="10000" marshall="on" timeout ="100000" validity-behavior="keep"/>
+                <source id="1" uri1="10.64.8.3">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </source>
+                <destination id="1" uri="10.64.8.12">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </destination>
+            </telegram>
+            <telegram name="tlg1005" com-id="1005" data-set-id="1005" com-parameter-id="2">
+                <md-parameter marshall="on" timeout ="1000000"/>
+                <source id="1" uri1="10.64.8.3"/>
+                <destination id="1" uri="10.64.8.12">
+                 </destination>
+            </telegram>
+            <!--PD - Marshall-->
+            <telegram name="DS_MD_Marshall10013" com-id="10013" data-set-id="10013" com-parameter-id="0">
+                <pd-parameter cycle="100000" marshall="on" timeout ="1100000" validity-behavior="keep"/>
+                <!--md-parameter confirm-timeout="4000000" marshall="off" reply-timeout ="4000000" callback="off"/-->
+                <!--source id="1" uri1="dev1Test"/-->
+                <destination id="1" uri="dev2Test"/>
+            </telegram>
+            <!--PD - Marshall-->
+            <telegram name="DS_MD_Marshall10013" com-id="20013" data-set-id="10013" com-parameter-id="0">
+                <pd-parameter cycle="100000" marshall="on" timeout ="1100000" validity-behavior="keep"/>
+                <!--md-parameter confirm-timeout="4000000" marshall="off" reply-timeout ="4000000" callback="off"/-->
+                <!--source id="1" uri1="dev1Test"/-->
+                <destination id="1" uri="dev2Test"/>
+            </telegram>
+        </bus-interface>
+    </bus-interface-list>
+    
+    <mapped-device-list>
+    </mapped-device-list>
+    
+    <com-parameter-list>
+        <!--Default PD communication parameters-->
+        <com-parameter id="1" qos="5" ttl="64" />
+        <!--Default MD communication parameters-->
+        <com-parameter id="2" qos="3" ttl="64" />
+        <!--Own PD communication parameters-->
+        <com-parameter id="4" qos="4" ttl="2" />
+    </com-parameter-list>
+    
+    <data-set-list>
+        <data-set name="testDS1000" id="1000">
+            <element name="char" type="2" array-size="32"/>
+        </data-set>
+        <data-set name="testDS1001" id="1001">
+            <element name="u8_A" type="8"/>
+            <element name="u8_B" type="8"/>
+            <element name="u16" type="9"/>
+            <element name="u32" type="10"/>
+            <element name="u64" type="11"/>
+        </data-set>
+        <data-set name="testDS1002" id="1002">
+            <element name="au8" type="8" array-size="16"/>
+            <element name="au16" type="9" array-size="16"/>
+            <element name="au32" type="10" array-size="16"/>
+            <element name="au64" type="11" array-size="16"/>
+        </data-set>
+        <data-set name="testDS1003" id="1003">
+            <element name="td32" type="14"/>
+            <element name="au8" type="8" array-size="4"/>
+            <element name="td64" type="16"/>
+        </data-set>
+        <data-set name="testDS1004" id="1004">
+            <element name="td64" type="16"/>
+            <element name="r64" type="13"/>
+            <element name="u64" type="11"/>
+            <element name="i64" type="7"/>
+            <element name="td32" type="14"/>
+            <element name="r32" type="12"/>
+            <element name="u32" type="10"/>
+            <element name="i32" type="6"/>
+            <element name="u16" type="9"/>
+            <element name="i16" type="5"/>
+            <element name="utf16" type="3"/>
+            <element name="u8" type="8"/>
+            <element name="i8" type="4"/>
+            <element name="c" type="2"/>
+            <element name="b" type="1"/>
+        </data-set>
+        <data-set name="testDS1005" id="1005">
+            <element name="byte1" type="8" />
+            <element name="long1" type="10"/>
+            <element name="byte2" type="8" />
+            <element name="longlong1" type="11"/>
+            <element name="byte3" type="8" />
+            <element name="short1" type="9"/>
+        </data-set>
+        <data-set name="DS_MD_Marshall10013" id="10013">
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8"/>
+            <element name="u16" type="UINT16"/>
+            <element name="u32" type="UINT32"/>
+            <element name="u8" type="UINT8" array-size="730"/>
+            <element name="u16" type="UINT16"/>
+        </data-set>
+    </data-set-list>
+    
+    <debug file-name="trdp.log" file-size="1000000" info="CFDT" level="" />
+</device>
