@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project id="1" oid_count="174" defaultConfiguration="23">
+	<props>
+		<Prop id="10" name="@STUDIO:PRODUCT">
+			<value>SC</value>
+		</Prop>
+		<Prop id="11" name="@SCADE:SAVEVERSION">
+			<value>SCADE65</value>
+		</Prop>
+		<Prop id="15" name="@GENERATOR:TARGET_DIR">
+			<value>$(Configuration)</value>
+			<configuration>14</configuration>
+		</Prop>
+		<Prop id="16" name="@VC6.0:ADD_COMP_OPTIONS">
+			<value>/nologo /ML /O2</value>
+			<configuration>14</configuration>
+		</Prop>
+		<Prop id="17" name="@GENERATOR:GENERATOR">
+			<value>C QUAL65</value>
+			<configuration>14</configuration>
+		</Prop>
+		<Prop id="18" name="@GENERATOR:USE_TYPES">
+			<value>char</value>
+			<value>float32</value>
+			<value>float64</value>
+			<value>int8</value>
+			<value>int16</value>
+			<value>int32</value>
+			<value>int64</value>
+			<value>uint8</value>
+			<value>uint16</value>
+			<value>uint32</value>
+			<value>uint64</value>
+			<value>size</value>
+			<configuration>14</configuration>
+		</Prop>
+		<Prop id="19" name="@GENERATOR:OPTLEVEL">
+			<value>1</value>
+			<configuration>14</configuration>
+		</Prop>
+		<Prop id="20" name="@GENERATOR:USER_CONFIG">
+			<value>$(TargetDir)\user_macros.h</value>
+			<configuration>14</configuration>
+		</Prop>
+		<Prop id="21" name="@GENERATOR:ENABLE_EXTENSIONS">
+			<value>false</value>
+			<configuration>14</configuration>
+		</Prop>
+		<Prop id="22" name="@STUDIO:TOOLCONF">
+			<value>Code Generator</value>
+			<value>14</value>
+			<value>23</value>
+			<value>44</value>
+			<value>56</value>
+		</Prop>
+		<Prop id="24" name="@GENERATOR:TARGET_DIR">
+			<value>$(Configuration)</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="25" name="@VC6.0:ADD_COMP_OPTIONS">
+			<value>/nologo /ML /O2</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="26" name="@GENERATOR:GENERATOR">
+			<value>C QUAL65</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="27" name="@GENERATOR:USE_TYPES">
+			<value>char</value>
+			<value>float32</value>
+			<value>float64</value>
+			<value>int8</value>
+			<value>int16</value>
+			<value>int32</value>
+			<value>int64</value>
+			<value>uint8</value>
+			<value>uint16</value>
+			<value>uint32</value>
+			<value>uint64</value>
+			<value>size</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="29" name="@GENERATOR:DEBUG">
+			<value>true</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="30" name="@GENERATOR:PROBES">
+			<value>true</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="31" name="@GENERATOR:SKIP_UNUSED">
+			<value>true</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="33" name="@GENERATOR:USER_CONFIG">
+			<value>$(TargetDir)\user_macros.h</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="35" name="@REPORTER:SCRIPT">
+			<value>Reporter/ScadeReport.tcl</value>
+			<configuration>34</configuration>
+		</Prop>
+		<Prop id="36" name="@REPORTER:RotateLandscape">
+			<value>true</value>
+			<configuration>34</configuration>
+		</Prop>
+		<Prop id="37" name="@REPORTER:cstDisplayType">
+			<value>Flat</value>
+			<configuration>34</configuration>
+		</Prop>
+		<Prop id="38" name="@STUDIO:TOOLCONF">
+			<value>Reporter</value>
+			<value>34</value>
+			<value>39</value>
+			<value>44</value>
+			<value>68</value>
+		</Prop>
+		<Prop id="40" name="@REPORTER:FORMAT">
+			<value>rtf</value>
+			<configuration>39</configuration>
+		</Prop>
+		<Prop id="41" name="@REPORTER:SCRIPT">
+			<value>Reporter/ScadeReport.tcl</value>
+			<configuration>39</configuration>
+		</Prop>
+		<Prop id="42" name="@REPORTER:RotateLandscape">
+			<value>true</value>
+			<configuration>39</configuration>
+		</Prop>
+		<Prop id="43" name="@REPORTER:cstDisplayType">
+			<value>Flat</value>
+			<configuration>39</configuration>
+		</Prop>
+		<Prop id="45" name="@STUDIO:TOOLCONF">
+			<value>Instrumenter</value>
+			<value>44</value>
+		</Prop>
+		<Prop id="46" name="@GENERATOR:TARGET_DIR">
+			<value>$(Configuration)</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="47" name="@VC6.0:ADD_COMP_OPTIONS">
+			<value>/nologo /ML /O2</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="48" name="@GENERATOR:GENERATOR">
+			<value>C QUAL65</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="49" name="@GENERATOR:USE_TYPES">
+			<value>char</value>
+			<value>float32</value>
+			<value>float64</value>
+			<value>int8</value>
+			<value>int16</value>
+			<value>int32</value>
+			<value>int64</value>
+			<value>uint8</value>
+			<value>uint16</value>
+			<value>uint32</value>
+			<value>uint64</value>
+			<value>size</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="50" name="@GENERATOR:OPTLEVEL">
+			<value>1</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="51" name="@GENERATOR:USER_CONFIG">
+			<value>$(TargetDir)\user_macros.h</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="52" name="@GENERATOR:PROBES">
+			<value>true</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="53" name="@SIMULATOR:ADD_COMP_OPTIONS">
+			<value></value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="54" name="@REPORTER:SCRIPT">
+			<value>Reporter/MtcReport.tcl</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="55" name="@GENERATOR:TARGET_ADAPTOR">
+			<value>Simulator</value>
+			<configuration>44</configuration>
+		</Prop>
+		<Prop id="57" name="@GENERATOR:TARGET_DIR">
+			<value>$(Configuration)</value>
+			<configuration>56</configuration>
+		</Prop>
+		<Prop id="58" name="@VC6.0:ADD_COMP_OPTIONS">
+			<value>/nologo /ML /O2</value>
+			<configuration>56</configuration>
+		</Prop>
+		<Prop id="59" name="@GENERATOR:GENERATOR">
+			<value>C QUAL65</value>
+			<configuration>56</configuration>
+		</Prop>
+		<Prop id="60" name="@GENERATOR:USE_TYPES">
+			<value>char</value>
+			<value>float32</value>
+			<value>float64</value>
+			<value>int8</value>
+			<value>int16</value>
+			<value>int32</value>
+			<value>int64</value>
+			<value>uint8</value>
+			<value>uint16</value>
+			<value>uint32</value>
+			<value>uint64</value>
+			<value>size</value>
+			<configuration>56</configuration>
+		</Prop>
+		<Prop id="61" name="@GENERATOR:OPTLEVEL">
+			<value>1</value>
+			<configuration>56</configuration>
+		</Prop>
+		<Prop id="62" name="@GENERATOR:USER_CONFIG">
+			<value>$(TargetDir)\user_macros.h</value>
+			<configuration>56</configuration>
+		</Prop>
+		<Prop id="63" name="@GENERATOR:TARGET_ADAPTOR">
+			<value>T&amp;S Verifier</value>
+			<configuration>56</configuration>
+		</Prop>
+		<Prop id="64" name="@STUDIO:TOOLCONF">
+			<value>Timing and Stack Verifiers</value>
+			<value>56</value>
+		</Prop>
+		<Prop id="66" name="@DASHBOARD:SCRIPT">
+			<value>DashBoard/DashBoardReport.tcl</value>
+			<configuration>65</configuration>
+		</Prop>
+		<Prop id="67" name="@STUDIO:TOOLCONF">
+			<value>Dashboard</value>
+			<value>65</value>
+		</Prop>
+		<Prop id="69" name="@REPORTER:FORMAT">
+			<value>rtf</value>
+			<configuration>68</configuration>
+		</Prop>
+		<Prop id="70" name="@REPORTER:SCRIPT">
+			<value>Reporter/ScadeQualifiedReport.tcl</value>
+			<configuration>68</configuration>
+		</Prop>
+		<Prop id="71" name="@REPORTER:RotateLandscape">
+			<value>true</value>
+			<configuration>68</configuration>
+		</Prop>
+		<Prop id="72" name="@REPORTER:cstDisplayType">
+			<value>Flat</value>
+			<configuration>68</configuration>
+		</Prop>
+		<Prop id="73" name="@REPORTER:AllowRowToBreak">
+			<value>true</value>
+			<configuration>68</configuration>
+		</Prop>
+		<Prop id="74" name="@REPORTER:DisplayCalledAndCalling">
+			<value>true</value>
+			<configuration>68</configuration>
+		</Prop>
+		<Prop id="75" name="@REPORTER:DisplayKCGPragma">
+			<value>true</value>
+			<configuration>68</configuration>
+		</Prop>
+		<Prop id="77" name="@GENERATOR:TARGET_DIR">
+			<value>$(Configuration)</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="78" name="@VC6.0:ADD_COMP_OPTIONS">
+			<value>/nologo /ML /O2</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="79" name="@GENERATOR:GENERATOR">
+			<value>C QUAL65</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="80" name="@GENERATOR:USE_TYPES">
+			<value>char</value>
+			<value>float32</value>
+			<value>float64</value>
+			<value>int8</value>
+			<value>int16</value>
+			<value>int32</value>
+			<value>int64</value>
+			<value>uint8</value>
+			<value>uint16</value>
+			<value>uint32</value>
+			<value>uint64</value>
+			<value>size</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="81" name="@GENERATOR:OPTLEVEL">
+			<value>0</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="82" name="@GENERATOR:DEBUG">
+			<value>true</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="83" name="@GENERATOR:PROBES">
+			<value>true</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="84" name="@GENERATOR:SKIP_UNUSED">
+			<value>true</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="85" name="@GENERATOR:TARGET_ADAPTOR">
+			<value>Simulator</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="86" name="@GENERATOR:USER_CONFIG">
+			<value>$(TargetDir)\user_macros.h</value>
+			<configuration>76</configuration>
+		</Prop>
+		<Prop id="87" name="@STUDIO:TOOLCONF">
+			<value>Synchronization</value>
+			<value>76</value>
+		</Prop>
+		<Prop id="88" name="@SCADE:DEFAULTFILE">
+			<value>sc32.xscade</value>
+		</Prop>
+		<Prop id="89" name="@SCADE:SEMFILE">
+			<value>sc32.err</value>
+		</Prop>
+		<Prop id="90" name="@SCADE:NOTEFILE">
+			<value>$(SCADE)/lib/DefaultAty.aty</value>
+		</Prop>
+		<Prop id="91" name="@SCADE:NEWVARIABLESYMBOLS">
+			<value>true</value>
+		</Prop>
+		<Prop id="92" name="@STUDIO:TITLE">
+			<value>&lt;title&gt;</value>
+		</Prop>
+		<Prop id="93" name="@STUDIO:SUBTITLE">
+			<value>&lt;subtitle&gt;</value>
+		</Prop>
+		<Prop id="94" name="@STUDIO:DESCRIPTION">
+			<value>&lt;description&gt;</value>
+		</Prop>
+		<Prop id="95" name="@STUDIO:AUTHORS">
+			<value>&lt;authors&gt;</value>
+		</Prop>
+		<Prop id="96" name="@STUDIO:COMPAGNY">
+			<value>&lt;company&gt;</value>
+		</Prop>
+		<Prop id="97" name="@STUDIO:DATE">
+			<value>&lt;date&gt;</value>
+		</Prop>
+		<Prop id="98" name="@STUDIO:INDEX">
+			<value>&lt;index&gt;</value>
+		</Prop>
+		<Prop id="99" name="@STUDIO:REFERENCE">
+			<value>&lt;reference&gt;</value>
+		</Prop>
+		<Prop id="100" name="@STUDIO:TOOLCONF">
+			<value>Timing and Stack Analysis Tools</value>
+			<value>14</value>
+			<value>23</value>
+			<value>34</value>
+			<value>39</value>
+			<value>44</value>
+			<value>56</value>
+			<value>65</value>
+			<value>68</value>
+			<value>76</value>
+		</Prop>
+		<Prop id="101" name="@STUDIO:TOOLCONF">
+			<value>DiffAnalyzer</value>
+			<value>14</value>
+			<value>23</value>
+			<value>34</value>
+			<value>39</value>
+			<value>44</value>
+			<value>56</value>
+			<value>65</value>
+			<value>68</value>
+			<value>76</value>
+		</Prop>
+		<Prop id="114" name="@GENERATOR:EXPAND_MODE">
+			<value>2</value>
+			<configuration>23</configuration>
+		</Prop>
+		<Prop id="115" name="@SCADE:CHECKED">
+			<value>false</value>
+		</Prop>
+	</props>
+	<roots>
+		<Folder id="3" extensions="vsp;etp" name="SCADE Libraries">
+			<elements>
+				<FileRef id="4" persistAs="$(SCADE)\libraries\SC65\libdigital\libdigital.etp"/>
+				<FileRef id="5" persistAs="$(SCADE)\libraries\SC65\liblinear\liblinear.etp"/>
+				<FileRef id="6" persistAs="$(SCADE)\libraries\SC65\libmath\libmath.etp"/>
+				<FileRef id="7" persistAs="$(SCADE)\libraries\SC65\libmathext\libmathext.etp"/>
+				<FileRef id="8" persistAs="$(SCADE)\libraries\SC65\libpwlinear\libpwlinear.etp"/>
+				<FileRef id="9" persistAs="$(SCADE)\libraries\SC65\libverif\libverif.etp"/>
+			</elements>
+		</Folder>
+		<Folder id="12" extensions="xscade;scade" name="Model Files">
+			<elements>
+				<Folder id="13" extensions="xscade;scade" name="Separate Files">
+					<elements>
+						<FileRef id="174" persistAs="test_crc.xscade">
+							<props>
+								<Prop id="173" name="@SCADE:NONROOT">
+									<value>true</value>
+								</Prop>
+							</props>
+						</FileRef>
+					</elements>
+				</Folder>
+				<FileRef id="106" persistAs="sc32.xscade"/>
+				<FileRef id="172" persistAs="crc32_autosar.xscade"/>
+			</elements>
+		</Folder>
+	</roots>
+	<configurations>
+		<Configuration id="14" name="KCG"/>
+		<Configuration id="23" name="Simulation"/>
+		<Configuration id="34" name="HTML"/>
+		<Configuration id="39" name="RTF"/>
+		<Configuration id="44" name="Coverage"/>
+		<Configuration id="56" name="Timing and Stack"/>
+		<Configuration id="65" name="DashBoard"/>
+		<Configuration id="68" name="Cert. Reporter"/>
+		<Configuration id="76" name="Synchronization"/>
+	</configurations>
+</Project>
