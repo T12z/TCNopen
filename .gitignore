@@ -1,0 +1,5 @@
+trdp/bld/
+trdp/doc/html/
+trdp/doc/latex/
+*.o
+trdp/config/config.mk
