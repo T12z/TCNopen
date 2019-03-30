@@ -140,7 +140,7 @@ outdir:
 
 libtrdp:	outdir $(OUTDIR)/libtrdp.a
 
-example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering 
+example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering $(OUTDIR)/echoTrackside
 
 test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
 
@@ -178,6 +178,15 @@ $(OUTDIR)/echoCallback:  echoCallback.c  $(OUTDIR)/libtrdp.a
 				$(CFLAGS) $(INCLUDES) -o $@\
 				-ltrdp \
 			    $(LDFLAGS)
+			@$(STRIP) $@
+
+				  
+$(OUTDIR)/echoTrackside:  echoTrackside.c  $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) example/echoTrackside.c \
+				$(CFLAGS) $(INCLUDES) -o $@\
+				-ltrdp \
+				$(LDFLAGS) 
 			@$(STRIP) $@
 
 $(OUTDIR)/sourceFiltering:  sourceFilter/sourceFiltering.c  $(OUTDIR)/libtrdp.a
