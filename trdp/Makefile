@@ -140,7 +140,7 @@ outdir:
 
 libtrdp:	outdir $(OUTDIR)/libtrdp.a
 
-example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
+example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering 
 
 test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
 
@@ -160,7 +160,7 @@ xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
 $(OUTDIR)/%.o: %.c trdp_if_light.h trdp_types.h vos_types.h vos_sock.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-$(OUTDIR)/libtrdp.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
+$(OUTDIR)/libtrdp.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))  $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building the lib $(@F)'
 			@$(RM) $@
 			$(AR) cq $@ $^
@@ -247,19 +247,19 @@ $(OUTDIR)/mdManager: mdManager.c  $(OUTDIR)/libtrdp.a
 # rule for the various test binaries
 #
 ###############################################################################
-$(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^ \
 			$(CFLAGS) $(INCLUDES) -o $@ \
-			-ltrdp -lz \
+			-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
 
-$(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
-			-ltrdp -lz \
+			-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
 
@@ -360,11 +360,11 @@ $(OUTDIR)/pdPull: $(OUTDIR)/libtrdp.a pdPull.c
 			    -o $@
 			@$(STRIP) $@
 			
-$(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
-				-ltrdp -lz \
+				-ltrdp \
 				$(LDFLAGS)
 			@$(STRIP) $@
 

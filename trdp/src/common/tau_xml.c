@@ -392,6 +392,9 @@ static TRDP_ERR_T readTelegramDef (
                             pExchgParam->pPdPar->flags  |= TRDP_FLAGS_MARSHALL;
                             pExchgParam->pPdPar->flags  &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                         }
+                        else if (vos_strnicmp("off", value, TRDP_MAX_LABEL_LEN) == 0) {
+                        	pExchgParam->pPdPar->flags |= TRDP_FLAGS_NONE;
+                        }
                     }
                     else if (vos_strnicmp(attribute, "callback", MAX_TOK_LEN) == 0)
                     {
@@ -402,6 +405,7 @@ static TRDP_ERR_T readTelegramDef (
                         }
                         else if (vos_strnicmp("always", value, TRDP_MAX_LABEL_LEN) == 0)
                         {
+                            pExchgParam->pPdPar->flags  |= TRDP_FLAGS_CALLBACK;
                             pExchgParam->pPdPar->flags  |= TRDP_FLAGS_FORCE_CB;
                             pExchgParam->pPdPar->flags  &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                         }
@@ -799,7 +803,7 @@ static TRDP_ERR_T readXmlDatasets (
             /* Allocate an array of pointers */
             *papDataset = (apTRDP_DATASET_T) vos_memAlloc(count * sizeof(apTRDP_DATASET_T));
 
-            if (papDataset == NULL)
+            if (*papDataset == NULL)
             {
                 vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML telegram definitions!\n",
                              (unsigned long) (count * sizeof(apTRDP_DATASET_T)));
@@ -1529,7 +1533,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                         }
                         if (strpbrk(value, "Ee") != NULL)
                         {
-                            pDbgConfig->option |= TRDP_DBG_ERR | TRDP_DBG_WARN | TRDP_DBG_ERR;
+                            pDbgConfig->option |= TRDP_DBG_ERR;
                         }
                         if (strpbrk(value, "Ii") != NULL)
                         {

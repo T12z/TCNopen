@@ -369,24 +369,21 @@ static UINT8 maxSizeOfDSMember (
 {
     UINT16  lIndex;
     UINT8   maxSize = 1;
+    UINT8   elemSize;
 
     if (pDataset != NULL)
     {
         /*    Loop over all datasets in the array    */
         for (lIndex = 0u; lIndex < pDataset->numElement; ++lIndex)
         {
-            if (pDataset->pElement[lIndex].type <= TRDP_TIMEDATE64)
+            elemSize = (pDataset->pElement[lIndex].type <= TRDP_TIMEDATE64)
+                ? cSizeOfBasicTypes[pDataset->pElement[lIndex].type]
+                : maxSizeOfDSMember(findDs(pDataset->pElement[lIndex].type));
+            if (maxSize < elemSize)
             {
-                if (maxSize < cSizeOfBasicTypes[pDataset->pElement[lIndex].type])
-                {
-                    maxSize = cSizeOfBasicTypes[pDataset->pElement[lIndex].type];
-                }
+                maxSize = elemSize;
             }
-            else    /* recurse if nested dataset */
-            {
-                maxSize = maxSizeOfDSMember(findDs(pDataset->pElement[lIndex].type));
-            }
-        }
+	}
     }
     return maxSize;
 }
@@ -1068,7 +1065,7 @@ EXT_DECL TRDP_ERR_T tau_initMarshall (
 
     ppRefCon = ppRefCon;
 
-    if ((pDataset == NULL) || (numDataSet == 0u) || (numComId == 0u) || (pComIdDsIdMap == 0u))
+    if ((pDataset == NULL) || (numDataSet == 0u) || (numComId == 0u) || (pComIdDsIdMap == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1461,11 +1458,11 @@ EXT_DECL TRDP_ERR_T tau_calcDatasetSize (
     info.level      = 0u;
     info.pSrc       = pSrc;
     info.pSrcEnd    = pSrc + srcSize;
-    info.pDst       = 0u;
+    info.pDst       = pSrc;
 
     err = size_unmarshall(&info, pDataset);
 
-    *pDestSize = (UINT32) (info.pDst);
+    *pDestSize = (UINT32) (info.pDst-pSrc);
 
     return err;
 }
@@ -1533,11 +1530,11 @@ EXT_DECL TRDP_ERR_T tau_calcDatasetSizeByComId (
     info.level      = 0u;
     info.pSrc       = pSrc;
     info.pSrcEnd    = pSrc + srcSize;
-    info.pDst       = 0u;
+    info.pDst       = pSrc;
 
     err = size_unmarshall(&info, pDataset);
 
-    *pDestSize = (UINT32) (info.pDst);
+    *pDestSize = (UINT32) (info.pDst-pSrc);
 
     return err;
 }
