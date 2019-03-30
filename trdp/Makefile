@@ -78,7 +78,9 @@ TRDP_OPT_OBJS = trdp_xml.o \
 		tau_marshall.o \
 		tau_dnr.o \
 		tau_tti.o \
-		tau_ctrl.o
+		tau_ctrl.o \
+		tau_xsession.o \
+		tau_xmarshall.o
 
 
 # Set LINT Objects
