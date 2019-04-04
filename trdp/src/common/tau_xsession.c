@@ -687,6 +687,10 @@ TRDP_ERR_T tau_xsession_cycle(TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 			FD_ZERO(&rfds);
 			max_tv = nextTime;
 			vos_subTime( &max_tv, &thisTime); /* max_tv now contains the remaining max sleep time */
+			if ((max_tv.tv_sec < 0) || (!max_tv.tv_sec && (max_tv.tv_usec <= 0))) {
+				max_tv.tv_sec  = 0;
+				max_tv.tv_usec = 0;
+			}
 			if (timeout_us) { /* push timeout to external handler */
 				tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
 				if (vos_cmpTime( &max_tv, &tv) < 0)
@@ -697,14 +701,15 @@ TRDP_ERR_T tau_xsession_cycle(TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 				tv.tv_usec = 0;
 				leave = 1;
 			} else {
-				if (!max_tv.tv_sec && !max_tv.tv_usec) {
-					if (firstRound) {
-						tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
-						tv.tv_sec = 0;
-						tv.tv_usec = 0;
-						/* do not leave before the initial round, ie, no break */
-						leave = 1;
-					} else break;
+				if ((max_tv.tv_sec < 0) || (!max_tv.tv_sec && (max_tv.tv_usec <= 0))) {
+					if (!firstRound) break;
+
+					tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
+					tv.tv_sec = 0;
+					tv.tv_usec = 0;
+					/* do not leave before the initial round, ie, no break */
+					leave = 1;
+
 				} else {
 					tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
 					if (vos_cmpTime( &tv, &max_tv) > 0) /* 1 on tv > max_tv */
