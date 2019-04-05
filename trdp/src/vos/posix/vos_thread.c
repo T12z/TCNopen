@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      BL 2019-04-05: QNX monotonic time for semaphore; unused code removed
  *      BL 2019-03-21: RTE version++
  *      BL 2019-02-19: RTE version
  *      BL 2018-06-25: Ticket #202: vos_mutexTrylock return value
@@ -195,18 +196,6 @@ int sem_init (sem_t *pSema, int flags, unsigned int mode)
 }
 #endif
 
-
-/**********************************************************************************************************************/
-/*  Handle fraction overflow
- */
-static void vos_normalize (struct timespec *ts)
-{
-    while (ts->tv_nsec > 999999999)
-    {
-        ts->tv_sec  += 1;
-        ts->tv_nsec -= 1000000000;
-    }
-}
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
@@ -593,7 +582,6 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
  *  @param[in]      policy          Scheduling policy (FIFO, Round Robin or other)
  *  @param[in]      priority        Scheduling priority (1...255 (highest), default 0)
  *  @param[in]      interval        Interval for cyclic threads in us (optional, range 0...999999)
- *  @param[in]      pStartTime      Starting time for cyclic threads (optional for real time threads)
  *  @param[in]      stackSize       Minimum stacksize, default 0: 16kB
  *  @param[in]      pFunction       Pointer to the thread function
  *  @param[in]      pArguments      Pointer to the thread function parameters
@@ -1503,6 +1491,10 @@ EXT_DECL VOS_ERR_T vos_semaTake (
         vos_getTime(&waitTimeVos);
         waitTimeSpec.tv_sec     = waitTimeVos.tv_sec;
         waitTimeSpec.tv_nsec    = waitTimeVos.tv_usec * (suseconds_t) NSECS_PER_USEC;
+#elif defined(__QNXNTO__)
+#warning "Please verify which clock 'sem_timedwait_monotonic()' really needs, remove this warning via TCNOpen then!"
+#warning "I suspect it must be CLOCK_MONOTONIC. It was CLOCK_REALTIME before..."
+        (void) clock_gettime(CLOCK_MONOTONIC, &waitTimeSpec);
 #else
         (void) clock_gettime(CLOCK_REALTIME, &waitTimeSpec);
 #endif
