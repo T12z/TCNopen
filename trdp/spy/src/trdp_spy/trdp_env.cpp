@@ -117,7 +117,7 @@ quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs)
     {
         fcs = (fcs >> 8)^fcstab[(fcs ^ buf[i]) & 0xff];
     }
-   return ~fcs;
+    return ~fcs;
 }
 
 

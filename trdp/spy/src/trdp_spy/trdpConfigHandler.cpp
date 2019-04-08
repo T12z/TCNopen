@@ -22,7 +22,6 @@
 * INCLUDES
 */
 #include "trdpConfigHandler.h"
-#include "trdp_env.h"
 #include <QDebug>
 
 #include <QXmlInputSource>
@@ -81,7 +80,7 @@ TrdpConfigHandler::~TrdpConfigHandler() {
 
 }
 
-bool TrdpConfigHandler::startElement(const QString &namespaceURI, const QString &localName,
+bool TrdpConfigHandler::startElement(const QString &namespaceURI _U_, const QString &localName _U_,
     const QString &qName, const QXmlAttributes &attributes) {
     bool convert2intOk=false;
     /* Found a new comId, add that to the hash map */
@@ -171,7 +170,7 @@ bool TrdpConfigHandler::startElement(const QString &namespaceURI, const QString 
     return true;
 }
 
-bool TrdpConfigHandler::endElement(const QString &namespaceURI, const QString &localName,
+bool TrdpConfigHandler::endElement(const QString &namespaceURI _U_, const QString &localName _U_,
 	const QString &qName) {
 
     if (qName.compare(TAG_DATA_SET) == 0) {
@@ -181,11 +180,11 @@ bool TrdpConfigHandler::endElement(const QString &namespaceURI, const QString &l
     return true;
 }
 
-bool TrdpConfigHandler::characters(const QString &str) {
+bool TrdpConfigHandler::characters(const QString &str _U_) const {
     return true;
 }
 
-bool TrdpConfigHandler::fatalError(const QXmlParseException &exception) {
+bool TrdpConfigHandler::fatalError(const QXmlParseException &exception _U_) const {
 	return false;
 }
 
@@ -193,31 +192,32 @@ QString TrdpConfigHandler::errorString() const {
 	return QString("Not implemented");
 }
 
-Dataset * TrdpConfigHandler::search(quint32 comId) {
-  Dataset *foundDS = NULL;
+const Dataset * TrdpConfigHandler::search(quint32 comId) const {
+	const Dataset *foundDS = NULL;
 
-  QHash<quint32, ComId>::const_iterator foundComId = this->mTableComId.find(comId);
-  while (((foundComId != this->mTableComId.end()) && ( foundComId.key() == comId)) && (foundDS == NULL)) {
-    QHash<quint32, Dataset>::const_iterator foundDataset = this->mTableDataset.find(
-                foundComId.value().dataset);
-    while ((foundDataset != this->mTableDataset.end())
-            && (foundDS == NULL)) {
-        if (foundDataset.key() == foundComId.value().dataset) {
-            foundDS = (Dataset *) &(foundDataset.value());
-        } else {
-            /* Pick element, but don't store it somewhere */
-            (void) foundDataset.value();
-        }
-    }
-  }
+	QHash<quint32, ComId>::const_iterator foundComId = this->mTableComId.find(comId);
+	
+	while (((foundComId != this->mTableComId.end()) && ( foundComId.key() == comId)) && (foundDS == NULL)) {
 
-  return foundDS;
+		QHash<quint32, Dataset>::const_iterator foundDataset = this->mTableDataset.find(foundComId.value().dataset);
+
+		while ((foundDataset != this->mTableDataset.end()) && (foundDS == NULL)) {
+			if (foundDataset.key() == foundComId.value().dataset) {
+				foundDS = &(*foundDataset);
+			} else {
+				/* Pick element, but don't store it anywhere */
+				(void) foundDataset.value();
+			}
+		}
+	}
+
+	return foundDS;
 }
 
 /******************************************************************************
  *  Private functions of the class
  */
-int TrdpConfigHandler::searchIndex(const QXmlAttributes &attributes, QString searchname) {
+int TrdpConfigHandler::searchIndex(const QXmlAttributes &attributes, QString searchname) const {
     int i=0;
     for(i=0; i < attributes.length(); i++) {
         if (attributes.qName(i).compare(searchname) == 0) {
@@ -228,21 +228,13 @@ int TrdpConfigHandler::searchIndex(const QXmlAttributes &attributes, QString sea
 }
 
 /*FIXME: tiny iterator example */
-Dataset * TrdpConfigHandler::searchDataset(quint32 datasetId) {
-    Dataset *pFoundDataset = NULL;
-    QHashIterator<quint32, Dataset> iterator(this->mTableDataset);
-    while (iterator.hasNext()) {
-        iterator.next();
+const Dataset * TrdpConfigHandler::searchDataset(quint32 datasetId) const {
+    for (QHash<quint32, Dataset>::const_iterator it = this->mTableDataset.constBegin();
+        it != this->mTableDataset.constEnd(); ++it)
+        	if (it->datasetId == datasetId) return &(*it);
 
-        Dataset val = iterator.value();
-        // Found the datasetId we searched
-        if (val.datasetId == datasetId) {
-            pFoundDataset = (Dataset *) &val;
-            return pFoundDataset;
-        }
-    }
     // When nothing, was found, nothing is returned
-    return pFoundDataset;
+    return NULL;
 }
 
 /** insert a new dataset identified by its unique id.
@@ -267,7 +259,7 @@ void TrdpConfigHandler::insertStandardType(quint32 id, char* textdescr)
  * @param typeName the texutal representation of the standard type
  * @return <code>0</code> if the textual representation is not found
  */
-quint32 TrdpConfigHandler::decodeDefaultTypes(QString typeName) {
+quint32 TrdpConfigHandler::decodeDefaultTypes(QString typeName) const {
 
     /* Insert all default types */
     if ((typeName.compare("BOOL8") == 0) || (typeName.compare("BOOLEAN8") == 0)) {
@@ -314,13 +306,8 @@ quint32 TrdpConfigHandler::decodeDefaultTypes(QString typeName) {
  * @return amount of bytes or <code>0</code> on problems
  */
 quint32 TrdpConfigHandler::calculateDatasetSize(quint32 datasetId) {
-    Dataset *pDataset = searchDataset(datasetId);
-    if (pDataset != NULL) {
-        TrdpConfigHandler *pConfigHandler = this;
-        return pDataset->calculateSize(pConfigHandler);
-    } else {
-        return 0;
-    }
+	const Dataset *pDataset = searchDataset(datasetId);
+	return (pDataset != NULL) ? pDataset->calculateSize(this) : 0U;
 }
 
 /** Calculate the used bytes for a given telegram
@@ -329,49 +316,44 @@ quint32 TrdpConfigHandler::calculateDatasetSize(quint32 datasetId) {
  * @return amount of bytes or <code>0</code> on problems
  */
 quint32 TrdpConfigHandler::calculateTelegramSize(quint32 comid) {
-    const Dataset * pDataset = search(comid);
-    if (pDataset != NULL) {
-        return calculateDatasetSize(pDataset->datasetId);
-    } else {
-        return 0U;
-    }
+	const Dataset * pDataset = search(comid);
+	return pDataset ? calculateDatasetSize(pDataset->datasetId) : 0U;
 }
 
 /************************************************************************************
  *                          DATASET
  ************************************************************************************/
 
-quint32 Dataset::calculateSize(TrdpConfigHandler *pConfigHandler) {
-    quint32 size = 0U;
-    QListIterator<Element> iterator(this->listOfElements);
-    while (iterator.hasNext()) {
-        Element val = iterator.next();
+quint32 Dataset::calculateSize(TrdpConfigHandler *pConfigHandler) const {
+	quint32 size = 0U;
+	for (QList<Element>::const_iterator it = this->listOfElements.constBegin();
+		it != this->listOfElements.constEnd(); ++it) {
 
-        /* dynamic elements will kill the size calculation.
-         * Set a flag, that only the minimum size was calculated */
-        if (val.array_size == 0U) {
-            pConfigHandler->setDynamicSize();
-        }
+		/* dynamic elements will kill the size calculation.
+		 * Set a flag, that only the minimum size was calculated */
+		if (it->array_size == 0U) {
+			pConfigHandler->setDynamicSize();
+		}
 
-        if (val.type > TRDP_STANDARDTYPE_MAX) {
-            if ((pConfigHandler != NULL) && (val.type != this->datasetId)) {
-                /* direct recursion is ignored */
-                Dataset *pFound = pConfigHandler->searchDataset(val.type);
-                if (pFound) {
-                    size += pFound->calculateSize(pConfigHandler);
-                } else {
-                    //FIXME: The dataset cannot be found :-|
-                    return 0U;
-                }
-            } else {
-                /* only called internally, programmer has to secure a valid pointer */
-            }
-        } else {
-            size += val.calculateSize();
-        }
+		if (it->type > TRDP_STANDARDTYPE_MAX) {
+			if ((pConfigHandler != NULL) && (it->type != this->datasetId)) {
+				/* direct recursion is ignored */
+				const Dataset *pFound = pConfigHandler->searchDataset(it->type);
+				if (pFound) {
+					size += pFound->calculateSize(pConfigHandler);
+				} else {
+					//FIXME: The dataset cannot be found :-|
+					return 0U;
+				}
+			} else {
+				/* only called internally, programmer has to secure a valid pointer */
+			}
+		} else {
+			size += it->calculateSize();
+		}
 
-    }
-    return size;
+	}
+	return size;
 }
 
 bool Dataset::operator==(const Dataset & other) const

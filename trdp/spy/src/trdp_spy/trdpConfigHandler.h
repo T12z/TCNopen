@@ -27,6 +27,8 @@
 #include <QtXml/QXmlDefaultHandler>
 #include <QHash>
 #include <QList>
+#include "ws_attributes.h"
+#include "trdp_env.h"
 
 /*******************************************************************************
 * CLASS Definition
@@ -86,8 +88,8 @@ public:
      * @brief calculate the amount of used bytes
      * @return number of bytes (or zero, if a unkown type is set, as then type is zero)
      */
-    quint32 calculateSize(void) {
-        return this->type * this->array_size;
+    quint32 calculateSize(void) const {
+        return trdp_dissect_width(this->type) * this->array_size;
     }
 };
 
@@ -106,7 +108,7 @@ public:
      * @brief calculateSize
      * @return
      */
-    quint32 calculateSize(TrdpConfigHandler *pConfigHandler);
+    quint32 calculateSize(TrdpConfigHandler *pConfigHandler) const;
 };
 
 /** @class ComId
@@ -151,15 +153,15 @@ public:
     bool endElement(const QString &namespaceURI, const QString &localName,
         const QString &qName);
 
-    bool characters(const QString &str);
+    bool characters(const QString &str) const;
 
-    bool fatalError(const QXmlParseException &exception);
+    bool fatalError(const QXmlParseException &exception) const;
 
     QString errorString() const override;
 
-    Dataset *search(quint32 comId);
+    const Dataset *search(quint32 comId) const;
 
-    Dataset *searchDataset(quint32 datasetId);
+    const Dataset *searchDataset(quint32 datasetId) const;
 
     bool isInited() { return (this->xmlconfigFile.length() > 0); }
 
@@ -184,9 +186,9 @@ private:
     QHash<quint32, Dataset> mTableDataset;
     quint32 mWorkingDatasetId = 0U;
 
-    quint32 decodeDefaultTypes(QString typeName);
+    quint32 decodeDefaultTypes(QString typeName) const;
 
-    int searchIndex(const QXmlAttributes &attributes, QString searchname);
+    int searchIndex(const QXmlAttributes &attributes, QString searchname) const;
     void insertStandardType(quint32 id, char* textdescr);
 };
 
