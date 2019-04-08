@@ -735,6 +735,10 @@ TRDP_ERR_T tau_xsession_setCom(TAU_XSESSION_T *our, UINT32 pubTelID, const UINT8
 
 	if (pubTelID < MAX_PUB_TELEGRAMS) {
 		result = tlp_put( our->sessionhandle, our->aPubTelegrams[pubTelID].pubHandle,	data, cap);
+		if (result != our->aPubTelegrams[pubTelID].lastErr) {
+			our->aPubTelegrams[pubTelID].lastErr = result;
+			vos_printLog(VOS_LOG_WARNING, "\nFailed to SET comId=%d from %8x. %s\n", our->aPubTelegrams[pubTelID].comID, our->aPubTelegrams[pubTelID].dstID, tau_getResultString(result));
+		}
 	} else {
 		vos_printLog(VOS_LOG_ERROR, "Invalid parameters to setCom buffer.");
 		result = TRDP_PARAM_ERR;
@@ -750,6 +754,11 @@ TRDP_ERR_T tau_xsession_getCom(TAU_XSESSION_T *our, UINT32 subTelID, UINT8 *data
 	if ((subTelID < MAX_SUB_TELEGRAMS) /*&& (*length == aSubTelegrams[subTelID].size) */) {
 		if (length) *length = cap;
 		result = tlp_get( our->sessionhandle, our->aSubTelegrams[subTelID].subHandle, info, data, length);
+		if (result != our->aSubTelegrams[subTelID].result) {
+			our->aSubTelegrams[subTelID].result = result;
+			vos_printLog(VOS_LOG_WARNING, "\nFailed to get comId=%d from src=%d (%s)\n", our->aSubTelegrams[subTelID].comID, our->aSubTelegrams[subTelID].srcID, tau_getResultString(result));
+		}
+
 	} else {
 		vos_printLog(VOS_LOG_ERROR, "Invalid parameters to getCom buffer.");
 		result = TRDP_PARAM_ERR;
@@ -766,7 +775,7 @@ TRDP_ERR_T tau_xsession_request(TAU_XSESSION_T *our, UINT32 subTelID) {
 	TRDP_IP_ADDR_T hIp = our->aSubTelegrams[subTelID].pIfConfig->hostIp;
 	result = tlp_request(our->sessionhandle, sub, sub->addr.comId, 0u, 0u, hIp, sub->addr.srcIpAddr, 0u, TRDP_FLAGS_NONE, 0u, NULL, 0u, 0u, 0u);
 	if (result != TRDP_NO_ERR)
-		vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%d from %8x. %s", sub->addr.comId, sub->addr.srcIpAddr, tau_getResultString(result));
+		vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%d from dst=%d (%s)", sub->addr.comId, sub->addr.srcIpAddr, tau_getResultString(result));
 
 	return result;
 }

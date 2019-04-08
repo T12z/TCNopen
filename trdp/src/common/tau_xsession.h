@@ -41,6 +41,7 @@ typedef struct {
     TRDP_IF_CONFIG_T   *pIfConfig;
     UINT32              comID;
     UINT32              dstID;
+    TRDP_ERR_T          lastErr;
 } PUBLISHED_TLG_T;
 
 /*  Subscribed telegrams    */
