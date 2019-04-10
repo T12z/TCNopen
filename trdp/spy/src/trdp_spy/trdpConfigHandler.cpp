@@ -262,7 +262,7 @@ void TrdpConfigHandler::insertStandardType(quint32 id, char* textdescr)
 quint32 TrdpConfigHandler::decodeDefaultTypes(QString typeName) const {
 
     /* Insert all default types */
-    if ((typeName.compare("BOOL8") == 0) || (typeName.compare("BOOLEAN8") == 0)) {
+    if ((typeName.compare("BOOL8") == 0) || (typeName.compare("BITSET8") == 0) || (typeName.compare("ANTIVALENT8") == 0)) {
         return TRDP_BOOL8;
     } else if (typeName.compare("CHAR8") == 0) {
         return TRDP_CHAR8;
