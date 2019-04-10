@@ -52,3 +52,19 @@ $ make
 
 Hint: The following packages where installed on ubuntu: 
 $ sudo apt install qttools5-dev qttools5-dev-tools libqt5svg5-dev qtmultimedia5-dev cmake libkrb5-dev libkrb5-26-heimdal byacc flex libpcap-dev
+
+Debian & Ubuntu
+---------------
+
+Do this somewhere outside of this tcnopen source tree!!
+e.g. mkdir ~/build && cd ~/build
+
+$ apt source wireshark
+$ sudo apt build-dep wireshark
+$ cd wireshark-*
+$ ln -s path-to-tcnopen-trdp/trdp/spy/src/CMakeListsCustom.txt
+$ cd plugins/epan
+$ ln -s path-to-tcnopen-trdp/trdp/spy/src/trdp_spy
+$ cd ../../
+$ dpkg-buildpackage -us -uc -rfakeroot   # see INSTALL
+

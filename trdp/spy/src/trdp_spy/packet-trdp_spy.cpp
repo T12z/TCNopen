@@ -1046,7 +1046,7 @@ void proto_register_trdp(void)
 			"TRDP configuration file",
 			"TRDP configuration file",
 			&gbl_trdpDictionary_1
-#if VERSION_MAJOR >= 2 && VERSION_MICRO >= 4
+#if ((VERSION_MAJOR > 2) || (VERSION_MAJOR >= 2 && VERSION_MICRO >= 4))
 			, false
 #endif
 	);
