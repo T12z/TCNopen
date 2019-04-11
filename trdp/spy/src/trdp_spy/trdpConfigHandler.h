@@ -76,27 +76,32 @@ class TrdpConfigHandler; /**< empty class, needed for bidirectional dependencies
  */
 class Element {
 public:
-    QString     name=""; /**< Name of the variable, that is stored */
-    quint32     type=0U; /**< Numeric type of the variable (see Usermanual, chapter 4.2) or defined at ::TRDP_BOOL8, ::TRDP_UINT8, ::TRDP_UINT16 and so on.*/
-    QString     typeName="";   /**< Textual representation of the type (necessary for own datasets, packed recursively) */
-    quint32     array_size=1; /**< Amount this value occurred. 1 is default; 0 indicates a dynamic list (the dynamic list starts with a 16bit value with the occurrence) */
-    QString     unit="";       /**< Unit to display */
-    float       scale=0.0f;      /**< A factor the given value is scaled */
-    qint32      offset=0U;     /**< Offset that is added to the values. displayed value = scale * raw value + offset */
+	QString     name=""; /**< Name of the variable, that is stored */
+	quint32     type=0U; /**< Numeric type of the variable (see Usermanual, chapter 4.2) or defined at ::TRDP_BOOL8, ::TRDP_UINT8, ::TRDP_UINT16 and so on.*/
+	QString     typeName="";   /**< Textual representation of the type (necessary for own datasets, packed recursively) */
+	qint32      array_size=1; /**< Amount this value occurred. 1 is default; 0 indicates a dynamic list (the dynamic list is preceeded by an integer revealing the actual size.) */
+	QString     unit="";       /**< Unit to display */
+	float       scale=0.0f;      /**< A factor the given value is scaled */
+	qint32      offset=0U;     /**< Offset that is added to the values. displayed value = scale * raw value + offset */
 
-    /** Calculate the size in bytes of this element
-     * @brief calculate the amount of used bytes
-     * @return number of bytes (or zero, if a unkown type is set, as then type is zero)
-     */
-    quint32 calculateSize(void) const {
-        return trdp_dissect_width(this->type) * this->array_size;
-    }
+	gint8       width=0; /**< Contains the Element's size as returned by trdp_dissect_width(this->type) */
+
+	/** Calculate the size in bytes of this element
+	 * @brief calculate the amount of used bytes
+	 * @return number of bytes (or negative, if a unkown type is set)
+	 */
+
+	qint32 calculateSize(quint32 array_size = 1) const {
+		return width * (this->array_size ? this->array_size : array_size);
+	}
 };
 
 /** @class Dataset
  *  @brief Description of one dataset.
  */
 class Dataset {
+private:
+	qint32  size=0;         /**< Cached size of Dataset, including subsets. negative, if size cannot be calculated due to a missing/broken sub-dataset definition, 0, if contains var-array and must be recalculated */
 public:
     quint32 datasetId;      /**< Unique identification of one dataset */
     QString name;           /**< Description of the dataset */
@@ -109,6 +114,7 @@ public:
      * @return
      */
     quint32 calculateSize(TrdpConfigHandler *pConfigHandler) const;
+    quint32 preCalculateSize(TrdpConfigHandler *pConfigHandler);
 };
 
 /** @class ComId

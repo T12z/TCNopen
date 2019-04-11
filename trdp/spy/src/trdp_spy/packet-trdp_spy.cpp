@@ -138,7 +138,6 @@ static gint ett_trdp_spy = -1;
 static gint ett_trdp_spy_userdata = -1;
 static gint ett_trdp_spy_app_data_fcs = -1;
 static gint ett_trdp_proto_ver = -1;
-static gint ett_trdp_spy_userdata1 = -1;
 
 
 /* Expert fields */
@@ -261,7 +260,7 @@ static gint32 checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tre
 	return remainingBytes + TRDP_FCS_LENGTH;
 }
 
-/** @fn guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 flag_dataset, guint8 dataset_level)
+/** @fn guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 dataset_level)
  *
  * @brief
  * Extract all information from the userdata (uses the parsebody module for unmarshalling)
@@ -273,12 +272,11 @@ static gint32 checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tre
  * @param trdp_spy_comid    the already extracted comId
  * @param offset            where the userdata starts in the TRDP packet
  * @param length            Amount of bytes, that are transported for the users
- * @param flag_dataset      on 0, the comId will be searched, on > 0 trdp_spy_comid will be interpreted as a dataset id
  * @param dataset_level     is set to 0 for the beginning
  *
  * @return the actual offset in the packet
  */
-static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 flag_dataset, guint8 dataset_level)
+static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 dataset_level)
 {
 	guint32 start_offset;
 	const Dataset* pFound     = NULL;
@@ -336,39 +334,33 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 			}
 			preference_changed = FALSE;
 		}
-	}
-	
-	// Search for the comId or the datasetId, according to the set flag.
-	if (flag_dataset) {
-		PRNT(fprintf(stderr, "Searching for dataset %d\n", trdp_spy_comid));
-		pFound = pTrdpParser->searchDataset(trdp_spy_comid);
-	} else {
+		
 		PRNT(fprintf(stderr, "Searching for comid %d\n", trdp_spy_comid));
 		pFound = pTrdpParser->search(trdp_spy_comid);
-	}
 
-	if (pFound == NULL) /* No Configuration for this ComId available */
-	{
-		/* Move position in front of CRC (padding included) */
-		offset += length;
-		PRNT(fprintf(stderr, "No Dataset, %d byte of userdata -> end offset is %d [flag dataset: %d]\n", length, offset, flag_dataset));
-		return checkPaddingAndOffset(tvb, pinfo, trdp_spy_tree, start_offset, offset);
+		if (!pFound) { /* No Configuration for this ComId available */
+			/* Move position in front of CRC (padding included) */
+			offset += length;
+			PRNT(fprintf(stderr, "No Dataset, %d byte of userdata -> end offset is %d [dataset-level: %d]\n", length, offset, dataset_level));
+			return checkPaddingAndOffset(tvb, pinfo, trdp_spy_tree, start_offset, offset);
+		}
 	} else {
-		length = pFound->calculateSize(pTrdpParser);
-	}
-
-	if (length)	{
-		PRNT(fprintf(stderr, "%s aka %d (%d octets)\n", (pFound->name.length() > 0) ? pFound->name.toLatin1().data()  : "", pFound->datasetId, length));
-	}
-
 	
-	trdp_spy_userdata = proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, length, dataset_level?4:1 /* second element in ett[] */, &ti, "Dataset id : %d (%s)", pFound->datasetId, (pFound->name.length() > 0) ? pFound->name.toLatin1().data() : "" );
-API_TRACE;
+		PRNT(fprintf(stderr, "Searching for dataset %d\n", trdp_spy_comid));
+		pFound = pTrdpParser->searchDataset(trdp_spy_comid);
+	}
+
+	length = pFound ? pFound->calculateSize(pTrdpParser) : 0;
 
 	if (length <= 0) {
 		proto_tree_add_expert_format(trdp_spy_userdata, pinfo, &ei_trdp_userdata_empty, tvb, offset, length, "Userdata should be empty or was incomplete. Check xml-config.");
 		return offset;
 	}
+	
+	PRNT(fprintf(stderr, "%s aka %d (%d octets)\n", (pFound->name.length() > 0) ? pFound->name.toLatin1().data()  : "", pFound->datasetId, length));
+
+	trdp_spy_userdata = proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, length, dataset_level?4:1 /* second element in ett[] */, &ti, "Dataset id : %d (%s)", pFound->datasetId, (pFound->name.length() > 0) ? pFound->name.toLatin1().data() : "" );
+
 
 	QListIterator<Element> iterator(pFound->listOfElements);
 	array_id = 0;
@@ -662,9 +654,9 @@ API_TRACE;
 			//proto_tree_add_text(userdata_actual, tvb, offset, 1, "Unkown type %d for %s", el->type, el->name);
 			PRNT(fprintf(stderr, "Unique type %d for %s\n", el.type, el.name.toLatin1().data()));
 
-			//FIXME check the dataset_level (maximum is 5!)
+			// TODO check the dataset_level (maximum is 5!)
 
-			offset = dissect_trdp_generic_body(tvb, pinfo, userdata_actual, trdpRootNode, el.type, offset, length-(offset-start_offset), 1, dataset_level + 1);
+			offset = dissect_trdp_generic_body(tvb, pinfo, userdata_actual, trdpRootNode, el.type, offset, length-(offset-start_offset), dataset_level + 1);
 			element_amount = 0;
 			array_id = 0;
 			break;
@@ -705,7 +697,7 @@ API_TRACE;
 	}
 
 	// When there is an dataset displayed, the FCS calculation is not necessary
-	if (flag_dataset)
+	if (dataset_level > 0)
 	{
 		PRNT(fprintf(stderr, "##### Display userdata END found (level %d) #######\n", dataset_level));
 		return offset;
@@ -734,7 +726,7 @@ static void dissect_trdp_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trd
 {
 	API_TRACE;
 
-	dissect_trdp_generic_body(tvb, pinfo, trdp_spy_tree, trdp_spy_tree, trdp_spy_comid, offset, length, 0, 0/* level of cascaded datasets*/);
+	dissect_trdp_generic_body(tvb, pinfo, trdp_spy_tree, trdp_spy_tree, trdp_spy_comid, offset, length, 0/* level of cascaded datasets*/);
 }
 
 /**
@@ -1023,7 +1015,6 @@ void proto_register_trdp(void)
 			&ett_trdp_spy_userdata,
 			&ett_trdp_spy_app_data_fcs,
 			&ett_trdp_proto_ver,
-			&ett_trdp_spy_userdata1,
 	};
 
 	PRNT(fprintf(stderr, "\n\n"));
@@ -1046,7 +1037,7 @@ void proto_register_trdp(void)
 			"TRDP configuration file",
 			"TRDP configuration file",
 			&gbl_trdpDictionary_1
-#if ((VERSION_MAJOR > 2) || (VERSION_MAJOR >= 2 && VERSION_MICRO >= 4))
+#if ((VERSION_MAJOR > 2) || (VERSION_MAJOR == 2 && VERSION_MICRO >= 4))
 			, false
 #endif
 	);

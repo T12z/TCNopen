@@ -74,6 +74,11 @@ TrdpConfigHandler::TrdpConfigHandler(const char *xmlconfigFile)
             this->xmlconfigFile = QString("");
         }
     }
+    
+    QHash<quint32, Dataset>::iterator ds = this->mTableDataset.begin();
+	while (ds != this->mTableDataset.end()) {
+		ds->preCalculateSize(this);
+	}
 }
 
 TrdpConfigHandler::~TrdpConfigHandler() {
@@ -109,6 +114,7 @@ bool TrdpConfigHandler::startElement(const QString &namespaceURI _U_, const QStr
             if (idxName >= 0) {
                 newDataset.name = attributes.value(idxName);
             }
+
             this->mTableDataset.insert(datasetId, newDataset);
             /* mark this new element as currently working one */
             this->mWorkingDatasetId = datasetId;
@@ -132,15 +138,17 @@ bool TrdpConfigHandler::startElement(const QString &namespaceURI _U_, const QStr
 
             newElement.array_size = 1; /* the default value */
 
-            newElement.type = attributes.value(idxType).toInt(&convert2intOk); /* try to stored information as a number */
+            newElement.type = attributes.value(idxType).toInt(&convert2intOk); /* try to store information as a number */
             if (!convert2intOk)
             {
                 newElement.typeName = attributes.value(idxType); /* store information as text */
                 newElement.type = decodeDefaultTypes(newElement.typeName);
             }
+            newElement.width = trdp_dissect_width(newElement.type);
 
             if (idxArraySize >= 0) {
-                newElement.array_size = attributes.value(idxArraySize).toInt();
+                newElement.array_size = attributes.value(idxArraySize).toInt(&convert2intOk);
+                if (!convert2intOk) newElement.array_size = 1;
             }
 
             if (idxUnit >= 0) {
@@ -227,7 +235,6 @@ int TrdpConfigHandler::searchIndex(const QXmlAttributes &attributes, QString sea
     return -1;
 }
 
-/*FIXME: tiny iterator example */
 const Dataset * TrdpConfigHandler::searchDataset(quint32 datasetId) const {
     for (QHash<quint32, Dataset>::const_iterator it = this->mTableDataset.constBegin();
         it != this->mTableDataset.constEnd(); ++it)
@@ -323,9 +330,43 @@ quint32 TrdpConfigHandler::calculateTelegramSize(quint32 comid) {
 /************************************************************************************
  *                          DATASET
  ************************************************************************************/
+gint32 Dataset::preCalculateSize(TrdpConfigHandler *pConfigHandler) {
+	if (!this->size) {
+		gint32 size = 0U;
+		for (QList<Element>::const_iterator it = this->listOfElements.constBegin();
+			it != this->listOfElements.constEnd(); ++it) {
 
-quint32 Dataset::calculateSize(TrdpConfigHandler *pConfigHandler) const {
-	quint32 size = 0U;
+			/* dynamic elements will kill the size calculation. */
+			if (it->array_size == 0U) {
+				pConfigHandler->setDynamicSize();
+				size = 0;
+				break;
+			}
+
+			if (it->type > TRDP_STANDARDTYPE_MAX) {
+				if ((pConfigHandler != NULL) && (it->type != this->datasetId)) {
+					/* direct recursion is ignored */
+					const Dataset *pFound = pConfigHandler->searchDataset(it->type);
+					if (pFound) {
+						it->width = pFound->preCalculateSize(pConfigHandler);
+					} else {
+						size = -1;
+						break;
+					}
+				} else {
+					/* only called internally, programmer has to secure a valid pointer */
+				}
+			}
+			size += it->calculateSize();
+
+		}
+		this->size = size;
+	}
+	return this->size;
+}
+
+qint32 Dataset::calculateSize(TrdpConfigHandler *pConfigHandler) const {
+	qint32 size = 0U;
 	for (QList<Element>::const_iterator it = this->listOfElements.constBegin();
 		it != this->listOfElements.constEnd(); ++it) {
 

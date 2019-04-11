@@ -122,9 +122,9 @@ quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs);
  * Extracted from table3 at TCN-TRDP2-D-BOM-011-19.
  * @brief Calculate the width in bytes for a given type
  * @param type  the requested type, where the width shall be returned
- * @return <code>0</code>, on unkown types
+ * @return <code>-1</code>, on unkown types
  */
-quint8 trdp_dissect_width(quint32 type);
+qint8 trdp_dissect_width(quint32 type);
 
 
 #ifdef __cplusplus

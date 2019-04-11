@@ -121,7 +121,7 @@ quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs)
 }
 
 
-quint8 trdp_dissect_width(quint32 type)
+qint8 trdp_dissect_width(quint32 type)
 {
 	switch(type)
 		{
@@ -147,7 +147,7 @@ quint8 trdp_dissect_width(quint32 type)
         case TRDP_TIMEDATE48: //TIMEDATE48	16	48 bit TCN time (32 bit seconds and 16 bit ticks)
 			return 6;
 		default:
-			return 0;
+			return -1;
 		}
 }
 
