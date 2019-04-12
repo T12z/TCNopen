@@ -1275,32 +1275,36 @@ EXT_DECL TRDP_ERR_T tau_uri2Addr (
     {
         return TRDP_NO_ERR;
     }
-    /* Look inside the cache    */
-    for (i = 0; i < 2; ++i)
+
+    if (pDNR != NULL)
     {
-        pTemp = (TAU_DNR_ENTRY_T *) vos_bsearch(pUri, pDNR->cache, pDNR->noOfCachedEntries, sizeof(TAU_DNR_ENTRY_T),
-                                                compareURI);
-        if ((pTemp != NULL) &&
-            ((pTemp->fixedEntry == TRUE) ||
-             (pTemp->etbTopoCnt == appHandle->etbTopoCnt) ||                    /* Do the topocounts match? */
-             (pTemp->opTrnTopoCnt == appHandle->opTrnTopoCnt) ||
-             ((appHandle->etbTopoCnt == 0u) && (appHandle->opTrnTopoCnt == 0u))) &&   /* Or do we not care?       */
-            (pTemp->ipAddr != 0))                                                 /* 0 is only a placeholder */
+        /* Look inside the cache    */
+        for (i = 0; i < 2; ++i)
         {
-            *pAddr = pTemp->ipAddr;
-            return TRDP_NO_ERR;
-        }
-        else    /* address is not known or out of date (topocounts differ)  */
-        {
-            if (pDNR->useTCN_DNS != TRDP_DNR_STANDARD_DNS)
+            pTemp = (TAU_DNR_ENTRY_T *) vos_bsearch(pUri, pDNR->cache, pDNR->noOfCachedEntries, sizeof(TAU_DNR_ENTRY_T),
+                                                    compareURI);
+            if ((pTemp != NULL) &&
+                ((pTemp->fixedEntry == TRUE) ||
+                (pTemp->etbTopoCnt == appHandle->etbTopoCnt) ||                    /* Do the topocounts match? */
+                    (pTemp->opTrnTopoCnt == appHandle->opTrnTopoCnt) ||
+                    ((appHandle->etbTopoCnt == 0u) && (appHandle->opTrnTopoCnt == 0u))) &&   /* Or do we not care?       */
+                    (pTemp->ipAddr != 0))                                                 /* 0 is only a placeholder */
             {
-                updateTCNDNSentry(appHandle, pTemp, pUri);   /* Update everything, at least this URI */
+                *pAddr = pTemp->ipAddr;
+                return TRDP_NO_ERR;
             }
-            else
+            else    /* address is not known or out of date (topocounts differ)  */
             {
-                updateDNSentry(appHandle, pTemp, pUri);
+                if (pDNR->useTCN_DNS != TRDP_DNR_STANDARD_DNS)
+                {
+                    updateTCNDNSentry(appHandle, pTemp, pUri);   /* Update everything, at least this URI */
+                }
+                else
+                {
+                    updateDNSentry(appHandle, pTemp, pUri);
+                }
+                /* try resolving again... */
             }
-            /* try resolving again... */
         }
     }
 
@@ -1337,7 +1341,7 @@ EXT_DECL TRDP_ERR_T tau_addr2Uri (
 
     pDNR = (TAU_DNR_DATA_T *) appHandle->pUser;
 
-    if (addr != VOS_INADDR_ANY)
+    if ((addr != VOS_INADDR_ANY) && (pDNR != NULL))
     {
         UINT32 i;
         for (i = 0u; i < pDNR->noOfCachedEntries; ++i)
