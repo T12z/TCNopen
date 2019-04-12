@@ -2,6 +2,9 @@
  * Routines for Train Real Time Data Protocol
  * Copyright 2012, Florian Weispfenning <florian.weispfenning@de.transport.bombardier.com>
  *
+ * Extended to work with complex dataset and makeover for Wireshark 2.6 -- 3
+ * (c) 2019, Thorsten Schulz <thorsten.schulz@uni-rostock.de>
+ *
  *
  * Ethereal - Network traffic analyzer
  * By Gerald Combs <gerald@ethereal.com>
@@ -95,10 +98,11 @@ static int hf_trdp_spy_destinationURI = -1;     /*string*/
 static int hf_trdp_spy_isMD     = -1;           /*flag*/
 
 /* Dynamic content of a dataset */
-static gint hf_trdp_ds_type2and3    = -1;
 static gint hf_trdp_ds_type1        = -1;
 static gint hf_trdp_ds_type2        = -1;
-//static gint hf_trdp_ds_type3        = -1;
+static gint hf_trdp_ds_type2z       = -1;
+static gint hf_trdp_ds_type3        = -1;
+static gint hf_trdp_ds_type3z       = -1;
 static gint hf_trdp_ds_type4        = -1;
 static gint hf_trdp_ds_type5        = -1;
 static gint hf_trdp_ds_type6        = -1;
@@ -112,13 +116,15 @@ static gint hf_trdp_ds_type13       = -1;
 static gint hf_trdp_ds_type14       = -1;
 static gint hf_trdp_ds_type15       = -1;
 static gint hf_trdp_ds_type16       = -1;
-static gint hf_trdp_ds_type8amount  = -1;
+//static gint hf_trdp_ds_type8amount  = -1;
 static gint hf_trdp_ds_type99       = -1; /* Used for formated values */
 
 /* Needed for dynamic content (Generated from convert_proto_tree_add_text.pl) */
 static int hf_trdp_spy_dataset_id = -1;
 
 static gboolean preference_changed = FALSE;
+
+static const true_false_string true_false = { "True", "False" };
 
 //possible PD - Substution transmission
 static const value_string trdp_spy_subs_code_vals[] =
@@ -260,7 +266,7 @@ static gint32 checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tre
 	return remainingBytes + TRDP_FCS_LENGTH;
 }
 
-/** @fn guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 dataset_level)
+/** @fn guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 dataset_level, const gchar *title)
  *
  * @brief
  * Extract all information from the userdata (uses the parsebody module for unmarshalling)
@@ -273,440 +279,366 @@ static gint32 checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tre
  * @param offset            where the userdata starts in the TRDP packet
  * @param length            Amount of bytes, that are transported for the users
  * @param dataset_level     is set to 0 for the beginning
+ * @param title             presents the instance-name of the dataset
  *
  * @return the actual offset in the packet
  */
-static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 dataset_level)
+static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint clength, guint8 dataset_level, const gchar *title )
 {
-	guint32 start_offset;
+	guint32 start_offset = offset; /* mark the beginning of the userdata in the package */
+	gint length;
 	const Dataset* pFound     = NULL;
 	proto_tree *trdp_spy_userdata   = NULL;
-	proto_tree *userdata_actual = NULL;
-	proto_item *ti              = NULL;
-	guint32 array_id;
-	guint32 element_amount = 0;
+	proto_tree *userdata_element = NULL;
+	proto_item *pi              = NULL;
+	gint array_index;
+	gint element_count = 0;
 	gdouble formated_value;
-	GSList *gActualNode         = NULL;
-
-	gint8 value8 = 0;
-	gint16 value16 = 0;
-	gint32 value32 = 0;
-	gint64 value64 = 0;
-	guint8 value8u = 0;
-	guint16 value16u = 0;
-	guint32 value32u = 0;
-	guint64 value64u = 0;
-	gfloat real32 = 0;
-	gdouble real64 = 0;
-	gchar  *text = NULL;
-	GTimeVal time;
-
-	quint32 lastType = 0U; /**< The type of the last found element necessary for dynamic arrays */
-	quint32 byteOfElement = 0U; /**< Amount of bytes the element uses */
-
-	start_offset = offset; /* mark the beginning of the userdata in the package */
-
 
 	API_TRACE;
 
 	/* make the userdata accessible for wireshark */
 	if (!dataset_level) {
-		ti = proto_tree_add_item(trdp_spy_tree, hf_trdp_spy_userdata, tvb, offset, length, FALSE);
+		if (!clength) {
+			return checkPaddingAndOffset(tvb, pinfo, trdp_spy_tree, start_offset, offset);
+		}
+
+		pi = proto_tree_add_item(trdp_spy_tree, hf_trdp_spy_userdata, tvb, offset, clength, FALSE);
 
 		if (strcmp(gbl_trdpDictionary_1,"") == 0  ) /* No configuration file was set */
 		{
-			offset += length;
-			PRNT(fprintf(stderr, "No Configuration, %d byte of userdata -> end offset is %d\n", length, offset));
+			offset += clength;
+			PRNT(fprintf(stderr, "No Configuration, %d byte of userdata -> end offset is %d\n", clength, offset));
 			return checkPaddingAndOffset(tvb, pinfo, trdp_spy_tree, start_offset, offset);
 		}
 
 		if ( preference_changed || pTrdpParser == NULL) {
-			PRNT(fprintf(stderr, "TRDP dictionary is '%s' (changed=%d, init=%d)\n", gbl_trdpDictionary_1, preference_changed, (pTrdpParser == NULL)));
+			PRNT(fprintf(stderr, "TRDP dictionary is '%s' (changed=%d, pTrdpParser=%d)\n", gbl_trdpDictionary_1, preference_changed, !!pTrdpParser));
 			if (pTrdpParser != NULL) {
 				delete pTrdpParser;
 			}
 			pTrdpParser = new TrdpConfigHandler(gbl_trdpDictionary_1);
 
-			if (! pTrdpParser->isInited() ) {
-				expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_config_notparsed, "Configuration could not be parsed");
-				PRNT(fprintf(stderr, "TRDP | Configuration could not be parsed"));
+			if (! pTrdpParser->isInitialized() ) {
+				expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_config_notparsed, "Configuration could not be parsed.");
+				PRNT(fprintf(stderr, "TRDP | Configuration could not be parsed.\n"));
 				return offset;
 			}
 			preference_changed = FALSE;
 		}
-		
-		PRNT(fprintf(stderr, "Searching for comid %d\n", trdp_spy_comid));
-		pFound = pTrdpParser->search(trdp_spy_comid);
 
-		if (!pFound) { /* No Configuration for this ComId available */
+		PRNT(fprintf(stderr, "Searching for comid %d\n", trdp_spy_comid));
+		pFound = pTrdpParser->const_search(trdp_spy_comid);
+
+		/* so far, length was all userdata received, but this is not true for sub-datasets. */
+		/* but here we can check it works out */
+		length = pFound ? pFound->getSize() : -1;
+
+		if (length < 0) { /* No valid configuration for this ComId available */
 			/* Move position in front of CRC (padding included) */
-			offset += length;
-			PRNT(fprintf(stderr, "No Dataset, %d byte of userdata -> end offset is %d [dataset-level: %d]\n", length, offset, dataset_level));
+			proto_tree_add_expert_format(trdp_spy_userdata, pinfo, &ei_trdp_userdata_empty, tvb, offset, clength, "Userdata should be empty or was incomplete, cannot parse. Check xml-config.");
+			PRNT(fprintf(stderr, "No Dataset, %d byte of userdata -> end offset is %d [dataset-level: %d]\n", clength, offset, dataset_level));
+			offset += clength;
 			return checkPaddingAndOffset(tvb, pinfo, trdp_spy_tree, start_offset, offset);
 		}
 	} else {
-	
+
 		PRNT(fprintf(stderr, "Searching for dataset %d\n", trdp_spy_comid));
-		pFound = pTrdpParser->searchDataset(trdp_spy_comid);
+		pFound = pTrdpParser->const_searchDataset(trdp_spy_comid /* <- datasetID */);
+		length = pFound ? pFound->getSize() : -1;
+		if (length < 0) { /* this should actually not happen, ie. should be caught in initial comID-round */
+			proto_tree_add_expert_format(trdp_spy_userdata, pinfo, &ei_trdp_userdata_empty, tvb, offset, length, "Userdata should be empty or was incomplete, cannot parse. Check xml-config.");
+			return offset;
+		}
 	}
 
-	length = pFound ? pFound->calculateSize(pTrdpParser) : 0;
-
-	if (length <= 0) {
-		proto_tree_add_expert_format(trdp_spy_userdata, pinfo, &ei_trdp_userdata_empty, tvb, offset, length, "Userdata should be empty or was incomplete. Check xml-config.");
-		return offset;
+	if (length == 0) {
+		// TODO need to resolve the variable dataset first */
+		PRNT(fprintf(stderr, "%s aka %d ([var] octets)\n", (pFound->name.length() > 0) ? pFound->name.toLatin1().data()  : "", pFound->datasetId));
+		trdp_spy_userdata = proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, -1, 1, &pi, "%s (%d): %s", (pFound->name.length() > 0) ? pFound->name.toLatin1().data() : "", pFound->datasetId, title);
+	} else {
+		PRNT(fprintf(stderr, "%s aka %d (%d octets)\n", (pFound->name.length() > 0) ? pFound->name.toLatin1().data()  : "", pFound->datasetId, length));
+		trdp_spy_userdata = proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, length, 1, &pi, "%s (%d): %s", (pFound->name.length() > 0) ? pFound->name.toLatin1().data() : "", pFound->datasetId, title);
 	}
-	
-	PRNT(fprintf(stderr, "%s aka %d (%d octets)\n", (pFound->name.length() > 0) ? pFound->name.toLatin1().data()  : "", pFound->datasetId, length));
-
-	trdp_spy_userdata = proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, length, dataset_level?4:1 /* second element in ett[] */, &ti, "Dataset id : %d (%s)", pFound->datasetId, (pFound->name.length() > 0) ? pFound->name.toLatin1().data() : "" );
-
 
 	QListIterator<Element> iterator(pFound->listOfElements);
-	array_id = 0;
+	array_index = 0;
 	formated_value = 0;
-	while (iterator.hasNext())
-	{
+	gint potential_array_size = -1;
+	while (iterator.hasNext()) {
+
 		Element el = iterator.next();
 
-		PRNT(fprintf(stderr, "[%d, %5lx] Offset %5d ----> Element: type=%2d %s\tname=%s\tarray-size=%d\tunit=%s\tscale=%f\toffset=%d\n", dataset_level, (long unsigned int) gActualNode /* FIXME debug has to be removed */,
-				offset, el.type, (el.typeName.length() > 0) ? el.typeName.toLatin1().data() : "", el.name.toLatin1().data(), el.array_size, el.unit.toLatin1().data(), el.scale, el.offset));
-
-		value8u = 0; // flag, if there was a dynamic list found
+		PRNT(fprintf(stderr, "[%d] Offset %5d ----> Element: type=%2d %s\tname=%s\tarray-size=%d\tunit=%s\tscale=%f\toffset=%d\n", dataset_level,
+				offset, el.getType(), el.getTypeName(), el.name.toLatin1().data(), el.array_size, el.unit.toLatin1().data(), el.scale, el.offset));
 
 		// at startup of a new item, check if it is an array or not
-		if (array_id == 0)
-		{
-			value32 = 0; // Use this value to fetch the width in bytes of one element
-			// calculate the size of one element in bytes
-			if (el.type <= TRDP_TIMEDATE64) {
-				value32 = trdp_dissect_width(el.type);
+		gint remainder = 0;
+		element_count = el.array_size;
+
+		if (!element_count) {// handle variable element count
+
+			if (el.type == TRDP_CHAR8 || el.type == TRDP_UTF16)	{ /* handle the special elements CHAR8 and UTF16: */
+
+				/* Store the maximum possible length for the dynamic datastructure */
+				//remainder = tvb_reported_length_remaining(tvb, offset) - TRDP_FCS_LENGTH;
+
+				/* Search for a zero to determine the end of the dynamic length field */
+				//for(; element_count < remainder && tvb_get_guint8(tvb, offset + element_count); element_count++);
+				//element_count++; /* include the terminator into the element */
+
+				//proto_tree_add_bytes_format_value(trdp_spy_userdata, hf_trdp_ds_type2and3, tvb, offset, length, NULL, "%s [%d]", el.name.toLatin1().data() , element_count);
 			} else {
-				value32 = pTrdpParser->calculateDatasetSize(el.type);
+				element_count = potential_array_size;
+
+				if (element_count < 1) {
+					expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_array_wrong, "%s : was introduced by an unsupported length field. (%d)", el.name.toLatin1().data(), potential_array_size);
+					element_count = 0;
+					potential_array_size = -1;
+					continue; /* if, at the end of the day, the array is intentinally 0, skip the element */
+				} else
+					PRNT(fprintf(stderr, "[%d] Offset %5d Dynamic array, with %d elements found\n", dataset_level, offset, element_count));
+
+				// check if the specified amount could be found in the package
+				remainder = tvb_reported_length_remaining(tvb, offset + el.calculateSize(element_count));
+				if (remainder > 0 && remainder < TRDP_FCS_LENGTH /* check space for FCS */) {
+					expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_userdata_wrong, "%s : has %d elements [%d byte each], but only %d left",
+							el.name.toLatin1().data(), element_count, el.calculateSize(), tvb_reported_length_remaining(tvb, offset));
+					element_count = 0;
+				}
 			}
-			element_amount = el.array_size;
+		}
+		if (element_count > 1) {
+			PRNT(fprintf(stderr, "[%d] Offset %5d -- Array found, expecting %d elements using %d bytes\n", dataset_level, offset, element_count, el.calculateSize(element_count)));
+		}
 
-			if (element_amount == 0) // handle dynamic amount of content
-			{
-				value8u = 1;
+		// For an array, inject a new node in the graphical dissector, tree (also the extracted dynamic information, see above are added)
+		userdata_element = ((element_count == 1) || (el.type == TRDP_CHAR8) || (el.type == TRDP_UTF16)) /* for single line */
+				? trdp_spy_userdata                                                                     /* take existing branch */
+				: proto_tree_add_subtree_format(trdp_spy_userdata, tvb, offset, el.calculateSize(element_count), 1, &pi, "%s (%d)", el.name.toLatin1().data() , element_count);
 
-				/* handle the special elements CHAR8 and UTF16: */
-				if (el.type == TRDP_CHAR8 || el.type == TRDP_UTF16)
+		do {
+			gint64  vals = 0;
+			guint64 valu = 0;
+			gchar  *text = NULL;
+			guint   slen = 0;
+			gfloat  real32 = 0;
+			gdouble real64 = 0;
+			GTimeVal time = {0,0};
+
+			switch(el.type) {
+
+			case TRDP_BOOL8: //    1
+				valu = tvb_get_guint8(tvb, offset);
+				//proto_tree_add_boolean(userdata_element, hf_trdp_ds_type1, tvb, offset, 1, valu);
+				proto_tree_add_boolean_format_value(trdp_spy_userdata, hf_trdp_ds_type1, tvb, offset, 1, valu, "%s : %s", el.name.toLatin1().data(), valu?true_false.true_string:true_false.false_string);
+				offset += 1;
+				break;
+			case TRDP_CHAR8:
+				if (!element_count) {
+					slen = tvb_strsize(tvb, offset);
+//					text = tvb_format_stringzpad(tvb, offset, slen);
+				} else {
+					slen = element_count;
+//					text = tvb_format_text(tvb, offset, slen);
+				}
+				text = tvb_format_text(tvb, offset, slen);
+				if (element_count == 1)
+					proto_tree_add_string_format_value(userdata_element, hf_trdp_ds_type2, tvb, offset, slen, text, "%s : %s", el.name.toLatin1().data(), text);
+				else
+					proto_tree_add_string_format_value(userdata_element, element_count?hf_trdp_ds_type2:hf_trdp_ds_type2z,  tvb, offset, slen, text, "%s : [%d]\"%s\"", el.name.toLatin1().data(), slen, text);
+				offset += slen;
+				element_count = 1;
+				break;
+			case TRDP_UTF16:
+				if (!element_count) {
+					slen = tvb_unicode_strsize(tvb, offset);
+//					text = tvb_format_stringzpad(tvb, offset, slen);
+				} else {
+					slen = 2*element_count; // I interpret (!) for the array-size to be the number of elements, characters, c16.
+//					text = tvb_format_text(tvb, offset, slen);
+				}
+				text = tvb_format_text(tvb, offset, slen);
+				proto_tree_add_string_format_value(userdata_element, element_count?hf_trdp_ds_type3:hf_trdp_ds_type3z, tvb, offset, slen, text, "%s : [%d]\"%s\"", el.name.toLatin1().data(), slen/2, text);
+				offset += slen;
+				element_count = 1;
+				break;
+			case TRDP_INT8:
+				vals = (gint8) tvb_get_guint8(tvb, offset);
+				if (el.scale == 0)
 				{
-					value8u = 2;
+					proto_tree_add_int_format_value(userdata_element, hf_trdp_ds_type4, tvb, offset, 1, vals + el.offset, "%s : %ld %s", el.name.toLatin1().data(), vals + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
 
-					PRNT(fprintf(stderr, "[%d, %5lx] Offset %5d Dynamic element found\n", dataset_level, (long unsigned int) gActualNode /* FIXME debug has to be removed */, offset));
-
-					/* Store the maximum possible length for the dynamic datastructure */
-					value64 = tvb_reported_length_remaining(tvb, offset) - TRDP_FCS_LENGTH;
-
-					/* Search for a zero to determine the end of the dynamic length field */
-					for(value32u = 0; value32u < value64; value32u++)
-					{
-						if (tvb_get_guint8(tvb, offset + value32u) == 0)
-						{
-							break; /* found the end -> quit the search */
-						}
-					}
-					element_amount = value32u + 1; /* include the padding into the element */
-					value32u = 0; /* clear the borrowed variable */
-
-					proto_tree_add_bytes_format_value(trdp_spy_userdata, hf_trdp_ds_type2and3, tvb, offset, length, NULL, "%s [%d]", el.name.toLatin1().data() , element_amount);
+				} else {
+					formated_value = (gdouble) vals; // the value will be displayed in the bottom of the loop
+				}
+				offset += 1;
+				break;
+			case TRDP_INT16:
+				vals = (gint16) tvb_get_ntohs(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_int_format_value(userdata_element, hf_trdp_ds_type5, tvb, offset, 2, vals + el.offset, "%s : %ld %s", el.name.toLatin1().data(), vals + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) vals; // the value will be displayed in the bottom of the loop
+				}
+				offset += 2;
+				break;
+			case TRDP_INT32:
+				vals = (gint32) tvb_get_ntohl(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_int_format_value(userdata_element, hf_trdp_ds_type6, tvb, offset, 4, vals + el.offset, "%s : %ld %s", el.name.toLatin1().data(), vals + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) vals; // the value will be displayed in the bottom of the loop
+				}
+				offset += 4;
+				break;
+			case TRDP_INT64:
+				vals = (gint64) tvb_get_ntoh64(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_int64_format_value(userdata_element, hf_trdp_ds_type7, tvb, offset, 8, vals + el.offset, "%s : %ld %s", el.name.toLatin1().data(), vals + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) vals; // the value will be displayed in the bottom of the loop
+				}
+				offset += 8;
+				break;
+			case TRDP_UINT8:
+				valu = tvb_get_guint8(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_uint_format_value(userdata_element, hf_trdp_ds_type8, tvb, offset, 1, valu + el.offset, "%s : %lu %s", el.name.toLatin1().data(), valu + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) valu; // the value will be displayed in the bottom of the loop
+				}
+				offset += 1;
+				break;
+			case TRDP_UINT16:
+				valu = tvb_get_ntohs(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_uint_format_value(userdata_element, hf_trdp_ds_type9, tvb, offset, 2, valu + el.offset, "%s : %lu %s", el.name.toLatin1().data(), valu + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) valu; // the value will be displayed in the bottom of the loop
+				}
+				offset += 2;
+				break;
+			case TRDP_UINT32:
+				valu = tvb_get_ntohl(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_uint_format_value(userdata_element, hf_trdp_ds_type10, tvb, offset, 4, valu + el.offset, "%s : %lu %s", el.name.toLatin1().data(), valu + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) valu; // the value will be displayed in the bottom of the loop
+				}
+				offset += 4;
+				break;
+			case TRDP_UINT64:
+				valu = tvb_get_ntoh64(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_uint64_format_value(userdata_element, hf_trdp_ds_type11, tvb, offset, 8, valu + el.offset, "%s : %lu %s", el.name.toLatin1().data(), valu + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) valu; // the value will be displayed in the bottom of the loop
+				}
+				offset += 8;
+				break;
+			case TRDP_REAL32:
+				real32 = tvb_get_ntohieee_float(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_float_format_value(userdata_element, hf_trdp_ds_type12, tvb, offset, 4, real32, "%s : %f %s", el.name.toLatin1().data(), real32, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				} else {
+					formated_value = (gdouble) real32; // the value will be displayed in the bottom of the loop
+				}
+				offset += 4;
+				break;
+			case TRDP_REAL64:
+				real64 = tvb_get_ntohieee_double(tvb, offset);
+				if (el.scale == 0)
+				{
+					proto_tree_add_double_format_value(userdata_element, hf_trdp_ds_type13, tvb, offset, 8, real64, "%s : %f %s", el.name.toLatin1().data(), real64, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
 				}
 				else
 				{
-					//Extract the amount of element from the last element (supported types are UINT8, UINT16, UINT32) */
-					switch (lastType) {
-					case TRDP_INT8:
-					case TRDP_UINT8:
-						element_amount = (quint8) tvb_get_guint8(tvb, offset - trdp_dissect_width(lastType));
-						break;
-					case TRDP_INT16:
-					case TRDP_UINT16:
-						element_amount = (quint16) tvb_get_ntohs(tvb, offset - trdp_dissect_width(lastType));
-						break;
-					case TRDP_INT32:
-					case TRDP_UINT32:
-						element_amount = (quint32) tvb_get_ntohl(tvb, offset - trdp_dissect_width(lastType));
-						break;
-					default:
-						expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_array_wrong, "%s : has unsupported length datatype.",
-								el.name.toLatin1().data());
-						element_amount = 0U;
-					}
-					PRNT(fprintf(stderr, "[%d, %5lx] Offset %5d Dynamic array, with %d elements found\n", dataset_level, (long unsigned int) gActualNode /* FIXME debug has to be removed */, offset, element_amount));
-
-					// check if the specified amount could be found in the package
-					value64 = tvb_reported_length_remaining(tvb, offset + element_amount * value32);
-					if (value64 > 0 && value64 < TRDP_FCS_LENGTH /* There will be always kept space for the FCS */)
-					{
-						expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_userdata_wrong, "%s has %d elements, but not enough space",
-								el.name.toLatin1().data(), element_amount);
-						element_amount = 0;
-
-					}
-
-					byteOfElement = value32 * element_amount; // length in byte of the element
+					formated_value = (gdouble) real64; // the value will be displayed in the bottom of the loop
 				}
+				offset += 8;
+				break;
+			case TRDP_TIMEDATE32:
+				memset(&time, 0, sizeof(time) );
+				valu = tvb_get_ntohl(tvb, offset);
+				time.tv_sec = valu;
+				proto_tree_add_time_format_value(userdata_element, hf_trdp_ds_type14, tvb, offset, 4, NULL, "%s : %s %s", el.name.toLatin1().data(), g_time_val_to_iso8601(&time), (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				offset += 4;
+				break;
+			case TRDP_TIMEDATE48:
+				memset(&time, 0, sizeof(time) );
+				valu = tvb_get_ntohl(tvb, offset);
+				time.tv_sec = valu;
+				valu = tvb_get_ntohs(tvb, offset + 4);
+				time.tv_usec = valu*15; // TODO how are ticks calculated to microseconds
+				proto_tree_add_bytes_format_value(userdata_element, hf_trdp_ds_type15, tvb, offset, 6, NULL, "%s : %s %s", el.name.toLatin1().data(), g_time_val_to_iso8601(&time), (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				offset += 6;
+				break;
+			case TRDP_TIMEDATE64:
+				memset(&time, 0, sizeof(time) );
+				valu = tvb_get_ntohl(tvb, offset);
+				time.tv_sec = valu;
+				valu = tvb_get_ntohl(tvb, offset + 4);
+				time.tv_usec = valu;
+				proto_tree_add_bytes_format_value(userdata_element, hf_trdp_ds_type16, tvb, offset, 8, NULL, "%s : %s %s", el.name.toLatin1().data(), g_time_val_to_iso8601(&time), (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+				offset += 8;
+				break;
+			default:
+				PRNT(fprintf(stderr, "Unique type %d for %s\n", el.type, el.name.toLatin1().data()));
 
+				offset = dissect_trdp_generic_body(tvb, pinfo, userdata_element, trdpRootNode, el.type, offset, length-(offset-start_offset), dataset_level + 1, el.name.toLatin1().constData());
+				break;
 			}
-			else if (element_amount > 1) // handle array content
-			{
-				byteOfElement = element_amount * trdp_dissect_width(el.type);
-				PRNT(fprintf(stderr, "[%d, %5lx] Offset %5d Array element found, expect %d elements using %d bytes\n", dataset_level, (long unsigned int) gActualNode /* FIXME debug has to be removed */, offset, element_amount, byteOfElement));
+
+
+			// the display of a formated value is the same for all types, so do it here.
+			if (formated_value != 0) {
+				gint32 width = trdp_dissect_width(el.type); // width of the element;
+				formated_value = (formated_value * el.scale) + el.offset;
+
+				proto_tree_add_double_format_value(userdata_element, hf_trdp_ds_type99, tvb, offset - width, width, formated_value,
+						"%s : %lf %s", el.name.toLatin1().data(), formated_value,(el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
+
+				formated_value=0;
 			}
 
-			// Appand a new node in the graphical dissector, tree (also the extracted dynamic information, see above are added)
-			if ((element_amount > 1  || element_amount == 0) && value8u != 2)
-			{
 
-				ti = proto_tree_add_subtree_format(trdp_spy_userdata, tvb, offset, byteOfElement, 1 /* second element in ett[] */, NULL, "%s (%d)", el.name.toLatin1().data() , element_amount);
-				userdata_actual = proto_item_add_subtree(ti, ett_trdp_spy_userdata);
-				offset += byteOfElement;
-				continue;
-			}
-			else if (value8u != 2) /* check, that the dissector tree was not already modified handling dynamic datatypes */
-			{
-				userdata_actual = trdp_spy_userdata;
-			}
-
-			if (value8u == 1)
-			{
-				proto_tree_add_bytes_format_value(userdata_actual, hf_trdp_ds_type8amount, tvb, offset, 2, NULL, "%d elements", element_amount);
-				offset += 2;
-
-				if (value64 > 0 && value64 < TRDP_FCS_LENGTH /*There will be always kept space for the FCS*/)
-				{
-					PRNT(fprintf(stderr, "The dynamic size is too large: %s : has %d elements [%d byte each], but only %d left",
-							el.name.toLatin1().data(), element_amount, value32, tvb_reported_length_remaining(tvb, offset)));
-
-					expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_userdata_wrong, "%s : has %d elements [%d byte each], but only %d left",
-							el.name.toLatin1().data(), element_amount, value32, tvb_reported_length_remaining(tvb, offset));
+			if (array_index || element_count != 1) {
+				// handle arrays
+				PRNT(fprintf(stderr, "[%d / %d]\n", array_index, element_count));
+				if (++array_index >= element_count) {
+					array_index = 0;
+					userdata_element = trdp_spy_userdata;
 				}
+				potential_array_size = -1;
+			} else {
+				PRNT(fprintf(stderr, "[%d / %d], (type=%d) val-u=%lu val-s=%ld.\n", array_index, element_count, el.type, valu, vals));
+
+				potential_array_size = (el.type < TRDP_INT8 || el.type > TRDP_UINT64) ? -1 : (el.type >= TRDP_UINT8 ? valu : vals);
 			}
 
-			// jump to the next frame. (this is possible, when no elements are transmitted, or on problems)
-			if (element_amount  == 0)
-			{
-				// pick the next element
-				gActualNode = g_slist_next(gActualNode);
-				continue;
-			}
-		}
-
-		switch(el.type)
-		{
-		case TRDP_BOOL8: //    1
-			value32 = tvb_get_guint8(tvb, offset);
-			proto_tree_add_bytes_format_value(trdp_spy_userdata, hf_trdp_ds_type1, tvb, offset, 1, NULL, "%s : %s", el.name.toLatin1().data(), (value32 == 0) ? "false" : "true");
-			offset += 1;
-			break;
-		case TRDP_CHAR8:
-			//FIXME text = (gchar *) tvb_get_ephemeral_string(tvb, offset, element_amount);
-			proto_tree_add_bytes_format_value(trdp_spy_userdata, hf_trdp_ds_type2, tvb, offset, element_amount, NULL, "%s : %s %s", el.name.toLatin1().data(), text, (el.unit.length() > 0) ? el.unit.toLatin1().data() : "");
-			offset += element_amount;
-			array_id = element_amount - 1; // Jump to the next element (remove one, because this will be added automatically later)
-			break;
-		case TRDP_UTF16:
-			text = NULL;
-			//FIXME text = tvb_get_unicode_string(tvb, offset, element_amount * 2, 0);
-			if (text != NULL)
-			{
-				//FIXME proto_tree_add_text(userdata_actual, tvb, offset, element_amount * 2, "%s : %s %s", el->name->str, text, (el->unit != 0) ? el->unit->str : "");
-				g_free(text);
-			}
-			else
-			{
-				//FIXME proto_tree_add_text(userdata_actual, tvb, offset, element_amount * 2, "%s could not extract UTF16 character", el->name->str);
-			}
-			offset +=(element_amount * 2);
-			array_id = element_amount - 1; // Jump to the next element (remove one, because this will be added automatically later)
-			break;
-		case TRDP_INT8:
-			value8 = (gint8) tvb_get_guint8(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_int_format_value(trdp_spy_userdata, hf_trdp_ds_type4, tvb, offset, 1, value8 + el.offset, "%s : %d %s", el.name.toLatin1().data(), value8 + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-
-			} else {
-				formated_value = (gdouble) value8; // the value will be displayed in the bottom of the loop
-			}
-			offset += 1;
-			break;
-		case TRDP_INT16:
-			value16 = (gint16) tvb_get_ntohs(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_int_format_value(trdp_spy_userdata, hf_trdp_ds_type5, tvb, offset, 2, value16 + el.offset, "%s : %d %s", el.name.toLatin1().data(), value16 + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) value16; // the value will be displayed in the bottom of the loop
-			}
-			offset += 2;
-			break;
-		case TRDP_INT32:
-			value32 = (gint32) tvb_get_ntohl(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_int_format_value(trdp_spy_userdata, hf_trdp_ds_type6, tvb, offset, 4, value32 + el.offset, "%s : %d %s", el.name.toLatin1().data(), value32 + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) value32; // the value will be displayed in the bottom of the loop
-			}
-			offset += 4;
-			break;
-		case TRDP_INT64:
-			value64 = (gint64) tvb_get_ntoh64(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_int64_format_value(trdp_spy_userdata, hf_trdp_ds_type7, tvb, offset, 8, value64 + el.offset, "%s : %ld %s", el.name.toLatin1().data(), value64 + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) value64; // the value will be displayed in the bottom of the loop
-			}
-			offset += 8;
-			break;
-		case TRDP_UINT8:
-			value8u = tvb_get_guint8(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_uint_format_value(trdp_spy_userdata, hf_trdp_ds_type8, tvb, offset, 1, value8u + el.offset, "%s : %d %s", el.name.toLatin1().data(), value8u + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) value8u; // the value will be displayed in the bottom of the loop
-			}
-			offset += 1;
-			break;
-		case TRDP_UINT16:
-			value16u = tvb_get_ntohs(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_uint_format_value(trdp_spy_userdata, hf_trdp_ds_type9, tvb, offset, 2, value16u + el.offset, "%s : %d %s", el.name.toLatin1().data(), value16u + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) value16u; // the value will be displayed in the bottom of the loop
-			}
-			offset += 2;
-			break;
-		case TRDP_UINT32:
-			value32u = tvb_get_ntohl(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_uint_format_value(trdp_spy_userdata, hf_trdp_ds_type10, tvb, offset, 4, value32u + el.offset, "%s : %d %s", el.name.toLatin1().data(), value32u + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) value32u; // the value will be displayed in the bottom of the loop
-			}
-			offset += 4;
-			break;
-		case TRDP_UINT64:
-			value64u = tvb_get_ntoh64(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_uint64_format_value(trdp_spy_userdata, hf_trdp_ds_type11, tvb, offset, 8, value64u + el.offset, "%s : %ld %s", el.name.toLatin1().data(), value64u + el.offset, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) value64u; // the value will be displayed in the bottom of the loop
-			}
-			offset += 8;
-			break;
-		case TRDP_REAL32:
-			real32 = tvb_get_ntohieee_float(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_float_format_value(trdp_spy_userdata, hf_trdp_ds_type12, tvb, offset, 4, real32, "%s : %f %s", el.name.toLatin1().data(), real32, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			} else {
-				formated_value = (gdouble) real32; // the value will be displayed in the bottom of the loop
-			}
-			offset += 4;
-			break;
-		case TRDP_REAL64:
-			real64 = tvb_get_ntohieee_double(tvb, offset);
-			if (el.scale == 0)
-			{
-				proto_tree_add_double_format_value(trdp_spy_userdata, hf_trdp_ds_type13, tvb, offset, 8, real64, "%s : %f %s", el.name.toLatin1().data(), real64, (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			}
-			else
-			{
-				formated_value = (gdouble) real64; // the value will be displayed in the bottom of the loop
-			}
-			offset += 8;
-			break;
-		case TRDP_TIMEDATE32:
-			memset(&time, 0, sizeof(time) );
-			value32u = tvb_get_ntohl(tvb, offset);
-			time.tv_sec = value32u;
-			proto_tree_add_time_format_value(trdp_spy_userdata, hf_trdp_ds_type14, tvb, offset, 4, NULL, "%s : %s %s", el.name.toLatin1().data(), g_time_val_to_iso8601(&time), (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			offset += 4;
-			break;
-		case TRDP_TIMEDATE48:
-			memset(&time, 0, sizeof(time) );
-			value32u = tvb_get_ntohl(tvb, offset);
-			value16u = tvb_get_ntohs(tvb, offset + 4);
-			time.tv_sec = value32u;
-			//time.tv_usec TODO how are ticks calculated to microseconds
-			proto_tree_add_bytes_format_value(trdp_spy_userdata, hf_trdp_ds_type15, tvb, offset, 6, NULL, "%s : %s %s", el.name.toLatin1().data(), g_time_val_to_iso8601(&time), (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			offset += 6;
-			break;
-		case TRDP_TIMEDATE64:
-			memset(&time, 0, sizeof(time) );
-			value32u = tvb_get_ntohl(tvb, offset);
-			time.tv_sec = value32u;
-			value32u = tvb_get_ntohl(tvb, offset + 4);
-			time.tv_usec = value32u;
-			proto_tree_add_bytes_format_value(trdp_spy_userdata, hf_trdp_ds_type16, tvb, offset, 8, NULL, "%s : %s %s", el.name.toLatin1().data(), g_time_val_to_iso8601(&time), (el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-			offset += 8;
-			break;
-		default:
-			//proto_tree_add_text(userdata_actual, tvb, offset, 1, "Unkown type %d for %s", el->type, el->name);
-			PRNT(fprintf(stderr, "Unique type %d for %s\n", el.type, el.name.toLatin1().data()));
-
-			// TODO check the dataset_level (maximum is 5!)
-
-			offset = dissect_trdp_generic_body(tvb, pinfo, userdata_actual, trdpRootNode, el.type, offset, length-(offset-start_offset), dataset_level + 1);
-			element_amount = 0;
-			array_id = 0;
-			break;
-		}
-
-		// the display of a formated value is the same for all types, so do it here.
-		if (formated_value != 0)
-		{
-			formated_value = (formated_value * el.scale) + el.offset;
-			value16 = trdp_dissect_width(el.type); // width of the element
-			proto_tree_add_double_format_value(trdp_spy_userdata, hf_trdp_ds_type99, tvb, offset - value16, value16, formated_value,
-					"%s : %lf %s", el.name.toLatin1().data(), formated_value,(el.unit.length() != 0) ? el.unit.toLatin1().data() : "");
-		}
-		formated_value=0;
-
-
-		if (element_amount == 0 && array_id == 0)
-		{
-			// handle dynamic size of zero (only the length is set with 0, but no data is transmitted)
-			// jump to the next dataset element:
-			gActualNode = g_slist_next(gActualNode);
-			array_id = 0;
-		}
-		else
-		{
-			// handle arrays
-			array_id++;
-			if (element_amount - array_id <= 0)
-			{
-				// pick the next element
-				gActualNode = g_slist_next(gActualNode);
-				array_id = 0;
-			}
-		}
-		/* remember the current used type */
-		lastType = el.type;
+		} while(array_index);
 
 	}
 
 	// When there is an dataset displayed, the FCS calculation is not necessary
-	if (dataset_level > 0)
-	{
+	if (dataset_level > 0) {
 		PRNT(fprintf(stderr, "##### Display userdata END found (level %d) #######\n", dataset_level));
-		return offset;
+	} else {
+
+		/* Check padding and CRC of the body */
+		offset = checkPaddingAndOffset(tvb, pinfo, trdpRootNode, start_offset, offset);
+
+		PRNT(fprintf(stderr, "##### Display ComId END found #######\n"));
 	}
-
-	/* Check padding and CRC of the body */
-	offset = checkPaddingAndOffset(tvb, pinfo, trdpRootNode, start_offset, offset);
-
-	PRNT(fprintf(stderr, "##### Display ComId END found (level %d) #######\n", dataset_level));
 	return offset;
 }
 
@@ -726,7 +658,7 @@ static void dissect_trdp_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trd
 {
 	API_TRACE;
 
-	dissect_trdp_generic_body(tvb, pinfo, trdp_spy_tree, trdp_spy_tree, trdp_spy_comid, offset, length, 0/* level of cascaded datasets*/);
+	dissect_trdp_generic_body(tvb, pinfo, trdp_spy_tree, trdp_spy_tree, trdp_spy_comid, offset, length, 0/* level of cascaded datasets*/, "");
 }
 
 /**
@@ -783,7 +715,7 @@ static proto_item * build_trdp_tree(tvbuff_t *tvb, packet_info *pinfo, proto_tre
 		switch (trdp_spy_string[0])
 		{
 		case 'P':
-		/* PD specific stuff */
+			/* PD specific stuff */
 			proto_tree_add_item(trdp_spy_tree, hf_trdp_spy_reserved, tvb, TRDP_HEADER_PD_OFFSET_RESERVED, 4, FALSE);
 			ti = proto_tree_add_item(trdp_spy_tree, hf_trdp_spy_reply_comid, tvb, TRDP_HEADER_PD_OFFSET_REPLY_COMID, 4, FALSE);
 			ti = proto_tree_add_item(trdp_spy_tree, hf_trdp_spy_reply_ipaddress, tvb, TRDP_HEADER_PD_OFFSET_REPLY_IPADDR, 4, FALSE);
@@ -842,51 +774,64 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
 		ti_type = build_trdp_tree(tvb,pinfo,tree,trdp_spy_comid, trdp_spy_string);
 	}
 
-	/* Display a info line */
-	col_append_fstr(pinfo->cinfo, COL_INFO, "comId: %5d ",trdp_spy_comid);
 	/* Append the packet type into the information description */
 	if (col_get_writable(pinfo->cinfo, COL_INFO))
 	{
+		/* Display a info line */
+		col_append_fstr(pinfo->cinfo, COL_INFO, "comId: %5d ",trdp_spy_comid);
+
 		if ((!strcmp(trdp_spy_string,"Pr")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(PD Request)");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "PD Request");
 		}
 		else if ((!strcmp(trdp_spy_string,"Pp")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(PD Reply)");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "PD Reply  ");
 		}
 		else if ((!strcmp(trdp_spy_string,"Pd")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(PD Data)");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "PD Data   ");
 		}
 		else if ((!strcmp(trdp_spy_string,"Mn")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(MD Notification (Request without reply))");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "MD Notification (Request without reply)");
 		}
 		else if ((!strcmp(trdp_spy_string,"Mr")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(MD Request with reply)");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "MD Request with reply");
 		}
 		else if ((!strcmp(trdp_spy_string,"Mp")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(MD Reply (without confirmation))");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "MD Reply (without confirmation)");
 		}
 		else if ((!strcmp(trdp_spy_string,"Mq")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(MD Reply (with confirmation))");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "MD Reply (with confirmation)");
 		}
 		else if ((!strcmp(trdp_spy_string,"Mc")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(MD Confirm)");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "MD Confirm");
 		}
 		else if ((!strcmp(trdp_spy_string,"Me")))
 		{
-			col_append_fstr(pinfo->cinfo, COL_INFO, "(MD error)");
+			col_append_fstr(pinfo->cinfo, COL_INFO, "MD error  ");
 		}
 		else
 		{
 			col_append_fstr(pinfo->cinfo, COL_INFO, "Unknown TRDP Type");
 			expert_add_info_format(pinfo, ti_type, &ei_trdp_type_unkown, "Unknown TRDP Type: %s", trdp_spy_string);
+		}
+
+		/* Help with high-level name of ComId / Dataset */
+		if (pTrdpParser) {
+			const ComId *comId = pTrdpParser->const_searchComId(trdp_spy_comid);
+			if (comId) {
+				if (!comId->name.isEmpty()) {
+					col_append_fstr(pinfo->cinfo, COL_INFO, " -> %s", comId->name.toLatin1().constData());
+				} else if (comId->linkedDS && !comId->linkedDS->name.isEmpty()) {
+					col_append_fstr(pinfo->cinfo, COL_INFO, " -> [%s]", comId->linkedDS->name.toLatin1().constData());
+				}
+			}
 		}
 	}
 	return amountOfParsedElements;
@@ -992,10 +937,12 @@ void proto_register_trdp(void)
 			{ &hf_trdp_spy_dataset_id,          { "Dataset id", "trdp.dataset_id", FT_NONE, BASE_NONE, NULL, 0x0, "", HFILL } },
 
 			/* Dynamic stuff of a datset, add each possible type */
-			{ &hf_trdp_ds_type2and3,        { "CHAR8/UTF16", "trdp.char8" , FT_BYTES,       BASE_NONE, NULL, 0x0, NULL, HFILL } },
-			{ &hf_trdp_ds_type1,            { "BOOL8", "trdp.bool8" , FT_BYTES,       BASE_NONE, NULL, 0x0, NULL, HFILL } },
-			{ &hf_trdp_ds_type2,            { "CHAR8", "trdp.char8" , FT_BYTES,       BASE_NONE, NULL, 0x0, NULL, HFILL } },
-			{ &hf_trdp_ds_type4,            { "INT8",  "trdp.int8" , FT_INT8,         BASE_DEC, NULL, 0x0, NULL, HFILL } },
+			{ &hf_trdp_ds_type1,            { "BOOL8", "trdp.bool8" , FT_BOOLEAN,     8, TFS(&true_false), 1, NULL, HFILL } },
+			{ &hf_trdp_ds_type2,            { "CHAR8", "trdp.char8" , FT_STRING,      STR_ASCII,  NULL, 0x0, NULL, HFILL } },
+			{ &hf_trdp_ds_type2z,           { "CHAR",  "trdp.char8z", FT_STRINGZ,     STR_ASCII,  NULL, 0x0, NULL, HFILL } },
+			{ &hf_trdp_ds_type3,            { "UTF16", "trdp.utf16" , FT_STRING,      STR_UNICODE, NULL, 0x0, NULL, HFILL } },
+			{ &hf_trdp_ds_type3z,           { "UTF",   "trdp.utf16z", FT_STRINGZ,     STR_UNICODE, NULL, 0x0, NULL, HFILL } },
+			{ &hf_trdp_ds_type4,            { "INT8",  "trdp.int8"  , FT_INT8,        BASE_DEC, NULL, 0x0, NULL, HFILL } },
 			{ &hf_trdp_ds_type5,            { "INT16", "trdp.int16" , FT_INT16,       BASE_DEC, NULL, 0x0, NULL, HFILL } },
 			{ &hf_trdp_ds_type6,            { "INT32", "trdp.int32" , FT_INT32,       BASE_DEC, NULL, 0x0, NULL, HFILL } },
 			{ &hf_trdp_ds_type7,            { "INT64", "trdp.int64" , FT_INT64,       BASE_DEC, NULL, 0x0, NULL, HFILL } },
@@ -1006,7 +953,7 @@ void proto_register_trdp(void)
 			{ &hf_trdp_ds_type12,           { "REAL32", "trdp.real32" , FT_FLOAT,     BASE_NONE, NULL, 0x0, NULL, HFILL } },
 			{ &hf_trdp_ds_type13,           { "REAL64", "trdp.real64" , FT_DOUBLE,    BASE_NONE, NULL, 0x0, NULL, HFILL } },
 			{ &hf_trdp_ds_type14,           { "TIMEDATE32", "trdp.timedate32" , FT_BYTES, BASE_NONE, NULL, 0x0, NULL, HFILL } }, // ENC_TIME_SECS
-			{ &hf_trdp_ds_type15,           { "TIMEDATE48", "trdp.timedate48" , FT_BYTES,         BASE_NONE, NULL, 0x0, NULL, HFILL } },
+			{ &hf_trdp_ds_type15,           { "TIMEDATE48", "trdp.timedate48" , FT_BYTES, BASE_NONE, NULL, 0x0, NULL, HFILL } },
 			{ &hf_trdp_ds_type16,           { "TIMEDATE64", "trdp.timedate64" , FT_BYTES, BASE_NONE, NULL, 0x0, NULL, HFILL } }, // ENC_TIME_SECS_USECS / older ENC_TIME_TIMEVAL
 	};
 	/* Setup protocol subtree array */
@@ -1044,9 +991,9 @@ void proto_register_trdp(void)
 	prefs_register_uint_preference(trdp_spy_module, "pd.udp.port",
 			"PD message Port",
 			"UDP port for PD messages (Default port is " TRDP_DEFAULT_STR_PD_PORT ")", 10 /*base */, &g_pd_port);
-	prefs_register_uint_preference(trdp_spy_module, "md.udptcp.port",
-			"MD message Port",
-			"UDP and TCP port for MD messages (Default port is " TRDP_DEFAULT_STR_MD_PORT ")", 10 /*base */, &g_md_port);
+//	prefs_register_uint_preference(trdp_spy_module, "md.udptcp.port",
+//			"MD message Port",
+//			"UDP and TCP port for MD messages (Default port is " TRDP_DEFAULT_STR_MD_PORT ")", 10 /*base */, &g_md_port);
 
 	/* Register expert information */
 	expert_module_t* expert_trdp;

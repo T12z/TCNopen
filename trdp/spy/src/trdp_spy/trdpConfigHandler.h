@@ -1,40 +1,43 @@
 /******************************************************************************/
 /**
-* @file            trdpConfigHandler.cpp
-*
-* @brief           Parser of the XML description
-*
-* @details
-*
-* @note            Project: TRDP SPY
-*
-* @author          Florian Weispfenning, Bombardier Transportation
-*
-* @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-*          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
-*
-* $Id: $
-*
-*/
+ * @file            trdpConfigHandler.cpp
+ *
+ * @brief           Parser of the XML description
+ *
+ * @details
+ *
+ * @note            Project: TRDP SPY
+ *
+ * @author          Florian Weispfenning, Bombardier Transportation
+ *                  Thorsten Schulz, Universität Rostock
+ *
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *
+ * $Id: $
+ *
+ */
 
 #ifndef TRDP_CONFIG_HANDLER
 #define TRDP_CONFIG_HANDLER
 
 /*******************************************************************************
-* INCLUDES
-*/
+ * INCLUDES
+ */
 #include <QtXml/QXmlDefaultHandler>
 #include <QHash>
 #include <QList>
 #include "ws_attributes.h"
 #include "trdp_env.h"
+#include <epan/packet.h>
 
 /*******************************************************************************
-* CLASS Definition
-*/
+ * CLASS Definition
+ */
 
 class TrdpConfigHandler; /**< empty class, needed for bidirectional dependencies */
+class Dataset;
 
 /** @class Element
  *  @brief description of one element
@@ -75,25 +78,53 @@ class TrdpConfigHandler; /**< empty class, needed for bidirectional dependencies
  * @enddot
  */
 class Element {
+private:
+	void stringifyType();
+
 public:
+	static const char   *idx2Tname[];
+	static const quint32 idx2Tint[];
+
+
 	QString     name=""; /**< Name of the variable, that is stored */
-	quint32     type=0U; /**< Numeric type of the variable (see Usermanual, chapter 4.2) or defined at ::TRDP_BOOL8, ::TRDP_UINT8, ::TRDP_UINT16 and so on.*/
-	QString     typeName="";   /**< Textual representation of the type (necessary for own datasets, packed recursively) */
-	qint32      array_size=1; /**< Amount this value occurred. 1 is default; 0 indicates a dynamic list (the dynamic list is preceeded by an integer revealing the actual size.) */
+	quint32     type; /**< Numeric type of the variable (see Usermanual, chapter 4.2) or defined at ::TRDP_BOOL8, ::TRDP_UINT8, ::TRDP_UINT16 and so on.*/
+	//	QString     typeName="";   /**< Textual representation of the type (necessary for own datasets, packed recursively) */
+	char        typeName[32];  /**< typeNames are allowed between 1..30 octets */
+	qint32      array_size; /**< Amount this value occurred. 1 is default; 0 indicates a dynamic list (the dynamic list is preceeded by an integer revealing the actual size.) */
 	QString     unit="";       /**< Unit to display */
 	float       scale=0.0f;      /**< A factor the given value is scaled */
 	qint32      offset=0U;     /**< Offset that is added to the values. displayed value = scale * raw value + offset */
 
-	gint8       width=0; /**< Contains the Element's size as returned by trdp_dissect_width(this->type) */
+	qint32      width; /**< Contains the Element's size as returned by trdp_dissect_width(this->type) */
+	Dataset    *linkedDS=NULL; /**< points to DS for non-standard types */
 
 	/** Calculate the size in bytes of this element
 	 * @brief calculate the amount of used bytes
 	 * @return number of bytes (or negative, if a unkown type is set)
 	 */
 
-	qint32 calculateSize(quint32 array_size = 1) const {
+	Element(const QString &typeS) {
+		bool convert2intOk;
+		array_size = 1;
+		typeName[0] = 0;
+		type = typeS.toInt(&convert2intOk); /* try to store information as a number */
+		if (!convert2intOk)
+			decodeDefaultTypes(typeS);
+		else
+			stringifyType();
+
+		width = trdp_dissect_width(type);
+	}
+
+	bool decodeDefaultTypes(const QString &qTypeName);
+	bool checkSize(TrdpConfigHandler *pConfigHandler, quint32 referrer);
+
+	qint32  calculateSize(quint32 array_size = 1) const {
 		return width * (this->array_size ? this->array_size : array_size);
 	}
+
+	quint32 getType() { return type; }
+	const char *getTypeName() { return typeName; }
 };
 
 /** @class Dataset
@@ -103,18 +134,18 @@ class Dataset {
 private:
 	qint32  size=0;         /**< Cached size of Dataset, including subsets. negative, if size cannot be calculated due to a missing/broken sub-dataset definition, 0, if contains var-array and must be recalculated */
 public:
-    quint32 datasetId;      /**< Unique identification of one dataset */
-    QString name;           /**< Description of the dataset */
-    QList<Element>   listOfElements; /**< All elements, this dataset consists of. */
+	quint32 datasetId;      /**< Unique identification of one dataset */
+	QString name;           /**< Description of the dataset */
+	QList<Element>   listOfElements; /**< All elements, this dataset consists of. */
 
-    bool operator==(const Dataset & other) const; /* == overloading to assign in QHash */
+	bool operator==(const Dataset & other) const; /* == overloading to assign in QHash */
 
-    /** Calculate the size of the elements and its contents
-     * @brief calculateSize
-     * @return
-     */
-    quint32 calculateSize(TrdpConfigHandler *pConfigHandler) const;
-    quint32 preCalculateSize(TrdpConfigHandler *pConfigHandler);
+	/** Calculate the size of the elements and its contents
+	 * @brief calculateSize
+	 * @return
+	 */
+	qint32 getSize() const;
+	qint32 preCalculateSize(TrdpConfigHandler *pConfigHandler);
 };
 
 /** @class ComId
@@ -138,10 +169,16 @@ public:
  */
 class ComId {
 public:
-    quint32 comId=0U;      /**< Communication Id, used as key*/
-    quint32 dataset=0U;    /**< Id for a dataset ( @link #Dataset see Dataset structure @endlink) */
+	quint32 comId=0U;      /**< Communication Id, used as key*/
+	quint32 dataset=0U;    /**< Id for a dataset ( @link #Dataset see Dataset structure @endlink) */
+	Dataset *linkedDS=NULL;
+	qint32  size=0;
+	QString name;
 
-    bool operator==(const ComId & other) const; /* == overloading to assign in QHash */
+	/* Tries to get the size for the comId-related DS. Will only work, if all DS are non-variable. */
+	gint32 preCalculate(TrdpConfigHandler *conf); /**< must only be called after full config initialization */
+	gint32 getSize() { return size; }
+	bool operator==(const ComId & other) const; /* == overloading to assign in QHash */
 };
 
 
@@ -149,53 +186,52 @@ class TrdpConfigHandler : public QXmlDefaultHandler
 {
 
 public:
-    TrdpConfigHandler(const char *xmlconfigFile);
+	TrdpConfigHandler(const char *xmlconfigFile);
 
-    ~TrdpConfigHandler();
+	~TrdpConfigHandler();
 
-    bool startElement(const QString &namespaceURI, const QString &localName,
-        const QString &qName, const QXmlAttributes &attributes);
+	bool startElement(const QString &namespaceURI, const QString &localName,
+			const QString &qName, const QXmlAttributes &attributes);
 
-    bool endElement(const QString &namespaceURI, const QString &localName,
-        const QString &qName);
+	bool endElement(const QString &namespaceURI, const QString &localName,
+			const QString &qName);
 
-    bool characters(const QString &str) const;
+	bool characters(const QString &str) const;
 
-    bool fatalError(const QXmlParseException &exception) const;
+	bool fatalError(const QXmlParseException &exception) const;
 
-    QString errorString() const override;
+	QString errorString() const override;
 
-    const Dataset *search(quint32 comId) const;
+	const ComId   *const_searchComId(quint32 comId) const;
+	const Dataset *const_search(quint32 comId) const;
 
-    const Dataset *searchDataset(quint32 datasetId) const;
+	const Dataset *const_searchDataset(quint32 datasetId) const;
+	Dataset *      searchDataset(quint32 datasetId);
 
-    bool isInited() { return (this->xmlconfigFile.length() > 0); }
+	bool isInitialized() { return (this->xmlconfigFile.length() > 0); }
 
-    /** RetuInformation, if the calculated size is only the minimum, or not.
-     * <b>must</b> be called after @see calculateDatasetSize() or @see calculateTelegramSize()
-     * @brief isMinCalcSize
-     * @return
-     */
-    bool isMinCalcSize(void) { return mDynamicSizeFound; }
+	/** RetuInformation, if the calculated size is only the minimum, or not.
+	 * <b>must</b> be called after @see calculateDatasetSize() or @see calculateTelegramSize()
+	 * @brief isMinCalcSize
+	 * @return
+	 */
+	//bool isMinCalcSize(void) { return mDynamicSizeFound; }
 
-    quint32 calculateTelegramSize(quint32 comId);
-    quint32 calculateDatasetSize(quint32 datasetId);
+	qint32 calculateTelegramSize(quint32 comId);
+	qint32 calculateDatasetSize(quint32 datasetId);
 
-    void setDynamicSize(void) { mDynamicSizeFound = true;}
 private:
-    QString xmlconfigFile;
-    QString currentText;
-    QString errorStr;
-    bool metXbelTag;
-    bool mDynamicSizeFound;
-    QHash<quint32, ComId>   mTableComId;
-    QHash<quint32, Dataset> mTableDataset;
-    quint32 mWorkingDatasetId = 0U;
+	QString xmlconfigFile;
+	QString currentText;
+	QString errorStr;
+	bool metXbelTag;
+	//bool mDynamicSizeFound;
+	QHash<quint32, ComId>   mTableComId;
+	QHash<quint32, Dataset> mTableDataset;
+	quint32 mWorkingDatasetId = 0U;
 
-    quint32 decodeDefaultTypes(QString typeName) const;
-
-    int searchIndex(const QXmlAttributes &attributes, QString searchname) const;
-    void insertStandardType(quint32 id, char* textdescr);
+	int searchIndex(const QXmlAttributes &attributes, QString searchname) const;
+	void insertStandardType(quint32 id, char* textdescr);
 };
 
 #endif

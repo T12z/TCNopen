@@ -33,6 +33,8 @@
  */
 
 #define TRDP_BOOL8      1   /**< =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true) */
+#define TRDP_BITSET8    TRDP_BOOL8
+#define TRDP_ANTIVALENT8 TRDP_BOOL8
 #define TRDP_CHAR8		2	/**< char, can be used also as UTF8 */
 #define TRDP_UTF16		3	/**< Unicode UTF-16 character */
 #define TRDP_INT8		4	/**< Signed integer, 8 bit */
@@ -124,7 +126,7 @@ quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs);
  * @param type  the requested type, where the width shall be returned
  * @return <code>-1</code>, on unkown types
  */
-qint8 trdp_dissect_width(quint32 type);
+qint32 trdp_dissect_width(quint32 type);
 
 
 #ifdef __cplusplus

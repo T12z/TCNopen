@@ -39,7 +39,7 @@ include(WiresharkPlugin)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 # Plugin name and version info (major minor micro extra)
-set_module_info(trdp_spy 1 3 0 1)
+set_module_info(trdp_spy 2 0 0 1)
 
 #find_package(Qt5Xml)
 
@@ -78,11 +78,6 @@ add_plugin_library(trdp_spy epan)
 target_link_libraries(trdp_spy epan Qt5::Xml)
 
 install_plugin(trdp_spy epan)
-#install(TARGETS trdp_spy
-#	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/@CPACK_PACKAGE_NAME@/plugins/${CPACK_PACKAGE_VERSION} NAMELINK_SKIP
-#	RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/@CPACK_PACKAGE_NAME@/plugins/${CPACK_PACKAGE_VERSION}
-#	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/@CPACK_PACKAGE_NAME@/plugins/${CPACK_PACKAGE_VERSION}
-#)
 
 file(GLOB DISSECTOR_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.h")
 CHECKAPI(
