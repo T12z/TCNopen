@@ -1284,8 +1284,8 @@ EXT_DECL TRDP_ERR_T tau_uri2Addr (
             ((pTemp->fixedEntry == TRUE) ||
              (pTemp->etbTopoCnt == appHandle->etbTopoCnt) ||                    /* Do the topocounts match? */
              (pTemp->opTrnTopoCnt == appHandle->opTrnTopoCnt) ||
-             ((appHandle->etbTopoCnt == 0u) && (appHandle->opTrnTopoCnt == 0u))   /* Or do we not care?       */
-            ))
+             ((appHandle->etbTopoCnt == 0u) && (appHandle->opTrnTopoCnt == 0u))) &&   /* Or do we not care?       */
+            (pTemp->ipAddr != 0))                                                 /* 0 is only a placeholder */
         {
             *pAddr = pTemp->ipAddr;
             return TRDP_NO_ERR;
