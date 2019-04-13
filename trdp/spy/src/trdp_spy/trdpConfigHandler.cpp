@@ -320,13 +320,13 @@ void Element::stringifyType() {
 	if (type <= TRDP_STANDARDTYPE_MAX) {
 		for (guint i = 0; i < array_length(idx2Tint); i++) {
 			if (type == idx2Tint[i]) {
-				strncpy(typeName, idx2Tname[i], sizeof(typeName));
+				strncpy(typeName, idx2Tname[i], sizeof(typeName)-1);
 				return;
 			}
 		}
 	} else if (linkedDS) {
 		strncpy(typeName, linkedDS->name.toLatin1().constData(),
-				sizeof(typeName));
+				sizeof(typeName)-1);
 	} /* don't touch otherwise */
 }
 

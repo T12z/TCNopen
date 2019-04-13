@@ -50,7 +50,7 @@
 #include "trdpConfigHandler.h"
 
 //To Debug
-#define PRINT_DEBUG
+//#define PRINT_DEBUG
 
 #ifdef PRINT_DEBUG
 #define PRNT(a) a
@@ -396,8 +396,9 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 					element_count = 0;
 					potential_array_size = -1;
 					continue; /* if, at the end of the day, the array is intentinally 0, skip the element */
-				} else
+				} else {
 					PRNT(fprintf(stderr, "[%d] Offset %5d Dynamic array, with %d elements found\n", dataset_level, offset, element_count));
+				}
 
 				// check if the specified amount could be found in the package
 				remainder = tvb_reported_length_remaining(tvb, offset + el.calculateSize(element_count));
@@ -620,7 +621,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				}
 				potential_array_size = -1;
 			} else {
-				PRNT(fprintf(stderr, "[%d / %d], (type=%d) val-u=%lu val-s=%ld.\n", array_index, element_count, el.type, valu, vals));
+				PRNT(fprintf(stderr, "[%d / %d], (type=%d) val-u=%" G_GUINT64_FORMAT " val-s=%" G_GINT64_FORMAT ".\n", array_index, element_count, el.type, valu, vals));
 
 				potential_array_size = (el.type < TRDP_INT8 || el.type > TRDP_UINT64) ? -1 : (el.type >= TRDP_UINT8 ? valu : vals);
 			}
