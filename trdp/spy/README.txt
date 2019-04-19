@@ -17,17 +17,40 @@ The XML-config-feature (for setup go [Edit]->Preferences->Protocols->TRDP and lo
 U S A G E
 =========
 
-On Linux, use your distribution's package manager to install wireshark or wireshark-qt. On Windows, download from [1].
-If it happens to be a version of 2.6.* or 3.0.*, you may be lucky with the pre-compiled plugin-libraries, go (Linux):
+On Linux, use your distribution's package manager to install wireshark or wireshark-qt.
+Make sure libqt5xml5 is also installed (today, I built against 5.11.3, other 5.x should also work).
+On Windows, download from [1]. The extra QT-Lib is provided in the subfolder win64.
+If Wireshark happens to be a version of 2.6.* or 3.0.*, you may be lucky with the pre-compiled plugin-libraries, go (Linux):
 
 cp   plugins/2.6/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/2.6/epan/
 cp   plugins/3.0/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/3.0/epan/
 
 Or copy with a file manager of your choice.
-On Windows, obviously, take the *.dll files. (see ./win64/readme.txt)
+On Windows, obviously, take the *.dll files instead. (see ./win64/readme.txt)
 Now, when you start wireshark, check in the [Help]-menu --> About Wireshark and open the [Plugins] tab. Somewhere in the middle there should be trdp_spy.so. If not, check the [Folder] tab if your wireshark expects user-plugins somewhere else.
 
-Again, to make the most of the Wireshark Dissector, provide your trdp-xml file in [Edit]->Preferences->Protocols->TRDP. If it cannot dissect your capture data, then you most probably have an issue in that xml file, e.g. buggy XML syntax, misspelled trdp-type or logical errors.
+Again, to make the most of the Wireshark Dissector, provide your trdp-xml file in [Edit]->Preferences->Protocols->TRDP. If it cannot dissect your capture data, then you most probably have an issue in that xml file, e.g. buggy XML syntax, misspelled trdp-type or logical errors. If the problem persists, check again, just more thoroughly ;)
+
+Within that preference page you can also check whether integer/real values are display scaled, according to the xml description or raw. This also has an effect, when you filter for a certain value.
+E.g., for an INT32 with scale=0.001: trdp.pdu.PressureType.current < 9.21 instead of trdp.pdu.PressureType.current < 9210
+
+** Warning **
+DO NOT CHANGE THE TRDP-PREFERENCES, while a specific display filter on a TRDP-PDU is in use. It will crash Wireshark and you will loose your capture data if it was not saved. Reloading of filters at use is just not supported. Please clear the display filter first and you should be good.
+
+** How to filter **
+
+Currently you can filter on a value of a named Element in a named Dataset (trdp.pdu.datasetName.elementName). If a Dataset has no name (and only then), its number can be used.
+For example, select a TRDP packet of your favour, expand the PDU / dataset tree and click on the element of your interest. In the status bar of Wireshark you will see more information on the element, such as the type, scaling, unit, offset, and especially the name, you can use for filtering. You can cascade filter with '&&' and '||' at your pleasure.
+A filter string that matches will always select the whole packet, obviously. So in a complex large packet, you still have to find the matching value.
+You cannot filter on hierarchy or on array indices. However, you can filter on a Dataset.Element combined with '&&'-operator and the existence of the parenting datasets,
+E.g., trdp.pdu.PressureType.current < 9.0 && trdp.pdu.BrakeType.pressure
+where the Dataset "BrakeType" has an element named "pressure" of dataset-type "PressureType".
+However, this string will also match, if PressureType occurs at different locations in the Dataset hierarchy and ANY of those matches the value -- not just the one under the BrakeType.
+
+PS The old filter syntax of trdp-type, e.g., trdp.INT32, is NOT supported anymore.
+
+** Coloring Hint **
+By default wireshark's coloring rules paint packets with low TTL value red (ie. local TRDP packets). You can change or deactivate this rule in [Menu::View]->Coloring Rules->"TTL low or unexpected". I did, it freaked me out.
 
 
 B U I L D I N G

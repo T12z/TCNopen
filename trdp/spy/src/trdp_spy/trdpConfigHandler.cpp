@@ -23,17 +23,18 @@
  * INCLUDES
  */
 #include "trdpConfigHandler.h"
-#include <QDebug>
 
 #include <QXmlInputSource>
 #include <QXmlSimpleReader>
 #include <QFile>
 #include <string.h>
 
+// alternative: https://developer.gnome.org/glib/stable/glib-Simple-XML-Subset-Parser.html
+
 /*******************************************************************************
  * DEFINES
  */
-#define XPATH_EXPR              "//telegram | //element | //data-set"
+//#define XPATH_EXPR              "//telegram | //element | //data-set"
 #define TAG_ELEMENT             "element"
 #define TAG_DATA_SET            "data-set"
 #define TAG_TELEGRAM            "telegram"
@@ -49,7 +50,7 @@
 #define ATTR_SCALE              "scale"
 #define ATTR_OFFSET             "offset"
 
-const quint32 Element::idx2Tint[] = {
+const guint32 Element::idx2Tint[] = {
 TRDP_BOOL8, TRDP_BITSET8, TRDP_ANTIVALENT8, TRDP_CHAR8, TRDP_UTF16,
 TRDP_INT8, TRDP_INT16, TRDP_INT32, TRDP_INT64,
 TRDP_UINT8, TRDP_UINT16, TRDP_UINT32, TRDP_UINT64,
@@ -64,39 +65,49 @@ const char *Element::idx2Tname[] = { "BOOL8", "BITSET8", "ANTIVALENT8",
  * CLASS Implementation
  */
 
-TrdpConfigHandler::TrdpConfigHandler(const char *xmlconfigFile) :
+TrdpConfigHandler::TrdpConfigHandler(const char *xmlconfigFile, gint parent_id) :
 		QXmlDefaultHandler() {
-	this->xmlconfigFile = QString(xmlconfigFile);
-	this->metXbelTag = false;
-	// this->mDynamicSizeFound = false;
 
-	QFile file(this->xmlconfigFile);
-	qInstallMessageHandler(0);
+	QFile file(QString::fromLatin1(xmlconfigFile));
+	mTableComId = NULL;
+	mTableDataset = NULL;
+	g_parent_id = parent_id;
 
-	if (!file.exists()) {
-		this->xmlconfigFile = QString("");
-	} else {
+	if (file.exists()) {
 		QXmlSimpleReader xmlReader;
 		QXmlInputSource *source = new QXmlInputSource(&file);
 
 		xmlReader.setContentHandler(this);
-		bool ok = xmlReader.parse(source);
+		initialized = xmlReader.parse(source);
 
-		if (mTableComId.isEmpty()) ok = false; /* need reject an empty ComID list explicitly */
-		qDebug() << "TRDP |" << file.fileName() << "parsed" << ok << "and contains" << mTableComId.count() << "ComIDs.";
+		if (!mTableComId) initialized = false; /* need to reject an empty ComID list explicitly */
+		com_count=0;
+		for(ComId *com = mTableComId; com; com=com->next) com_count++;
 
-		for( QHash<quint32, ComId>::iterator comId = mTableComId.begin();
-				(comId != mTableComId.end()) && ok; ++comId) {
-			ok = comId->preCalculate(this) > -1;
-			if (!ok) qDebug() << "However, ComId" << comId->comId << "has size" << comId->getSize();
+		for( ComId *com = mTableComId; com; com=com->next) {
+			if (com->preCalculate(this) < 0) {
+				errorStr=g_strdup_printf("TRDP | %s parsed [%s] and found %d ComIDs, of which %d FAILED.", xmlconfigFile, initialized?"ok":"fail", com_count, com->comId);
+				initialized = false;
+				break;
+			}
 		}
-
-		if (!ok)
-			this->xmlconfigFile = QString("");
+		errorStr=g_strdup_printf("TRDP | %s parsed [%s] and contains %d ComIDs.", xmlconfigFile, initialized?"ok":"fail", com_count);
 	}
 }
 
 TrdpConfigHandler::~TrdpConfigHandler() {
+	while (mTableComId) {
+		ComId *com = mTableComId;
+		mTableComId=mTableComId->next;
+		delete com;                     /* only removes itself, no linkedDS */
+	}
+	while (mTableDataset) {
+		Dataset *ds = mTableDataset;
+		mTableDataset=mTableDataset->next;
+
+		delete ds;
+	}
+	g_free(errorStr);
 
 }
 
@@ -111,34 +122,24 @@ bool TrdpConfigHandler::startElement(const QString &namespaceURI _U_,
 		int idxComId = searchIndex(attributes, ATTR_COM_ID);
 		int idxName = searchIndex(attributes, ATTR_NAME);
 		if ((idxDatasetId > 0) && (idxComId > 0)) {
-			int comId = attributes.value(idxComId).toInt();
-			ComId currentComId;
-			currentComId.comId = comId;
-			currentComId.dataset = attributes.value(idxDatasetId).toInt();
-			if (idxName >= 0)
-				currentComId.name = attributes.value(idxName).left(30);
+			ComId *com = new ComId(attributes.value(idxComId).toInt(), (idxName >= 0) ? attributes.value(idxName).left(30).toLatin1().constData():NULL, attributes.value(idxDatasetId).toInt());
 
-			this->mTableComId.insert(comId, currentComId);
-#ifdef PRINT_DEBUG
-			qInfo() << "Found tag " << qName << " " << comId << " dataset id " << currentComId.dataset;
-#endif
+			com->next = mTableComId;
+			mTableComId = com;
 		}
 	} else if (qName.compare(TAG_DATA_SET) == 0) {
 		int idxDatasetId = searchIndex(attributes, ATTR_DATASET_ID);
 		int idxName = searchIndex(attributes, ATTR_DATASET_NAME);
 		// extract the id, if possible
 		if (idxDatasetId >= 0) {
-			Dataset newDataset;
-			int datasetId = attributes.value(idxDatasetId).toInt();
-			newDataset.datasetId = datasetId;
-			newDataset.name = (idxName >= 0) ? attributes.value(idxName).left(30) : "";
+			Dataset *ds = new Dataset(attributes.value(idxDatasetId).toInt(), (idxName >= 0) ? attributes.value(idxName).left(30).toLatin1().constData() : "", g_parent_id);
 
-			this->mTableDataset.insert(datasetId, newDataset);
-			/* mark this new element as currently working one */
-			this->mWorkingDatasetId = datasetId;
+			ds->next = mTableDataset;
+			mTableDataset = ds;
+
 		}
 	} else if (qName.compare(TAG_ELEMENT) == 0) {
-		if (this->mWorkingDatasetId > 0) {
+		if (mTableDataset) {
 			/******* check if tags are present before trying to store them *************/
 			int idxType = searchIndex(attributes, ATTR_TYPE);
 			int idxArraySize = searchIndex(attributes, ATTR_ARRAYSIZE);
@@ -151,36 +152,31 @@ bool TrdpConfigHandler::startElement(const QString &namespaceURI _U_,
 				return true;
 			}
 
-			Element newElement(attributes.value(idxType));
+			Element *el = new Element(
+					attributes.value(idxType).left(30).toLatin1().constData(),
+					(idxName >= 0)?attributes.value(idxName).left(30).toLatin1().constData():NULL,
+					(idxUnit >= 0)?attributes.value(idxUnit).toLatin1().constData():NULL);
 
 			if (idxArraySize >= 0) {
 				int tmp = attributes.value(idxArraySize).toInt(&convert2intOk);
 				if (convert2intOk)
-					newElement.array_size = tmp;
-			}
-
-			if (idxUnit >= 0) {
-				newElement.unit = attributes.value(idxUnit);
+					el->array_size = tmp;
 			}
 
 			if (idxScale >= 0) {
-				newElement.scale = attributes.value(idxScale).toFloat();
+				el->scale = attributes.value(idxScale).toFloat();
 			}
 
 			if (idxOffset >= 0) {
-				newElement.offset = attributes.value(idxOffset).toInt();
+				el->offset = attributes.value(idxOffset).toInt();
 			}
 
-			if (idxName >= 0) {
-				newElement.name = attributes.value(idxName).left(30);
-			}
-
-			/* search the new inserted element */
-			Dataset currentworking = this->mTableDataset.value(
-					this->mWorkingDatasetId);
-			currentworking.listOfElements.append(newElement);
 			/* update the element in the list */
-			this->mTableDataset.insert(this->mWorkingDatasetId, currentworking);
+			if (!mTableDataset->listOfElements)
+				mTableDataset->listOfElements = el;
+			else
+				mTableDataset->lastOfElements->next = el;
+			mTableDataset->lastOfElements = el;
 		}
 	}
 
@@ -191,7 +187,7 @@ bool TrdpConfigHandler::endElement(const QString &namespaceURI _U_,
 		const QString &localName _U_, const QString &qName) {
 
 	if (qName.compare(TAG_DATA_SET) == 0) {
-		this->mWorkingDatasetId = 0;
+		//
 	}
 
 	return true;
@@ -211,22 +207,20 @@ QString TrdpConfigHandler::errorString() const {
 }
 
 const Dataset * TrdpConfigHandler::const_search(quint32 comId) const {
-	QHash<quint32, ComId>::const_iterator foundComId = this->mTableComId.find(comId);
+	for (ComId *com = mTableComId; comId; com=com->next) if (com->comId == comId) return com->linkedDS;
 
-	return (foundComId != this->mTableComId.end()) ? foundComId->linkedDS : NULL;
+	return NULL;
 }
 
 const ComId * TrdpConfigHandler::const_searchComId(quint32 comId) const {
-	QHash<quint32, ComId>::const_iterator foundComId = this->mTableComId.find(comId);
-
-	return (foundComId != this->mTableComId.end()) ? &(*foundComId) : NULL;
+	for (ComId *com = mTableComId; comId; com=com->next) if (com->comId == comId) return com;
+	return NULL;
 }
 
 /******************************************************************************
  *  Private functions of the class
  */
-int TrdpConfigHandler::searchIndex(const QXmlAttributes &attributes,
-		QString searchname) const {
+int TrdpConfigHandler::searchIndex(const QXmlAttributes &attributes, QString searchname) const {
 	int i = 0;
 	for (i = 0; i < attributes.length(); i++) {
 		if (attributes.qName(i).compare(searchname) == 0) {
@@ -236,41 +230,21 @@ int TrdpConfigHandler::searchIndex(const QXmlAttributes &attributes,
 	return -1;
 }
 
-const Dataset * TrdpConfigHandler::const_searchDataset(quint32 datasetId) const {
-	for (QHash<quint32, Dataset>::const_iterator it =
-			this->mTableDataset.constBegin();
-			it != this->mTableDataset.constEnd(); ++it)
-		if (it->datasetId == datasetId)
-			return &(*it);
+const Dataset * TrdpConfigHandler::const_searchDataset(guint32 datasetId) const {
+	for (Dataset *ds = this->mTableDataset;	ds; ds=ds->next)
+		if (ds->datasetId == datasetId)
+			return ds;
 
 // When nothing, was found, nothing is returned
 	return NULL;
 }
 
-Dataset * TrdpConfigHandler::searchDataset(quint32 datasetId) {
-	for (QHash<quint32, Dataset>::iterator it =
-			this->mTableDataset.begin();
-			it != this->mTableDataset.end(); ++it)
-		if (it->datasetId == datasetId)
-			return &(*it);
+Dataset * TrdpConfigHandler::searchDataset(guint32 datasetId) {
+	for (Dataset *ds = this->mTableDataset;	ds; ds=ds->next)
+		if (ds->datasetId == datasetId)
+			return ds;
 
 	return NULL;
-}
-
-/** insert a new dataset identified by its unique id.
- * Next to the identifier, also a textual description is stored in the name attribute.
- *
- * @brief insert the standard types
- * @param idsetDynamicSize
- * @param textdescr
- */
-void TrdpConfigHandler::insertStandardType(quint32 id, char* textdescr) {
-// create the memory to store the custom datatype
-	Dataset newDataset;
-
-	newDataset.datasetId = id;
-	newDataset.name = QString(textdescr).left(30);
-	this->mTableDataset.insert(id, newDataset);
 }
 
 /** Calculate the used bytes for a given dataset
@@ -278,7 +252,7 @@ void TrdpConfigHandler::insertStandardType(quint32 id, char* textdescr) {
  * @param datasetId the unique identifier, that shall be searched
  * @return amount of bytes or <code>-1</code> on problems, 0 on variable DS
  */
-qint32 TrdpConfigHandler::calculateDatasetSize(quint32 datasetId) {
+gint32 TrdpConfigHandler::calculateDatasetSize(guint32 datasetId) {
 	const Dataset *pDataset = const_searchDataset(datasetId);
 	return pDataset ? pDataset->getSize() : -1;
 }
@@ -288,7 +262,7 @@ qint32 TrdpConfigHandler::calculateDatasetSize(quint32 datasetId) {
  * @param comid the unique identifier, that shall be searched
  * @return amount of bytes or <code>-1</code> on problems, 0 on variable DS
  */
-qint32 TrdpConfigHandler::calculateTelegramSize(quint32 comid) {
+gint32 TrdpConfigHandler::calculateTelegramSize(guint32 comid) {
 	const Dataset * pDataset = const_search(comid);
 	return pDataset ? pDataset->getSize() : -1;
 }
@@ -297,16 +271,35 @@ qint32 TrdpConfigHandler::calculateTelegramSize(quint32 comid) {
  *                          ELEMENT
  ************************************************************************************/
 
+Element::Element(const char *typeS, const char *_name, const char *_unit) {
+	next = NULL;
+	hf_id = -1;
+	ett_id = -1;
+	array_size = 1;
+	name = g_strdup(_name);
+	unit = g_strdup(_unit);
+
+	typeName[0] = 0;
+	type = strtoul(typeS, NULL, 10); /* try to store information as a number */
+	if (!type)
+		decodeDefaultTypes(typeS);
+	else
+		stringifyType();
+
+	width = trdp_dissect_width(type);
+}
+
+
 /** Decode the standard types
  * @brief TrdpConfigHandler::decodeDefaultTypes
  * @param typeName the texutal representation of the standard type
  * @return <code>0</code> if the textual representation is not found
  */
 
-bool Element::decodeDefaultTypes(const QString &qTypeName) {
+bool Element::decodeDefaultTypes(const char *_typeName) {
 
 	for (guint i = 0; i < array_length(idx2Tint); i++) {
-		if (qTypeName == idx2Tname[i]) {
+		if (strcmp(_typeName, idx2Tname[i]) == 0) {
 			type = idx2Tint[i];
 			linkedDS = NULL;
 			strcpy(typeName, idx2Tname[i]);
@@ -325,7 +318,7 @@ void Element::stringifyType() {
 			}
 		}
 	} else if (linkedDS) {
-		strncpy(typeName, linkedDS->name.toLatin1().constData(),
+		strncpy(typeName, linkedDS->getName(),
 				sizeof(typeName)-1);
 	} /* don't touch otherwise */
 }
@@ -349,45 +342,73 @@ bool Element::checkSize(TrdpConfigHandler *pConfigHandler, quint32 referrer) {
 /************************************************************************************
  *                          DATASET
  ************************************************************************************/
+
+Dataset::Dataset(gint32 dsId, const char *aname, gint parent_id) {
+	size = 0;
+	datasetId = dsId;
+	ett_id = -1;
+	g_parent_id = parent_id;
+	name = g_strdup(aname);
+	next = NULL;
+	listOfElements = NULL;
+	lastOfElements = NULL;
+}
+
 /* this must be called for all DS *after* config reading, but not from outside */
-qint32 Dataset::preCalculateSize(TrdpConfigHandler *pConfigHandler) {
+gint32 Dataset::preCalculateSize(TrdpConfigHandler *pConfigHandler) {
 	if (!pConfigHandler)
 		return -1;
 
 	if (!this->size) {
-		qint32 size = 0U;
-		for (QList<Element>::iterator it = listOfElements.begin();
-				it != listOfElements.end(); ++it) {
+		gint32 size = 0U;
+		for (Element *el = listOfElements; el; el=el->next) {
 
-			if (!it->checkSize(pConfigHandler, datasetId)) {
+			if (!el->checkSize(pConfigHandler, datasetId)) {
 				size = -1;
 				break;
 			}
 			/* dynamic elements stay dynamic :( */
-			if (!it->array_size || !it->width) {
+			if (!el->array_size || !el->width) {
 				// pConfigHandler->setDynamicSize();
 				size = 0;
 				break;
 			}
 
-			size += it->calculateSize();
+			size += el->calculateSize();
 		}
 		this->size = size;
 	}
 	return this->size;
 }
 
-qint32 Dataset::getSize() const {
-	return this->size;
-}
-
-bool Dataset::operator==(const Dataset & other) const {
-	return (datasetId == other.datasetId);
+Dataset::~Dataset() {
+	while (listOfElements) {
+		Element *el = listOfElements;
+		listOfElements=listOfElements->next;
+		if (el->hf_id > -1) proto_deregister_field(g_parent_id, el->hf_id);
+		/* no idea how to clean up subtree handler */
+		delete el;
+	}
+	g_free(name);
 }
 
 /************************************************************************************
  *                          COMID
  ************************************************************************************/
+
+ComId::~ComId() {
+	g_free(name);
+}
+
+ComId::ComId(guint32 id, const char *aname, guint32 dsId) {
+	comId = id;
+	dataset = dsId;
+	linkedDS = NULL;
+	size = 0;
+	ett_id = -1;
+	name = g_strdup(aname);
+	next = NULL;
+}
 
 gint32 ComId::preCalculate(TrdpConfigHandler *conf) {
 	if (!conf)
@@ -398,9 +419,5 @@ gint32 ComId::preCalculate(TrdpConfigHandler *conf) {
 		size = linkedDS ? linkedDS->preCalculateSize(conf) : -1;
 	}
 	return size;
-}
-
-bool ComId::operator==(const ComId & other) const {
-	return (comId == other.comId);
 }
 
