@@ -9,11 +9,12 @@
  * @note            Project: TRDP SPY
  *
  * @author          Florian Weispfenning, Bombardier Transportation
+ *                  Thorsten Schulz, Universität Rostock
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- *
+ *          Copyright Universität Rostock, 2019 (type changes leading to GLib-only version)
  * $Id: $
  *
  * @addtogroup Definitions
@@ -26,7 +27,7 @@
 /*******************************************************************************
  * INCLUDES
  */
-#include <QtGlobal>
+#include <glib.h>
 
 /*******************************************************************************
  * DEFINES
@@ -93,14 +94,6 @@
 #define TRDP_FCS_LENGTH 4   /**< The CRC calculation results in a 32bit result so 4 bytes are necessary */
 
 /*******************************************************************************
- * TYPEDEFS
- */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*******************************************************************************
  * GLOBAL FUNCTIONS
  */
 
@@ -116,7 +109,7 @@ extern "C" {
  *
  * @return Calculated fcs value
  */
-quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs);
+guint32 trdp_fcs32(const guint8 buf[], guint32 len, guint32 fcs);
 
 /**@fn quint8 trdp_dissect_width(quint32 type);
  * @brief Lookup table for length of the standard types.
@@ -126,13 +119,7 @@ quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs);
  * @param type  the requested type, where the width shall be returned
  * @return <code>-1</code>, on unkown types
  */
-qint32 trdp_dissect_width(quint32 type);
-
-
-#ifdef __cplusplus
-}
-#endif
-
+gint32 trdp_dissect_width(guint32 type);
 
 #endif
 

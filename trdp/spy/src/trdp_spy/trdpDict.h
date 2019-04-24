@@ -14,6 +14,7 @@
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version)
  *
  * $Id: $
  *
@@ -25,19 +26,13 @@
 /*******************************************************************************
  * INCLUDES
  */
-#include <QtXml/QXmlDefaultHandler>
-#include <QHash>
-#include <QList>
-#include "ws_attributes.h"
+#include <glib.h>
 #include "trdp_env.h"
 #include <epan/packet.h>
 
 /*******************************************************************************
  * CLASS Definition
  */
-
-class TrdpConfigHandler; /**< empty class, needed for bidirectional dependencies */
-class Dataset;
 
 /** @class Element
  *  @brief description of one element
@@ -77,80 +72,50 @@ class Dataset;
  * }
  * @enddot
  */
-class Element {
-private:
+typedef struct Element {
+/*private:*/
 	char *name;  /**< Name of the variable, that is stored */
 	char *unit;  /**< Unit to display */
-	void stringifyType();
 
-public:
-	static const char   *idx2Tname[];
-	static const guint32 idx2Tint[];
-
+/*public:*/
 
 	guint32     type; /**< Numeric type of the variable (see Usermanual, chapter 4.2) or defined at ::TRDP_BOOL8, ::TRDP_UINT8, ::TRDP_UINT16 and so on.*/
 	//	QString     typeName="";   /**< Textual representation of the type (necessary for own datasets, packed recursively) */
 	char        typeName[32];  /**< typeNames are allowed between 1..30 octets */
 	gint32      array_size; /**< Amount this value occurred. 1 is default; 0 indicates a dynamic list (the dynamic list is preceeded by an integer revealing the actual size.) */
-	float       scale=0.0f;      /**< A factor the given value is scaled */
-	gint32      offset=0U;     /**< Offset that is added to the values. displayed value = scale * raw value + offset */
+	float       scale;      /**< A factor the given value is scaled */
+	gint32      offset;     /**< Offset that is added to the values. displayed value = scale * raw value + offset */
 
 	gint32      width; /**< Contains the Element's size as returned by trdp_dissect_width(this->type) */
-	Dataset    *linkedDS=NULL; /**< points to DS for non-standard types */
+	struct Dataset *linkedDS; /**< points to DS for non-standard types */
 	gint        hf_id;
 	gint        ett_id;
-	Element    *next;
+	struct Element *next;
 	/** Calculate the size in bytes of this element
 	 * @brief calculate the amount of used bytes
 	 * @return number of bytes (or negative, if a unkown type is set)
 	 */
 
-	Element(const char *typeS, const char *_name, const char *_unit);
-	~Element() {
-		g_free(name);
-		g_free(unit);
-	}
-
-	bool decodeDefaultTypes(const char *qTypeName);
-	bool checkSize(TrdpConfigHandler *pConfigHandler, quint32 referrer);
-
-	gint32  calculateSize(quint32 array_size = 1) const {
-		return width * (this->array_size ? this->array_size : array_size);
-	}
-
-	guint32 getType() const { return type; }
-	const char *getTypeName() const { return typeName; }
-	const char *getName() const { return name?name:""; }
-	const char *getUnit() const { return unit?unit:""; }
-};
+} Element;
 
 /** @class Dataset
  *  @brief Description of one dataset.
  */
-class Dataset {
-private:
+typedef struct Dataset {
+/* private */
 	gint32  size;            /**< Cached size of Dataset, including subsets. negative, if size cannot be calculated due to a missing/broken sub-dataset definition, 0, if contains var-array and must be recalculated */
 	gchar   *name;           /**< Description of the dataset */
 
-public:
-	Dataset(gint32 dsId, const char *aname, gint parent_id);
-	~Dataset();
+/* public */
 	guint32 datasetId;       /**< Unique identification of one dataset */
-	Element *listOfElements; /**< All elements, this dataset consists of. */
-	Element *lastOfElements; /**< other end of the list */
-	gint    ett_id;
+	gint    ett_id;          /**< GUI-id for packet subtree */
 	gint    g_parent_id;     /**< needed for element (de-)registration */
-	Dataset *next;
 
-	/** Calculate the size of the elements and its contents
-	 * @brief calculateSize
-	 * @return size (==getSize()), or -1 on error, 0 on variable elements
-	 */
-	gint32 preCalculateSize(TrdpConfigHandler *pConfigHandler);
+	struct Element *listOfElements; /**< All elements, this dataset consists of. */
+	struct Element *lastOfElements; /**< other end of the Bratwurst */
+	struct Dataset *next;    /**< next dataset in linked list */
+} Dataset;
 
-	gint32 getSize() const { return this->size;	}
-	const char *getName() const { return name ? name : ""; }
-};
 
 /** @class ComId
  *
@@ -171,77 +136,51 @@ public:
  * @enddot
  * There is a separate structure for datasets necessary, because the dataset itself can be packed recursively into each other.
  */
-class ComId {
+typedef struct ComId {
 	char    *name;
 
-public:
-	ComId(guint32 id, const char *aname, guint32 dsId);
-	~ComId();
-
+/* public: */
 	guint32  comId;      /**< Communication Id, used as key*/
 	guint32  dataset;    /**< Id for a dataset ( @link #Dataset see Dataset structure @endlink) */
-	Dataset *linkedDS;
-	gint32   size=0;
-	gint     ett_id;
-	ComId   *next;
+	gint32   size;       /**< cached size derived from linked dataset */
+	gint     ett_id;     /**< GUI-id for root-subtree */
 
-	/* Tries to get the size for the comId-related DS. Will only work, if all DS are non-variable. */
-	gint32 preCalculate(TrdpConfigHandler *conf); /**< must only be called after full config initialization */
-	gint32 getSize() const { return size; }
-	const char *getName() const { return name?name:""; }
-};
+	struct Dataset *linkedDS; /**< cached dataset for id in @dataset */
+	struct ComId   *next;     /**< next comId item in linked list */
+} ComId;
 
+/* The old QtXML-based application used hash-tables instead of lists.
+ * GLib offers GHashTable as an alternative.
+ * However, once the structure is built, there are not that many look-ups, since Datasets and Elemnts are directly linked.
+ * Only in case of large ComId databases, this would become relevant again. Mañana, mañana ...
+ */
+typedef struct TrdpDict {
 
-class TrdpConfigHandler : public QXmlDefaultHandler
-{
+/* pub */
+	struct Dataset *mTableDataset; /**< first item of linked list of Dataset items. Use it to iterate if necessary or use @TrdpDict_get_Dataset for a pointer. */
 
-public:
-	TrdpConfigHandler(const char *xmlconfigFile, gint parent_id);
-
-	~TrdpConfigHandler();
-
-	bool startElement(const QString &namespaceURI, const QString &localName,
-			const QString &qName, const QXmlAttributes &attributes);
-
-	bool endElement(const QString &namespaceURI, const QString &localName,
-			const QString &qName);
-
-	bool characters(const QString &str) const;
-
-	bool fatalError(const QXmlParseException &exception) const;
-
-	QString errorString() const override;
-
-	const ComId   *const_searchComId(quint32 comId) const;
-	const Dataset *const_search(quint32 comId) const;
-
-	const Dataset *const_searchDataset(quint32 datasetId) const;
-	Dataset *      searchDataset(quint32 datasetId);
-
-	bool isInitialized() const { return initialized; }
-	const char *getError() const { return errorStr;  }
-
-	/** RetuInformation, if the calculated size is only the minimum, or not.
-	 * <b>must</b> be called after @see calculateDatasetSize() or @see calculateTelegramSize()
-	 * @brief isMinCalcSize
-	 * @return
-	 */
-	//bool isMinCalcSize(void) { return mDynamicSizeFound; }
-
-	qint32 calculateTelegramSize(quint32 comId);
-	qint32 calculateDatasetSize(quint32 datasetId);
-
-	Dataset *mTableDataset;
-
-private:
-	bool   initialized;
-	gchar  *errorStr;
-	guint  com_count;
-	ComId  *mTableComId;
-	gint   g_parent_id;
+/* pub-R/O */
+	guint         knowledge;    /**< number of found ComIds */
+	struct ComId *mTableComId;  /**< first item of linked list of ComId items. Use it to iterate if necessary or use @TrdpDict_lookup_ComId for a pointer. */
+	gint          g_parent_id;  /**< GUI parent ID, needed for cleanup item descriptors */
+	gchar        *xml_file;     /**< cached name of last parsed file */
+} TrdpDict;
 
 
-	int searchIndex(const QXmlAttributes &attributes, QString searchname) const;
-};
+extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, gint parent_id, GError **error);
+extern void      TrdpDict_delete (      TrdpDict *self);
+extern gchar    *TrdpDict_summary(const TrdpDict *self);
+
+extern const ComId   *TrdpDict_lookup_ComId(const TrdpDict *self, guint32 comId);
+extern       Dataset *TrdpDict_get_Dataset (const TrdpDict *self, guint32 datasetId);
+
+/* @fn     gint32 TrdpDict_element_size(const Element *element, guint32 array_size);
+ *
+ * @brief  Calculate the size of an element and its subtree if there is one.
+ *
+ * @param  self       The element to calculate
+ * @param  array_size Hand in the dynamic size of the array (kept from the previous element) or set to 1 to use the predefined size from the dictionary.
+ * @return -1 on error, or the type-size multiplied by the array-size. */
+extern       gint32   TrdpDict_element_size(const Element  *self, guint32 array_size /* = 1*/);
 
 #endif

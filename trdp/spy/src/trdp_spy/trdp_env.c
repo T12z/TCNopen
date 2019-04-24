@@ -9,10 +9,12 @@
  * @note            Project: TRDP SPY
  *
  * @author          Florian Weispfenning, Bombardier Transportation
+ *                  Thorsten Schulz, Universität Rostock
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Universität Rostock, 2019 (minor type-changes leading to GLib-only version)
  *
  * $Id: $
  *
@@ -23,25 +25,15 @@
  */
 #include "trdp_env.h"
 
-/*******************************************************************************
- * DEFINES
- */
-
-
 /******************************************************************************
  *   Locals
  */
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*
 * The FCS-32 generator polynomial:
 *  x**0 + x**1 + x**2 + x**4 + x**5 + x**7 + x**8 + x**10 + x**11 + x**12 + x**16 + x**22 + x**23 + x**26 + x**32.
 */
-static const quint32 fcstab[256] =
+static const guint32 fcstab[256] =
 {
       0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
       0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
@@ -109,9 +101,9 @@ static const quint32 fcstab[256] =
       0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs)
+guint32 trdp_fcs32(const guint8 buf[], guint32 len, guint32 fcs)
 {
-    quint32 i;
+    guint32 i;
 
     for (i=0; i < len; i++)
     {
@@ -121,7 +113,7 @@ quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs)
 }
 
 
-qint32 trdp_dissect_width(quint32 type)
+gint32 trdp_dissect_width(guint32 type)
 {
 	switch(type)
 		{
@@ -150,7 +142,3 @@ qint32 trdp_dissect_width(quint32 type)
 			return -1;
 		}
 }
-
-#ifdef __cplusplus
-}
-#endif

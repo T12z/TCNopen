@@ -26,27 +26,15 @@ cmake_minimum_required(VERSION 2.8.3)
 # Debug Output activate:
 set ( CMAKE_VERBOSE_MAKEFILE true )
 
-# Find the QtWidgets library
-find_package(Qt5Xml)
-
-# Add the include directories for the Qt 5 Widgets module to
-# the compile lines.
-include_directories(${Qt5Widgets_INCLUDE_DIRS})
-
 include(WiresharkPlugin)
 
-# Add compiler flags for building executables (-fPIE)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
 # Plugin name and version info (major minor micro extra)
-set_module_info(trdp_spy 2 0 0 1)
-
-#find_package(Qt5Xml)
+set_module_info(trdp_spy 2 1 0 0)
 
 set(DISSECTOR_SRC
-    packet-trdp_spy.cpp
-    trdp_env.cpp
-    trdpConfigHandler.cpp
+    packet-trdp_spy.c
+    trdp_env.c
+    trdpDict.c
 )
 
 set(PLUGIN_FILES
@@ -60,11 +48,17 @@ set(CLEAN_FILES
 
 if (WERROR_COMMON_FLAGS)
 	set_source_files_properties(
-		${CLEAN_FILES}
+		${DISSECTOR_SRC}
 		PROPERTIES
-		COMPILE_FLAGS ${WERROR_COMMON_FLAGS}
+		COMPILE_FLAGS ${WERROR_COMMON_FLAGS} -Wno-c++-compat
 	)
 endif()
+
+set_source_files_properties(
+	${DISSECTOR_SRC}
+	PROPERTIES
+	COMPILE_FLAGS -Wno-c++-compat
+)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -75,7 +69,7 @@ register_plugin_files(plugin.c
 
 add_plugin_library(trdp_spy epan)
 
-target_link_libraries(trdp_spy epan Qt5::Xml)
+target_link_libraries(trdp_spy epan)
 
 install_plugin(trdp_spy epan)
 
