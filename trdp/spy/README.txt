@@ -170,6 +170,7 @@ Linux:
 cd ~/Projekte/build/wireshark-2.6*/obj-x86_64-linux-gnu && make trdp_spy
 cd ~/Projekte/build/wireshark-3.0*/obj-x86_64-linux-gnu && make trdp_spy
 
+cd ~/Projekte/tcnopen-trdp/trdp/spy
 cp ~/Projekte/build/wireshark-2.6*/obj-x86_64-linux-gnu/run/plugins/*/epan/trdp_spy.so plugins/2.6/epan/
 cp ~/Projekte/build/wireshark-2.6*/obj-x86_64-win/run/RelWithDebInfo/plugins/*/epan/trdp_spy.dll plugins/2.6/epan/
 cp ~/Projekte/build/wireshark-3.0*/obj-x86_64-linux-gnu/run/plugins/*/epan/trdp_spy.so plugins/3.0/epan/
