@@ -50,15 +50,9 @@ if (WERROR_COMMON_FLAGS)
 	set_source_files_properties(
 		${DISSECTOR_SRC}
 		PROPERTIES
-		COMPILE_FLAGS ${WERROR_COMMON_FLAGS} -Wno-c++-compat
+		COMPILE_FLAGS ${WERROR_COMMON_FLAGS}
 	)
 endif()
-
-set_source_files_properties(
-	${DISSECTOR_SRC}
-	PROPERTIES
-	COMPILE_FLAGS -Wno-c++-compat
-)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

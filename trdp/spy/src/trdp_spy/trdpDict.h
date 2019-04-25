@@ -1,6 +1,6 @@
 /******************************************************************************/
 /**
- * @file            trdpConfigHandler.cpp
+ * @file            trdpDict.h
  *
  * @brief           Parser of the XML description
  *
@@ -9,12 +9,12 @@
  * @note            Project: TRDP SPY
  *
  * @author          Florian Weispfenning, Bombardier Transportation
- *                  Thorsten Schulz, Universität Rostock
+ * @author          Thorsten Schulz, Universität Rostock
  *
- * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
- *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- *          Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version)
+ * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
  *
  * $Id: $
  *
@@ -83,7 +83,7 @@ typedef struct Element {
 	//	QString     typeName="";   /**< Textual representation of the type (necessary for own datasets, packed recursively) */
 	char        typeName[32];  /**< typeNames are allowed between 1..30 octets */
 	gint32      array_size; /**< Amount this value occurred. 1 is default; 0 indicates a dynamic list (the dynamic list is preceeded by an integer revealing the actual size.) */
-	float       scale;      /**< A factor the given value is scaled */
+	gdouble     scale;      /**< A factor the given value is scaled */
 	gint32      offset;     /**< Offset that is added to the values. displayed value = scale * raw value + offset */
 
 	gint32      width; /**< Contains the Element's size as returned by trdp_dissect_width(this->type) */
@@ -145,33 +145,90 @@ typedef struct ComId {
 	gint32   size;       /**< cached size derived from linked dataset */
 	gint     ett_id;     /**< GUI-id for root-subtree */
 
-	struct Dataset *linkedDS; /**< cached dataset for id in @dataset */
+	struct Dataset *linkedDS; /**< cached dataset for id in #dataset */
 	struct ComId   *next;     /**< next comId item in linked list */
 } ComId;
 
-/* The old QtXML-based application used hash-tables instead of lists.
- * GLib offers GHashTable as an alternative.
- * However, once the structure is built, there are not that many look-ups, since Datasets and Elemnts are directly linked.
- * Only in case of large ComId databases, this would become relevant again. Mañana, mañana ...
+
+/** @struct TrdpDict
+ *
+ *  @brief This struct is the root container for the XML type dictionary.
+ *
+ *  The old QtXML-based application used hash-tables instead of lists.
+ *  GLib offers GHashTable as an alternative.
+ *  However, once the structure is built, there are not that many look-ups, since Datasets and Elemnts are directly linked.
+ *  Only in case of large ComId databases, this would become relevant again. Mañana, mañana ...
  */
 typedef struct TrdpDict {
 
 /* pub */
-	struct Dataset *mTableDataset; /**< first item of linked list of Dataset items. Use it to iterate if necessary or use @TrdpDict_get_Dataset for a pointer. */
+	struct Dataset *mTableDataset; /**< first item of linked list of Dataset items. Use it to iterate if necessary or use TrdpDict_get_Dataset for a pointer. */
 
 /* pub-R/O */
 	guint         knowledge;    /**< number of found ComIds */
-	struct ComId *mTableComId;  /**< first item of linked list of ComId items. Use it to iterate if necessary or use @TrdpDict_lookup_ComId for a pointer. */
+	struct ComId *mTableComId;  /**< first item of linked list of ComId items. Use it to iterate if necessary or use TrdpDict_lookup_ComId for a pointer. */
 	gint          g_parent_id;  /**< GUI parent ID, needed for cleanup item descriptors */
 	gchar        *xml_file;     /**< cached name of last parsed file */
 } TrdpDict;
 
-
+/** @fn  TrdpDict *TrdpDict_new    (const char *xmlconfigFile, gint parent_id, GError **error)
+ *
+ *  @brief Create a new TrdpDict container
+ *
+ *  @param xmlconfigFile  Path to xml file on disk.
+ *  @param parent_id      The parent protocol handle (from proto_register_protocol() ).
+ *  @param error          Will be set to non-null on any error.
+ *
+ *  @return pointer to the container or NULL on problems. See error then for the cause.
+ */
 extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, gint parent_id, GError **error);
+
+/** @fn  TrdpDict *TrdpDict_delete(TrdpDict *self)
+ *
+ *  @brief Delete the TrdpDict container
+ *
+ *  This will also clear all associated ComId, Dataset and Element items.
+ *
+ *  @param self  TrdpDict instance
+ */
 extern void      TrdpDict_delete (      TrdpDict *self);
+
+/** @fn  gchar *TrdpDict_summary(const TrdpDict *self)
+ *
+ *  @brief Get some human-readable info
+ *
+ *  The caller is responsible to free the returned string.
+ *
+ *  @param self  TrdpDict instance
+ *
+ *  @return info string to be freed be caller
+ */
 extern gchar    *TrdpDict_summary(const TrdpDict *self);
 
+/** @fn  const ComId   *TrdpDict_lookup_ComId(const TrdpDict *self, guint32 comId)
+ *
+ *  @brief Lookup a given comId in the dictionary self
+ *
+ *  You may only read on the returned item.
+ *
+ *  @param self  TrdpDict instance
+ *  @param comId The number referencing the ComId item
+ *
+ *  @return  pointer to the ComId item in the dictionary or NULL if not found
+ */
 extern const ComId   *TrdpDict_lookup_ComId(const TrdpDict *self, guint32 comId);
+
+/** @fn  Dataset *TrdpDict_get_Dataset (const TrdpDict *self, guint32 datasetId)
+ *
+ *  @brief Lookup a given datasetId in the dictionary self
+ *
+ *  You may read and change information on the returned item, but do not free it
+ *
+ *  @param self      TrdpDict instance
+ *  @param datasetId The number referencing the Dataset item
+ *
+ *  @return  pointer to the Dataset item in the dictionary or NULL if not found
+ */
 extern       Dataset *TrdpDict_get_Dataset (const TrdpDict *self, guint32 datasetId);
 
 /* @fn     gint32 TrdpDict_element_size(const Element *element, guint32 array_size);

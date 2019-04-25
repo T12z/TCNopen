@@ -9,12 +9,12 @@
  * @note            Project: TRDP SPY
  *
  * @author          Florian Weispfenning, Bombardier Transportation
- *                  Thorsten Schulz, Universität Rostock
+ * @author          Thorsten Schulz, Universität Rostock
  *
- * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
- *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2017. All rights reserved.
- *          Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version)
+ * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
  *
  * $Id: $
  *
@@ -97,9 +97,9 @@ const char *Element_idx2Tname[] = {
 
 
 static guint32 decodeType(const char *_type) {
-	guint type = g_ascii_strtoull(_type, NULL, 10);
+	guint32 type = (guint32)g_ascii_strtoull(_type, NULL, 10);
 	if (!type)
-		for (guint i = 0; i < array_length(Element_idx2Tint); i++)
+		for (gsize i = 0; i < array_length(Element_idx2Tint); i++)
 			if (strcmp(_type, Element_idx2Tname[i]) == 0) return Element_idx2Tint[i];
 
 	return type;
@@ -172,9 +172,9 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 		const gchar *name, *id, *ds_id;
 
 		g_markup_collect_attributes(element_name, attribute_names, attribute_values, &err,
-				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 				G_MARKUP_COLLECT_STRING, ATTR_COM_ID, &id,                                   /* u32 */
 				G_MARKUP_COLLECT_STRING, ATTR_DATA_SET_ID, &ds_id,                           /* u32 */
+				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_COMPAR, NULL, /* u32 */
 				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_TYPE, NULL,    /* "sink", "source", "source-sink" */
 				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_CREATE, NULL,  /* "on" / "off" */
@@ -203,8 +203,8 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 		const gchar *name, *id;
 
 		g_markup_collect_attributes(element_name, attribute_names, attribute_values, &err,
-				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 				G_MARKUP_COLLECT_STRING, ATTR_DATASET_ID, &id,                              /* u32 */
+				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 				G_MARKUP_COLLECT_INVALID);
 		if (!err) {
 			Dataset *ds = Dataset_new(id, name, self->g_parent_id, &err);
@@ -228,8 +228,8 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 			const gchar *name, *type, *array_size, *unit, *scale, *offset;
 
 			g_markup_collect_attributes(element_name, attribute_names, attribute_values, &err,
-					G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 					G_MARKUP_COLLECT_STRING, ATTR_TYPE, &type,                           /* name30, u32 */
+					G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 					G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_ARRAYSIZE, &array_size, /* u32 */
 					G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_UNIT, &unit,      /* string */
 					G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_SCALE, &scale,     /* float */
@@ -390,19 +390,19 @@ static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, gu
 }
 
 static Element *Element_new(const char *_type, const char *_name, const char *_unit, const char *_array_size, const char *_scale, const char *_offset, GError **error) {
-	double scale;
-	int offset;
-	unsigned array_size;
+	gdouble scale;
+	gint32 offset;
+	gint32 array_size;
 	guint32 type;
 	char *endptr = NULL;
 	errno = 0;
-	array_size = _array_size ? g_ascii_strtoull(_array_size, &endptr, 10) : 1;
+	array_size = _array_size ? (gint32)g_ascii_strtoull(_array_size, &endptr, 10) : 1;
 	if (errno) {
 		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 				ATTR_ARRAYSIZE "=\"%s\" What is this? <" TAG_ELEMENT ">'s attribute was unparsible. (%s)", endptr, g_strerror (errno));
 		return NULL;
 	}
-	offset = _offset ? g_ascii_strtoll(_offset, &endptr, 10) : 0;
+	offset = _offset ? (gint32)g_ascii_strtoll(_offset, &endptr, 10) : 0;
 	if (errno) {
 		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 				ATTR_OFFSET "=\"%s\" What is this? <" TAG_ELEMENT ">'s attribute was unparsible. (%s)", endptr, g_strerror (errno));
@@ -460,7 +460,7 @@ static Dataset *Dataset_new(const char *_id, const char *_name, gint parent_id, 
 	char *endptr;
 	errno = 0;
 	guint32 id;
-	id = g_ascii_strtoull(_id, &endptr, 10);
+	id = (guint32)g_ascii_strtoull(_id, &endptr, 10);
 	if (errno) {
 		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 				ATTR_DATASET_ID "=\"%s\" What is this? <" TAG_DATA_SET ">'s attribute was unparsible (%s).", endptr, g_strerror (errno));
@@ -536,13 +536,13 @@ static ComId *ComId_new(const char *_id, const char *aname, const char *_dsId, G
 	char *endptr;
 	errno = 0;
 	guint32 id, dsId;
-	id = g_ascii_strtoull(_id, &endptr, 10);
+	id = (guint32)g_ascii_strtoull(_id, &endptr, 10);
 	if (errno) {
 		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 				ATTR_COM_ID	"=\"%s\" What is this? <" TAG_TELEGRAM ">'s attribute was unparsible. (%s)", endptr, g_strerror (errno));
 		return NULL;
 	}
-	dsId = strtoul(_dsId, &endptr, 10);
+	dsId = (guint32)g_ascii_strtoull(_dsId, &endptr, 10);
 	if (errno) {
 		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 				ATTR_DATA_SET_ID "=\"%s\" What is this? <" TAG_TELEGRAM ">'s attribute was unparsible. (%s)", endptr, g_strerror (errno));

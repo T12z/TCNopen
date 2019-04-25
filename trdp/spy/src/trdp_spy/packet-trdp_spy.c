@@ -1,39 +1,37 @@
-/* packet-trdp_spy.cpp
- * Routines for Train Real Time Data Protocol
- * Copyright 2012, Florian Weispfenning <florian.weispfenning@de.transport.bombardier.com>
- * Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version)
- *     Thorsten Schulz <thorsten.schulz@uni-rostock.de>
- *     Extended to work with complex dataset and makeover for Wireshark 2.6 -- 3
+/******************************************************************************/
+/**
+ * @file            packet-trdp_spy.c
  *
- * The new display-filter approach contains aspects and code snippets
- * from the wimaxasncp dissector by Stephen Croll.
+ * @brief           Dissector plugin main source
+ *
+ * @details
+ *
+ * @note            Project: TRDP SPY
+ *
+ * @author          Florian Weispfenning, Bombardier Transportation
+ * @author          Thorsten Schulz, Universität Rostock
+ *
+ * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
+ *
+ * @details Version 2.0 extended to work with complex dataset and makeover for Wireshark 2.6 -- 3
+ *
+ *          Based on work:
+ *              Ethereal - Network traffic analyzer
+ *              By Gerald Combs <gerald@ethereal.com>
+ *              Copyright 1998 Gerald Combs
+ *              SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ *              The new display-filter approach contains aspects and code snippets
+ *              from the wimaxasncp dissector by Stephen Croll.
  *
  *
- * Ethereal - Network traffic analyzer
- * By Gerald Combs <gerald@ethereal.com>
- * Copyright 1998 Gerald Combs
  *
- * Copied from WHATEVER_FILE_YOU_USED (where "WHATEVER_FILE_YOU_USED"
- * is a dissector file; if you just copied this from README.developer,
- * don't bother with the "Copied from" - you don't even need to put
- * in a "Copied from" if you copied an existing dissector, especially
- * if the bulk of the code in the new dissector is your code)
+ * $Id: $
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-
 
 # include "config.h"
 
@@ -45,6 +43,7 @@
 #include <epan/packet_info.h>
 #include <epan/column-utils.h>
 #include <epan/packet.h>
+#include <epan/dissectors/packet-tcp.h>
 #include <epan/prefs.h>
 #include <epan/strutil.h>
 #include <epan/expert.h>
@@ -53,8 +52,8 @@
 #include "trdpDict.h"
 
 //To Debug
-#define PRINT_DEBUG2
-#define PRINT_DEBUG
+//#define PRINT_DEBUG2
+//#define PRINT_DEBUG
 
 #ifdef PRINT_DEBUG
 #define PRNT(a) a
@@ -79,7 +78,7 @@
 
 /* Initialize the protocol and registered fields */
 static int proto_trdp_spy = -1;
-//static int proto_trdp_spy_TCP = -1;
+static int proto_trdp_spy_TCP = -1;
 
 /*For All*/
 static int hf_trdp_spy_sequencecounter = -1;    /*uint32*/
@@ -138,7 +137,7 @@ static expert_field ei_trdp_config_notparsed = EI_INIT;
 static expert_field ei_trdp_padding_not_zero = EI_INIT;
 static expert_field ei_trdp_array_wrong = EI_INIT;
 
-
+/* static container for dynamic fields and subtree handles */
 static struct {
     wmem_array_t* hf;
     wmem_array_t* ett;
@@ -252,20 +251,21 @@ static gint32 checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tre
 	return remainingBytes + TRDP_FCS_LENGTH;
 }
 
-/** @fn guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint length, guint8 dataset_level, const gchar *title)
+/** @fn guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, proto_tree *trdp_spy_tree, proto_tree *trdpRootNode, guint32 trdp_spy_comid, guint32 offset, guint clength, guint8 dataset_level, const gchar *title, const gint32 arr_idx )
  *
  * @brief
  * Extract all information from the userdata (uses the parsebody module for unmarshalling)
  *
  * @param tvb               buffer
- * @param packet            info for the packet
- * @param tree              to which the information are added
+ * @param pinfo             info for the packet
+ * @param trdp_spy_tree     to which the information are added
  * @param trdpRootNode      Root node of the view of an TRDP packet (Necessary, as this function will be called recursively)
  * @param trdp_spy_comid    the already extracted comId
  * @param offset            where the userdata starts in the TRDP packet
- * @param length            Amount of bytes, that are transported for the users
+ * @param clength           Amount of bytes, that are transported for the users
  * @param dataset_level     is set to 0 for the beginning
- * @param title             presents the instance-name of the dataset
+ * @param title             presents the instance-name of the dataset for the sub-tree
+ * @param arr_idx           index for presentation when a dataset occurs in an array element
  *
  * @return the actual offset in the packet
  */
@@ -395,7 +395,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 
 			case TRDP_BOOL8: //    1
 				valu = tvb_get_guint8(tvb, offset);
-				proto_tree_add_boolean(userdata_element, el->hf_id, tvb, offset, el->width, valu);
+				proto_tree_add_boolean(userdata_element, el->hf_id, tvb, offset, el->width, (guint32)valu);
 				offset += el->width;
 				break;
 			case TRDP_CHAR8:
@@ -458,25 +458,25 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				real64 = tvb_get_ntohieee_double(tvb, offset);
 				break;
 			case TRDP_TIMEDATE32:
-				valu = tvb_get_ntohl(tvb, offset);
-				time.tv_sec = valu;
-				nstime.secs = valu;
+				vals = tvb_get_ntohil(tvb, offset);
+				time.tv_sec = (glong)vals;
+				nstime.secs = (long int)vals;
 				break;
 			case TRDP_TIMEDATE48:
-				valu = tvb_get_ntohl(tvb, offset);
-				time.tv_sec = valu;
-				nstime.secs = valu;
-				valu = tvb_get_ntohs(tvb, offset + 4);
-				nstime.nsecs = valu*(1000000000L/15259L);  // TODO how are ticks calculated to microseconds?
+				vals = tvb_get_ntohil(tvb, offset);
+				time.tv_sec = (glong)vals;
+				nstime.secs = (long int)vals;
+				vals = tvb_get_ntohis(tvb, offset + 4);
+				nstime.nsecs = (int)vals*(1000000000L/15259L);  // TODO how are ticks calculated to microseconds?
 				time.tv_usec = nstime.nsecs/1000;
 				break;
 			case TRDP_TIMEDATE64:
-				valu = tvb_get_ntohl(tvb, offset);
-				time.tv_sec = valu;
-				nstime.secs = valu;
-				valu = tvb_get_ntohl(tvb, offset + 4);
-				nstime.nsecs = valu*1000;
-				time.tv_usec = valu;
+				vals = tvb_get_ntohil(tvb, offset);
+				time.tv_sec = (glong)vals;
+				nstime.secs = (long int)vals;
+				vals = tvb_get_ntohil(tvb, offset + 4);
+				nstime.nsecs = (int)vals*1000;
+				time.tv_usec = (glong)vals;
 				break;
 			default:
 				PRNT(fprintf(stderr, "Unique type %d for %s\n", el->type, el->name));
@@ -548,7 +548,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 			} else {
 				PRNT(fprintf(stderr, "[%d / %d], (type=%d) val-u=%" G_GUINT64_FORMAT " val-s=%" G_GINT64_FORMAT ".\n", array_index, element_count, el->type, valu, vals));
 
-				potential_array_size = (el->type < TRDP_INT8 || el->type > TRDP_UINT64) ? -1 : (el->type >= TRDP_UINT8 ? (gint)valu : vals);
+				potential_array_size = (el->type < TRDP_INT8 || el->type > TRDP_UINT64) ? -1 : (el->type >= TRDP_UINT8 ? (gint)valu : (gint)vals);
 			}
 
 		} while(array_index);
@@ -563,7 +563,6 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 }
 
 static void add_dataset_reg_info(Dataset *ds);
-static void register_trdp_fields(const char* unused _U_);
 
 /**
  * @internal
@@ -772,17 +771,16 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
 	return parsed_size;
 }
 
-/* determine PDU length of protocol foo */
-
 /** @fn static guint get_trdp_tcp_message_len(packet_info *pinfo _U_, tvbuff_t *tvb, int offset)
  * @internal
  * @brief retrieve the expected size of the transmitted packet.
  */
-//static guint get_trdp_tcp_message_len(packet_info *pinfo _U_, tvbuff_t *tvb, int offset)
-//{
-//    guint datasetlength = (guint) tvb_get_ntohl(tvb, offset+16);
-//    return datasetlength + TRDP_MD_HEADERLENGTH + TRDP_FCS_LENGTH /* add padding, FIXME must be calculated */;
-//}
+static guint get_trdp_tcp_message_len(packet_info *pinfo _U_, tvbuff_t *tvb, int offset, void *data _U_)
+{
+	guint datasetlength = (guint) tvb_get_ntohl(tvb, offset+TRDP_HEADER_OFFSET_DATASETLENGTH); // was offset+16
+	guint without_padding = datasetlength + TRDP_MD_HEADERLENGTH + TRDP_FCS_LENGTH;
+	return  (without_padding+3) & (~3); /* round up to add padding */
+}
 
 /**
  * @internal
@@ -793,16 +791,23 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
  * @param tree      to which the information are added
  * @param data      Collected information
  *
- * @return nothing
+ * @return length
  */
-//static void dissect_trdp_tcp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree)
-//{
-//    /*FIXME tcp_dissect_pdus(tvb, pinfo, tree, TRUE, TRDP_MD_HEADERLENGTH,
-//                     get_trdp_tcp_message_len, dissect_trdp);*/
-//}
+static int dissect_trdp_tcp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data)
+{
+    if (!tvb_bytes_exist(tvb, 0, TRDP_MD_HEADERLENGTH))
+        return 0;
+
+    tcp_dissect_pdus(tvb, pinfo, tree, TRUE, TRDP_MD_HEADERLENGTH,
+                     get_trdp_tcp_message_len, dissect_trdp, data);
+
+    return tvb_reported_length(tvb);
+}
 
 /* ========================================================================= */
-/* Register the protocol fields and subtrees with Wireshark (strongly inspired by the wimaxasncp plugin)*/
+/* Register the protocol fields and subtrees with Wireshark
+ * (strongly inspired by the wimaxasncp plugin)
+ */
 
 /* ========================================================================= */
 /* Modify the given string to make a suitable display filter                 */
@@ -914,8 +919,7 @@ static void add_dataset_reg_info(Dataset *ds) {
 }
 
 
-static void
-register_trdp_fields(const char* unused _U_) {
+static void register_trdp_fields(void) {
 	API_TRACE;
 	/* List of header fields. */
 	static hf_register_info hf_base[] ={
@@ -1005,9 +1009,7 @@ register_trdp_fields(const char* unused _U_) {
 
 	if (hf_trdp_spy_type == -1) {
 		proto_register_field_array(proto_trdp_spy, hf_base, array_length(hf_base));
-//		wmem_array_append(trdp_build_dict.hf, hf_base, array_length(hf_base));
 		proto_register_subtree_array(ett_base, array_length(ett_base));
-//		wmem_array_append(trdp_build_dict.ett, ett_base, array_length(ett_base));
 	}
 
 	if (pTrdpParser) {
@@ -1032,32 +1034,31 @@ register_trdp_fields(const char* unused _U_) {
 
 void proto_reg_handoff_trdp(void)
 {
-	static gboolean inited = FALSE;
+	static gboolean initialized = FALSE;
 	static dissector_handle_t trdp_spy_handle;
-	//    static dissector_handle_t trdp_spy_TCP_handle;
+	static dissector_handle_t trdp_spy_TCP_handle;
 
 	preference_changed = TRUE;
 
 	API_TRACE;
 
-	if(!inited )
+	if(!initialized )
 	{
 		trdp_spy_handle     = create_dissector_handle((dissector_t) dissect_trdp, proto_trdp_spy);
-		//FIXME trdp_spy_TCP_handle = create_dissector_handle((dissector_t) dissect_trdp_tcp, proto_trdp_spy_TCP);
-		inited = TRUE;
+		trdp_spy_TCP_handle = create_dissector_handle((dissector_t) dissect_trdp_tcp, proto_trdp_spy_TCP);
+		initialized = TRUE;
 	}
 	else
 	{
 		dissector_delete_uint("udp.port", g_pd_port, trdp_spy_handle);
 		dissector_delete_uint("udp.port", g_md_port, trdp_spy_handle);
-		//        dissector_delete_uint("tcp.port", g_md_port, trdp_spy_TCP_handle);
+		dissector_delete_uint("tcp.port", g_md_port, trdp_spy_TCP_handle);
 	}
 	dissector_add_uint("udp.port", g_pd_port, trdp_spy_handle);
 	dissector_add_uint("udp.port", g_md_port, trdp_spy_handle);
-	//    dissector_add_uint("tcp.port", g_md_port, trdp_spy_TCP_handle);
+	dissector_add_uint("tcp.port", g_md_port, trdp_spy_TCP_handle);
 
-	register_trdp_fields(NULL);
-
+	register_trdp_fields();
 }
 
 void proto_register_trdp(void) {
@@ -1107,6 +1108,4 @@ void proto_register_trdp(void) {
 
 	expert_trdp = expert_register_protocol(proto_trdp_spy);
 	expert_register_field_array(expert_trdp, ei, array_length(ei));
-
-//	proto_register_prefix("trdp", register_trdp_fields);
 }

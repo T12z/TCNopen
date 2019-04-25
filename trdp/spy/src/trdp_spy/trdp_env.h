@@ -9,12 +9,12 @@
  * @note            Project: TRDP SPY
  *
  * @author          Florian Weispfenning, Bombardier Transportation
- *                  Thorsten Schulz, Universität Rostock
+ * @author          Thorsten Schulz, Universität Rostock
  *
- * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
- *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- *          Copyright Universität Rostock, 2019 (type changes leading to GLib-only version)
+ * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
  * $Id: $
  *
  * @addtogroup Definitions
