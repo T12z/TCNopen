@@ -25,6 +25,7 @@
  */
 #include "trdpDict.h"
 #include <errno.h>
+#include <stdio.h>
 
 /* this is a construct, to point empty strings (name, unit, ...) to this const
  * instead of NULL, so readers don't have to catch for NULL - though w/o
@@ -67,12 +68,12 @@ static gint32   Dataset_preCalculate    (Dataset *self, const TrdpDict *dict);
 static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, guint32 referrer);
 
 static Element *Element_new                (const char *typeS, const char *name, const char *unit,
-											const char *array_size, const char *scale, const char *offset, GError **error);
-static Dataset *Dataset_new                (const char *dsId, const char *aname, gint parent_id, GError **error);
+											const char *array_size, const char *scale, const char *offset, guint index, GError **error);
+static Dataset *Dataset_new                (const char *dsId, const char *aname, GError **error);
 static ComId   *ComId_new                  (const char *id, const char *aname, const char *dsId, GError **error);
 
 static void     Element_delete             (Element *self);
-static void     Dataset_delete             (Dataset *self);
+static void     Dataset_delete             (Dataset *self, gint parent_id);
 static void     ComId_delete               (ComId *self);
 
 
@@ -160,6 +161,7 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 		const gchar **attribute_names, const gchar **attribute_values,
 		gpointer user_data, GError **error) {
 
+	static guint element_cnt = 0;
 	GError *err = NULL;
 	TrdpDict *self = (TrdpDict *)user_data;
 
@@ -207,15 +209,16 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 				G_MARKUP_COLLECT_INVALID);
 		if (!err) {
-			Dataset *ds = Dataset_new(id, name, self->g_parent_id, &err);
+			Dataset *ds = Dataset_new(id, name, &err);
 			if (ds) {
 				if (!TrdpDict_get_Dataset(self, ds->datasetId)) {
 					ds->next = self->mTableDataset;
 					self->mTableDataset = ds;
+					element_cnt = 0;
 				} else {
 					g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 								"Ooops, duplicate Dataset-Id: \"%d\".", ds->datasetId);
-					Dataset_delete(ds);
+					Dataset_delete(ds, -1);
 				}
 
 			} else
@@ -237,7 +240,7 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 					G_MARKUP_COLLECT_INVALID);
 
 			if (!err) {
-				Element *el = Element_new(type, name, unit, array_size, scale, offset, &err);
+				Element *el = Element_new(type, name, unit, array_size, scale, offset, ++element_cnt, &err);
 				if (el) {
 					/* update the element in the list */
 					if (!self->mTableDataset->listOfElements)
@@ -276,7 +279,7 @@ GMarkupParser parser = {
  */
 
 
-TrdpDict *TrdpDict_new(const char *xmlconfigFile, gint parent_id, GError **error) {
+TrdpDict *TrdpDict_new(const char *xmlconfigFile, GError **error) {
 
 	GError *err = NULL;
 
@@ -313,11 +316,10 @@ TrdpDict *TrdpDict_new(const char *xmlconfigFile, gint parent_id, GError **error
 		g_markup_parse_context_free(xml);
 		g_mapped_file_unref(gmf);
 		if (self->knowledge) {
-			self->g_parent_id = parent_id;
 			self->xml_file = g_strdup(xmlconfigFile); /* just for verbose info, no known use. */
 			return self;
 		} else
-			TrdpDict_delete(self);
+			TrdpDict_delete(self, -1);
 	}
 	return NULL;
 }
@@ -328,7 +330,7 @@ gchar *TrdpDict_summary(const TrdpDict *self) {
 			: g_strdup(PROTO_TAG_TRDP " | XML file invalid.");
 }
 
-void TrdpDict_delete(TrdpDict *self) {
+void TrdpDict_delete(TrdpDict *self, gint parent_id) {
 	if (self) {
 		while (self->mTableComId) {
 			ComId *com = self->mTableComId;
@@ -338,7 +340,7 @@ void TrdpDict_delete(TrdpDict *self) {
 		while (self->mTableDataset) {
 			Dataset *ds = self->mTableDataset;
 			self->mTableDataset=self->mTableDataset->next;
-			Dataset_delete(ds);
+			Dataset_delete(ds, parent_id);
 		}
 		g_free(self->xml_file);
 		g_free(self);
@@ -366,7 +368,10 @@ static void Element_stringifyType(Element *self, const char *_typeName) {
 	if (self->type <= TRDP_STANDARDTYPE_MAX) {
 		strncpy(self->typeName, encodeType(self->type), sizeof(self->typeName)-1);
 	} else if (self->linkedDS) {
-		strncpy(self->typeName, self->linkedDS->name, sizeof(self->typeName)-1);
+		if (*self->linkedDS->name)
+			strncpy(self->typeName, self->linkedDS->name, sizeof(self->typeName)-1);
+		else
+			snprintf(self->typeName, sizeof(self->typeName), "%d", self->linkedDS->datasetId);
 	} else {
 		if (_typeName) strncpy(self->typeName, _typeName, sizeof(self->typeName)-1);
 	}
@@ -389,7 +394,8 @@ static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, gu
 		return TRUE;
 }
 
-static Element *Element_new(const char *_type, const char *_name, const char *_unit, const char *_array_size, const char *_scale, const char *_offset, GError **error) {
+static Element *Element_new(const char *_type, const char *_name, const char *_unit, const char *_array_size,
+		const char *_scale, const char *_offset, guint cnt, GError **error) {
 	gdouble scale;
 	gint32 offset;
 	gint32 array_size;
@@ -425,7 +431,7 @@ static Element *Element_new(const char *_type, const char *_name, const char *_u
 	self->hf_id = -1;
 	self->ett_id = -1;
 	self->array_size = array_size;
-	self->name = _name ? g_strdup(_name) : (gchar *)SEMPTY; /* TODO check length */
+	self->name = _name && *_name ? g_strdup(_name) : g_strdup_printf("%u", cnt); /* in case the name is empty, take a running number */
 	self->unit = _unit ? g_strdup(_unit) : (gchar *)SEMPTY;
 	self->scale = scale;
 	self->offset = offset;
@@ -440,7 +446,7 @@ static Element *Element_new(const char *_type, const char *_name, const char *_u
 
 static void Element_delete(Element *self) {
 	if (self) {
-		if (self->name != SEMPTY) g_free(self->name);
+		g_free(self->name);
 		if (self->unit != SEMPTY) g_free(self->unit);
 		g_free(self);
 	}
@@ -455,7 +461,7 @@ gint32 TrdpDict_element_size(const Element *self, guint32 array_size /* = 1*/) {
  *                          DATASET
  ************************************************************************************/
 
-static Dataset *Dataset_new(const char *_id, const char *_name, gint parent_id, GError **error) {
+static Dataset *Dataset_new(const char *_id, const char *_name, GError **error) {
 	/* check params */
 	char *endptr;
 	errno = 0;
@@ -469,8 +475,7 @@ static Dataset *Dataset_new(const char *_id, const char *_name, gint parent_id, 
 	Dataset *self = g_new0(Dataset, 1);
 	self->datasetId = id;
 	self->ett_id = -1;
-	self->g_parent_id = parent_id;
-	self->name = _name ? g_strdup(_name) : (gchar *)SEMPTY; /* TODO check length */
+	self->name = g_strdup( (_name && *_name) ? _name : _id);
 	return self;
 }
 
@@ -504,20 +509,20 @@ static gint32 Dataset_preCalculate(Dataset *self, const TrdpDict *dict) {
 	return self->size;
 }
 
-static void Dataset_delete(Dataset *self) {
+static void Dataset_delete(Dataset *self, gint parent_id) {
 	while (self->listOfElements) {
 		Element *el = self->listOfElements;
 		self->listOfElements = self->listOfElements->next;
-		if (el->hf_id > -1) {
+		if (parent_id > -1 && el->hf_id > -1) {
 			/* not really clean, to call Wireshark from here-in. I think, GLib offers
 			 * the Destroy-Notifier methodology for this case. Future ...
 			 */
-			proto_deregister_field(self->g_parent_id, el->hf_id);
+			proto_deregister_field(parent_id, el->hf_id);
 		}
 		/* no idea how to clean up subtree handler el->ett_id */
 		Element_delete(el);
 	}
-	if (self->name != SEMPTY) g_free(self->name);
+	g_free(self->name);
 	g_free(self);
 }
 

@@ -17,6 +17,8 @@ N E W S
  * Support for Wireshark 2.6 and 3.0. It may not work with earlier versions -- checkout older SVN revions if needed.
 
  * Filtering based on dataset name and element name works!
+ 
+ * Parsing and filtering on strings works.
 
  * Folding of dataset subtrees is more fine-grained now
 
@@ -26,6 +28,7 @@ N E W S
 
  * TCP may not work, not tested
  
+ * Doxygen does not produce the PDF, but you can make it generate HTML (not included here)
 
 
 U S A G E
@@ -55,7 +58,7 @@ E.g.,
 
 ___WARNING_______________
 
-DO NOT CHANGE THE TRDP-PREFERENCES, while a specific display filter on a TRDP-PDU is in use. It will crash Wireshark and you will loose your capture data if it was not saved. Reloading of filters at use is just not supported. Please clear the display filter first and you should be good.
+DO NOT CHANGE ANY TRDP-PREFERENCES, while a specific display filter on a TRDP-PDU is in use. It will crash Wireshark and you will loose your capture data if it was not saved. Reloading of filters at use is just not supported. Please clear the display filter first and you should be good.
 
 ___How to filter_________
 

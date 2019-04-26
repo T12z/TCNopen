@@ -73,9 +73,9 @@
  * @enddot
  */
 typedef struct Element {
-/*private:*/
-	char *name;  /**< Name of the variable, that is stored */
-	char *unit;  /**< Unit to display */
+/* R/O */
+	char *name;  /**< Name of the element, maybe a stringified index within the dataset, never NULL */
+	char *unit;  /**< Unit to display, may point to an empty string */
 
 /*public:*/
 
@@ -104,12 +104,11 @@ typedef struct Element {
 typedef struct Dataset {
 /* private */
 	gint32  size;            /**< Cached size of Dataset, including subsets. negative, if size cannot be calculated due to a missing/broken sub-dataset definition, 0, if contains var-array and must be recalculated */
-	gchar   *name;           /**< Description of the dataset */
+	gchar   *name;           /**< Description of the dataset, maybe stringified datasetId, never NULL */
 
 /* public */
 	guint32 datasetId;       /**< Unique identification of one dataset */
 	gint    ett_id;          /**< GUI-id for packet subtree */
-	gint    g_parent_id;     /**< needed for element (de-)registration */
 
 	struct Element *listOfElements; /**< All elements, this dataset consists of. */
 	struct Element *lastOfElements; /**< other end of the Bratwurst */
@@ -137,7 +136,7 @@ typedef struct Dataset {
  * There is a separate structure for datasets necessary, because the dataset itself can be packed recursively into each other.
  */
 typedef struct ComId {
-	char    *name;
+	char    *name;       /**< name given in XML, may be an empty string, never NULL */
 
 /* public: */
 	guint32  comId;      /**< Communication Id, used as key*/
@@ -167,7 +166,6 @@ typedef struct TrdpDict {
 /* pub-R/O */
 	guint         knowledge;    /**< number of found ComIds */
 	struct ComId *mTableComId;  /**< first item of linked list of ComId items. Use it to iterate if necessary or use TrdpDict_lookup_ComId for a pointer. */
-	gint          g_parent_id;  /**< GUI parent ID, needed for cleanup item descriptors */
 	gchar        *xml_file;     /**< cached name of last parsed file */
 } TrdpDict;
 
@@ -176,12 +174,11 @@ typedef struct TrdpDict {
  *  @brief Create a new TrdpDict container
  *
  *  @param xmlconfigFile  Path to xml file on disk.
- *  @param parent_id      The parent protocol handle (from proto_register_protocol() ).
  *  @param error          Will be set to non-null on any error.
  *
  *  @return pointer to the container or NULL on problems. See error then for the cause.
  */
-extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, gint parent_id, GError **error);
+extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, GError **error);
 
 /** @fn  TrdpDict *TrdpDict_delete(TrdpDict *self)
  *
@@ -189,9 +186,10 @@ extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, gint parent_id, GEr
  *
  *  This will also clear all associated ComId, Dataset and Element items.
  *
- *  @param self  TrdpDict instance
+ *  @param self           TrdpDict instance
+ *  @param parent_id      The parent protocol handle (from proto_register_protocol() ).
  */
-extern void      TrdpDict_delete (      TrdpDict *self);
+extern void      TrdpDict_delete (      TrdpDict *self, gint parent_id);
 
 /** @fn  gchar *TrdpDict_summary(const TrdpDict *self)
  *

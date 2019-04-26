@@ -118,12 +118,13 @@ static int hf_trdp_spy_dataset_id = -1;
 
 static gboolean preference_changed = TRUE;
 
-
-/* Global sample preference ("controls" display of numbers) */
 static const char *gbl_trdpDictionary_1 = NULL; //XML Config Files String from ..Edit/Preference menu
 static guint g_pd_port = TRDP_DEFAULT_UDP_PD_PORT;
 static guint g_md_port = TRDP_DEFAULT_UDPTCP_MD_PORT;
 static gboolean g_scaled = TRUE;
+static gboolean g_strings_are_LE = FALSE;
+static gboolean g_char8_is_utf8 = TRUE;
+static gboolean g_0strings = FALSE;
 
 /* Initialize the subtree pointers */
 static gint ett_trdp_spy = -1;
@@ -342,24 +343,20 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 
 		if (!element_count) {// handle variable element count
 
-			if (el->type == TRDP_CHAR8 || el->type == TRDP_UTF16)	{ /* handle the special elements CHAR8 and UTF16: */
+			if (g_0strings && (el->type == TRDP_CHAR8 || el->type == TRDP_UTF16))	{ /* handle the special elements CHAR8 and UTF16: */
 
-				/* Store the maximum possible length for the dynamic datastructure */
-				//remainder = tvb_reported_length_remaining(tvb, offset) - TRDP_FCS_LENGTH;
-
-				/* Search for a zero to determine the end of the dynamic length field */
-				//for(; element_count < remainder && tvb_get_guint8(tvb, offset + element_count); element_count++);
-				//element_count++; /* include the terminator into the element */
-
-				//proto_tree_add_bytes_format_value(trdp_spy_userdata, hf_trdp_ds_type2and3, tvb, offset, length, NULL, "%s [%d]", el->name.toLatin1().data() , element_count);
 			} else {
 				element_count = potential_array_size;
 
 				if (element_count < 1) {
 					expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_array_wrong, "%s : was introduced by an unsupported length field. (%d)", el->name, potential_array_size);
-					element_count = 0;
-					potential_array_size = -1;
-					continue; /* if, at the end of the day, the array is intentinally 0, skip the element */
+					if (element_count == 0) {
+						potential_array_size = -1;
+						continue; /* if, at the end of the day, the array is intentionally 0, skip the element */
+					} else {
+						offset = 0;
+						return 0; /* in this case, the whole packet is garbled */
+					}
 				} else {
 					PRNT(fprintf(stderr, "[%d] Offset %5d Dynamic array, with %d elements found\n", dataset_level, offset, element_count));
 				}
@@ -385,8 +382,9 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 		do {
 			gint64  vals = 0;
 			guint64 valu = 0;
-			gchar  *text = NULL;
+			guint8 *text = NULL;
 			guint   slen = 0;
+			guint   bytelen = 0;
 			gdouble real64 = 0;
 			GTimeVal time = {0,0};
 			nstime_t nstime = {0,0};
@@ -399,33 +397,28 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				offset += el->width;
 				break;
 			case TRDP_CHAR8:
-				if (!element_count) {
-					slen = tvb_strsize(tvb, offset);
-//					text = tvb_format_stringzpad(tvb, offset, slen);
-				} else {
-					slen = element_count;
-//					text = tvb_format_text(tvb, offset, slen);
-				}
-				text = tvb_format_text(tvb, offset, slen);
+				bytelen = (element_count||!g_0strings) ? (guint)element_count : tvb_strsize(tvb, offset);
+				slen = (element_count||!g_0strings) ? bytelen : (bytelen-1);
+				text = (g_char8_is_utf8 && element_count > 1) ?
+						  tvb_get_string_enc(wmem_packet_scope(), tvb, offset, slen, ENC_UTF_8)
+						: (guint8 *)tvb_format_text(tvb, offset, slen);
+
 				if (element_count == 1)
-					proto_tree_add_string_format_value(userdata_element, el->hf_id, tvb, offset, slen, text, "%s : %s", el->name, text);
+					proto_tree_add_string(userdata_element, el->hf_id, tvb, offset, bytelen, text);
 				else
-					proto_tree_add_string_format_value(userdata_element, el->hf_id,  tvb, offset, slen, text, "%s : [%d]\"%s\"", el->name, slen, text);
-				offset += slen;
+					proto_tree_add_string_format_value(userdata_element, el->hf_id, tvb, offset, bytelen, text, "[%d] \"%s\"", slen, text);
+				offset += bytelen;
 				element_count = 1;
+				potential_array_size = -1;
 				break;
 			case TRDP_UTF16:
-				if (!element_count) {
-					slen = tvb_unicode_strsize(tvb, offset);
-//					text = tvb_format_stringzpad(tvb, offset, slen);
-				} else {
-					slen = 2*element_count; // I interpret (!) for the array-size to be the number of elements, characters, c16.
-//					text = tvb_format_text(tvb, offset, slen);
-				}
-				text = tvb_format_text(tvb, offset, slen);
-				proto_tree_add_string_format_value(userdata_element, el->hf_id, tvb, offset, slen, text, "%s : [%d]\"%s\"", el->name, slen/2, text);
-				offset += slen;
+				bytelen = (element_count||!g_0strings) ? (guint)(2*element_count) :  tvb_unicode_strsize(tvb, offset);
+				slen = (element_count||!g_0strings) ? bytelen : (bytelen-2);
+				text = tvb_get_string_enc(wmem_packet_scope(), tvb, offset, slen, ENC_UTF_16 | (g_strings_are_LE ? ENC_LITTLE_ENDIAN : ENC_BIG_ENDIAN));
+				proto_tree_add_string_format_value(userdata_element, el->hf_id, tvb, offset, bytelen, text, "[%d] \"%s\"", slen/2, text);
+				offset += bytelen;
 				element_count = 1;
+				potential_array_size = -1;
 				break;
 			case TRDP_INT8:
 				vals = tvb_get_gint8(tvb, offset);
@@ -482,6 +475,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				PRNT(fprintf(stderr, "Unique type %d for %s\n", el->type, el->name));
 				offset = dissect_trdp_generic_body(
 						tvb, pinfo, userdata_element, trdpRootNode, el->type, offset, length-(offset-start_offset), dataset_level+1, el->name, (element_count != 1) ? array_index : -1);
+				if (offset == 0) return offset; /* break dissecting, if things went sideways */
 				break;
 			}
 
@@ -760,10 +754,13 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
 		/* Help with high-level name of ComId / Dataset */
 		const ComId *comId = TrdpDict_lookup_ComId(pTrdpParser, trdp_spy_comid);
 		if (comId) {
-			if ( comId->name ) {
+			if ( comId->name && *comId->name ) {
 				col_append_fstr(pinfo->cinfo, COL_INFO, " -> %s", comId->name );
-			} else if (comId->linkedDS && comId->linkedDS->name ) {
-				col_append_fstr(pinfo->cinfo, COL_INFO, " -> [%s]", comId->linkedDS->name );
+			} else if (comId->linkedDS) {
+				if ( *comId->linkedDS->name ) {
+					col_append_fstr(pinfo->cinfo, COL_INFO, " -> [%s]", comId->linkedDS->name );
+				} else
+					col_append_fstr(pinfo->cinfo, COL_INFO, " -> [%d]", comId->linkedDS->datasetId );
 			}
 		}
 
@@ -850,9 +847,7 @@ static void add_element_reg_info(const char *parentName, Element *el) {
 	const char *blurb;
 	gint *pett_id = &el->ett_id;
 
-	//name = wmem_strdup(wmem_epan_scope(), el->getName());
 	name = g_strdup(el->name);
-	//abbrev = alnumerize(wmem_strdup_printf(wmem_epan_scope(), "trdp.pdu.%s.%s", parentName, el->getName()));
 	abbrev = alnumerize(g_strdup_printf("trdp.pdu.%s.%s", parentName, el->name));
 
 	if (el->scale || el->offset) {
@@ -911,9 +906,8 @@ static void add_element_reg_info(const char *parentName, Element *el) {
 
 static void add_dataset_reg_info(Dataset *ds) {
 	gint *pett_id = &ds->ett_id;
-	for(Element *el = ds->listOfElements; el; el=el->next) {
+	for(Element *el = ds->listOfElements; el; el=el->next)
 		add_element_reg_info(ds->name, el);
-	}
 	if (ds->listOfElements)
 		wmem_array_append_one(trdp_build_dict.ett, pett_id);
 }
@@ -975,16 +969,16 @@ static void register_trdp_fields(void) {
 	API_TRACE;
 	if ( preference_changed || pTrdpParser == NULL) {
 		if (pTrdpParser != NULL) {
-			TrdpDict_delete(pTrdpParser);
+			TrdpDict_delete(pTrdpParser, proto_trdp_spy);
 			pTrdpParser = NULL;
 			proto_free_deregistered_fields();
 		}
 		if ( gbl_trdpDictionary_1 && *gbl_trdpDictionary_1 ) { /* keep this silent on no set file */
-			PRNT2(fprintf(stderr, "TRDP dictionary is '%s' (changed=%d).\n", gbl_trdpDictionary_1, preference_changed));
+			PRNT2(fprintf(stderr, "TRDP dictionary is '%s' (changed=%d, proto=%d).\n", gbl_trdpDictionary_1, preference_changed, proto_trdp_spy));
 			API_TRACE;
 
 			GError *err = NULL;
-			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, proto_trdp_spy, &err);
+			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, &err);
 			API_TRACE;
 			if (err) {
 				report_failure("TRDP | XML configuration failed: [%d] %s", err->code, err->message);
@@ -1083,8 +1077,17 @@ void proto_register_trdp(void) {
 			, FALSE
 #endif
 	);
+	prefs_register_bool_preference(trdp_spy_module, "0strings",
+			"Variable-length CHAR8 and UTF16 arrays are 0-terminated. (non-standard)",
+			"When ticked, the length of a variable-length string (array-size=0) is calculated from searching for a terminator instead of using a previous length element.", &g_0strings);
+	prefs_register_bool_preference(trdp_spy_module, "char8utf8",
+			"Interpret CHAR8 arrays as UTF-8.",
+			"When ticked, CHAR8 arrays are interpreted as UTF-8 string. If it fails, an exception is thrown. Untick if you need to see weird ASCII as C-escapes.", &g_char8_is_utf8);
+	prefs_register_bool_preference(trdp_spy_module, "strings.le",
+			"Interpret UTF-16 strings with Little-Endian wire format. (non-standard)",
+			"When ticked, UTF16 arrays are interpreted as Little-Endian encoding.", &g_strings_are_LE);
 	prefs_register_bool_preference(trdp_spy_module, "scaled",
-			"Use scaled value for filter",
+			"Use scaled value for filter.",
 			"When ticked, uses scaled values for filtering and display, otherwise the raw value.", &g_scaled);
 	prefs_register_uint_preference(trdp_spy_module, "pd.udp.port",
 			"PD message Port",
