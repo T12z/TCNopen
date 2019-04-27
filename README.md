@@ -1,6 +1,8 @@
 # TCNopen fork
 This is a "private" fork of TCNopen (Components for IEC61375 standardised communication)
 
+**Now awesome**: I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Compiled binaries are available for versions [2.6](trdp/spy/plugins/2.6/epan) and [3.0](trdp/spy/plugins/3.0/epan). It now really works for Datasets, Arrays, Strings and filtering on names. Try it out! Create an issue if it doesn't work for you. Please be verbose if I misinterpreted the standard somewhere.
+
 ## Goal of fork
  - The [master](https://github.com/T12z/TCNopen/tree/master) for me to play around.
  - The [upstream](https://github.com/T12z/TCNopen/tree/upstream) if all you need is a mirror.
