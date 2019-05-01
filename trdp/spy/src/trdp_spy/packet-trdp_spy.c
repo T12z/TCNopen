@@ -47,6 +47,7 @@
 #include <epan/prefs.h>
 #include <epan/strutil.h>
 #include <epan/expert.h>
+#include <epan/plugin_if.h>
 #include <wsutil/report_message.h>
 #include "trdp_env.h"
 #include "trdpDict.h"
@@ -117,6 +118,7 @@ static int hf_trdp_spy_isMD     = -1;           /*flag*/
 static int hf_trdp_spy_dataset_id = -1;
 
 static gboolean preference_changed = TRUE;
+static gchar   *trdp_filter_expression_active = NULL;
 
 static const char *gbl_trdpDictionary_1 = NULL; //XML Config Files String from ..Edit/Preference menu
 static guint g_pd_port = TRDP_DEFAULT_UDP_PD_PORT;
@@ -282,7 +284,6 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 	gint element_count = 0;
 	gdouble formated_value;
 
-	API_TRACE;
 
 	/* make the userdata accessible for wireshark */
 	if (!dataset_level) {
@@ -603,21 +604,6 @@ static guint32 build_trdp_tree(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tr
 
 	API_TRACE;
 
-	/* load the trdp and pdu configuration */
-/*
-	if (preference_changed) {
-		API_TRACE;
-		if (pTrdpParser) { // first need to clean up the dictionary
-			API_TRACE;
-			g_free(pTrdpParser);
-			pTrdpParser = NULL;
-			proto_free_deregistered_fields();
-		}
-	    proto_register_prefix("trdp", register_trdp_fields); // re-register to trigger dictionary reading
-		proto_registrar_get_byname("trdp.pdu");
-	}
-*/
-
 	// when the package is big enough exract some data.
 	if (tvb_reported_length_remaining(tvb, 0) > TRDP_HEADER_PD_OFFSET_RESERVED)
 	{
@@ -679,7 +665,6 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
 	guint32 parsed_size = 0U;
 	proto_item *ti_type = NULL;
 
-	API_TRACE;
 
 	/* Make entries in Protocol column ... */
 	if (col_get_writable(pinfo->cinfo, COL_PROTOCOL))
@@ -848,7 +833,7 @@ static void add_element_reg_info(const char *parentName, Element *el) {
 	gint *pett_id = &el->ett_id;
 
 	name = g_strdup(el->name);
-	abbrev = alnumerize(g_strdup_printf("trdp.pdu.%s.%s", parentName, el->name));
+	abbrev = alnumerize(g_strdup_printf( PROTO_FILTERNAME_TRDP_PDU ".%s.%s", parentName, el->name));
 
 	if (el->scale || el->offset) {
 		blurb = g_strdup_printf("type=%s(%u) *%4g %+0d %s", el->typeName, el->type, el->scale?el->scale:1.0, el->offset, el->unit);
@@ -968,7 +953,14 @@ static void register_trdp_fields(void) {
 
 	API_TRACE;
 	if ( preference_changed || pTrdpParser == NULL) {
+		gchar *trdp_filter_expression_tmp = NULL;
 		if (pTrdpParser != NULL) {
+			if (trdp_filter_expression_active) { /* clear GUI first */
+				trdp_filter_expression_tmp = trdp_filter_expression_active; /* save filter expression */
+				trdp_filter_expression_active = NULL; /* set to NULL, because we just stole the string */
+			}
+			/* currently the GUI callbacks are w/o effect, so always clear the filter expression */
+			plugin_if_apply_filter("" /* empty filter */, TRUE /* apply immediately */);
 			TrdpDict_delete(pTrdpParser, proto_trdp_spy);
 			pTrdpParser = NULL;
 			proto_free_deregistered_fields();
@@ -983,10 +975,14 @@ static void register_trdp_fields(void) {
 			if (err) {
 				report_failure("TRDP | XML configuration failed: [%d] %s", err->code, err->message);
 				g_error_free(err);
+			} else {
+				if (trdp_filter_expression_tmp) /* re-apply our old filter, at least try */
+					plugin_if_apply_filter(trdp_filter_expression_tmp, FALSE);
 			}
 		} else {
 			PRNT2(fprintf(stderr, "TRDP dictionary is '%s' (changed=%d).\n", gbl_trdpDictionary_1, preference_changed));
 		}
+		g_free(trdp_filter_expression_tmp); /* free old expression */
 		preference_changed = FALSE;
 	}
 
@@ -1026,6 +1022,27 @@ static void register_trdp_fields(void) {
 
 }
 
+/* currently does not seem to have an effect */
+/*
+static void trdp_filter_expression_trace1(GHashTable * data_set) {
+	const gchar *fs = (const gchar *)g_hash_table_lookup( data_set, "filter_string" );
+	g_free(trdp_filter_expression_active);
+	if ( strstr( fs, PROTO_FILTERNAME_TRDP_PDU ) ) {
+		trdp_filter_expression_active = g_strdup(fs);
+	}
+	PRNT2( fprintf(stderr, "FILTER Expression prepared: \"%s\"", fs) );
+}
+
+static void trdp_filter_expression_trace2(GHashTable * data_set) {
+	const gchar *fs = (const gchar *)g_hash_table_lookup( data_set, "filter_string" );
+	g_free(trdp_filter_expression_active);
+	if ( strstr( fs, PROTO_FILTERNAME_TRDP_PDU ) ) {
+		trdp_filter_expression_active = g_strdup(fs);
+	}
+	PRNT2( fprintf(stderr, "FILTER Expression applied: \"%s\"", fs) );
+}
+*/
+
 void proto_reg_handoff_trdp(void)
 {
 	static gboolean initialized = FALSE;
@@ -1051,6 +1068,12 @@ void proto_reg_handoff_trdp(void)
 	dissector_add_uint("udp.port", g_pd_port, trdp_spy_handle);
 	dissector_add_uint("udp.port", g_md_port, trdp_spy_handle);
 	dissector_add_uint("tcp.port", g_md_port, trdp_spy_TCP_handle);
+
+	/* currently does not seem to have an effect */
+	/*
+	plugin_if_register_gui_cb(PLUGIN_IF_FILTER_ACTION_PREPARE, trdp_filter_expression_trace1);
+	plugin_if_register_gui_cb(PLUGIN_IF_FILTER_ACTION_APPLY, trdp_filter_expression_trace2);
+	*/
 
 	register_trdp_fields();
 }
@@ -1112,3 +1135,4 @@ void proto_register_trdp(void) {
 	expert_trdp = expert_register_protocol(proto_trdp_spy);
 	expert_register_field_array(expert_trdp, ei, array_length(ei));
 }
+

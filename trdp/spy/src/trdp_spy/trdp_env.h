@@ -62,6 +62,7 @@
 #define PROTO_TAG_TRDP          "TRDP"
 #define PROTO_NAME_TRDP         "Train Real Time Data Protocol"
 #define PROTO_FILTERNAME_TRDP   "trdp"
+#define PROTO_FILTERNAME_TRDP_PDU PROTO_FILTERNAME_TRDP ".pdu"
 
 #define TRDP_HEADER_OFFSET_SEQCNT           0
 #define TRDP_HEADER_OFFSET_PROTOVER         4

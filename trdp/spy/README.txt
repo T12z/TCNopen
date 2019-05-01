@@ -56,9 +56,9 @@ E.g.,
   same xml scale definition, but without the scaling preference option activated:
   [display filter] trdp.pdu.PressureType.current < 9210
 
-___WARNING_______________
+___Notice_______________
 
-DO NOT CHANGE ANY TRDP-PREFERENCES, while a specific display filter on a TRDP-PDU is in use. It will crash Wireshark and you will loose your capture data if it was not saved. Reloading of filters at use is just not supported. Please clear the display filter first and you should be good.
+Due to a shortcoming in the Wireshark-Plugin-API, if you change TRDP-Dissector settings, the display-filter expression is cleared. I have no better solution at the moment. Your last filter expression should, however, still be in the filter history.
 
 ___How to filter_________
 
