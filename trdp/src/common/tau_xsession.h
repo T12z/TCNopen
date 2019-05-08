@@ -37,7 +37,7 @@ typedef struct {
 
     UINT32              size; /* of data buffer, held by main app */
 
-    pTRDP_DATASET_T     pDatasetDesc;
+    TRDP_DATASET_T     *pDatasetDesc;
     TRDP_IF_CONFIG_T   *pIfConfig;
     UINT32              comID;
     UINT32              dstID;
@@ -50,7 +50,7 @@ typedef struct {
 
     UINT32              size; /* of data buffer, held by main app */
 
-    pTRDP_DATASET_T     pDatasetDesc;
+    TRDP_DATASET_T     *pDatasetDesc;
     TRDP_FLAGS_T        pktFlags;
     TRDP_IF_CONFIG_T   *pIfConfig;
     UINT32              comID;
@@ -108,6 +108,21 @@ TRDP_ERR_T tau_xsession_setCom   (TAU_XSESSION_T *our,               UINT32  pub
 TRDP_ERR_T tau_xsession_getCom   (TAU_XSESSION_T *our,               UINT32  subTelID,       UINT8 *data, UINT32 cap, UINT32 *length, TRDP_PD_INFO_T *info);
 TRDP_ERR_T tau_xsession_request  (TAU_XSESSION_T *our,               UINT32  subTelID);
 
+/*
+ * lookup the corresponding datasetID for given ComID
+ */
+TRDP_ERR_T tau_xsession_ComId2DatasetId(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *datasetId);
 
+/*
+ * get information on a dataset variable
+ *  @param our   xsession handle
+ *  @param dsId  the dataset ID to search for
+ *  @param name  name of the element to lookup, or NULL if the index is used instead
+ *  @param index number of element in dataset, set to 0 if name is used, first element is == 1
+ *  @param[out] returning the element, untouched in case of error
+ *
+ *  @return  error
+ */
+TRDP_ERR_T tau_xsession_lookup_variable(TAU_XSESSION_T *our, UINT32 dsId, const CHAR8 *name, UINT32 index, TRDP_DATASET_ELEMENT_T **el);
 
 #endif /* TAU_XSESSION_H_ */

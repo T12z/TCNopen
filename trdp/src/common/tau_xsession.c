@@ -814,5 +814,45 @@ TRDP_ERR_T tau_xsession_delete(TAU_XSESSION_T *our) {
 	return result;
 }
 
+TRDP_ERR_T tau_xsession_ComId2DatasetId(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *datasetId) {
+	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
+	if (!datasetId) return TRDP_PARAM_ERR;
+	TRDP_ERR_T result = TRDP_COMID_ERR;
+	for (UINT32 tlgIdx = 0; tlgIdx < our->numExchgPar; tlgIdx++) {
+		if ((our->pExchgPar[tlgIdx].srcCnt || our->pExchgPar[tlgIdx].destCnt)
+				&& our->pExchgPar[tlgIdx].comId == ComID) {
+
+			*datasetId = our->pExchgPar[tlgIdx].datasetId;
+			/* take only first matching */
+			return TRDP_COMID_ERR;
+		}
+	}
+	return result;
+}
+
+TRDP_ERR_T tau_xsession_lookup_dataset(TAU_XSESSION_T *our, UINT32 datasetId, TRDP_DATASET_T **ds) {
+	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
+	if (!ds || !datasetId) return TRDP_PARAM_ERR;
+	return findDataset(datasetId, ds);
+}
+
+TRDP_ERR_T tau_xsession_lookup_variable(TAU_XSESSION_T *our, UINT32 datasetId, const CHAR8 *name, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
+	if ( !name ^ !index ) {
+		TRDP_DATASET_T *ds;
+		TRDP_ERR_T err = tau_xsession_lookup_dataset(our, datasetId, &ds);
+		if (err) return err;
+
+		if (index <= ds->numElement) {
+			index--; /* adjust from element number to C-array-index */
+			for (UINT32 i=0; i<ds->numElement; i++ ) {
+				if (i==index || (name && !strncasecmp(name, ds->pElement[i].name,30))) {
+					*el = &ds->pElement[i];
+					return TRDP_NO_ERR;
+				}
+			}
+		}
+	}
+	return TRDP_PARAM_ERR;
+}
 
 

@@ -50,6 +50,13 @@ public:
 	TRDP_ERR_T request  (              UINT32  subTelID)
 		{ return lastErr = tau_xsession_request(&our, subTelID); }
 
+	TRDP_ERR_T lookupVariable(UINT32 dsId, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
+		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, (const char*)0, index, el); }
+	}
+	TRDP_ERR_T lookupVariable(UINT32 dsId, const CHAR8 *name, TRDP_DATASET_ELEMENT_T **el) {
+		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, name, 0, el); }
+	}
+
 private:
 	TAU_XSESSION_T our;
 	TRDP_ERR_T lastErr;
