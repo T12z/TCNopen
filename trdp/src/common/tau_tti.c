@@ -26,6 +26,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-05-14: Ticket #245 Incorrect storing of TTDB_OP_TRAIN_DIRECTORY_INFO from network packet into local copy
  *      SB 2019-02-06: Added OpTrn topocnt changed log message (PD100), wait in mdCallback only when topocnt changed
  *      SB 2019-01-31: fixed reference of waitForInaug semaphore pointer in ttiMDCallback
  *      BL 2019-01-24: ttiStoreOpTrnDir returns changed flag
@@ -284,10 +285,11 @@ static BOOL8 ttiStoreOpTrnDir (
 
     /* 8 Bytes up to opCstCnt plus number of Consists  */
     size = 8 + pTelegram->opCstCnt * sizeof(TRDP_OP_CONSIST_T);
-    memcpy(&appHandle->pTTDB->opTrnDir, pData, size);
+    memcpy(&appHandle->pTTDB->opTrnDir.opCstList, pData, size);
     pData   += size + 3;            /* jump to cnt  */
-    size    = *pData++ *sizeof(TRDP_OP_VEHICLE_T) + sizeof(UINT32); /* copy opTrnTopoCnt as well    */
-    memcpy(&appHandle->pTTDB->opTrnDir, pData, size);
+    appHandle->pTTDB->opTrnDir.opVehCnt = *pData++;
+    size    = appHandle->pTTDB->opTrnDir.opVehCnt * sizeof(TRDP_OP_VEHICLE_T) + sizeof(UINT32); /* copy opTrnTopoCnt as well    */
+    memcpy(&appHandle->pTTDB->opTrnDir.opVehList, pData, size);
 
     /* unmarshall manually and update the opTrnTopoCount   */
     appHandle->pTTDB->opTrnDir.opTrnTopoCnt = vos_ntohl(appHandle->pTTDB->opTrnDir.opTrnTopoCnt);
