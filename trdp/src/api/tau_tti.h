@@ -20,6 +20,7 @@
  * $Id$
  *
  *
+ *      BL 2019-05-15: Ticket #254 API of TTI to get OwnOpCstNo and OwnTrnCstNo
  *      BL 2018-08-07: Ticket #183 tau_getOwnIds moved here
  *      BL 2016-02-18: Ticket #7: Add train topology information support
  */
@@ -73,6 +74,13 @@ extern "C" {
     4. Use the 'ownTrnCstNo' as index into trnNetDir array to get cstUUID from the TRAIN_NETWORK_DIRECTORY_ENTRY
     5. With that UUID one can get more info from the TTDB, e.g. get the CONSIST_INFO
     by MD 104 TTDB_STATIC_CONSIST_INFO_REQUEST...
+
+    When using the TTI subsystem, PD 100 was subscribed to, already. To validate its payload (by SDT), 3 values must be
+    swapped, because they are already in host endianess:
+        opTrnState.etbTopoCnt               = vos_htonl(opTrnState.etbTopoCnt);
+        opTrnTopoCnt.state.opTrnTopoCnt     = vos_htonl(opTrnState.state.opTrnTopoCnt);
+        opTrnTopoCnt.state.crc              = vos_htonl(opTrnState.state.crc);
+
 */
 
 
@@ -374,6 +382,27 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
     TRDP_LABEL_T        *pVehId,
     TRDP_LABEL_T        *pCstId);
 
+/**********************************************************************************************************************/
+/** Get own operational consist number.
+ *
+ *  @param[in]      appHandle           The handle returned by tlc_init
+ *
+ *  @retval         ownOpCstNo          own operational consist number value
+ *                  0                   on error
+ */
+EXT_DECL UINT8 tau_getOwnOpCstNo (
+    TRDP_APP_SESSION_T appHandle);
+
+/**********************************************************************************************************************/
+/** Get own train consist number.
+ *
+ *  @param[in]      appHandle           The handle returned by tlc_init
+ *
+ *  @retval         ownTrnCstNo         own train consist number value
+ *                  0                   on error
+ */
+EXT_DECL UINT8 tau_getOwnTrnCstNo (
+    TRDP_APP_SESSION_T appHandle);
 
 #ifdef __cplusplus
 }

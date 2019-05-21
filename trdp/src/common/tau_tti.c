@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      BL 2019-05-15: Ticket #254 API of TTI to get OwnOpCstNo and OwnTrnCstNo
 *      BL 2019-05-15: Ticket #255 opTrnState of pTTDB isn't copied completely
 *      BL 2019-05-15: Ticket #257 TTI: register for ComID100 PD to both valid multicast addresses
 *      BL 2019-05-15: Ticket #245 Incorrect storing of TTDB_OP_TRAIN_DIRECTORY_INFO from network packet into local copy
@@ -215,7 +216,7 @@ static void ttiPDCallback (
             /* unmarshall manually:   */
             appHandle->pTTDB->opTrnState.etbTopoCnt         = vos_ntohl(pTelegram->etbTopoCnt);
             appHandle->pTTDB->opTrnState.state.opTrnTopoCnt = vos_ntohl(pTelegram->state.opTrnTopoCnt);
-            appHandle->pTTDB->opTrnState.state.crc = vos_ntohl(pTelegram->state.crc);
+            appHandle->pTTDB->opTrnState.state.crc          = vos_ntohl(pTelegram->state.crc);
 
             /* vos_printLog(VOS_LOG_INFO, "---> Operational status info received on %p\n", appHandle); */
 
@@ -662,8 +663,8 @@ static void ttiMDCallback (
 
     if (pMsg->resultCode == TRDP_NO_ERR)
     {
-        if (pMsg->comId == TTDB_OP_DIR_INFO_COMID ||      /* TTDB notification */
-            pMsg->comId == TTDB_OP_DIR_INFO_REP_COMID)
+        if ((pMsg->comId == TTDB_OP_DIR_INFO_COMID) ||      /* TTDB notification */
+            (pMsg->comId == TTDB_OP_DIR_INFO_REP_COMID))
         {
             if (dataSize <= sizeof(TRDP_OP_TRAIN_DIR_T))
             {
@@ -736,7 +737,7 @@ static void ttiMDCallback (
                 (void) tlc_setOpTrainTopoCount(appHandle, appHandle->pTTDB->opTrnState.state.opTrnTopoCnt);
                 appHandle->pTTDB->opTrnState.state.crc = MAKE_LE(pTelegram->state.crc);
 
-                /* handle the other parts of the message    */
+                /* handle the other parts of the message   1 */
                 (void) ttiStoreOpTrnDir(appHandle, (UINT8 *) &pTelegram->opTrnDir);
                 ttiStoreTrnDir(appHandle, (UINT8 *) &pTelegram->trnDir);
                 ttiStoreTrnNetDir(appHandle, (UINT8 *) &pTelegram->trnNetDir);
@@ -869,7 +870,7 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
     TRDP_IP_ADDR_T      ecspIpAddr,
     CHAR8               *hostsFileName)
 {
-    if (appHandle == NULL || appHandle->pTTDB != NULL)
+    if ((appHandle == NULL) || (appHandle->pTTDB != NULL))
     {
         return TRDP_INIT_ERR;
     }
@@ -1007,13 +1008,13 @@ EXT_DECL TRDP_ERR_T tau_getOpTrDirectory (
     TRDP_OP_TRAIN_DIR_STATE_T   *pOpTrnDirState,
     TRDP_OP_TRAIN_DIR_T         *pOpTrnDir)
 {
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL))
     {
         return TRDP_PARAM_ERR;
     }
-    if (appHandle->pTTDB->opTrnDir.opCstCnt == 0 ||
-        appHandle->pTTDB->opTrnDir.opTrnTopoCnt != appHandle->opTrnTopoCnt)     /* need update? */
+    if ((appHandle->pTTDB->opTrnDir.opCstCnt == 0 )||
+        (appHandle->pTTDB->opTrnDir.opTrnTopoCnt != appHandle->opTrnTopoCnt))    /* need update? */
     {
         ttiRequestTTDBdata(appHandle, TTDB_OP_DIR_INFO_REQ_COMID, NULL);
         return TRDP_NODATA_ERR;
@@ -1045,9 +1046,9 @@ EXT_DECL TRDP_ERR_T tau_getOpTrnDirectoryStatusInfo (
     TRDP_APP_SESSION_T              appHandle,
     TRDP_OP_TRAIN_DIR_STATUS_INFO_T *pOpTrnDirStatusInfo)
 {
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pOpTrnDirStatusInfo == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pOpTrnDirStatusInfo == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1072,9 +1073,9 @@ EXT_DECL TRDP_ERR_T tau_getTrDirectory (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_TRAIN_DIR_T    *pTrnDir)
 {
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pTrnDir == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pTrnDir == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1107,9 +1108,9 @@ EXT_DECL TRDP_ERR_T tau_getStaticCstInfo (
     TRDP_UUID_T const   cstUUID)
 {
     UINT32 l_index;
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pCstInfo == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pCstInfo == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1207,9 +1208,9 @@ EXT_DECL TRDP_ERR_T tau_getTrnCstCnt (
     TRDP_APP_SESSION_T  appHandle,
     UINT16              *pTrnCstCnt)
 {
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pTrnCstCnt == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pTrnCstCnt == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1241,9 +1242,9 @@ EXT_DECL TRDP_ERR_T tau_getTrnVehCnt (
     TRDP_APP_SESSION_T  appHandle,
     UINT16              *pTrnVehCnt)
 {
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pTrnVehCnt == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pTrnVehCnt == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1279,9 +1280,9 @@ EXT_DECL TRDP_ERR_T tau_getCstVehCnt (
     const TRDP_LABEL_T  pCstLabel)
 {
     UINT32 l_index;
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pCstVehCnt == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pCstVehCnt == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1335,9 +1336,9 @@ EXT_DECL TRDP_ERR_T tau_getCstFctCnt (
     const TRDP_LABEL_T  pCstLabel)
 {
     UINT32 l_index;
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pCstFctCnt == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pCstFctCnt == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1396,10 +1397,10 @@ EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
     UINT16                  maxFctCnt)
 {
     UINT32 l_index, l_index2;
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pFctInfo == NULL ||
-        maxFctCnt == 0)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pFctInfo == NULL) ||
+        (maxFctCnt == 0))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1460,9 +1461,9 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
     const TRDP_LABEL_T  pCstLabel)
 {
     UINT32 l_index, l_index2;
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pVehInfo == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pVehInfo == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1524,9 +1525,9 @@ EXT_DECL TRDP_ERR_T tau_getCstInfo (
     const TRDP_LABEL_T  pCstLabel)
 {
     UINT32 l_index;
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pCstInfo == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pCstInfo == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1596,10 +1597,10 @@ EXT_DECL TRDP_ERR_T tau_getVehOrient (
 {
     UINT32 l_index, l_index2, l_index3;
 
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL ||
-        pVehOrient == NULL ||
-        pCstOrient == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL) ||
+        (pVehOrient == NULL) ||
+        (pCstOrient == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1680,8 +1681,8 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
     TRDP_LABEL_T        *pVehId,
     TRDP_LABEL_T        *pCstId)
 {
-    if (appHandle == NULL ||
-        appHandle->pTTDB == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pTTDB == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1737,4 +1738,42 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
         memcpy(pCstId, appHandle->pTTDB->cstInfo[0]->cstId, TRDP_MAX_LABEL_LEN);
     }
     return TRDP_NO_ERR;
+}
+
+/**********************************************************************************************************************/
+/** Get own operational consist number.
+ *
+ *  @param[in]      appHandle           The handle returned by tlc_init
+ *
+ *  @retval         ownOpCstNo          own operational consist number value
+ *                  0                   on error
+ */
+EXT_DECL UINT8 tau_getOwnOpCstNo (
+    TRDP_APP_SESSION_T appHandle)
+{
+    if ((appHandle != NULL) &&
+        (appHandle->pTTDB != NULL))
+    {
+        return appHandle->pTTDB->opTrnState.ownOpCstNo;    //pTTDB opTrnState ownOpCstNo;
+    }
+    return 0u;
+}
+
+/**********************************************************************************************************************/
+/** Get own train consist number.
+ *
+ *  @param[in]      appHandle           The handle returned by tlc_init
+ *
+ *  @retval         ownTrnCstNo         own train consist number value
+ *                  0                   on error
+ */
+EXT_DECL UINT8 tau_getOwnTrnCstNo (
+    TRDP_APP_SESSION_T appHandle)
+{
+    if ((appHandle != NULL) &&
+        (appHandle->pTTDB != NULL))
+    {
+        return appHandle->pTTDB->opTrnState.ownTrnCstNo;
+    }
+    return 0u;
 }
