@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-05-22: Ticket #249 Issue when parsing memory block configuration from config file
  *      BL 2019-03-15: Ticket #191: Provisions for TSN
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
  *      SB 2018-10-29: Ticket #214 Incorrect parsing of <source> and <destination> elements
@@ -1474,9 +1475,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                     trdp_XMLEnter(pDocHnd->pXmlDocument);
                     while (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mem-block") == 0)
                     {
-                        const UINT32    mem_list[] =
-                        {32u, 72u, 128u, 256u, 512u, 1024u, 1480u, 2048u, 4096u, 11520u, 16384u, 32768u, 65536u,
-                         131072u};
+                        const UINT32    mem_list[] = VOS_MEM_BLOCKSIZES;
                         UINT32          sizeValue   = 0u;
                         UINT32          preAlloc    = 0u;
                         int             i;
@@ -1489,13 +1488,16 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                             if (found == TOK_ATTRIBUTE && vos_strnicmp(attribute, "preallocate", MAX_TOK_LEN) == 0)
                             {
                                 /* Find the slot to store the value in  */
-                                for (i = 0; sizeValue > mem_list[i]; i++)
+                                if ((sizeValue >= mem_list[0]) && (sizeValue <= mem_list[VOS_MEM_NBLOCKSIZES - 1]))
                                 {
-                                    ;
-                                }
-                                if (i < 15)
-                                {
-                                    pMemConfig->prealloc[i] = preAlloc;
+                                    for (i = 0; sizeValue > mem_list[i]; i++)
+                                    {
+                                        ;
+                                    }
+                                    if (i < 15)
+                                    {
+                                        pMemConfig->prealloc[i] = preAlloc;
+                                    }
                                 }
                             }
                         }
