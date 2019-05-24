@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      SB 2019-05-24: Ticket #252 Bug in unmarshalling/marshalling of TIMEDATE48 and TIMEDATE64
  *      BL 2018-09-05: Ticket #211 XML handling: Dataset Name should be stored in TRDP_DATASET_ELEMENT_T
  *      BL 2018-04-27: Testing ticket #197
  *      BL 2017-06-30: Compiler warnings, local prototypes added
