@@ -1,0 +1,27 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION    Config file to cross-compile TRDP for POSIX_X86 target on ELinOS-x86_64
+#//
+#// AUTHOR         Thorsten Schulz
+#//
+#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
+#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
+#//
+
+ARCH = elinos-x86_64
+TARGET_VOS = posix
+TARGET_OS = LINUX
+# This path may need adaptation
+# Use ELinOS' cross-compiler even if target seems same type as host
+TCPREFIX = /opt/elinos-6.1/cdk/x86/x86_64/glibc-2.19/bin/x86_64-unknown-linux-gnu-
+TCPOSTFIX = 
+DOXYPATH = 
+
+# the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
+
+CFLAGS += -Wall -fstrength-reduce -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX -DL_ENDIAN
+CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
+LDFLAGS += -lrt
+
+LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
