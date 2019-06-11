@@ -145,12 +145,10 @@ EXT_DECL VOS_ERR_T vos_sharedOpen (
         else
         {
             vos_strncpy((*pHandle)->sharedMemoryName, pKey, (UINT32) (strlen(pKey) + 1));
-            ret = VOS_NO_ERR;
         }
     }
 
-    ret = VOS_NO_ERR;
-    return ret;
+    return VOS_NO_ERR;
 }
 
 /**********************************************************************************************************************/

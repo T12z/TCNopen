@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      BL 2019-06-11: Possible NULL pointer access
  *      BL 2019-04-05: QNX monotonic time for semaphore; unused code removed
  *      BL 2019-03-21: RTE version++
  *      BL 2019-02-19: RTE version
@@ -535,8 +536,11 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     }
     if (interval > 0u)
     {
-        VOS_THREAD_CYC_T params = {pName, *pStartTime, interval, pFunction, pArguments};
-
+        VOS_THREAD_CYC_T params = {pName, {0,0}, interval, pFunction, pArguments};
+        if (pStartTime != NULL)
+        {
+            params.startTime = *pStartTime;
+        }
         /* Create a cyclic thread */
         retCode = pthread_create(&hThread, &threadAttrib, (void *(*)(void *))vos_runCyclicThread, &params);
         vos_threadDelay(10000u);
