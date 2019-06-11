@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      BL 2019-06-11: Ticket #253 Incorrect storing of TTDB_STATIC_CONSIST_INFO_REPLY from network packet into local copy
 *      BL 2019-05-15: Ticket #254 API of TTI to get OwnOpCstNo and OwnTrnCstNo
 *      BL 2019-05-15: Ticket #255 opTrnState of pTTDB isn't copied completely
 *      BL 2019-05-15: Ticket #257 TTI: register for ComID100 PD to both valid multicast addresses
