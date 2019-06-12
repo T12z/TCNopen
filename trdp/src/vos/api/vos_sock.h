@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-03-06: 64Bit endian swap added
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
@@ -45,14 +46,11 @@
 #include "string.h"
 #include "ioLib.h"
 #include "stdio.h"
-#include "vos_private.h"
 #elif defined(POSIX)
 #include <sys/select.h>
 #include <netinet/in.h>
 #elif defined(ESP32)
 #include "lwip/sockets.h"
-#else
-#include "vos_private.h"
 #endif
 
 #ifdef __cplusplus

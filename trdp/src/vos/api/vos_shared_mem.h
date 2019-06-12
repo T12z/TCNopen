@@ -17,6 +17,8 @@
  /*
  * $Id: vos_mem.h 282 2013-01-11 07:08:44Z 97029 $
  *
+ *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
+ *
  */
 
 #ifndef VOS_SHARED_MEM_H
@@ -28,7 +30,6 @@
 
 #include "vos_types.h"
 #include "vos_mem.h"
-#include "vos_private.h"
 
 #ifdef __cplusplus
 extern "C" {
