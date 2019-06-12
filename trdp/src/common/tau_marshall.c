@@ -785,7 +785,7 @@ static TRDP_ERR_T unmarshallDs (
                        *pDst16  = (UINT16) (*pSrc++ << 8u);
                        *pDst16  += *pSrc++;
                        pDst16++;
-                       pDst = (UINT8 *) alignePtr(pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pDst = (UINT8 *) alignePtr((const UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
                    }
                    break;
                }
@@ -984,7 +984,7 @@ static TRDP_ERR_T size_unmarshall (
                        pDst16   = (UINT16 *) alignePtr(pDst, ALIGNOF(TIMEDATE48_STRUCT_T));
                        pDst16   += 3u;
                        pSrc     += 6u;
-                       pDst     = (UINT8 *)alignePtr(pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pDst     = (UINT8 *)alignePtr((const UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
                    }
                    break;
                }
