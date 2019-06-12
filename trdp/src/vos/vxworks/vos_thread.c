@@ -17,6 +17,7 @@
  /*
  * $Id$*
  *
+ *      BL 2019-06-12: Ticket #260: Error in vos_threadCreate() not handled properly (vxworks)
  *      BL 2018-10-29: Ticket #215: use CLOCK_MONOTONIC if available
  *      BL 2018-06-25: Ticket #202: vos_mutexTrylock return value
  *      BL 2018-05-03: Ticket #195: Invalid thread handle (SEGFAULT)
@@ -246,10 +247,13 @@ EXT_DECL VOS_ERR_T vos_threadCreate (
 
             result = VOS_THREAD_ERR;
         }
-        /* this type cast is highly anti MISRA and shall be reworked */
-        *pThread = (VOS_THREAD_T) taskID;
+        else
+        {
+            /* this type cast is highly anti MISRA and shall be reworked */
+            *pThread = (VOS_THREAD_T) taskID;
 
-        result = VOS_NO_ERR;
+            result = VOS_NO_ERR;
+        }
     }
     return result;
 }

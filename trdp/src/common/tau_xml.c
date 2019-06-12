@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-06-12: Ticket #246 Incorrect reading of "user" part of source uri and destination
  *      BL 2019-05-22: Ticket #249 Issue when parsing memory block configuration from config file
  *      BL 2019-03-15: Ticket #191: Provisions for TSN
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
@@ -585,7 +586,7 @@ static TRDP_ERR_T readTelegramDef (
                 }
                 else if (vos_strnicmp(attribute, "uri", MAX_TOK_LEN) == 0)
                 {
-                    char *p = strchr(value, '@');   /* Get host part only */
+                    char *p = strchr(value, '@');   /* Get host part only, if no @ found */
                     if (p != NULL)
                     {
                         pDest->pUriUser = (TRDP_URI_USER_T *) vos_memAlloc(TRDP_MAX_URI_USER_LEN + 1u);
@@ -596,8 +597,8 @@ static TRDP_ERR_T readTelegramDef (
                                          (unsigned int) (TRDP_MAX_URI_USER_LEN + 1));
                             return TRDP_MEM_ERR;
                         }
-                        memcpy(pDest->pUriUser, p, p - value);  /* Trailing zero by vos_memAlloc    */
-                        p++;
+                        memcpy(pDest->pUriUser, value, p - value);  /* Trailing zero by vos_memAlloc    */
+                        p++; /* skip '@' */
                     }
                     else
                     {
