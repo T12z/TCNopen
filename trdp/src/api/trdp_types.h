@@ -292,9 +292,9 @@ typedef struct
 typedef struct
 {
     UINT8   qos;        /**< Quality of service (default should be 2 for PD and 2 for MD, TSN priority >= 3)  */
-    UINT8   ttl;        /**< Time to live (default should be 64)  */
+    UINT8   ttl;        /**< Time to live (default should be 64)    */
     UINT8   retries;    /**< MD Retries from XML file               */
-    BOOL8   tsn;        /**< do not schedule/use TSN socket         */
+    BOOL8   tsn;        /**< if TRUE, do not schedule packet but use TSN socket  */
     UINT16  vlan;       /**< VLAN Id to be used                     */
 } TRDP_SEND_PARAM_T;
 
