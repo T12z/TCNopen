@@ -459,7 +459,7 @@ static TRDP_ERR_T readTelegramDef (
                 }
                 else if (vos_strnicmp(attribute, "uri1", MAX_TOK_LEN) == 0)
                 {
-                    char *p = strchr(value, '@');   /* Get host part only */
+                    char *p = strchr(value, '@');   /* Get host part only, if no @ found */
                     if (p != NULL)
                     {
                         pSrc->pUriUser = (TRDP_URI_USER_T *) vos_memAlloc(TRDP_MAX_URI_USER_LEN + 1u);
@@ -470,7 +470,7 @@ static TRDP_ERR_T readTelegramDef (
                                          (unsigned int) (TRDP_MAX_URI_USER_LEN + 1u));
                             return TRDP_MEM_ERR;
                         }
-                        memcpy(pSrc->pUriUser, p, p - value);  /* Trailing zero by vos_memAlloc    */
+                        memcpy(pSrc->pUriUser, value, p - value);  /* Trailing zero by vos_memAlloc    */
                         p++;
                     }
                     else
@@ -490,7 +490,7 @@ static TRDP_ERR_T readTelegramDef (
                 }
                 else if (vos_strnicmp(attribute, "uri2", MAX_TOK_LEN) == 0)
                 {
-                    char *p = strchr(value, '@');   /* Get host part only */
+                    char *p = strchr(value, '@');   /* Get host part only, there is no @ */
                     p = (p == NULL) ? value : p + 1;
 
                     pSrc->pUriHost2 = (TRDP_URI_HOST_T *) vos_memAlloc((UINT32) strlen(p) + 1u);
