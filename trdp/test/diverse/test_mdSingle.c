@@ -339,7 +339,7 @@ int main (int argc, char *argv[])
     unsigned int ip[4];
     TRDP_MD_CONFIG_T        mdConfiguration =
     {mdCallback, &sSessionData,
-     {0u, 64u, 0u}, TRDP_FLAGS_CALLBACK, 1000000u, 1000000u, 1000000u, 1000000u, 17225u, 17225u, 10};
+     {0u, 64u, 0u, 0, 0u}, TRDP_FLAGS_CALLBACK, 1000000u, 1000000u, 1000000u, 1000000u, 17225u, 17225u, 10};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0}};
     TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
     VOS_IF_REC_T            interfaces[MAX_IF];
@@ -505,13 +505,13 @@ int main (int argc, char *argv[])
     /*  Output available interfaces (in debug output)  */
     {
         UINT32 availableIfaces = MAX_IF;
-        int i;
+        unsigned int i;
 
         if (vos_getInterfaces(&availableIfaces, interfaces) == VOS_NO_ERR)
         {
             vos_printLog(VOS_LOG_USR, "%u IP interfaces found\n", availableIfaces);
         }
-        for (i = 0; i < availableIfaces; i++)
+        for (i = 0u; i < availableIfaces; i++)
         {
             if (interfaces[i].ipAddr == ownIP)
             {
