@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      BL 2019-06-13: 'quiet' parameter to supress screen output (for performance measurements)
  *      BL 2019-06-12: Ticket #228 TRDP_XMLPDTest.exe multicast issuer (use type (source/sink) if available)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
@@ -46,8 +47,8 @@
 #define MAX_SESSIONS        16u      /* Maximum number of sessions (interfaces) supported */
 #define MAX_DATASET_LEN     2048u    /* Maximum supported length of dataset in bytes */
 #define MAX_DATASETS        32u      /* Maximum number of dataset types supported    */
-#define MAX_PUB_TELEGRAMS   32u      /* Maximum number of published telegrams supported  */
-#define MAX_SUB_TELEGRAMS   32u      /* Maximum number of subscribed telegrams supported  */
+#define MAX_PUB_TELEGRAMS   50u      /* Maximum number of published telegrams supported  */
+#define MAX_SUB_TELEGRAMS   50u      /* Maximum number of subscribed telegrams supported  */
 #define DATA_PERIOD         10000u /* Period [us] in which tlg data are updated and printed    */
 
 /*  General parameters from xml configuration file */
@@ -61,6 +62,7 @@ UINT32                  minCycleTime = 0xFFFFFFFFu;
 
 /*  Log configuration   */
 INT32                   maxLogCategory = -1;
+BOOL8                   gVerbose = TRUE;
 
 /*  Dataset configuration from xml configuration file */
 UINT32                  numComId = 0u;
@@ -1036,22 +1038,28 @@ static void processData()
                 /*  Update dataset  */
                 fillDataset(aPubTelegrams[i].pDatasetDesc, &aPubTelegrams[i].dataset);
                 /*  Print telegram description and dataset */
-                setColorGreen();
-                printf("%s, ComId %u, DstId %u: ", 
-                    aPubTelegrams[i].pIfConfig->ifName, aPubTelegrams[i].comID, aPubTelegrams[i].dstID);
-                setColorDefault();
-                printDataset(aPubTelegrams[i].pDatasetDesc, &aPubTelegrams[i].dataset);
+                if (gVerbose)
+                {
+                    setColorGreen();
+                    printf("%s, ComId %u, DstId %u: ",
+                           aPubTelegrams[i].pIfConfig->ifName, aPubTelegrams[i].comID, aPubTelegrams[i].dstID);
+                    setColorDefault();
+                    printDataset(aPubTelegrams[i].pDatasetDesc, &aPubTelegrams[i].dataset);
+                }
                 /*  Write data to TRDP stack    */
                 result = tlp_put(
                     aPubTelegrams[i].sessionhandle, aPubTelegrams[i].pubHandle, 
                     (UINT8 *)aPubTelegrams[i].dataset.buffer, aPubTelegrams[i].dataset.size);
-                /*  Print result    */
-                if (result == TRDP_NO_ERR)
-                    setColorGreen();
-                else
-                    setColorRed();
-                printf(";  Result: %s\n", getResultString(result));
-                setColorDefault();
+                if (gVerbose)
+                {
+                    /*  Print result    */
+                    if (result == TRDP_NO_ERR)
+                        setColorGreen();
+                    else
+                        setColorRed();
+                    printf(";  Result: %s\n", getResultString(result));
+                    setColorDefault();
+                }
             }
             /*  Increment global counter    */
             globCounter += 1;
@@ -1078,7 +1086,7 @@ static void processData()
         }
 
         /*  Print data and last results for all subscribed telegrams  */
-        if (bDataPeriod)
+        if (bDataPeriod && gVerbose)
         {
             printf("Subscribed telegrams:\n");
             for (i = 0; i < numSubTelegrams; i++)
@@ -1121,14 +1129,18 @@ int main(int argc, char * argv[])
 
     /*  Get XML file name   */
     printf("TRDP PD test using XML configuration\n\n");
-    if (argc != 2)
+    if (argc < 2)
     {
-        printf("usage: %s <xmlfilename>\n", argv[0]);
+        printf("usage: %s <xmlfilename> [quite]\n", argv[0]);
         return 1;
     }
     pFileName = argv[1];
 
-    vos_memInit(NULL, 20000, NULL);
+    if (argc == 3)
+    {
+        gVerbose = FALSE;
+    }
+    vos_memInit(NULL, 2000000, NULL);
 
     /*  Prepare XML document    */
     result = tau_prepareXmlDoc(pFileName, &docHnd);
