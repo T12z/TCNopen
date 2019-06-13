@@ -161,7 +161,6 @@
 		08594B371B70E9DF0066EA06 /* vos_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B331B70E9DF0066EA06 /* vos_utils.c */; };
 		0864C3D42243A2AD00E091E1 /* libtrdp64PosixTSN.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0846E29722396CBC006C2BA7 /* libtrdp64PosixTSN.a */; };
 		0864C3DC2243A3CE00E091E1 /* sendTSN.c in Sources */ = {isa = PBXBuildFile; fileRef = 0864C3DA2243A3CE00E091E1 /* sendTSN.c */; };
-		0874F445228DC0DF00038D72 /* speedTest.c in Sources */ = {isa = PBXBuildFile; fileRef = 0874F439228DBBB500038D72 /* speedTest.c */; };
 		0874F448228DC11F00038D72 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		0885F05820E26CFE000D1F2E /* libtrdp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libtrdp.a */; settings = {ATTRIBUTES = (Required, ); }; };
 		08A327C31E51FE2700B03846 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
@@ -984,7 +983,6 @@
 		0864C3DA2243A3CE00E091E1 /* sendTSN.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sendTSN.c; sourceTree = "<group>"; };
 		0867899C1F0CE3D7009D1B8F /* lint */ = {isa = PBXFileReference; lastKnownFileType = folder; path = lint; sourceTree = "<group>"; };
 		086A4F6822B0F3AF00C9BB93 /* test_sdt.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = test_sdt.xml; sourceTree = "<group>"; };
-		0874F439228DBBB500038D72 /* speedTest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = speedTest.c; path = ../test/diverse/speedTest.c; sourceTree = "<group>"; };
 		0874F444228DC0C900038D72 /* speedTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = speedTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		088397771F06A2A4003A8C6F /* pdsend_example.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = pdsend_example.xml; sourceTree = "<group>"; };
 		08A327B91E51FDD400B03846 /* api_test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = api_test.c; sourceTree = "<group>"; };
@@ -1004,6 +1002,8 @@
 		08D1A1D72123082F002B4C7B /* mcreceive */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mcreceive; sourceTree = BUILT_PRODUCTS_DIR; };
 		08D51C13200FB6F8004319B6 /* libtrdp64iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtrdp64iOS.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		08D9D5D51EDDA32C00EE2FA0 /* TAUL_PD */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TAUL_PD; sourceTree = "<group>"; };
+		08E446BD22B27B65009C6D0E /* speedtest1.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = speedtest1.xml; sourceTree = "<group>"; };
+		08E446BE22B28B62009C6D0E /* speedtest2.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = speedtest2.xml; sourceTree = "<group>"; };
 		08FA81B52176207900A4FF81 /* trdp-xmlprint-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-xmlprint-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		08FA81C32177310000A4FF81 /* type_test.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; lineEnding = 2; name = type_test.xml; path = ../../../../../../Desktop/type_test.xml; sourceTree = "<group>"; };
 		7303DC7E1BAAB016004C92D9 /* tau_cstinfo.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = tau_cstinfo.c; sourceTree = "<group>"; tabWidth = 4; };
@@ -1627,6 +1627,8 @@
 			children = (
 				7366AC6F16B68C920068A893 /* device1.xml */,
 				7366AC7016B68C920068A893 /* device2.xml */,
+				08E446BD22B27B65009C6D0E /* speedtest1.xml */,
+				08E446BE22B28B62009C6D0E /* speedtest2.xml */,
 				7366AC7116B68C920068A893 /* example.xml */,
 				086A4F6822B0F3AF00C9BB93 /* test_sdt.xml */,
 				088397771F06A2A4003A8C6F /* pdsend_example.xml */,
@@ -1810,7 +1812,6 @@
 		73CE24581733F28100314E1C /* diverse */ = {
 			isa = PBXGroup;
 			children = (
-				0874F439228DBBB500038D72 /* speedTest.c */,
 				73134A221BCBD8FA00E3BF88 /* inaugTest.c */,
 				739F99F7179FBF96006238E7 /* LibraryTests.c */,
 				7322487F16A97E7900148295 /* crc-test.c */,
@@ -2813,7 +2814,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0874F445228DC0DF00038D72 /* speedTest.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
