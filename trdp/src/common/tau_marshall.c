@@ -945,8 +945,7 @@ static TRDP_ERR_T size_unmarshall (
                    UINT16 *pDst16 = (UINT16 *) alignePtr(pDst, ALIGNOF(UINT16));
 
                    /*    possible variable source size    */
-                   var_size = ((UINT16)*pSrc) << 8;
-                   var_size += *(pSrc + 1);
+                   var_size = vos_ntohs(*(UINT16 *)pSrc);
 
                    while (noOfItems-- > 0u)
                    {
@@ -964,7 +963,7 @@ static TRDP_ERR_T size_unmarshall (
                    UINT32 *pDst32 = (UINT32 *) alignePtr(pDst, ALIGNOF(UINT32));
 
                    /*    possible variable source size    */
-                   var_size = *(UINT32 *)pSrc;
+                   var_size = vos_ntohl(*(UINT32 *)pSrc);
 
                    while (noOfItems-- > 0u)
                    {
