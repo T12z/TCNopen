@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      BL 2019-06-12: Ticket #228 TRDP_XMLPDTest.exe multicast issuer (use type (source/sink) if available)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
@@ -640,6 +641,13 @@ static TRDP_ERR_T publishTelegram(UINT32 ifcIdx, TRDP_EXCHG_PAR_T * pExchgPar)
         redId = 0;
     }
 
+    /* Check if sink only (dest == MC & type == source) */
+    if ((pExchgPar->destCnt == 1) && (vos_isMulticast(vos_dottedIP(*(pExchgPar->pDest[0].pUriHost)))) &&
+        (pExchgPar->type ==TRDP_EXCHG_SINK))
+        {
+            return TRDP_NO_ERR; /* just skip this multicast receiver */
+        }
+
     /*  Iterate over all destinations   */
     for (i = 0; i < pExchgPar->destCnt; i++)
     {
@@ -762,13 +770,13 @@ static TRDP_ERR_T subscribeTelegram(UINT32 ifcIdx, TRDP_EXCHG_PAR_T * pExchgPar)
             destMCIP = 0;
     }
 
-    /*  Iterate over all sources   */
-    for (i = 0; i < pExchgPar->srcCnt; i++)
+    if ((pExchgPar->srcCnt == 0) && (destMCIP != 0u) &&
+        ((pExchgPar->type ==TRDP_EXCHG_SINK) || pExchgPar->type ==TRDP_EXCHG_SOURCESINK))
     {
         /* Get free subscribed telegram descriptor   */
         if (numSubTelegrams < MAX_SUB_TELEGRAMS)
         {
-            pSubTlg = &aSubTelegrams[numSubTelegrams];   
+            pSubTlg = &aSubTelegrams[numSubTelegrams];
             numSubTelegrams += 1;
         }
         else
@@ -782,53 +790,96 @@ static TRDP_ERR_T subscribeTelegram(UINT32 ifcIdx, TRDP_EXCHG_PAR_T * pExchgPar)
         pSubTlg->pktFlags = flags;
         pSubTlg->pIfConfig = &pIfConfig[ifcIdx];
         pSubTlg->comID = pExchgPar->comId;
-        pSubTlg->srcID = pExchgPar->pSrc[i].id;
+        pSubTlg->srcID = 0;
         result = fillDataset(pSubTlg->pDatasetDesc, &pSubTlg->dataset);
         if (result != TRDP_NO_ERR)
         {
-            printf("Failed to initialize dataset for comID %u, srcID %u\n", 
-                pExchgPar->comId, pExchgPar->pSrc[i].id);
+            printf("Failed to initialize dataset for comID %u, destMC %s\n",
+                   pExchgPar->comId, vos_ipDotted (destMCIP));
             return result;
         }
-
-        /*  Convert src URIs to IP address  */
-        srcIP1 = 0;
-        if (pExchgPar->pSrc[i].pUriHost1)
-        {
-            srcIP1 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost1));
-            if (srcIP1 == 0 || srcIP1 == 0xFFFFFFFF)
-            {
-                printf("Invalid IP address %s specified for URI1 in comID %u, srcID %u\n", 
-                    (const char *)pExchgPar->pSrc[i].pUriHost1, pExchgPar->comId, pExchgPar->pSrc[i].id);
-                return TRDP_PARAM_ERR;
-            }
-        }
-        srcIP2 = 0;
-        if (pExchgPar->pSrc[i].pUriHost2)
-        {
-            srcIP2 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost2));
-            if (srcIP2 == 0 || srcIP2 == 0xFFFFFFFF)
-            {
-                printf("Invalid IP address %s specified for URI2 in comID %u, srcID %u\n", 
-                    (const char *)pExchgPar->pSrc[i].pUriHost2, pExchgPar->comId, pExchgPar->pSrc[i].id);
-                return TRDP_PARAM_ERR;
-            }
-        }
-
         /*  Subscribe the telegram    */
         result = tlp_subscribe(
-            pSubTlg->sessionhandle, &pSubTlg->subHandle, pSubTlg, NULL, pExchgPar->comId, 
-            0, 0, srcIP1, 0, destMCIP, flags, timeout, toBehav);
+                               pSubTlg->sessionhandle, &pSubTlg->subHandle, pSubTlg, NULL, pExchgPar->comId,
+                               0u, 0u, 0u, 0u, destMCIP, flags, timeout, toBehav);
         if (result != TRDP_NO_ERR)
         {
-            printf("tlp_subscribe for comID %u, srcID %u failed: %s\n", 
-                pExchgPar->comId, pExchgPar->pSrc[i].id, getResultString(result));
+            printf("tlp_subscribe for comID %u, destMC %s failed: %s\n",
+                   pExchgPar->comId, vos_ipDotted (destMCIP), getResultString(result));
             return result;
         }
-        printf("Subscribed telegram: If index %u, ComId %u, SrcId %u\n",
-            ifcIdx, pExchgPar->comId, pExchgPar->pSrc[i].id);
+        printf("Subscribed telegram: If index %u, ComId %u, destMC %s\n",
+               ifcIdx, pExchgPar->comId, vos_ipDotted (destMCIP));
     }
+    else
+    {
+        /*  Iterate over all sources   */
+        for (i = 0; i < pExchgPar->srcCnt; i++)
+        {
+            /* Get free subscribed telegram descriptor   */
+            if (numSubTelegrams < MAX_SUB_TELEGRAMS)
+            {
+                pSubTlg = &aSubTelegrams[numSubTelegrams];
+                numSubTelegrams += 1;
+            }
+            else
+            {
+                printf("Maximum number of subscribed telegrams %u exceeded\n", MAX_SUB_TELEGRAMS);
+                return TRDP_PARAM_ERR;
+            }
+            /*  Initialize telegram descriptor  */
+            pSubTlg->pDatasetDesc = pDatasetDesc;
+            pSubTlg->sessionhandle = aSessionCfg[ifcIdx].sessionhandle;
+            pSubTlg->pktFlags = flags;
+            pSubTlg->pIfConfig = &pIfConfig[ifcIdx];
+            pSubTlg->comID = pExchgPar->comId;
+            pSubTlg->srcID = pExchgPar->pSrc[i].id;
+            result = fillDataset(pSubTlg->pDatasetDesc, &pSubTlg->dataset);
+            if (result != TRDP_NO_ERR)
+            {
+                printf("Failed to initialize dataset for comID %u, srcID %u\n",
+                    pExchgPar->comId, pExchgPar->pSrc[i].id);
+                return result;
+            }
 
+            /*  Convert src URIs to IP address  */
+            srcIP1 = 0;
+            if (pExchgPar->pSrc[i].pUriHost1)
+            {
+                srcIP1 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost1));
+                if (srcIP1 == 0 || srcIP1 == 0xFFFFFFFF)
+                {
+                    printf("Invalid IP address %s specified for URI1 in comID %u, srcID %u\n",
+                        (const char *)pExchgPar->pSrc[i].pUriHost1, pExchgPar->comId, pExchgPar->pSrc[i].id);
+                    return TRDP_PARAM_ERR;
+                }
+            }
+            srcIP2 = 0;
+            if (pExchgPar->pSrc[i].pUriHost2)
+            {
+                srcIP2 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost2));
+                if (srcIP2 == 0 || srcIP2 == 0xFFFFFFFF)
+                {
+                    printf("Invalid IP address %s specified for URI2 in comID %u, srcID %u\n",
+                        (const char *)pExchgPar->pSrc[i].pUriHost2, pExchgPar->comId, pExchgPar->pSrc[i].id);
+                    return TRDP_PARAM_ERR;
+                }
+            }
+
+            /*  Subscribe the telegram    */
+            result = tlp_subscribe(
+                pSubTlg->sessionhandle, &pSubTlg->subHandle, pSubTlg, NULL, pExchgPar->comId,
+                0, 0, srcIP1, srcIP2, destMCIP, flags, timeout, toBehav);
+            if (result != TRDP_NO_ERR)
+            {
+                printf("tlp_subscribe for comID %u, srcID %u failed: %s\n",
+                    pExchgPar->comId, pExchgPar->pSrc[i].id, getResultString(result));
+                return result;
+            }
+            printf("Subscribed telegram: If index %u, ComId %u, SrcId %u\n",
+                ifcIdx, pExchgPar->comId, pExchgPar->pSrc[i].id);
+        }
+    }
     return TRDP_NO_ERR;
 }
 
@@ -855,7 +906,7 @@ static TRDP_ERR_T configureTelegrams(UINT32 ifcIdx, UINT32 numExchgPar, TRDP_EXC
                 return result;
             }
         }
-        if (pExchgPar[tlgIdx].srcCnt)
+        if ((pExchgPar[tlgIdx].srcCnt) || (pExchgPar[tlgIdx].type == TRDP_EXCHG_SINK))
         {
             /*  Sources defined - subscribe the telegram */
             result = subscribeTelegram(ifcIdx, &pExchgPar[tlgIdx]);
