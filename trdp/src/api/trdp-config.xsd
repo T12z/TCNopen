@@ -15,11 +15,12 @@
 #
 #  ABSTRACT      : XML Schema for TRDP configuration configuration
 #
-#  VERSION       : 1.11.0.0
+#  VERSION       : 1.12.0.0
 #
 #  SVN           : $Id$
 #
 #  HISTORY       :
+#                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)
 #                            1.11.0.0  Ticket #106: User needs to be informed on every received PD packet
 #                            1.10.0.0  sink/source attribute for telegrams added
 #                            1.9.0.0   debug parameters updated
@@ -562,6 +563,28 @@
             <xs:maxInclusive value="5"/>
           </xs:restriction>
         </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="tsn" default="off" use="optional">
+          <xs:annotation>
+              <xs:documentation>if set, enable TSN scheduling.</xs:documentation>
+          </xs:annotation>
+          <xs:simpleType>
+              <xs:restriction base="xs:string">
+                  <xs:enumeration value="on"/>
+                  <xs:enumeration value="off"/>
+              </xs:restriction>
+          </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="vlan" default="0" use="optional">
+          <xs:annotation>
+              <xs:documentation>VLAN ID to be used (12 Bit).</xs:documentation>
+          </xs:annotation>
+          <xs:simpleType>
+              <xs:restriction base="uint32">
+                  <xs:minInclusive value="0"/>
+                  <xs:maxInclusive value="4094"/>
+              </xs:restriction>
+          </xs:simpleType>
       </xs:attribute>
     </xs:complexType>
   </xs:element>
