@@ -9,6 +9,7 @@
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2018. All rights reserved.
 #//
+#//	BL 2019-06-13: Helm's Deep 96Board configuration added
 #//	BL 2019-03-21: Prepared for TSN
 #//	BL 2019-01-24: Reduce noise
 #//	BL 2018-05-08: YOCTO / ARM7 configuration added
@@ -448,12 +449,14 @@ help:
 	@$(ECHO) "  * LINUX_config                 - Native build for Linux (uses host gcc regardless of 32/64 bit)" >&2
 	@$(ECHO) "  * LINUX_X86_config             - Native build for Linux (Little Endian, uses host gcc 32Bit)" >&2
 	@$(ECHO) "  * LINUX_X86_64_config          - Native build for Linux (Little Endian, uses host gcc 64Bit)" >&2
-	@$(ECHO) "  * LINUX_PPC_config             - Building for Linux on PowerPC using eglibc compiler (603 core)" >&2
+	@$(ECHO) "  * LINUX_PPC_config             - (experimental) Building for Linux on PowerPC using eglibc compiler (603 core)" >&2
 	@$(ECHO) "  * LINUX_imx7_config            - Building for Linux on ARM7/imx7 using YOCTO toolchain" >&2
+	@$(ECHO) "  * LINUX_TSN_config             - (experimental) Native build for RTLinux with basic TSN support" >&2
 	@$(ECHO) "  * OSX_X86_config               - Native (X86) build for OS X 32Bit" >&2
 	@$(ECHO) "  * OSX_X86_64_config            - Native (X86) build for OS X 64Bit" >&2
-	@$(ECHO) "  * QNX_X86_config               - Native (X86) build for QNX" >&2
-	@$(ECHO) "  * VXWORKS_KMODE_PPC_config     - Building for VXWORKS kernel mode for PowerPC (experimental)" >&2
+	@$(ECHO) "  * POSIX_X86_config             - Native build for POSIX compliant systems" >&2
+	@$(ECHO) "  * QNX_X86_config               - (experimental) Native (X86) build for QNX" >&2
+	@$(ECHO) "  * VXWORKS_KMODE_PPC_config     - (experimental) Building for VXWORKS kernel mode for PowerPC" >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Custom adaptation hints:" >&2
 	@$(ECHO) " " >&2
