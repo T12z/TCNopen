@@ -73,6 +73,9 @@
 #ifndef TRDP_SDT_DEFAULT_CMTHR
 #define TRDP_SDT_DEFAULT_CMTHR  10u                                 /**< Default SDT chan. monitoring threshold */
 #endif
+#ifndef TRDP_SDT_DEFAULT_LMIMAX
+#define TRDP_SDT_DEFAULT_LMIMAX  (11u*TRDP_SDT_DEFAULT_NRXSAFE)     /**< Default SDT chan. latency monitoring cycles */
+#endif
 
 /*******************************************************************************
  * TYPEDEFS
@@ -517,6 +520,12 @@ static TRDP_ERR_T readTelegramDef (
                         return TRDP_MEM_ERR;
                     }
 
+                    pSrc->pSdtPar->smi2 = TRDP_SDT_DEFAULT_SMI2;
+                    pSrc->pSdtPar->nrxSafe = TRDP_SDT_DEFAULT_NRXSAFE;
+                    pSrc->pSdtPar->nGuard = TRDP_SDT_DEFAULT_NGUARD;
+                    pSrc->pSdtPar->cmThr = TRDP_SDT_DEFAULT_CMTHR;
+                    pSrc->pSdtPar->lmiMax = TRDP_SDT_DEFAULT_LMIMAX;
+
                     while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                     {
                         if (vos_strnicmp(attribute, "smi1", MAX_TOK_LEN) == 0)
@@ -550,6 +559,10 @@ static TRDP_ERR_T readTelegramDef (
                         else if (vos_strnicmp(attribute, "cm-thr", MAX_TOK_LEN) == 0)
                         {
                             pSrc->pSdtPar->cmThr = valueInt;
+                        }
+                        else if (vos_strnicmp(attribute, "lmi-max", MAX_TOK_LEN) == 0)
+                        {
+                           pSrc->pSdtPar->lmiMax = (UINT8) valueInt;
                         }
                     }
                 }
@@ -631,6 +644,12 @@ static TRDP_ERR_T readTelegramDef (
                         return TRDP_MEM_ERR;
                     }
 
+                    pDest->pSdtPar->smi2 = TRDP_SDT_DEFAULT_SMI2;
+                    pDest->pSdtPar->nrxSafe = TRDP_SDT_DEFAULT_NRXSAFE;
+                    pDest->pSdtPar->nGuard = TRDP_SDT_DEFAULT_NGUARD;
+                    pDest->pSdtPar->cmThr = TRDP_SDT_DEFAULT_CMTHR;
+                    pDest->pSdtPar->lmiMax = TRDP_SDT_DEFAULT_LMIMAX;
+
                     while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                     {
                         if (vos_strnicmp(attribute, "smi1", MAX_TOK_LEN) == 0)
@@ -664,6 +683,10 @@ static TRDP_ERR_T readTelegramDef (
                         else if (vos_strnicmp(attribute, "cm-thr", MAX_TOK_LEN) == 0)
                         {
                             pDest->pSdtPar->cmThr = valueInt;
+                        }
+                        else if (vos_strnicmp(attribute, "lmi-max", MAX_TOK_LEN) == 0)
+                        {
+                            pDest->pSdtPar->lmiMax = (UINT8)valueInt;
                         }
                     }
                 }

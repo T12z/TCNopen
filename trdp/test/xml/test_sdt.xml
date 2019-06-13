@@ -18,10 +18,10 @@
             <telegram name="tlg1001" com-id="1001" data-set-id="1001" com-parameter-id="1">
                 <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
                 <source id="1" uri1="10.2.13.50">
-                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" lmi-max="40"/>
                 </source>
                 <destination id="1" uri="239.2.13.0">
-                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" lmi-max="40"/>
                 </destination>
             </telegram>
             <telegram name="tlg1002" com-id="1002" data-set-id="1002" com-parameter-id="4">

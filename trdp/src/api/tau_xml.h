@@ -72,8 +72,8 @@ typedef struct
     UINT16  txPeriod;    /**< Source cycle time */
     UINT16  nGuard;      /**< Initial timeout cycles */
     UINT8   nrxSafe;     /**< Timout cycles */
-    UINT8   reserved1;   /**< Reserved for future use */
-    UINT16  reserved2;   /**< Reserved for future use */
+    UINT8   lmiMax;      /**< Latency monitoring cycles */
+    UINT16  reserved1;   /**< Reserved for future use */
 } TRDP_SDT_PAR_T;
 
 typedef struct
