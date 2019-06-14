@@ -340,7 +340,8 @@ EXT_DECL TRDP_ERR_T tlc_getTcpListStatistics (
     {
         if ((pIter->pktFlags & TRDP_FLAGS_TCP) != 0)
         {
-            vos_strncpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN);
+            /* vos_strncpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN); */
+            memcpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN); /* less dangerous */
             pStatistics->comId          = pIter->addr.comId;
             pStatistics->joinedAddr     = pIter->addr.mcGroup;
             pStatistics->callBack       = (pIter->pfCbFunction == NULL) ? 0u : 1u;      /* > 0 if call back function is used */
