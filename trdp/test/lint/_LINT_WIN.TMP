@@ -20,20 +20,6 @@
 --- Module:   ..\..\src\common\trdp_stats.c (C)
 
 --- Module:   ..\..\src\common\tau_marshall.c (C)
-                                                     _
-    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL);  /* Subtract pointer to emphasize size calculation */
-..\..\src\common\tau_marshall.c(1472) : Warning 413: Likely use of null pointer
-    'unknown-name' in right argument to operator 'ptr-ptr' [Reference: file
-    ..\..\src\common\tau_marshall.c: line 1472] [MISRA Rule 107]
-..\..\src\common\tau_marshall.c(1472) : Info 831: Reference cited in prior
-    message
-                                                     _
-    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL); /* Subtract pointer to emphasize size calculation */
-..\..\src\common\tau_marshall.c(1544) : Warning 413: Likely use of null pointer
-    'unknown-name' in right argument to operator 'ptr-ptr' [Reference: file
-    ..\..\src\common\tau_marshall.c: line 1544] [MISRA Rule 107]
-..\..\src\common\tau_marshall.c(1544) : Info 831: Reference cited in prior
-    message
 
 --- Module:   ..\..\src\common\trdp_xml.c (C)
 
@@ -50,26 +36,6 @@
 --- Module:   ..\..\src\vos\common\vos_utils.c (C)
 
 --- Module:   ..\..\src\vos\common\vos_mem.c (C)
-
-During Specific Walk:
-  File ..\..\src\common\trdp_stats.c line 293: vos_strncpy([32], [33], 32)
-..\..\src\vos\common\vos_mem.c(740) : Warning 415: Likely access of
-    out-of-bounds pointer (1 beyond end of data) by operator '[' [Reference:
-    file ..\..\src\vos\common\vos_mem.c: line 740; file ..\..\src\common\trdp_stats.c:
-    line 293]
-..\..\src\vos\common\vos_mem.c(740) : Info 831: Reference cited in prior
-    message
-..\..\src\common\trdp_stats.c(293) : Info 831: Reference cited in prior message
-
-During Specific Walk:
-  File ..\..\src\common\trdp_stats.c line 293: vos_strncpy([32], [33], 32)
-..\..\src\vos\common\vos_mem.c(742) : Warning 415: Likely access of
-    out-of-bounds pointer (1 beyond end of data) by operator '[' [Reference:
-    file ..\..\src\vos\common\vos_mem.c: line 742; file ..\..\src\common\trdp_stats.c:
-    line 293]
-..\..\src\vos\common\vos_mem.c(742) : Info 831: Reference cited in prior
-    message
-..\..\src\common\trdp_stats.c(293) : Info 831: Reference cited in prior message
 
 --- Module:   ..\..\src\vos\windows\vos_thread.c (C)
 
@@ -104,20 +70,6 @@ During Specific Walk:
 --- Module:   ..\..\src\common\trdp_stats.c (C)
 
 --- Module:   ..\..\src\common\tau_marshall.c (C)
-                                                     _
-    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL);  /* Subtract pointer to emphasize size calculation */
-..\..\src\common\tau_marshall.c(1472) : Warning 413: Likely use of null pointer
-    'unknown-name' in right argument to operator 'ptr-ptr' [Reference: file
-    ..\..\src\common\tau_marshall.c: line 1472] [MISRA Rule 107]
-..\..\src\common\tau_marshall.c(1472) : Info 831: Reference cited in prior
-    message
-                                                     _
-    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL); /* Subtract pointer to emphasize size calculation */
-..\..\src\common\tau_marshall.c(1544) : Warning 413: Likely use of null pointer
-    'unknown-name' in right argument to operator 'ptr-ptr' [Reference: file
-    ..\..\src\common\tau_marshall.c: line 1544] [MISRA Rule 107]
-..\..\src\common\tau_marshall.c(1544) : Info 831: Reference cited in prior
-    message
 
 --- Module:   ..\..\src\common\trdp_xml.c (C)
 
