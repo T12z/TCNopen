@@ -278,7 +278,7 @@ EXT_DECL VOS_ERR_T vos_threadTerminate (
     errVal = taskDelete((int)thread);
     if (errVal != OK)
     {
-        vos_printLog(VOS_LOG_ERROR,
+        vos_printLog(VOS_LOG_WARNING,
                      "taskDelete() failed (Err:%d)\n",
                      errVal );
     }

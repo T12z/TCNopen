@@ -285,7 +285,7 @@ EXT_DECL VOS_ERR_T vos_threadTerminate(VOS_THREAD_T thread)
 
    if (TerminateThread((HANDLE)thread, 0) == 0)
    {
-      vos_printLog(VOS_LOG_ERROR,
+      vos_printLog(VOS_LOG_WARNING,
          "TerminateThread() failed (Err: %d)\n",
          GetLastError());
       return VOS_THREAD_ERR;

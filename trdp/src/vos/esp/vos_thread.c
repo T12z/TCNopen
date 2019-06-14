@@ -372,7 +372,7 @@ EXT_DECL VOS_ERR_T vos_threadTerminate (
     retCode = pthread_cancel((pthread_t)thread);
     if (retCode != 0)
     {
-        vos_printLog(VOS_LOG_ERROR,
+        vos_printLog(VOS_LOG_WARNING,
                      "pthread_cancel() failed (Err:%d)\n",
                      (int)retCode );
         return VOS_THREAD_ERR;
