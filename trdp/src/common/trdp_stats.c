@@ -192,7 +192,7 @@ EXT_DECL TRDP_ERR_T tlc_getSubsStatistics (
         pStatistics[lIndex].toBehav     = iter->toBehavior;     /* Behavior at time-out    */
         pStatistics[lIndex].numRecv     = iter->numRxTx;        /* Number of packets received for this subscription.  */
         pStatistics[lIndex].numMissed   = iter->numMissed;      /* Number of packets received for this subscription.  */
-        pStatistics[lIndex].status      = (UINT32) iter->lastErr;        /* Receive status information  */
+        pStatistics[lIndex].status      = (UINT32) iter->lastErr;        /*lint !e571 suspicious cast, Receive status information  */
     }
     if (lIndex >= *pNumSubs && iter != NULL)
     {

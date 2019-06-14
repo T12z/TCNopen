@@ -212,7 +212,7 @@ static void ttiPDCallback (
 
             /* Store the state locally */
             memcpy(&appHandle->pTTDB->opTrnState, &pTelegram->state,
-                   (sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) < dataSize) ? sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) : dataSize);
+                   (sizeof(TRDP_OP_TRAIN_DIR_STATE_T) < dataSize) ? sizeof(TRDP_OP_TRAIN_DIR_STATE_T) : dataSize);
 
             /* unmarshall manually:   */
             appHandle->pTTDB->opTrnState.etbTopoCnt         = vos_ntohl(pTelegram->etbTopoCnt);
@@ -296,7 +296,7 @@ static BOOL8 ttiStoreOpTrnDir (
     appHandle->pTTDB->opTrnDir.opVehCnt = *pData++;
     size = appHandle->pTTDB->opTrnDir.opVehCnt * sizeof(TRDP_OP_VEHICLE_T) + sizeof(UINT32);    /* copy opTrnTopoCnt as
                                                                                                   well    */
-    memcpy(&appHandle->pTTDB->opTrnDir.opVehList, pData, size);
+    memcpy(appHandle->pTTDB->opTrnDir.opVehList, pData, size);
 
     /* unmarshall manually and update the opTrnTopoCount   */
 
@@ -1034,7 +1034,8 @@ EXT_DECL TRDP_ERR_T tau_getOpTrDirectory (
 /**********************************************************************************************************************/
 /**    Function to retrieve the operational train directory state info.
  *  Return a copy of the last received PD 100 telegram.
- *  Note: The values are in host endianess! When validating (SDTv2), network endianess must be ensured.
+ *  Note: The values are in host endianess! When validating (
+ v2), network endianess must be ensured.
  *
  *  @param[in]      appHandle               Handle returned by tlc_openSession().
  *  @param[out]     pOpTrnDirStatusInfo     Pointer to an operational train directory state structure to be returned.
