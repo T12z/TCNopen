@@ -1469,7 +1469,7 @@ EXT_DECL TRDP_ERR_T tau_calcDatasetSize (
 
     err = size_unmarshall(&info, pDataset);
 
-    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL);  /* Subtract pointer to emphasize size calculation */
+    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL);  /*lint !e413 Subtract pointer to emphasize size calculation */
 
     return err;
 }
@@ -1541,7 +1541,7 @@ EXT_DECL TRDP_ERR_T tau_calcDatasetSizeByComId (
 
     err = size_unmarshall(&info, pDataset);
 
-    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL); /* Subtract pointer to emphasize size calculation */
+    *pDestSize = (UINT32) (info.pDst - (UINT8*) NULL); /*lint !e413 Subtract pointer to emphasize size calculation */
 
     return err;
 }
