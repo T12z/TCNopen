@@ -963,6 +963,7 @@
 		0846E26622396B84006C2BA7 /* trdp_tsn_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = trdp_tsn_def.h; sourceTree = "<group>"; };
 		0846E29722396CBC006C2BA7 /* libtrdp64PosixTSN.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtrdp64PosixTSN.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		0846E298223C03A1006C2BA7 /* vos_sockTSN.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vos_sockTSN.c; sourceTree = "<group>"; };
+		0852B99922B38EB000F7FA3F /* logs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = logs; sourceTree = "<group>"; };
 		085323DA20DD5BD200A29E56 /* component.mk */ = {isa = PBXFileReference; lastKnownFileType = text; name = component.mk; path = ../component.mk; sourceTree = "<group>"; };
 		085323DB20DD5C2C00A29E56 /* VSExpress2015 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = VSExpress2015; path = ../VSExpress2015; sourceTree = "<group>"; };
 		08594B061B6FAC160066EA06 /* spy */ = {isa = PBXFileReference; lastKnownFileType = folder; name = spy; path = ../spy; sourceTree = "<group>"; };
@@ -1778,6 +1779,7 @@
 		73821F7C150777D40046E0AC /* test */ = {
 			isa = PBXGroup;
 			children = (
+				0852B99922B38EB000F7FA3F /* logs */,
 				0867899C1F0CE3D7009D1B8F /* lint */,
 				08A327B51E51FBC600B03846 /* localtest */,
 				73CE24581733F28100314E1C /* diverse */,
