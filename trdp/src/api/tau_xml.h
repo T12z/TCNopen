@@ -19,6 +19,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-06-14: Ticket #250: additional parameter lmi-max SDTv2
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
  *      BL 2017-05-08: Compiler warnings, flag enums -> defines
  *      BL 2016-02-11: Ticket #102: Custom XML parser, libxml2 not needed anymore
@@ -72,8 +73,8 @@ typedef struct
     UINT16  txPeriod;    /**< Source cycle time */
     UINT16  nGuard;      /**< Initial timeout cycles */
     UINT8   nrxSafe;     /**< Timout cycles */
-    UINT8   lmiMax;      /**< Latency monitoring cycles */
-    UINT16  reserved1;   /**< Reserved for future use */
+    UINT8   reserved1;   /**< Reserved for future use */
+    UINT16  lmiMax;      /**< Latency monitoring cycles */
 } TRDP_SDT_PAR_T;
 
 typedef struct
