@@ -22,8 +22,8 @@ public:
 	~TAU_XSession() { tau_xsession_delete(&our); }
 
 	/* "static method", must be called once, first */
-	static TRDP_ERR_T load(const char *xmlFile)
-		{ return tau_xsession_load(xmlFile); }
+	static TRDP_ERR_T load(const char *xml, size_t length = 0)
+		{ return tau_xsession_load(xml, length); }
 
 	/* factory constructor, provide a session variable from stack */
 	TRDP_ERR_T init     (const char *busInterfaceName, void *callbackRef)

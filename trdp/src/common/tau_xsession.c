@@ -515,7 +515,7 @@ static TRDP_ERR_T configureSession(TAU_XSESSION_T *our, TRDP_XML_DOC_HANDLE_T *p
 }
 
 
-TRDP_ERR_T tau_xsession_load(const char *xmlFile) {
+TRDP_ERR_T tau_xsession_load(const char *xml, size_t length) {
 	TRDP_ERR_T result;
 
 	if (devDocHnd.pXmlDocument || use >= 0) return TRDP_INIT_ERR; /* must close first */
@@ -534,7 +534,7 @@ TRDP_ERR_T tau_xsession_load(const char *xmlFile) {
 	result = vos_memInit(NULL, 20000, NULL);
 	if (result == TRDP_NO_ERR) {
 		/*  Prepare XML document    */
-		result = tau_prepareXmlDoc(xmlFile, &devDocHnd);
+		result = length ? tau_prepareXmlMem(xml,  length,  &devDocHnd) : tau_prepareXmlDoc(xml, &devDocHnd);
 		if (result != TRDP_NO_ERR) {
 			vos_printLog(VOS_LOG_ERROR, "Failed to prepare XML document: %s", tau_getResultString(result));
 		} else {

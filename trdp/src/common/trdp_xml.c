@@ -335,11 +335,11 @@ TRDP_ERR_T trdp_XMLOpen (
  */
 TRDP_ERR_T trdp_XMLMemOpen (
     XML_HANDLE_T    *pXML,
-    char            *pBuffer,
+    const char      *pBuffer,
     size_t          bufSize)
 {
 #ifdef HAS_FMEMOPEN
-    if ((pXML->infile = fmemopen(pBuffer, bufSize, "rb")) == NULL)
+    if ((pXML->infile = fmemopen((void *)pBuffer, bufSize, "rb")) == NULL)
     {
         vos_printLogStr(VOS_LOG_ERROR, "XML stream could not be opened for reading\n");
         return TRDP_IO_ERR;

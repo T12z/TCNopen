@@ -88,7 +88,8 @@ typedef struct TAU_XML_SESSION {
 
 
 /* "static method", must be called once, first */
-TRDP_ERR_T tau_xsession_load     (const char *xmlFile);
+/* if length is >0, xml is assumed a buffer of that length, otherwise it is a NULL-terminated file-name to read. */
+TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length);
 
 /* factory constructor, provide a session variable from stack */
 TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T *our, const char *busInterfaceName, void *callbackRef);

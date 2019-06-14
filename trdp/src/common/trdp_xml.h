@@ -85,7 +85,7 @@ TRDP_ERR_T  trdp_XMLOpen (XML_HANDLE_T  *pXML,
                           const char    *file);
 
 TRDP_ERR_T  trdp_XMLMemOpen (XML_HANDLE_T   *pXML,
-                             char           *pBuffer,
+                             const char     *pBuffer,
                              size_t         bufSize);
 
 void        trdp_XMLClose (XML_HANDLE_T *pXML);
