@@ -66,7 +66,9 @@ extern "C" {
 
 /**********************************************************************************************************************/
 /**    Function to initialise the marshalling/unmarshalling.
- *
+ *  
+ *  To make use of this, and the other xmarshall functions, you MUST fill the type map first.
+ *  See the macro TAU_XMARSHALL_MAP(...). tau_xsession*() will use xmarshall automatically, if the macro is used.
  *
  *  @param[in,out]  ppRefCon         Returns a pointer to be used for the reference context of marshalling/unmarshalling
  *  @param[in]      numComId         Number of datasets found in the configuration
@@ -201,8 +203,24 @@ EXT_DECL TRDP_ERR_T tau_xcalcDatasetSizeByComId (
     UINT32          *pDestSize,
     TRDP_DATASET_T  * *ppDSPointer);
 
+/**********************************************************************************************************************/
+/**    Contains the type map for xmashalling. Currently, this has no means to be safely changed at runtime.
+ */
 extern const uint8_t __TAU_XTYPE_MAP[34];
 
+/**********************************************************************************************************************/
+/**    Macro to help define the correct sizes and alignments for a specialized type mapping. This obviously has
+ *  limitations and should be used sensibly.
+ *  Note, that the last three parameters denote the inner types of the time-structures: seconds, ticks and micro-secs.
+ *
+ *  If you would like xmarshall to behave as std-marshall you would write in your global namespace:
+ *
+ *  @code TAU_XMARSHALL_MAP(char, bool, char, int16_t, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, int32_t, int16_t, int32_t)
+ *
+ *  If you had an application that is unaware of fine-grained width-types, e.g., SCADE <=6.4
+ *
+ *  @code TAU_XMARSHALL_MAP(kcg_char, kcg_bool, kcg_char, kcg_int, kcg_int, kcg_int, kcg_int, kcg_int, kcg_int, kcg_int, kcg_int, kcg_int,  kcg_real, kcg_real,  kcg_int, kcg_int, kcg_int);
+ */
 
 #define TAU_XMARSHALL_MAP(inv, bit8, c8, c16, i8, i16, i32, i64, u8, u16, u32, u64, f32, f64, sec, tick, us ) \
 	typedef struct { struct { sec s; tick t; } a; } __TAU_XTYPE_TIME48; \
