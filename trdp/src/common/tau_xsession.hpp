@@ -22,8 +22,8 @@ public:
 	~TAU_XSession() { tau_xsession_delete(&our); }
 
 	/* "static method", must be called once, first */
-	static TRDP_ERR_T load(const char *xmlFile)
-		{ return tau_xsession_load(xmlFile); }
+	static TRDP_ERR_T load(const char *xml, size_t length = 0)
+		{ return tau_xsession_load(xml, length); }
 
 	/* factory constructor, provide a session variable from stack */
 	TRDP_ERR_T init     (const char *busInterfaceName, void *callbackRef)
@@ -49,6 +49,13 @@ public:
 		{ return lastErr = tau_xsession_getCom(&our, subTelID, data, cap, length, info); }
 	TRDP_ERR_T request  (              UINT32  subTelID)
 		{ return lastErr = tau_xsession_request(&our, subTelID); }
+
+	TRDP_ERR_T lookupVariable(UINT32 dsId, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
+		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, (const char*)0, index, el); }
+	}
+	TRDP_ERR_T lookupVariable(UINT32 dsId, const CHAR8 *name, TRDP_DATASET_ELEMENT_T **el) {
+		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, name, 0, el); }
+	}
 
 private:
 	TAU_XSESSION_T our;

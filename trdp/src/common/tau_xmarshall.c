@@ -187,7 +187,7 @@ static TRDP_DATASET_T *findDs(UINT32 datasetId) {
 		key3 = (TRDP_DATASET_T * *) vos_bsearch(&key2, sDataSets, sNumEntries, sizeof(TRDP_DATASET_T *), compareDatasetDeref);
 		if (key3) return *key3;
 	}
-
+	vos_printLog(VOS_LOG_ERROR, "DatasetID=%u unknown\n", datasetId);
 	return NULL;
 }
 
@@ -212,6 +212,8 @@ static TRDP_DATASET_T *findDSFromComId(UINT32 comId) {
 
 	if (key2)
 		return findDs(key2->datasetId);
+	else
+		vos_printLog(VOS_LOG_ERROR, "ComID=%u unknown\n", comId);
 
 	return NULL;
 }
@@ -614,7 +616,7 @@ EXT_DECL TRDP_ERR_T tau_xmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
 	}
 
 	if (!pDataset) {/* Not in our DB    */
-		vos_printLog(VOS_LOG_ERROR, "ComID/DatasetID (%u) unknown\n", comId);
+		vos_printLog(VOS_LOG_ERROR, "Dataset for ComID %u unknown\n", comId);
 		return TRDP_COMID_ERR;
 	}
 
@@ -634,7 +636,7 @@ EXT_DECL TRDP_ERR_T tau_xmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
 /**    unmarshall data set function.
  *
  *  @param[in]      pRefCon         pointer to user context
- *  @param[in]      dsId            Data set id to identify the structure out of a configuration
+ *  @param[in]      comId           ComId to identify the telegram and its dataset from conf
  *  @param[in]      pSrc            pointer to received original message
  *  @param[in]      srcSize         size of the source buffer
  *  @param[in]      pDest           pointer to a buffer for the treated message
@@ -652,24 +654,24 @@ EXT_DECL TRDP_ERR_T tau_xmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
  *
  */
 
-EXT_DECL TRDP_ERR_T tau_xunmarshall(void *pRefCon, UINT32 dsId, UINT8 *pSrc,
+EXT_DECL TRDP_ERR_T tau_xunmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
 		UINT32 srcSize, UINT8 *pDest, UINT32 *pDestSize, TRDP_DATASET_T * *ppDSPointer) {
 	TRDP_ERR_T result;
 	TRDP_DATASET_T *pDataset;
 	TAU_MARSHALL_INFO_T info;
 
-	if (!dsId || !pSrc || !pDest || !pDestSize || !*pDestSize) return TRDP_PARAM_ERR;
+	if (!comId || !pSrc || !pDest || !pDestSize || !*pDestSize) return TRDP_PARAM_ERR;
 
 	/* Can we use the formerly cached value? */
 	if (ppDSPointer) {
-		if (!*ppDSPointer) *ppDSPointer = findDs(dsId);
+		if (!*ppDSPointer) *ppDSPointer = findDSFromComId(comId);
 		pDataset = *ppDSPointer;
 	} else {
-		pDataset = findDs(dsId);
+		pDataset = findDSFromComId(comId);
 	}
 
 	if (!pDataset) { /* Not in our DB    */
-		vos_printLog(VOS_LOG_ERROR, "ComID/DatasetID (%u) unknown\n", dsId);
+		vos_printLog(VOS_LOG_ERROR, "ComID/DatasetID (%u) unknown\n", comId);
 		return TRDP_COMID_ERR;
 	}
 

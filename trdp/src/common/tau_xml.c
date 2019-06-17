@@ -984,7 +984,7 @@ EXT_DECL TRDP_ERR_T tau_prepareXmlDoc (
  *
  */
 EXT_DECL TRDP_ERR_T tau_prepareXmlMem (
-    char                    *pBuffer,
+    const char              *pBuffer,
     size_t                  bufSize,
     TRDP_XML_DOC_HANDLE_T   *pDocHnd)
 {

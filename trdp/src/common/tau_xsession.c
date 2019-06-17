@@ -515,7 +515,7 @@ static TRDP_ERR_T configureSession(TAU_XSESSION_T *our, TRDP_XML_DOC_HANDLE_T *p
 }
 
 
-TRDP_ERR_T tau_xsession_load(const char *xmlFile) {
+TRDP_ERR_T tau_xsession_load(const char *xml, size_t length) {
 	TRDP_ERR_T result;
 
 	if (devDocHnd.pXmlDocument || use >= 0) return TRDP_INIT_ERR; /* must close first */
@@ -534,7 +534,7 @@ TRDP_ERR_T tau_xsession_load(const char *xmlFile) {
 	result = vos_memInit(NULL, 20000, NULL);
 	if (result == TRDP_NO_ERR) {
 		/*  Prepare XML document    */
-		result = tau_prepareXmlDoc(xmlFile, &devDocHnd);
+		result = length ? tau_prepareXmlMem(xml,  length,  &devDocHnd) : tau_prepareXmlDoc(xml, &devDocHnd);
 		if (result != TRDP_NO_ERR) {
 			vos_printLog(VOS_LOG_ERROR, "Failed to prepare XML document: %s", tau_getResultString(result));
 		} else {
@@ -687,6 +687,10 @@ TRDP_ERR_T tau_xsession_cycle(TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 			FD_ZERO(&rfds);
 			max_tv = nextTime;
 			vos_subTime( &max_tv, &thisTime); /* max_tv now contains the remaining max sleep time */
+			if ((max_tv.tv_sec < 0) || (!max_tv.tv_sec && (max_tv.tv_usec <= 0))) {
+				max_tv.tv_sec  = 0;
+				max_tv.tv_usec = 0;
+			}
 			if (timeout_us) { /* push timeout to external handler */
 				tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
 				if (vos_cmpTime( &max_tv, &tv) < 0)
@@ -697,14 +701,15 @@ TRDP_ERR_T tau_xsession_cycle(TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 				tv.tv_usec = 0;
 				leave = 1;
 			} else {
-				if (!max_tv.tv_sec && !max_tv.tv_usec) {
-					if (firstRound) {
-						tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
-						tv.tv_sec = 0;
-						tv.tv_usec = 0;
-						/* do not leave before the initial round, ie, no break */
-						leave = 1;
-					} else break;
+				if ((max_tv.tv_sec < 0) || (!max_tv.tv_sec && (max_tv.tv_usec <= 0))) {
+					if (!firstRound) break;
+
+					tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
+					tv.tv_sec = 0;
+					tv.tv_usec = 0;
+					/* do not leave before the initial round, ie, no break */
+					leave = 1;
+
 				} else {
 					tlc_getInterval(our->sessionhandle, (TRDP_TIME_T *) &tv, (TRDP_FDS_T *) &rfds, &noOfDesc);
 					if (vos_cmpTime( &tv, &max_tv) > 0) /* 1 on tv > max_tv */
@@ -730,6 +735,10 @@ TRDP_ERR_T tau_xsession_setCom(TAU_XSESSION_T *our, UINT32 pubTelID, const UINT8
 
 	if (pubTelID < MAX_PUB_TELEGRAMS) {
 		result = tlp_put( our->sessionhandle, our->aPubTelegrams[pubTelID].pubHandle,	data, cap);
+		if (result != our->aPubTelegrams[pubTelID].lastErr) {
+			our->aPubTelegrams[pubTelID].lastErr = result;
+			vos_printLog(VOS_LOG_WARNING, "\nFailed to SET comId=%d from %8x. %s\n", our->aPubTelegrams[pubTelID].comID, our->aPubTelegrams[pubTelID].dstID, tau_getResultString(result));
+		}
 	} else {
 		vos_printLog(VOS_LOG_ERROR, "Invalid parameters to setCom buffer.");
 		result = TRDP_PARAM_ERR;
@@ -745,6 +754,11 @@ TRDP_ERR_T tau_xsession_getCom(TAU_XSESSION_T *our, UINT32 subTelID, UINT8 *data
 	if ((subTelID < MAX_SUB_TELEGRAMS) /*&& (*length == aSubTelegrams[subTelID].size) */) {
 		if (length) *length = cap;
 		result = tlp_get( our->sessionhandle, our->aSubTelegrams[subTelID].subHandle, info, data, length);
+		if (result != our->aSubTelegrams[subTelID].result) {
+			our->aSubTelegrams[subTelID].result = result;
+			vos_printLog(VOS_LOG_WARNING, "\nFailed to get comId=%d from src=%d (%s)\n", our->aSubTelegrams[subTelID].comID, our->aSubTelegrams[subTelID].srcID, tau_getResultString(result));
+		}
+
 	} else {
 		vos_printLog(VOS_LOG_ERROR, "Invalid parameters to getCom buffer.");
 		result = TRDP_PARAM_ERR;
@@ -761,7 +775,7 @@ TRDP_ERR_T tau_xsession_request(TAU_XSESSION_T *our, UINT32 subTelID) {
 	TRDP_IP_ADDR_T hIp = our->aSubTelegrams[subTelID].pIfConfig->hostIp;
 	result = tlp_request(our->sessionhandle, sub, sub->addr.comId, 0u, 0u, hIp, sub->addr.srcIpAddr, 0u, TRDP_FLAGS_NONE, 0u, NULL, 0u, 0u, 0u);
 	if (result != TRDP_NO_ERR)
-		vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%d from %8x. %s", sub->addr.comId, sub->addr.srcIpAddr, tau_getResultString(result));
+		vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%d from dst=%d (%s)", sub->addr.comId, sub->addr.srcIpAddr, tau_getResultString(result));
 
 	return result;
 }
@@ -800,5 +814,45 @@ TRDP_ERR_T tau_xsession_delete(TAU_XSESSION_T *our) {
 	return result;
 }
 
+TRDP_ERR_T tau_xsession_ComId2DatasetId(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *datasetId) {
+	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
+	if (!datasetId) return TRDP_PARAM_ERR;
+	TRDP_ERR_T result = TRDP_COMID_ERR;
+	for (UINT32 tlgIdx = 0; tlgIdx < our->numExchgPar; tlgIdx++) {
+		if ((our->pExchgPar[tlgIdx].srcCnt || our->pExchgPar[tlgIdx].destCnt)
+				&& our->pExchgPar[tlgIdx].comId == ComID) {
+
+			*datasetId = our->pExchgPar[tlgIdx].datasetId;
+			/* take only first matching */
+			return TRDP_COMID_ERR;
+		}
+	}
+	return result;
+}
+
+TRDP_ERR_T tau_xsession_lookup_dataset(TAU_XSESSION_T *our, UINT32 datasetId, TRDP_DATASET_T **ds) {
+	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
+	if (!ds || !datasetId) return TRDP_PARAM_ERR;
+	return findDataset(datasetId, ds);
+}
+
+TRDP_ERR_T tau_xsession_lookup_variable(TAU_XSESSION_T *our, UINT32 datasetId, const CHAR8 *name, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
+	if ( !name ^ !index ) {
+		TRDP_DATASET_T *ds;
+		TRDP_ERR_T err = tau_xsession_lookup_dataset(our, datasetId, &ds);
+		if (err) return err;
+
+		if (index <= ds->numElement) {
+			index--; /* adjust from element number to C-array-index */
+			for (UINT32 i=0; i<ds->numElement; i++ ) {
+				if (i==index || (name && !strncasecmp(name, ds->pElement[i].name,30))) {
+					*el = &ds->pElement[i];
+					return TRDP_NO_ERR;
+				}
+			}
+		}
+	}
+	return TRDP_PARAM_ERR;
+}
 
 

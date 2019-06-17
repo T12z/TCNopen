@@ -2,4 +2,7 @@ trdp/bld/
 trdp/doc/html/
 trdp/doc/latex/
 *.o
+.settings
+.project
+.cproject
 trdp/config/config.mk

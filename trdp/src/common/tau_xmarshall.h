@@ -123,7 +123,7 @@ EXT_DECL TRDP_ERR_T tau_xmarshall (
 /**    unmarshall function.
  *
  *  @param[in]      pRefCon         pointer to user context
- *  @param[in]      comId           ComId to identify the structure out of a configuration
+ *  @param[in]      comId           ComId to identify the telegram and its dataset from conf
  *  @param[in]      pSrc            pointer to received original message
  *  @param[in]      srcSize         size of the source buffer
  *  @param[in]      pDest           pointer to a buffer for the treated message
