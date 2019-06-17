@@ -278,17 +278,17 @@ UINT32 trdp_packetSizeMD (
  *  Note: The standard demands that sequenceCounter is managed per comID/msgType at each publisher,
  *        but shall be the same for redundant telegrams (subnet/srcIP).
  *
- *  @param[in]      comID           comID to look for
+ *  @param[in]      comId           comID to look for
  *  @param[in]      msgType         PD/MD type
- *  @param[in]      srcIP           Source IP address
+ *  @param[in]      srcIpAddr       Source IP address
  *
  *  @retval            return the sequence number
  */
 
 UINT32 trdp_getSeqCnt (
-    UINT32          comID,
+    UINT32          comId,
     TRDP_MSG_T      msgType,
-    TRDP_IP_ADDR_T  srcIP);
+    TRDP_IP_ADDR_T  srcIpAddr);
 
 
 /**********************************************************************************************************************/

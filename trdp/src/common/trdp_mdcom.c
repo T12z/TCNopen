@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-06-11: Possible NULL pointer access
  *      SB 2019-03-20: Ticket #235 TRDP MD Listener: Additional filter rule for multicast destIpAddr added
  *      SB 2018-03-01: Ticket #241 MDCallback: MsgType and reply status not set correctly
  *      BL 2018-11-07: Ticket #185 MD reply: Infinite timeout wrong handled
@@ -1286,7 +1287,7 @@ static TRDP_ERR_T trdp_mdRecvTCPPacket (TRDP_SESSION_PT appHandle, SOCKET mdSock
             }
         }
 
-        if ( readSize > 0u )
+        if ( (readSize > 0u)  && (appHandle->uncompletedTCP[socketIndex]->pPacket !=NULL))
         {
             /* Copy the read data in the uncompletedTCP[] */
             memcpy(((UINT8 *)&appHandle->uncompletedTCP[socketIndex]->pPacket->frameHead) + storedDataSize,

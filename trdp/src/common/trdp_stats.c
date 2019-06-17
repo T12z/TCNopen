@@ -192,7 +192,7 @@ EXT_DECL TRDP_ERR_T tlc_getSubsStatistics (
         pStatistics[lIndex].toBehav     = iter->toBehavior;     /* Behavior at time-out    */
         pStatistics[lIndex].numRecv     = iter->numRxTx;        /* Number of packets received for this subscription.  */
         pStatistics[lIndex].numMissed   = iter->numMissed;      /* Number of packets received for this subscription.  */
-        pStatistics[lIndex].status      = (UINT32) iter->lastErr;        /* Receive status information  */
+        pStatistics[lIndex].status      = (UINT32) iter->lastErr;        /*lint !e571 suspicious cast, Receive status information  */
     }
     if (lIndex >= *pNumSubs && iter != NULL)
     {
@@ -290,7 +290,8 @@ EXT_DECL TRDP_ERR_T tlc_getUdpListStatistics (
     {
         if ((pIter->pktFlags & TRDP_FLAGS_TCP) == 0)
         {
-            vos_strncpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN);
+            /* vos_strncpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN); */
+            memcpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN); /* less dangerous */
             pStatistics->comId          = pIter->addr.comId;
             pStatistics->joinedAddr     = pIter->addr.mcGroup;
             pStatistics->callBack       = (pIter->pfCbFunction == NULL) ? 0u : 1u;      /* > 0 if call back function is used */
@@ -339,7 +340,8 @@ EXT_DECL TRDP_ERR_T tlc_getTcpListStatistics (
     {
         if ((pIter->pktFlags & TRDP_FLAGS_TCP) != 0)
         {
-            vos_strncpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN);
+            /* vos_strncpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN); */
+            memcpy(pStatistics->uri, pIter->destURI, TRDP_MAX_URI_USER_LEN); /* less dangerous */
             pStatistics->comId          = pIter->addr.comId;
             pStatistics->joinedAddr     = pIter->addr.mcGroup;
             pStatistics->callBack       = (pIter->pfCbFunction == NULL) ? 0u : 1u;      /* > 0 if call back function is used */

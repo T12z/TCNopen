@@ -228,7 +228,7 @@ int main (int argc, char * *argv)
     TRDP_APP_SESSION_T      appHandle       = NULL;  /*    Our identifier to the library instance    */
     TRDP_SUB_T              subHandle       = NULL;  /*    Our identifier to the subscription        */
     TRDP_ERR_T              err             = TRDP_NO_ERR;
-    TRDP_PD_CONFIG_T        pdConfiguration = {pdCallBack, NULL, {0, 0, 0, 0u, 0u}, TRDP_FLAGS_CALLBACK,
+    TRDP_PD_CONFIG_T        pdConfiguration = {pdCallBack, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
                                                         10000000, TRDP_TO_SET_TO_ZERO, 0};
     TRDP_PROCESS_CONFIG_T   processConfig   = {"subscriber", "", 0, 0, TRDP_OPTION_NONE};
     TRDP_IP_ADDR_T          ownIP           = VOS_INADDR_ANY;

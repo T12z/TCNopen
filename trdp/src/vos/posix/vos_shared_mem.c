@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-06-11: Ticket #259: Shared memory name fixed
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-05-03: Ticket #193 Unused parameter warnings
  *      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
@@ -135,10 +136,19 @@ EXT_DECL VOS_ERR_T vos_sharedOpen (
     else
     {
         (*pHandle)->fd = fd;
+        (*pHandle)->sharedMemoryName = (CHAR8*) vos_memAlloc((UINT32) ((strlen(pKey) + 1) * sizeof(CHAR8)));
+        if ((*pHandle)->sharedMemoryName == NULL)
+        {
+            vos_printLogStr(VOS_LOG_ERROR,"vos_sharedOpen() ERROR Could not alloc memory\n");
+            return ret;
+        }
+        else
+        {
+            vos_strncpy((*pHandle)->sharedMemoryName, pKey, (UINT32) (strlen(pKey) + 1));
+        }
     }
 
-    ret = VOS_NO_ERR;
-    return ret;
+    return VOS_NO_ERR;
 }
 
 /**********************************************************************************************************************/
@@ -168,6 +178,10 @@ EXT_DECL VOS_ERR_T vos_sharedClose (
     {
         vos_printLogStr(VOS_LOG_ERROR, "Shared Memory unLink failed\n");
         return VOS_MEM_ERR;
+    }
+    if (handle->sharedMemoryName != NULL)
+    {
+        vos_memFree(handle->sharedMemoryName);
     }
     return VOS_NO_ERR;
 }

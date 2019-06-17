@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-05-22: Ticket #256 PD: possibility to "register" ComIDs subscribing on several multicast addresses
  *      BL 2019-03-21: Ticket #191 Preparations for TSN (External code)
  *      SB 2019-03-06: Ticket: #230/243 added provisions in trdp_queueFindSubAddr() for systems, that return no destination address
  *      SB 2019-03-05: Ticket: #243 added function trdp_queueFindExistingSub(), that only returns exact matches
@@ -398,6 +399,7 @@ PD_ELE_T *trdp_queueFindSubAddr (
     TRDP_ADDRESSES_T    *addr)
 {
     PD_ELE_T *iterPD;
+    PD_ELE_T *pFirstMatchedPD = NULL;
 
     if (pHead == NULL || addr == NULL)
     {
@@ -409,11 +411,19 @@ PD_ELE_T *trdp_queueFindSubAddr (
         /*  We match if src/dst/mc address is zero or matches */
         if (iterPD->addr.comId == addr->comId)
         {
+            /* if srcIP filter matches AND destIP matches THEN this is a direct hit */
+            if ((iterPD->addr.srcIpAddr == addr->srcIpAddr) &&
+                ((iterPD->addr.destIpAddr == addr->destIpAddr)))
+            {
+                return iterPD;  /* we cannot find a better match */
+            }
+
             if (((iterPD->addr.srcIpAddr == VOS_INADDR_ANY) || (iterPD->addr.srcIpAddr == addr->srcIpAddr))
                 && ((iterPD->addr.destIpAddr == VOS_INADDR_ANY) || (addr->destIpAddr == VOS_INADDR_ANY) || (iterPD->addr.destIpAddr == addr->destIpAddr)))
             {
-                return iterPD;
+                pFirstMatchedPD = iterPD;
             }
+
             /* Check for IP range */
             if (iterPD->addr.srcIpAddr2 != VOS_INADDR_ANY)
             {
@@ -426,7 +436,7 @@ PD_ELE_T *trdp_queueFindSubAddr (
             }
         }
     }
-    return NULL;
+    return pFirstMatchedPD;
 }
 
 

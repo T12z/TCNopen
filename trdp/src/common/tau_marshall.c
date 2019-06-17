@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-05-24: Ticket #252 Bug in unmarshalling/marshalling of TIMEDATE48 and TIMEDATE64
  *      BL 2018-11-08: Use B_ENDIAN from vos_utils.h in unpackedCopy64()
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      SW 2018-06-12: Ticket #203 Incorrect unmarshalling of datasets containing TIMEDATE64 array
@@ -585,8 +586,9 @@ static TRDP_ERR_T marshallDs (
                        pSrc16   = (UINT16 *) alignePtr((UINT8 *) pSrc32, ALIGNOF(UINT16));
                        *pDst++  = (UINT8) (*pSrc16 >> 8u);
                        *pDst++  = (UINT8) (*pSrc16 & 0xFFu);
-                       pSrc32++;
-                       pSrc = (UINT8 *) pSrc32;
+                       pSrc16++;
+                       pSrc16 = (UINT16 *)alignePtr((UINT8 *)pSrc16, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pSrc = (UINT8 *) pSrc16;
                    }
                    break;
                }
@@ -779,8 +781,8 @@ static TRDP_ERR_T unmarshallDs (
                        pDst16   = (UINT16 *) alignePtr((UINT8 *)pDst32, ALIGNOF(UINT16));
                        *pDst16  = (UINT16) (*pSrc++ << 8u);
                        *pDst16  += *pSrc++;
-                       pDst32++;
-                       pDst = (UINT8 *) pDst32;
+                       pDst16++;
+                       pDst = (UINT8 *) alignePtr((const UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
                    }
                    break;
                }
@@ -940,7 +942,7 @@ static TRDP_ERR_T size_unmarshall (
                    UINT16 *pDst16 = (UINT16 *) alignePtr(pDst, ALIGNOF(UINT16));
 
                    /*    possible variable source size    */
-                   var_size = *(UINT16 *)pSrc;
+                   var_size = vos_ntohs(*(UINT16 *)pSrc);
 
                    while (noOfItems-- > 0u)
                    {
@@ -958,7 +960,7 @@ static TRDP_ERR_T size_unmarshall (
                    UINT32 *pDst32 = (UINT32 *) alignePtr(pDst, ALIGNOF(UINT32));
 
                    /*    possible variable source size    */
-                   var_size = *(UINT32 *)pSrc;
+                   var_size = vos_ntohl(*(UINT32 *)pSrc);
 
                    while (noOfItems-- > 0u)
                    {
@@ -978,7 +980,7 @@ static TRDP_ERR_T size_unmarshall (
                        pDst16   = (UINT16 *) alignePtr(pDst, ALIGNOF(TIMEDATE48_STRUCT_T));
                        pDst16   += 3u;
                        pSrc     += 6u;
-                       pDst     = (UINT8 *) pDst16;
+                       pDst     = (UINT8 *)alignePtr((const UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
                    }
                    break;
                }
@@ -992,7 +994,8 @@ static TRDP_ERR_T size_unmarshall (
                        pSrc     += 8u;
                        pDst32++;
                        pDst32   = (UINT32 *) alignePtr((UINT8 *) pDst32, ALIGNOF(UINT32));
-                       pDst     = (UINT8 *) pDst32++;
+                       pDst32++;
+                       pDst     = (UINT8 *) pDst32;
                    }
                    break;
                }
@@ -1021,12 +1024,13 @@ static TRDP_ERR_T size_unmarshall (
         }
     }
 
+    pInfo->pDst = alignePtr(pDst, maxSizeOfDSMember(pDataset));
 
     if (pInfo->pSrc > pInfo->pSrcEnd)
     {
         return TRDP_MARSHALLING_ERR;
     }
-
+    
     /* Decrement recursion counter. Note: Recursion counter will not decrement in case of error */
     pInfo->level--;
 
