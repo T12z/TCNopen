@@ -61,7 +61,7 @@ TRDP_APP_SESSION_T  appHandle;					/*	Sub-network Id1 identifier to the library 
 //TRDP_SUB_T          subHandleNet1ComId1;		/*	Sub-network Id1 ComID1 identifier to the subscription	*/
 //TRDP_PUB_T          pubHandleNet1ComId1;		/*	Sub-network Id1 ComID2 identifier to the publication	*/
 TRDP_ERR_T          err;
-TRDP_PD_CONFIG_T    pdConfiguration = {&tau_recvPdDs, NULL, {0, 0}, TRDP_FLAGS_CALLBACK,
+TRDP_PD_CONFIG_T    pdConfiguration = {&tau_recvPdDs, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
                                        10000000, TRDP_TO_SET_TO_ZERO, 0};
 TRDP_MEM_CONFIG_T   dynamicConfig = {NULL, RESERVED_MEMORY, {}};
 TRDP_PROCESS_CONFIG_T	processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
@@ -73,7 +73,7 @@ TRDP_APP_SESSION_T  appHandle2;					/*	Sub-network Id2 identifier to the library
 //TRDP_SUB_T          subHandleNet2ComId1;		/*	Sub-network Id2 ComID1 identifier to the subscription	*/
 //TRDP_PUB_T          pubHandleNet2ComId1;		/*	Sub-network Id2 ComID2 identifier to the publication	*/
 TRDP_ERR_T          err2;
-TRDP_PD_CONFIG_T    pdConfiguration2 = {&tau_recvPdDs, NULL, {0, 0}, TRDP_FLAGS_CALLBACK,
+TRDP_PD_CONFIG_T    pdConfiguration2 = {&tau_recvPdDs, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
                                        10000000, TRDP_TO_SET_TO_ZERO, 0};	    /* Sub-network Id2 PDconfiguration */
 TRDP_MEM_CONFIG_T   dynamicConfig2 = {NULL, RESERVED_MEMORY, {}};					/* Sub-network Id2 Structure describing memory */
 TRDP_PROCESS_CONFIG_T   processConfig2   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};

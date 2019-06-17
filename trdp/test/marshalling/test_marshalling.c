@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      SB 2019-05-24: Ticket #252 Bug in unmarshalling/marshalling of TIMEDATE48 and TIMEDATE64
  *      BL 2018-09-05: Ticket #211 XML handling: Dataset Name should be stored in TRDP_DATASET_ELEMENT_T
  *      BL 2018-04-27: Testing ticket #197
  *      BL 2017-06-30: Compiler warnings, local prototypes added
@@ -633,7 +634,7 @@ struct myDataSet1000
     "Hello old World",
     {0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x0040, 0x0041, 0x0042, 0x0043,
      0x0044, 0},
-    {0x12, 0x34, 0x55, 0x78},
+    {0x12, 0x34, 0x56, 0x78},
     {(INT16)0x1234, (INT16)0x5678, (INT16)0x9ABC, (INT16)0xDEF0},    /* index == 20    */
     {0x12345671, 0x12345672, 0x12345673, 0x12345674},
     {0x123456789ABCDEF1, 0x123456789ABCDEF2, 0x123456789ABCDEF3, 0x123456789ABCDEF4},
@@ -654,7 +655,7 @@ struct myDataSet1000
     {0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x0040, 0x0041, 0x0042, 0x0043,
      0x0044, 0},
     4,
-    {0x12, 0x34, 0x55, 0x78},
+    {0x12, 0x34, 0x56, 0x78},
     4,
     {0x1234, 0x5678, (INT16)0x9ABC, (INT16)0xDEF0},
     4,
@@ -662,7 +663,7 @@ struct myDataSet1000
     4,
     {0x123456789ABCDEF1, 0x123456789ABCDEF2, 0x123456789ABCDEF3, 0x123456789ABCDEF4},
     4,
-    {0x12, 0x34, 0x55, 0x78},
+    {0x12, 0x34, 0x56, 0x78},
     4,
     {0x1234, 0x5678, 0x9ABC, 0xDEF0},
     4,
@@ -678,7 +679,7 @@ struct myDataSet1000
     4,
     {{0x12345671, 0x89A1}, {0x12345672, 0x89A2}, {0x12345673, 0x89A3}, {0x12345674, 0x89A4}},
     4,
-    {{(INT32)0x12345671, (INT32)0x89ABCDE1}, {(INT32)0x12345672, (INT32)0x89ABCDE2}, {(INT32)0x12345673, (INT32)0x89ABCDE3}, {(INT32)0x12345674, (INT32)0x89ABCDE4}},
+    {{(INT32)0x12345671, (INT32)0x89ABCDE1}, {(INT32)0x12345672, (INT32)0x89ABCDE2}, {(INT32)0x12345673, (INT32)0x89ABCDE3}, {(INT32)0x12345674, (INT32)0x4F54544F }},
     {1, {2, {3, {4, "Nested Datasets"}}}}
 };
 
@@ -728,6 +729,85 @@ struct myDataSet1000    gMyDataSet1000Copy;
 struct myDataSet1001    gMyDataSet1001Copy;
 struct myDataSet2003    gMyDataSet2003Copy;
 
+UINT8 gMarshalledData1000[] = { 1,
+                            'A',
+                            0x30,0x00, /* 0x0030 */
+                            0x12,
+                            0x34,0x12, /* 0x1234 */
+                            0x78,0x56,0x34,0x12, /* 0x12345678 */
+                            0xF0,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12, /* 0x123456789ABCDEF0 */
+                            0x12,
+                            0x34,0x12, /* 0x1234 */
+                            0x78,0x56,0x34,0x12, /* 0x12345678 */
+                            0xF0,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12, /* 0x123456789ABCDEF0 */
+                            0x5B,0xD3,0xFC,0x3D, /* 0.12345f */
+                            0x95,0xC8,0x91,0x10,0xDD,0x9A,0xBF,0x3F,  /* 0.12345678 */
+                            0x78,0x56,0x34,0x12, /* 0x12345678 */
+                            0x78,0x56,0x34,0x12, 0xBC,0x9A,  /* { 0x12345678, 0x9ABC } */          /* 14    */
+                            0x78,0x56,0x34,0x12, 0xF0,0xDE,0xBC,0x9A, /* { (INT32)0x12345678, (INT32)0x9ABCDEF0 } */
+                            0x01, 0x00, 0x01, 0x00,   /* { 1, 0, 1, 0 } */                   /* BOOL8 array fixed size */
+                            'H','e','l','l','o',' ','o','l','d',' ','W','o','r','l','d',0x00,
+                            0x30,0x00, 0x31,0x00, 0x32,0x00, 0x33,0x00, 0x34,0x00, 0x35,0x00, 0x36,0x00, 0x37,0x00, 0x38,0x00, 0x39,0x00, 0x40,0x00, 0x41,0x00, 0x42,0x00, 0x43,0x00, 0x44,0x00, 0x00,0x00,
+                       /* { 0x0030,    0x0031,    0x0032,    0x0033,    0x0034,    0x0035,    0x0036,    0x0037,    0x0038,    0x0039,    0x0040,    0x0041,    0x0042,    0x0043,    0x0044,    0 } */
+                            0x12, 0x34, 0x56, 0x78,  /* { 0x12, 0x34, 0x56, 0x78 } */
+                            0x34,0x12, 0x78,0x56, 0xBC,0x9A, 0xF0,0xDE,   /* { (INT16)0x1234, (INT16)0x5678, (INT16)0x9ABC, (INT16)0xDEF0 } */    /* index == 20    */
+                            0x71,0x56,0x34,0x12, 0x72,0x56,0x34,0x12, 0x73,0x56,0x34,0x12, 0x74,0x56,0x34,0x12,  /* { 0x12345671, 0x12345672, 0x12345673, 0x12345674 } */
+                            0xF1,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF2,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF3,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF4,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,
+                       /* { 0x123456789ABCDEF1,                       0x123456789ABCDEF2,                       0x123456789ABCDEF3,                       0x123456789ABCDEF4 } */
+                            0x01, 0x23, 0x45, 0x67,   /*{ 0x01, 0x23, 0x45, 0x67 }*/
+                            0x34,0x12, 0x78,0x56, 0xBC,0x9A, 0xF0,0xDE,  /* { 0x1234, 0x5678, 0x9ABC, 0xDEF0 } */
+                            0x71,0x56,0x34,0x12, 0x72,0x56,0x34,0x12, 0x73,0x56,0x34,0x12, 0x74,0x56,0x34,0x12,  /* { 0x12345671, 0x12345672, 0x12345673, 0x12345674 } */
+                            0xF1,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12, 0xF2,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12, 0xF3,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12, 0xF4,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  
+                       /* { 0x123456789ABCDEF1,                      0x123456789ABCDEF2,                      0x123456789ABCDEF3,                      0x123456789ABCDEF4 } */
+                            0x62,0xBE,0xFC,0x3D, 0xA0,0xC3,0xFC,0x3D, 0xDE,0xC8,0xFC,0x3D, 0x1C,0xCE,0xFC,0x3D,   /* { 0.12341f, 0.12342f, 0.12343f, 0.12344f } */
+                            0x36,0xF8,0xEB,0xE3,0xDB,0x9A,0xBF,0x3F, 0xFB,0x15,0xDF,0x0E,0xDC,0x9A,0xBF,0x3F, 0xBF,0x33,0xD2,0x39,0xDC,0x9A,0xBF,0x3F, 0x83,0x51,0xC5,0x64,0xDC,0x9A,0xBF,0x3F,
+                       /* { 0.12345671,                              0.12345672,                              0.12345673,                              0.12345674 } */
+                            0x71,0x56,0x34,0x12, 0x72,0x56,0x34,0x12, 0x73,0x56,0x34,0x12, 0x74,0x56,0x34,0x12,  /* { 0x12345671, 0x12345672, 0x12345673, 0x12345674 } */
+                            0x71,0x56,0x34,0x12, 0xA1,0x89,  0x72,0x56,0x34,0x12, 0xA2,0x89,  0x73,0x56,0x34,0x12, 0xA3,0x89,  0x74,0x56,0x34,0x12, 0xA4,0x89,                   
+                     /* { { 0x12345671,          0x89A1 },{  0x12345672,          0x89A2 },{  0x12345673,          0x89A3 },{  0x12345674,          0x89A4 } } */
+                            0x71,0x56,0x34,0x12, 0xE1,0xCD,0xAB,0x89,   0x72,0x56,0x34,0x12, 0xE2,0xCD,0xAB,0x89,  0x73,0x56,0x34,0x12, 0xE3,0xCD,0xAB,0x89,  0x74,0x56,0x34,0x12, 0xE4,0xCD,0xAB,0x89,
+                     /* { { (INT32)0x12345671,   (INT32)0x89ABCDE1 },{ (INT32)0x12345672,    (INT32)0x89ABCDE2 },{ (INT32)0x12345673,   (INT32)0x89ABCDE3 },{ (INT32)0x12345674,   (INT32)0x89ABCDE4 } } */
+                            0x00,0x04,                                /* 32    */
+                            0x01, 0x00, 0x01, 0x00, /* { 1, 0, 1, 0 } */                   /* BOOL8 array var size */
+                            0x00,0x10,
+                            'H','e','l','l','o',' ','o','l','d',' ','W','o','r','l','d',0x00,
+                            0x00,0x10,
+                            0x30,0x00, 0x31,0x00, 0x32,0x00, 0x33,0x00, 0x34,0x00, 0x35,0x00, 0x36,0x00, 0x37,0x00, 0x38,0x00, 0x39,0x00, 0x40,0x00, 0x41,0x00, 0x42,0x00, 0x43,0x00, 0x44,0x00, 0x00,0x00,
+                       /* { 0x0030,    0x0031,    0x0032,    0x0033,    0x0034,    0x0035,    0x0036,    0x0037,    0x0038,    0x0039,    0x0040,    0x0041,    0x0042,    0x0043,    0x0044,    0 } */
+                            0x00,0x04,
+                            0x12, 0x34, 0x56, 0x78,  /* { 0x12, 0x34, 0x56, 0x78 } */
+                            0x00,0x04,
+                            0x34,0x12, 0x78,0x56, 0xBC,0x9A, 0xF0,0xDE,   /* { (INT16)0x1234, (INT16)0x5678, (INT16)0x9ABC, (INT16)0xDEF0 } */
+                            0x00,0x04,
+                            0x71,0x56,0x34,0x12, 0x72,0x56,0x34,0x12, 0x73,0x56,0x34,0x12, 0x74,0x56,0x34,0x12,  /* { 0x12345671, 0x12345672, 0x12345673, 0x12345674 } */    /* 43    */
+                            0x00,0x04,
+                            0xF1,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF2,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF3,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF4,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,
+                       /* { 0x123456789ABCDEF1,                       0x123456789ABCDEF2,                       0x123456789ABCDEF3,                       0x123456789ABCDEF4 } */
+                            0x00,0x04,
+                            0x12,0x34,0x56,0x78,/* { 0x12, 0x34, 0x56, 0x78 } */
+                            0x00,0x04,
+                            0x34,0x12, 0x78,0x56, 0xBC,0x9A, 0xF0,0xDE,  /* { 0x1234, 0x5678, 0x9ABC, 0xDEF0 } */
+                            0x00,0x04,
+                            0x71,0x56,0x34,0x12, 0x72,0x56,0x34,0x12, 0x73,0x56,0x34,0x12, 0x74,0x56,0x34,0x12,   /* { 0x12345671, 0x12345672, 0x12345673, 0x12345674 } */
+                            0x00,0x04,
+                            0xF1,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF2,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF3,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,  0xF4,0xDE,0xBC,0x9A,0x78,0x56,0x34,0x12,
+                       /* { 0x123456789ABCDEF1,                       0x123456789ABCDEF2,                       0x123456789ABCDEF3,                       0x123456789ABCDEF4 } */
+                            0x00,0x04,
+                            0x62,0xBE,0xFC,0x3D, 0xA0,0xC3,0xFC,0x3D, 0xDE,0xC8,0xFC,0x3D, 0x1C,0xCE,0xFC,0x3D,   /* { 0.12341f, 0.12342f, 0.12343f, 0.12344f } */
+                            0x00,0x04,
+                            0x36,0xF8,0xEB,0xE3,0xDB,0x9A,0xBF,0x3F, 0xFB,0x15,0xDF,0x0E,0xDC,0x9A,0xBF,0x3F, 0xBF,0x33,0xD2,0x39,0xDC,0x9A,0xBF,0x3F, 0x83,0x51,0xC5,0x64,0xDC,0x9A,0xBF,0x3F,
+                            /* { 0.12345671,                              0.12345672,                              0.12345673,                              0.12345674 } */
+                            0x00,0x04,
+                            0x71,0x56,0x34,0x12, 0x72,0x56,0x34,0x12, 0x73,0x56,0x34,0x12, 0x74,0x56,0x34,0x12,  /* { 0x12345671, 0x12345672, 0x12345673, 0x12345674 } */
+                            0x00,0x04,
+                            0x71,0x56,0x34,0x12, 0xA1,0x89,  0x72,0x56,0x34,0x12, 0xA2,0x89,  0x73,0x56,0x34,0x12, 0xA3,0x89,  0x74,0x56,0x34,0x12, 0xA4,0x89,
+                     /* { { 0x12345671,          0x89A1 },{  0x12345672,          0x89A2 },{  0x12345673,          0x89A3 },{  0x12345674,          0x89A4 } } */
+                            0x00,0x04,
+                            0x71,0x56,0x34,0x12, 0xE1,0xCD,0xAB,0x89,   0x72,0x56,0x34,0x12, 0xE2,0xCD,0xAB,0x89,  0x73,0x56,0x34,0x12, 0xE3,0xCD,0xAB,0x89,  0x74,0x56,0x34,0x12, 0xE4,0xCD,0xAB,0x89,
+                    /* { { (INT32)0x12345671,   (INT32)0x89ABCDE1 },{ (INT32)0x12345672,    (INT32)0x89ABCDE2 },{ (INT32)0x12345673,   (INT32)0x89ABCDE3 },{ (INT32)0x12345674,   (INT32)0x89ABCDE4 } } */
+                            1 ,2 ,3 ,4 , 'N','e','s','t','e','d',' ','D','a','t','a','s','e','t','s',0x00   /* { 1,{ 2,{ 3,{ 4, "Nested Datasets" } } } } */
+                            };
+
 /***********************************************************************************************************************
     Test marshalling and unmarshalling of test dataset
 ***********************************************************************************************************************/
@@ -737,10 +817,14 @@ static int test1()
     UINT32      compSize    = 0;
     UINT32      bufSize     = 0;
     UINT32      bufSize2;
+    BOOL8 comp_td48 = TRUE;
+    BOOL8 comp_td64 = TRUE;
+    UINT8 i;
 
 
     /*    Compute size of marshalled data */
-    err = tau_calcDatasetSizeByComId(gpRefCon, 1000, (UINT8 *) &gMyDataSet1000, sizeof(gMyDataSet1000), &compSize, NULL);
+    err = tau_calcDatasetSizeByComId(gpRefCon, 1000, (UINT8 *)&gMarshalledData1000, sizeof(gMarshalledData1000), &compSize, NULL);
+    //err = tau_calcDatasetSizeByComId(gpRefCon, 1000, (UINT8 *) &gMyDataSet1000, sizeof(gMyDataSet1000), &compSize, NULL);
 
     if (err != TRDP_NO_ERR)
     {
@@ -750,7 +834,7 @@ static int test1()
 
     printf("Precomputed size of marshalled dataset for ComId %d is %u...\n", 1000, compSize);
 
-    if (compSize <= sizeof(gMyDataSet1000))
+    if (compSize == sizeof(gMyDataSet1000))
     {
         printf("...seems OK!\n");
     }
@@ -792,15 +876,100 @@ static int test1()
         return 1;
     }
 
-    if (memcmp(&gMyDataSet1000, &gMyDataSet1000Copy, sizeof(gMyDataSet1000)) != 0)
-    {
-        printf("Something's wrong in the state of Marshalling!\n");
-        return 1;
+    /* to avoid potential errors because of different data in padding */
 
+    for (i = 0; i < 4; i++)
+    {
+        comp_td48 &= gMyDataSet1000.timedate48_0[i].sec == gMyDataSet1000Copy.timedate48_0[i].sec;
+        comp_td48 &= gMyDataSet1000.timedate48_0[i].ticks == gMyDataSet1000Copy.timedate48_0[i].ticks;
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+        comp_td64 &= gMyDataSet1000.timedate64_0[i].tv_sec == gMyDataSet1000Copy.timedate64_0[i].tv_sec;
+        comp_td64 &= gMyDataSet1000.timedate64_0[i].tv_usec == gMyDataSet1000Copy.timedate64_0[i].tv_usec;
+    }
+    
+    if
+        ((gMyDataSet1000.bool8_1 == gMyDataSet1000Copy.bool8_1) &&
+        (gMyDataSet1000.char8_1 == gMyDataSet1000Copy.char8_1) &&
+            (gMyDataSet1000.utf16_1 == gMyDataSet1000Copy.utf16_1) &&
+            (gMyDataSet1000.int8_1 == gMyDataSet1000Copy.int8_1) &&
+            (gMyDataSet1000.int16_1 == gMyDataSet1000Copy.int16_1) &&
+            (gMyDataSet1000.int32_1 == gMyDataSet1000Copy.int32_1) &&
+            (gMyDataSet1000.int64_1 == gMyDataSet1000Copy.int64_1) &&
+            (gMyDataSet1000.uint8_1 == gMyDataSet1000Copy.uint8_1) &&
+            (gMyDataSet1000.uint16_1 == gMyDataSet1000Copy.uint16_1) &&
+            (gMyDataSet1000.uint32_1 == gMyDataSet1000Copy.uint32_1) &&
+            (gMyDataSet1000.uint64_1 == gMyDataSet1000Copy.uint64_1) &&
+            (gMyDataSet1000.float32_1 == gMyDataSet1000Copy.float32_1) &&
+            (gMyDataSet1000.float64_1 == gMyDataSet1000Copy.float64_1) &&
+            (gMyDataSet1000.timedate32_1 == gMyDataSet1000Copy.timedate32_1) &&
+            (gMyDataSet1000.timedate48_1.sec == gMyDataSet1000Copy.timedate48_1.sec) &&
+            (gMyDataSet1000.timedate48_1.ticks == gMyDataSet1000Copy.timedate48_1.ticks) &&
+            (gMyDataSet1000.timedate64_1.tv_sec == gMyDataSet1000Copy.timedate64_1.tv_sec) &&
+            (gMyDataSet1000.timedate64_1.tv_usec == gMyDataSet1000Copy.timedate64_1.tv_usec) &&
+            (memcmp(&gMyDataSet1000.bool8_4, &gMyDataSet1000Copy.bool8_4, sizeof(gMyDataSet1000.bool8_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.char8_16, &gMyDataSet1000Copy.char8_16, sizeof(gMyDataSet1000.char8_16)) == 0) &&
+            (memcmp(&gMyDataSet1000.utf16_4, &gMyDataSet1000Copy.utf16_4, sizeof(gMyDataSet1000.utf16_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.int8_4, &gMyDataSet1000Copy.int8_4, sizeof(gMyDataSet1000.int8_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.int16_4, &gMyDataSet1000Copy.int16_4, sizeof(gMyDataSet1000.int16_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.int32_4, &gMyDataSet1000Copy.int32_4, sizeof(gMyDataSet1000.int32_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.int64_4, &gMyDataSet1000Copy.int64_4, sizeof(gMyDataSet1000.int64_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.uint8_4, &gMyDataSet1000Copy.uint8_4, sizeof(gMyDataSet1000.uint8_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.uint16_4, &gMyDataSet1000Copy.uint16_4, sizeof(gMyDataSet1000.uint16_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.uint32_4, &gMyDataSet1000Copy.uint32_4, sizeof(gMyDataSet1000.uint32_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.uint64_4, &gMyDataSet1000Copy.uint64_4, sizeof(gMyDataSet1000.uint64_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.float32_4, &gMyDataSet1000Copy.float32_4, sizeof(gMyDataSet1000.float32_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.float64_4, &gMyDataSet1000Copy.float64_4, sizeof(gMyDataSet1000.float64_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.timedate32_4, &gMyDataSet1000Copy.timedate32_4, sizeof(gMyDataSet1000.timedate32_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.timedate48_4, &gMyDataSet1000Copy.timedate48_4, sizeof(gMyDataSet1000.timedate48_4)) == 0) &&
+            (memcmp(&gMyDataSet1000.timedate64_4, &gMyDataSet1000Copy.timedate64_4, sizeof(gMyDataSet1000.timedate64_4)) == 0) &&
+            (gMyDataSet1000.size_bool8 == gMyDataSet1000Copy.size_bool8) &&
+            (memcmp(&gMyDataSet1000.bool8_0, &gMyDataSet1000Copy.bool8_0, sizeof(gMyDataSet1000.bool8_0)) == 0) &&
+            (gMyDataSet1000.size_char8 == gMyDataSet1000Copy.size_char8) &&
+            (memcmp(&gMyDataSet1000.char8_0, &gMyDataSet1000Copy.char8_0, sizeof(gMyDataSet1000.char8_0)) == 0) &&
+            (gMyDataSet1000.size_utf16 == gMyDataSet1000Copy.size_utf16) &&
+            (memcmp(&gMyDataSet1000.utf16_0, &gMyDataSet1000Copy.utf16_0, sizeof(gMyDataSet1000.utf16_0)) == 0) &&
+            (gMyDataSet1000.size_int8 == gMyDataSet1000Copy.size_int8) &&
+            (memcmp(&gMyDataSet1000.int8_0, &gMyDataSet1000Copy.int8_0, sizeof(gMyDataSet1000.int8_0)) == 0) &&
+            (gMyDataSet1000.size_int16 == gMyDataSet1000Copy.size_int16) &&
+            (memcmp(&gMyDataSet1000.int16_0, &gMyDataSet1000Copy.int16_0, sizeof(gMyDataSet1000.int16_0)) == 0) &&
+            (gMyDataSet1000.size_int32 == gMyDataSet1000Copy.size_int32) &&
+            (memcmp(&gMyDataSet1000.int32_0, &gMyDataSet1000Copy.int32_0, sizeof(gMyDataSet1000.int32_0)) == 0) &&
+            (gMyDataSet1000.size_int64 == gMyDataSet1000Copy.size_int64) &&
+            (memcmp(&gMyDataSet1000.int64_0, &gMyDataSet1000Copy.int64_0, sizeof(gMyDataSet1000.int64_0)) == 0) &&
+            (gMyDataSet1000.size_uint8 == gMyDataSet1000Copy.size_uint8) &&
+            (memcmp(&gMyDataSet1000.uint8_0, &gMyDataSet1000Copy.uint8_0, sizeof(gMyDataSet1000.uint8_0)) == 0) &&
+            (gMyDataSet1000.size_uint16 == gMyDataSet1000Copy.size_uint16) &&
+            (memcmp(&gMyDataSet1000.uint16_0, &gMyDataSet1000Copy.uint16_0, sizeof(gMyDataSet1000.uint16_0)) == 0) &&
+            (gMyDataSet1000.size_uint32 == gMyDataSet1000Copy.size_uint32) &&
+            (memcmp(&gMyDataSet1000.uint32_0, &gMyDataSet1000Copy.uint32_0, sizeof(gMyDataSet1000.uint32_0)) == 0) &&
+            (gMyDataSet1000.size_uint64 == gMyDataSet1000Copy.size_uint64) &&
+            (memcmp(&gMyDataSet1000.uint64_0, &gMyDataSet1000Copy.uint64_0, sizeof(gMyDataSet1000.uint64_0)) == 0) &&
+            (gMyDataSet1000.size_float32 == gMyDataSet1000Copy.size_float32) &&
+            (memcmp(&gMyDataSet1000.float32_0, &gMyDataSet1000Copy.float32_0, sizeof(gMyDataSet1000.float32_0)) == 0) &&
+            (gMyDataSet1000.size_float64 == gMyDataSet1000Copy.size_float64) &&
+            (memcmp(&gMyDataSet1000.float64_0, &gMyDataSet1000Copy.float64_0, sizeof(gMyDataSet1000.float64_0)) == 0) &&
+            (gMyDataSet1000.size_timedate32 == gMyDataSet1000Copy.size_timedate32) &&
+            (memcmp(&gMyDataSet1000.timedate32_0, &gMyDataSet1000Copy.timedate32_0, sizeof(gMyDataSet1000.timedate32_0)) == 0) &&
+            (gMyDataSet1000.size_timedate48 == gMyDataSet1000Copy.size_timedate48) &&
+            comp_td48 &&
+            (gMyDataSet1000.size_timedate64 == gMyDataSet1000Copy.size_timedate64) &&
+            comp_td64 &&
+            (gMyDataSet1000.ds.level == gMyDataSet1000Copy.ds.level) &&
+            (gMyDataSet1000.ds.ds.level == gMyDataSet1000Copy.ds.ds.level) &&
+            (gMyDataSet1000.ds.ds.ds.level == gMyDataSet1000Copy.ds.ds.ds.level) &&
+            (gMyDataSet1000.ds.ds.ds.ds.level == gMyDataSet1000Copy.ds.ds.ds.ds.level) && 
+            ((memcmp(&gMyDataSet1000.ds.ds.ds.ds.string, &gMyDataSet1000Copy.ds.ds.ds.ds.string, sizeof(gMyDataSet1000.ds.ds.ds.ds.string))) == 0))
+
+    {
+        printf("Marshalling and Unmarshalling data matched!\n");
     }
     else
     {
-        printf("Marshalling and Unmarshalling data matched!\n");
+        printf("Something's wrong in the state of Marshalling!\n");
+        return 1;
     }
 
     return 0;
@@ -890,7 +1059,7 @@ int main ()
 
     err = tau_initMarshall((void *)&gpRefCon, sizeof(gComIdMap)/sizeof(TRDP_COMID_DSID_MAP_T), gComIdMap, 8, gDataSets);
 
-    //test1();
-    return test2();
+    return test1();
+    //return test2();
 }
 

@@ -189,8 +189,8 @@ static void printTelegrams(
     TRDP_EXCHG_PAR_T    *pExchgPar
     )
 {
-    UINT32  trdpFlags[5] = {TRDP_FLAGS_DEFAULT, TRDP_FLAGS_NONE, TRDP_FLAGS_MARSHALL, TRDP_FLAGS_CALLBACK, TRDP_FLAGS_TCP};
-    const char * strtrdpFlags[5] = {"TRDP_FLAGS_DEFAULT", "TRDP_FLAGS_NONE", "TRDP_FLAGS_MARSHALL", "TRDP_FLAGS_CALLBACK", "TRDP_FLAGS_TCP"};
+    UINT32  trdpFlags[9] = {TRDP_FLAGS_DEFAULT, TRDP_FLAGS_NONE, TRDP_FLAGS_MARSHALL, TRDP_FLAGS_CALLBACK, TRDP_FLAGS_TCP, TRDP_FLAGS_FORCE_CB, TRDP_FLAGS_TSN, TRDP_FLAGS_TSN_SDT, TRDP_FLAGS_TSN_MSDT };
+    const char * strtrdpFlags[9] = {"TRDP_FLAGS_DEFAULT", "TRDP_FLAGS_NONE", "TRDP_FLAGS_MARSHALL", "TRDP_FLAGS_CALLBACK", "TRDP_FLAGS_TCP", "TRDP_FLAGS_FORCE_CB", "TRDP_FLAGS_TSN", "TRDP_FLAGS_TSN_SDT", "TRDP_FLAGS_TSN_MSDT" };
     UINT32  idxExPar, i;
 
     /*  Iterate over all telegrams  */
@@ -244,8 +244,8 @@ static void printTelegrams(
                         pDest->pSdtPar->smi1, pDest->pSdtPar->smi2, pDest->pSdtPar->udv);
                     printf("          rx-period: %u, tx-period: %u\n", 
                         pDest->pSdtPar->rxPeriod, pDest->pSdtPar->txPeriod);
-                    printf("          n-rxsafe: %u, n-guard: %u, cm-thr: %u\n", 
-                        pDest->pSdtPar->nrxSafe, pDest->pSdtPar->nGuard, pDest->pSdtPar->cmThr);
+                    printf("          n-rxsafe: %u, n-guard: %u, cm-thr: %u, lmi-max: %u\n", 
+                        pDest->pSdtPar->nrxSafe, pDest->pSdtPar->nGuard, pDest->pSdtPar->cmThr, pDest->pSdtPar->lmiMax);
                 }
             }
         }
@@ -272,8 +272,8 @@ static void printTelegrams(
                         pSrc->pSdtPar->smi1, pSrc->pSdtPar->smi2, pSrc->pSdtPar->udv);
                     printf("          rx-period: %u, tx-period: %u\n", 
                         pSrc->pSdtPar->rxPeriod, pSrc->pSdtPar->txPeriod);
-                    printf("          n-rxsafe: %u, n-guard: %u, cm-thr: %u\n", 
-                        pSrc->pSdtPar->nrxSafe, pSrc->pSdtPar->nGuard, pSrc->pSdtPar->cmThr);
+                    printf("          n-rxsafe: %u, n-guard: %u, cm-thr: %u, lmi-max: %u\n", 
+                        pSrc->pSdtPar->nrxSafe, pSrc->pSdtPar->nGuard, pSrc->pSdtPar->cmThr, pSrc->pSdtPar->lmiMax);
                 }
             }
         }

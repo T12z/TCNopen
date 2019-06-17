@@ -1,0 +1,30 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION     Config file to make TRDP on the NTSecureGateway HelmsDeep96
+#//                 Development board based on the Microchip® ATSAMA5D27 embedded platform
+#//                 with 32-bit Arm® Cortex®-A5 SoC
+#//
+#// AUTHOR          B. Loehr
+#//
+#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
+#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
+#// Copyright NewTec GmbH, 2019. All rights reserved.
+#//
+
+# Toolchain:
+TCPATH = /usr/bin/
+
+ARCH = sama5d27
+TARGET_VOS = posix
+TARGET_OS = LINUX
+TCPREFIX = arm-poky-linux-gnueabi-
+TCPOSTFIX = 
+DOXYPATH = /usr/local/bin/
+
+# the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
+
+CFLAGS += -Wall -Wno-unknown-pragmas -Wno-format -fstrength-reduce -fno-builtin -fsigned-char
+CFLAGS += -pthread -fPIC -D_GNU_SOURCE -DPOSIX -mfloat-abi=hard
+
+LDFLAGS += -lrt -mfloat-abi=hard

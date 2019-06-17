@@ -17,6 +17,9 @@
  /*
  * $Id$
  *
+ *      BL 2019-06-12: Ticket #262 XML Parsing Bug Fixes for Debug Output Print Level and SDTv2 Parameters
+ *      BL 2019-06-12: Ticket #246 Incorrect reading of "user" part of source uri and destination
+ *      BL 2019-05-22: Ticket #249 Issue when parsing memory block configuration from config file
  *      BL 2019-03-15: Ticket #191: Provisions for TSN
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
  *      SB 2018-10-29: Ticket #214 Incorrect parsing of <source> and <destination> elements
@@ -69,6 +72,9 @@
 #endif
 #ifndef TRDP_SDT_DEFAULT_CMTHR
 #define TRDP_SDT_DEFAULT_CMTHR  10u                                 /**< Default SDT chan. monitoring threshold */
+#endif
+#ifndef TRDP_SDT_DEFAULT_LMIMAX
+#define TRDP_SDT_DEFAULT_LMIMAX  (11u*TRDP_SDT_DEFAULT_NRXSAFE)     /**< Default SDT chan. latency monitoring cycles */
 #endif
 
 /*******************************************************************************
@@ -453,7 +459,7 @@ static TRDP_ERR_T readTelegramDef (
                 }
                 else if (vos_strnicmp(attribute, "uri1", MAX_TOK_LEN) == 0)
                 {
-                    char *p = strchr(value, '@');   /* Get host part only */
+                    char *p = strchr(value, '@');   /* Get host part only, if no @ found */
                     if (p != NULL)
                     {
                         pSrc->pUriUser = (TRDP_URI_USER_T *) vos_memAlloc(TRDP_MAX_URI_USER_LEN + 1u);
@@ -464,7 +470,7 @@ static TRDP_ERR_T readTelegramDef (
                                          (unsigned int) (TRDP_MAX_URI_USER_LEN + 1u));
                             return TRDP_MEM_ERR;
                         }
-                        memcpy(pSrc->pUriUser, p, p - value);  /* Trailing zero by vos_memAlloc    */
+                        memcpy(pSrc->pUriUser, value, p - value);  /* Trailing zero by vos_memAlloc    */
                         p++;
                     }
                     else
@@ -484,7 +490,7 @@ static TRDP_ERR_T readTelegramDef (
                 }
                 else if (vos_strnicmp(attribute, "uri2", MAX_TOK_LEN) == 0)
                 {
-                    char *p = strchr(value, '@');   /* Get host part only */
+                    char *p = strchr(value, '@');   /* Get host part only, there is no @ */
                     p = (p == NULL) ? value : p + 1;
 
                     pSrc->pUriHost2 = (TRDP_URI_HOST_T *) vos_memAlloc((UINT32) strlen(p) + 1u);
@@ -498,9 +504,7 @@ static TRDP_ERR_T readTelegramDef (
                     vos_strncpy((char *)pSrc->pUriHost2, p, (UINT32)  strlen(p) + 1u);
                 }
             }
-            if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE)
-            {}
-            else
+            if (token == TOK_CLOSE)
             {
                 trdp_XMLEnter(pXML);
                 if (trdp_XMLCountStartTag(pXML, "sdt-parameter") > 0 &&
@@ -515,6 +519,12 @@ static TRDP_ERR_T readTelegramDef (
                                      (unsigned long) sizeof(TRDP_SDT_PAR_T));
                         return TRDP_MEM_ERR;
                     }
+
+                    pSrc->pSdtPar->smi2 = TRDP_SDT_DEFAULT_SMI2;
+                    pSrc->pSdtPar->nrxSafe = TRDP_SDT_DEFAULT_NRXSAFE;
+                    pSrc->pSdtPar->nGuard = TRDP_SDT_DEFAULT_NGUARD;
+                    pSrc->pSdtPar->cmThr = TRDP_SDT_DEFAULT_CMTHR;
+                    pSrc->pSdtPar->lmiMax = TRDP_SDT_DEFAULT_LMIMAX;
 
                     while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                     {
@@ -550,6 +560,10 @@ static TRDP_ERR_T readTelegramDef (
                         {
                             pSrc->pSdtPar->cmThr = valueInt;
                         }
+                        else if (vos_strnicmp(attribute, "lmi-max", MAX_TOK_LEN) == 0)
+                        {
+                           pSrc->pSdtPar->lmiMax = (UINT8) valueInt;
+                        }
                     }
                 }
                 trdp_XMLLeave(pXML);
@@ -584,7 +598,7 @@ static TRDP_ERR_T readTelegramDef (
                 }
                 else if (vos_strnicmp(attribute, "uri", MAX_TOK_LEN) == 0)
                 {
-                    char *p = strchr(value, '@');   /* Get host part only */
+                    char *p = strchr(value, '@');   /* Get host part only, if no @ found */
                     if (p != NULL)
                     {
                         pDest->pUriUser = (TRDP_URI_USER_T *) vos_memAlloc(TRDP_MAX_URI_USER_LEN + 1u);
@@ -595,8 +609,8 @@ static TRDP_ERR_T readTelegramDef (
                                          (unsigned int) (TRDP_MAX_URI_USER_LEN + 1));
                             return TRDP_MEM_ERR;
                         }
-                        memcpy(pDest->pUriUser, p, p - value);  /* Trailing zero by vos_memAlloc    */
-                        p++;
+                        memcpy(pDest->pUriUser, value, p - value);  /* Trailing zero by vos_memAlloc    */
+                        p++; /* skip '@' */
                     }
                     else
                     {
@@ -614,9 +628,7 @@ static TRDP_ERR_T readTelegramDef (
                     vos_strncpy((char *)pDest->pUriHost, p, (UINT32) strlen(p) + 1u);
                 }
             }
-            if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE)
-            {}
-            else
+            if (token == TOK_CLOSE)
             {
                 trdp_XMLEnter(pXML);
                 if (trdp_XMLCountStartTag(pXML, "sdt-parameter") > 0 &&
@@ -631,6 +643,12 @@ static TRDP_ERR_T readTelegramDef (
                                      (unsigned long) sizeof(TRDP_SDT_PAR_T));
                         return TRDP_MEM_ERR;
                     }
+
+                    pDest->pSdtPar->smi2 = TRDP_SDT_DEFAULT_SMI2;
+                    pDest->pSdtPar->nrxSafe = TRDP_SDT_DEFAULT_NRXSAFE;
+                    pDest->pSdtPar->nGuard = TRDP_SDT_DEFAULT_NGUARD;
+                    pDest->pSdtPar->cmThr = TRDP_SDT_DEFAULT_CMTHR;
+                    pDest->pSdtPar->lmiMax = TRDP_SDT_DEFAULT_LMIMAX;
 
                     while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                     {
@@ -665,6 +683,10 @@ static TRDP_ERR_T readTelegramDef (
                         else if (vos_strnicmp(attribute, "cm-thr", MAX_TOK_LEN) == 0)
                         {
                             pDest->pSdtPar->cmThr = valueInt;
+                        }
+                        else if (vos_strnicmp(attribute, "lmi-max", MAX_TOK_LEN) == 0)
+                        {
+                            pDest->pSdtPar->lmiMax = (UINT8)valueInt;
                         }
                     }
                 }
@@ -1474,9 +1496,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                     trdp_XMLEnter(pDocHnd->pXmlDocument);
                     while (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mem-block") == 0)
                     {
-                        const UINT32    mem_list[] =
-                        {32u, 72u, 128u, 256u, 512u, 1024u, 1480u, 2048u, 4096u, 11520u, 16384u, 32768u, 65536u,
-                         131072u};
+                        const UINT32    mem_list[] = VOS_MEM_BLOCKSIZES;
                         UINT32          sizeValue   = 0u;
                         UINT32          preAlloc    = 0u;
                         int             i;
@@ -1489,13 +1509,16 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                             if (found == TOK_ATTRIBUTE && vos_strnicmp(attribute, "preallocate", MAX_TOK_LEN) == 0)
                             {
                                 /* Find the slot to store the value in  */
-                                for (i = 0; sizeValue > mem_list[i]; i++)
+                                if ((sizeValue >= mem_list[0]) && (sizeValue <= mem_list[VOS_MEM_NBLOCKSIZES - 1]))
                                 {
-                                    ;
-                                }
-                                if (i < 15)
-                                {
-                                    pMemConfig->prealloc[i] = preAlloc;
+                                    for (i = 0; sizeValue > mem_list[i]; i++)
+                                    {
+                                        ;
+                                    }
+                                    if (i < 15)
+                                    {
+                                        pMemConfig->prealloc[i] = preAlloc;
+                                    }
                                 }
                             }
                         }
@@ -1529,11 +1552,11 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                         }
                         if (strpbrk(value, "Ee") != NULL)
                         {
-                            pDbgConfig->option |= TRDP_DBG_ERR | TRDP_DBG_WARN | TRDP_DBG_ERR;
+                            pDbgConfig->option |= TRDP_DBG_ERR;
                         }
                         if (strpbrk(value, "Ii") != NULL)
                         {
-                            pDbgConfig->option |= TRDP_DBG_INFO;
+                            pDbgConfig->option |= TRDP_DBG_ERR | TRDP_DBG_WARN | TRDP_DBG_INFO;
                         }
                     }
                 }

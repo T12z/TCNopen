@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
 *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
 */
 
@@ -32,7 +33,6 @@
 #include <sys/time.h>
 #endif
 #ifdef VXWORKS
-#include "vos_private.h"
 #include "time.h"
 #include "semaphore.h"
 #else

@@ -42,6 +42,7 @@
 
 #include "vos_shared_mem.h"
 #include "vos_utils.h"
+#include "vos_private.h"
 
 #include <windows.h>
 #include <stdio.h>

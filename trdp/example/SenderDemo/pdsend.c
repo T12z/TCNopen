@@ -184,9 +184,9 @@ int pd_init (
     uint32_t    comID,
     uint32_t    interval)
 {
-    TRDP_PD_CONFIG_T        pdConfiguration = {pdCallBack, NULL, {0, 0, 0, 0u, 0u},
+    TRDP_PD_CONFIG_T        pdConfiguration = {pdCallBack, NULL, TRDP_PD_DEFAULT_SEND_PARAM,
                                                TRDP_FLAGS_CALLBACK, 10000000, TRDP_TO_SET_TO_ZERO, 0};
-    TRDP_MD_CONFIG_T        mdConfiguration = {mdCallback, NULL, {0, 0, 0},
+    TRDP_MD_CONFIG_T        mdConfiguration = {mdCallback, NULL, TRDP_MD_DEFAULT_SEND_PARAM,
                                                 TRDP_FLAGS_CALLBACK, 5000000, 5000000, 5000000, 0, 0, 2, 10};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, 100000, {}};
     TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};

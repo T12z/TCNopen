@@ -19,6 +19,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-06-14: Ticket #250: additional parameter lmi-max SDTv2
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
  *      BL 2017-05-08: Compiler warnings, flag enums -> defines
  *      BL 2016-02-11: Ticket #102: Custom XML parser, libxml2 not needed anymore
@@ -73,7 +74,7 @@ typedef struct
     UINT16  nGuard;      /**< Initial timeout cycles */
     UINT8   nrxSafe;     /**< Timout cycles */
     UINT8   reserved1;   /**< Reserved for future use */
-    UINT16  reserved2;   /**< Reserved for future use */
+    UINT16  lmiMax;      /**< Latency monitoring cycles */
 } TRDP_SDT_PAR_T;
 
 typedef struct
@@ -317,7 +318,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlDatasetConfig (
  *  @param[in]      numComId            The number of entries in the ComId DatasetId mapping list
  *  @param[in]      pComIdDsIdMap       Pointer to an array of structures of type TRDP_COMID_DSID_MAP_T
  *  @param[in]      numDataset          The number of datasets found in the configuration
- *  @param[in]      pNumDataset         Pointer to an array of pointers to a structures of type TRDP_DATASET_T
+ *  @param[in]      ppDataset           Pointer to an array of pointers to a structures of type TRDP_DATASET_T
  *
  *  @retval         none
  *
@@ -326,7 +327,7 @@ EXT_DECL void tau_freeXmlDatasetConfig (
     UINT32                  numComId,
     TRDP_COMID_DSID_MAP_T   *pComIdDsIdMap,
     UINT32                  numDataset,
-    TRDP_DATASET_T          * *pNumDataset);
+    TRDP_DATASET_T          * *ppDataset);
 
 /**********************************************************************************************************************/
 /**    Free array of telegram configurations allocated by tau_readXmlInterfaceConfig
