@@ -2,7 +2,7 @@
 /**
  * @file            tau_xmarshall.c
  *
- * @brief           Marshalling functions for TRDP
+ * @brief           eXtended Marshalling functions for TRDP
  *
  * @details         This is a derivative of tau_marshall.c from 2018-Nov, based on Bernd Loehr's work.
  *                  About half the code is copied as is. The rest was modified for use cases, where local types are of
@@ -53,11 +53,6 @@ typedef struct {
 /***********************************************************************************************************************
  * LOCALS
  */
-
-typedef int kcg_int;
-typedef double kcg_real;
-typedef char kcg_char;
-typedef kcg_char kcg_bool;
 
 static TRDP_COMID_DSID_MAP_T *sComIdDsIdMap = NULL;
 static UINT32 sNumComId = 0u;

@@ -602,9 +602,7 @@ static void updateDNSentry (
     UINT32          size;
     UINT32          querySize;
     VOS_SOCK_OPT_T  opts;
-    UINT16          id      = (UINT16) (((UINT16) appHandle) & 0xFFFFu);   /*lint !e507 
-                                                                           size incomatibility,
-                                                                           converting 4 byte pointer to 2 byte integral */
+    UINT16          id      = (uintptr_t)appHandle & 0xFFFFu;
     TAU_DNR_DATA_T  *pDNR   = (TAU_DNR_DATA_T *) appHandle->pUser;
     TRDP_IP_ADDR_T  ip_addr = VOS_INADDR_ANY;
 
