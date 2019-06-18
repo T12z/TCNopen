@@ -34,7 +34,7 @@
 #include "trdp_utils.h"
 
 #define MIN(a,b) (((a)>(b))?(b):(a))
-#define MAXPTR ((UINT8 *)~0)
+#define SIZE_DRYRUN ((UINT8 *)~0)
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -63,9 +63,9 @@ static UINT32 sNumEntries = 0u;
 /** List of byte sizes for standard TCMS types, identical to tau-version */
 static const UINT8 cWireSizeOfBasicTypes[] = { 0, 1, 1, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 4, 6, 8 };
 
-const uint8_t __TAU_XTYPE_MAP[34];
+const uint8_t __TAU_XTYPE_MAP[40];
 static const uint8_t *cMemSizeOfBasicTypes = __TAU_XTYPE_MAP;
-static const uint8_t *cAlignOfBasicTypes   = __TAU_XTYPE_MAP+17;
+static const uint8_t *cAlignOfBasicTypes   = __TAU_XTYPE_MAP+20;
 
 
 
@@ -99,24 +99,24 @@ static INLINE UINT8 *alignPtr(const UINT8 *pSrc, uintptr_t alignment) {
  *  @retval          1 if arg1 > arg2
  */
 static int compareDataset (
-    const void  *pArg1,
-    const void  *pArg2)
+		const void  *pArg1,
+		const void  *pArg2)
 {
-    TRDP_DATASET_T  *p1 = *(TRDP_DATASET_T * *)pArg1;
-    TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * *)pArg2;
+	TRDP_DATASET_T  *p1 = *(TRDP_DATASET_T * *)pArg1;
+	TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * *)pArg2;
 
-    if (p1->id < p2->id)
-    {
-        return -1;
-    }
-    else if (p1->id > p2->id)
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+	if (p1->id < p2->id)
+	{
+		return -1;
+	}
+	else if (p1->id > p2->id)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 /**********************************************************************************************************************/
@@ -213,6 +213,30 @@ static TRDP_DATASET_T *findDSFromComId(UINT32 comId) {
 	return NULL;
 }
 
+/**********************************************************************************************************************/
+/**    Return the largest alignment requirement of this dataset, which determines the whole structure's alignment.
+ *     (note to self: without the structure being aligned, its member may move to odd addresses.)
+ *
+ *  @param[in]      pDataset        Pointer to one dataset
+ *
+ *  @retval         1,2,4,8
+ *
+ */
+static UINT8 maxAlignOfDSMember (TRDP_DATASET_T *pDataset) {
+	UINT8   maxAlign = 1;
+	UINT8   elemAlign;
+
+	if (pDataset != NULL) {
+		/*    Loop over all datasets in the list    */
+		for (UINT16 lIndex = 0u; lIndex < pDataset->numElement; ++lIndex) {
+			elemAlign = (pDataset->pElement[lIndex].type <= TRDP_TIMEDATE64)
+                		? cAlignOfBasicTypes[pDataset->pElement[lIndex].type]
+						: maxAlignOfDSMember(findDs(pDataset->pElement[lIndex].type));
+			if (maxAlign < elemAlign) maxAlign = elemAlign;
+		}
+	}
+	return maxAlign;
+}
 
 /**********************************************************************************************************************/
 /**    Marshall one dataset.
@@ -238,9 +262,7 @@ static TRDP_ERR_T marshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pDatase
 	pInfo->level++;
 	if (pInfo->level > TAU_XMAX_DS_LEVEL) return TRDP_STATE_ERR;
 
-	/* I have no idea what this is for. I will align the first member anyways. */
-	/* I could not find anything about the whole struct needing to be aligned. */
-	// pSrc = alignPtr(pInfo->pSrc, maxSizeOfDSMember(pDataset));
+	pSrc = alignPtr(pInfo->pSrc, maxAlignOfDSMember(pDataset));
 
 	/*    Loop over all datasets in the array    */
 	for (lIndex = 0u; lIndex < pDataset->numElement; ++lIndex) {
@@ -276,7 +298,12 @@ static TRDP_ERR_T marshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pDatase
 			UINT32 m = cMemSizeOfBasicTypes[t];
 			UINT32 w = cWireSizeOfBasicTypes[t];
 			pSrc = alignPtr(pSrc, cAlignOfBasicTypes[t]);
-			if ((pDst + noOfItems * w) > pInfo->pDstEnd) return TRDP_PARAM_ERR;
+			UINT32 tm_2 = 0; /* true for the second time-struct member */
+
+			if ((pDst + noOfItems * w) > pInfo->pDstEnd) {
+				vos_printLogStr(VOS_LOG_WARNING, "Marshalling tried to write beyond wire buffer.\n");
+				return TRDP_PARAM_ERR;
+			}
 			if ((pSrc + noOfItems * m) > pInfo->pSrcEnd) {
 				vos_printLogStr(VOS_LOG_WARNING, "Marshalling read beyond source area. Wrong Dataset size provided?\n");
 				return TRDP_PARAM_ERR;
@@ -291,77 +318,92 @@ static TRDP_ERR_T marshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pDatase
 				default: var_size = 0;
 				}
 			}
-			if (t==TRDP_TIMEDATE64) { /* these are two clamped u32 */
-				noOfItems *= 2;
-				m /= 2;
-			}
 
-			switch (w) {
-			case 1:
-				while (noOfItems-- > 0u) {
+			while (noOfItems-- > 0u) {
+				UINT64 ui=0; /* temporaries */
+				INT64  si=0;
+
+				if (t == TRDP_TIMEDATE48) {
+					if (tm_2) {
+						w = cWireSizeOfBasicTypes[TRDP_UINT16];
+						m = cMemSizeOfBasicTypes[__TRDP_TIMEDATE48_TICK];
+						pSrc = alignPtr(pSrc, cAlignOfBasicTypes[__TRDP_TIMEDATE48_TICK]);
+						tm_2 = 0;
+					} else {
+						w = cWireSizeOfBasicTypes[TRDP_UINT32];
+						m = cMemSizeOfBasicTypes[TRDP_TIMEDATE32];
+						pSrc = alignPtr(pSrc, cAlignOfBasicTypes[TRDP_TIMEDATE32]);
+						noOfItems++;
+						tm_2++;
+					}
+				}
+
+				if (t == TRDP_TIMEDATE64) {
+					w = cWireSizeOfBasicTypes[TRDP_UINT32];
+					if (tm_2) {
+						m = cMemSizeOfBasicTypes[__TRDP_TIMEDATE64_US];
+						pSrc = alignPtr(pSrc, cAlignOfBasicTypes[__TRDP_TIMEDATE64_US]);
+						tm_2 = 0;
+						switch (m) {
+						case 2: si = *(INT16 *)pSrc; break;
+						case 4: si = *(INT32 *)pSrc; break;
+						case 8: si = *(INT64 *)pSrc; break;
+						}
+					} else {
+						m = cMemSizeOfBasicTypes[TRDP_TIMEDATE32];
+						pSrc = alignPtr(pSrc, cAlignOfBasicTypes[TRDP_TIMEDATE32]);
+						noOfItems++;
+						tm_2++;
+					}
+				}
+
+				/* differentiate for signed types to get sign extension, when needed */
+				if (t >= TRDP_INT16 && t <= TRDP_INT64) {
+					switch (m) {
+					case 2: si = *(INT16 *)pSrc; break;
+					case 4: si = *(INT32 *)pSrc; break;
+					case 8: si = *(INT64 *)pSrc; break;
+					}
+					ui = si;
+				} else {
+					switch (m) {
+					case 2: ui = *(UINT16 *)pSrc; break;
+					case 4: ui = *(UINT32 *)pSrc; break;
+					case 8: ui = *(UINT64 *)pSrc; break;
+					}
+				}
+
+				switch (w) {
+				case 1:
 					*pDst++ = (UINT8) *pSrc;
-					pSrc += m;
+					break;
+
+				case 2:
+					*pDst++ = (UINT8) (ui >> 8u);
+					*pDst++ = (UINT8) (ui);
+					break;
+
+				case 4:
+					*pDst++ = (UINT8) (ui >> 24u);
+					*pDst++ = (UINT8) (ui >> 16u);
+					*pDst++ = (UINT8) (ui >>  8u);
+					*pDst++ = (UINT8) (ui);
+					break;
+
+				case 8:
+					*pDst++ = (UINT8) (ui >> 56u);
+					*pDst++ = (UINT8) (ui >> 48u);
+					*pDst++ = (UINT8) (ui >> 40u);
+					*pDst++ = (UINT8) (ui >> 32u);
+					*pDst++ = (UINT8) (ui >> 24u);
+					*pDst++ = (UINT8) (ui >> 16u);
+					*pDst++ = (UINT8) (ui >>  8u);
+					*pDst++ = (UINT8) (ui);
+					break;
+				default:
+					break;
 				}
-
-				break;
-
-			case 2:
-
-				while (noOfItems-- > 0u) {
-					UINT16 ui16 = *(UINT16 *)pSrc;
-					*pDst++ = (UINT8) (ui16 >> 8u);
-					*pDst++ = (UINT8) (ui16);
-					pSrc += m;
-				}
-				break;
-
-			case 4:
-				while (noOfItems-- > 0u) {
-					UINT32 ui32 = *(UINT32 *)pSrc;
-					*pDst++ = (UINT8) (ui32 >> 24u);
-					*pDst++ = (UINT8) (ui32 >> 16u);
-					*pDst++ = (UINT8) (ui32 >>  8u);
-					*pDst++ = (UINT8) (ui32);
-					pSrc += m;
-				}
-				break;
-
-			case 6:
-				/*    This is not a base type but a structure    */
-
-				while (noOfItems-- > 0u) {
-					pSrc = alignPtr(pSrc, cAlignOfBasicTypes[TRDP_UINT32]);
-					UINT32 ui32 = *(UINT32 *)pSrc;
-					*pDst++ = (UINT8) (ui32 >> 24u);
-					*pDst++ = (UINT8) (ui32 >> 16u);
-					*pDst++ = (UINT8) (ui32 >> 8u);
-					*pDst++ = (UINT8) (ui32);
-					pSrc += cMemSizeOfBasicTypes[TRDP_UINT32];
-
-					pSrc = alignPtr(pSrc, cAlignOfBasicTypes[TRDP_UINT16]);
-					UINT16 ui16 = *(UINT16 *)pSrc;
-					*pDst++ = (UINT8) (ui16 >> 8u);
-					*pDst++ = (UINT8) (ui16);
-					pSrc += cMemSizeOfBasicTypes[TRDP_UINT16];
-				}
-				break;
-			case 8:
-
-				while (noOfItems-- > 0u) {
-					UINT64 ui64 = *(UINT64 *)pSrc;
-					*pDst++ = (UINT8) (ui64 >> 56u);
-					*pDst++ = (UINT8) (ui64 >> 48u);
-					*pDst++ = (UINT8) (ui64 >> 40u);
-					*pDst++ = (UINT8) (ui64 >> 32u);
-					*pDst++ = (UINT8) (ui64 >> 24u);
-					*pDst++ = (UINT8) (ui64 >> 16u);
-					*pDst++ = (UINT8) (ui64 >>  8u);
-					*pDst++ = (UINT8) (ui64);
-					pSrc += m;
-				}
-				break;
-			default:
-				break;
+				pSrc += m;
 			}
 			/* Update info structure if we need to! (was issue #137) */
 			pInfo->pDst = pDst;
@@ -393,16 +435,12 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
 	TRDP_ERR_T result;
 	UINT16 lIndex;
 	UINT32 var_size = 0u;
-	UINT8 *pSrc = pInfo->pSrc;
-	UINT8 *pDst = pInfo->pDst;
 
 	/* Restrict recursion */
 	pInfo->level++;
 	if (pInfo->level > TAU_XMAX_DS_LEVEL) return TRDP_STATE_ERR;
 
-	/* I have no idea what this is for. I will align the first member anyways. */
-	/* I could not find anything about the whole struct needing to be aligned. */
-	// pDst = alignPtr(pInfo->pDst, maxSizeOfDSMember(pDataset));
+	pInfo->pDst = alignPtr(pInfo->pDst, maxAlignOfDSMember(pDataset));
 
 	/*    Loop over all datasets in the array    */
 	for (lIndex = 0u; (lIndex < pDataset->numElement) && (pInfo->pSrcEnd > pInfo->pSrc); ++lIndex) {
@@ -429,13 +467,13 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
 				if (result != TRDP_NO_ERR) return result;
 
 			}
-			pDst = pInfo->pDst;
-			pSrc = pInfo->pSrc;
 		} else {
 			UINT32 t = pDataset->pElement[lIndex].type;
 			UINT32 m = cMemSizeOfBasicTypes[t];
 			UINT32 w = cWireSizeOfBasicTypes[t];
-			pDst = alignPtr(pDst, cAlignOfBasicTypes[t]);
+			UINT8 *pSrc = pInfo->pSrc; /* just a short-hand */
+			UINT8 *pDst = alignPtr(pInfo->pDst, cAlignOfBasicTypes[t]);
+
 			if ((pSrc + noOfItems * w) > pInfo->pSrcEnd) {
 				vos_printLogStr(VOS_LOG_WARNING, "Unmarshalling tried to read beyond src area. Wrong dataset size provided?\n");
 				return TRDP_PARAM_ERR;
@@ -444,66 +482,99 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
 				vos_printLogStr(VOS_LOG_WARNING, "Unmarshalling tried to write beyond dest area. Wrong buffer size provided?\n");
 				return TRDP_PARAM_ERR;
 			}
-			if (t==TRDP_TIMEDATE64) { /* these are two clamped u32 */
-				noOfItems *= 2;
-				m /= 2;
-			}
 
 			UINT64 u=0;
-			if (t != TRDP_TIMEDATE48) {
+			if (t < TRDP_TIMEDATE48) {
 				while (noOfItems-- > 0u) {
 					u = *pSrc++;
 					/* sign extend */
 					if ((t>=TRDP_INT8) && (t<=TRDP_INT32) && (u&0x80)) u |= ~0xFF;
 					switch (w) {
-					case 8: u = (u << 8) | *pSrc++;
-							u = (u << 8) | *pSrc++;
-							u = (u << 8) | *pSrc++;
-							u = (u << 8) | *pSrc++;
-							//no break
-					case 4: u = (u << 8) | *pSrc++;
-							u = (u << 8) | *pSrc++;
-							//no break
-					case 2: u = (u << 8) | *pSrc++;
-							//no break
+					case 8:
+						u = (u << 8) | *pSrc++;
+						u = (u << 8) | *pSrc++;
+						u = (u << 8) | *pSrc++;
+						u = (u << 8) | *pSrc++;
+						//no break
+					case 4:
+						u = (u << 8) | *pSrc++;
+						u = (u << 8) | *pSrc++;
+						//no break
+					case 2:
+						u = (u << 8) | *pSrc++;
+						break;
 					}
 
-					if (pInfo->pDstEnd != MAXPTR) switch (m) {
-					case 8:  *(UINT64 *)pDst = u; break;
-					case 4:  *(UINT32 *)pDst = u; break;
-					case 2:  *(UINT16 *)pDst = u; break;
-					case 1:            *pDst = u; break;
+					if (pInfo->pDstEnd != SIZE_DRYRUN) {/* only write to memory, if this is not a dry-run */
+						switch (m) {
+						case 8:  *(UINT64 *)pDst = u; break;
+						case 4:  *(UINT32 *)pDst = u; break;
+						case 2:  *(UINT16 *)pDst = u; break;
+						case 1:            *pDst = u; break;
+						}
 					}
 					pDst += m;
 					var_size = u;
 				}
+			} else if (t < TRDP_TIMEDATE64) {
+				/*    This is not a base type but a structure    */
+				int realign = cAlignOfBasicTypes[TRDP_TIMEDATE32] != cAlignOfBasicTypes[__TRDP_TIMEDATE48_TICK];
+				while (noOfItems-- > 0u) {
+					if (realign) pDst = alignPtr(pDst, cAlignOfBasicTypes[TRDP_TIMEDATE32]);
+					u = *pSrc++;
+					u = (u << 8) | *pSrc++;
+					u = (u << 8) | *pSrc++;
+					u = (u << 8) | *pSrc++;
+					if (pInfo->pDstEnd != SIZE_DRYRUN ) switch (cMemSizeOfBasicTypes[TRDP_TIMEDATE32]) {
+					case 8:  *(UINT64 *)pDst = u; break;
+					case 4:  *(UINT32 *)pDst = u; break;
+					case 2:  *(UINT16 *)pDst = u; break;
+					case 1:            *pDst = u; break;
+					}
+					pDst += cMemSizeOfBasicTypes[TRDP_TIMEDATE32];
+
+					if (realign) pDst = alignPtr(pDst, cAlignOfBasicTypes[__TRDP_TIMEDATE48_TICK]);
+					u = *pSrc++;
+					u = (u << 8) | *pSrc++;
+					if (pInfo->pDstEnd != SIZE_DRYRUN ) switch (cMemSizeOfBasicTypes[__TRDP_TIMEDATE48_TICK]) {
+					case 8:  *(UINT64 *)pDst = u; break;
+					case 4:  *(UINT32 *)pDst = u; break;
+					case 2:  *(UINT16 *)pDst = u; break;
+					case 1:            *pDst = u; break;
+					}
+					pDst += cMemSizeOfBasicTypes[__TRDP_TIMEDATE48_TICK];
+				}
 			} else {
 				/*    This is not a base type but a structure    */
-				int realign = cAlignOfBasicTypes[TRDP_UINT32] != cAlignOfBasicTypes[TRDP_UINT16];
+				int realign = cAlignOfBasicTypes[TRDP_TIMEDATE32] != cAlignOfBasicTypes[__TRDP_TIMEDATE64_US];
 				while (noOfItems-- > 0u) {
-					if (realign) pDst = alignPtr(pDst, cAlignOfBasicTypes[TRDP_UINT32]);
+					if (realign) pDst = alignPtr(pDst, cAlignOfBasicTypes[TRDP_TIMEDATE32]);
 					u = *pSrc++;
 					u = (u << 8) | *pSrc++;
 					u = (u << 8) | *pSrc++;
 					u = (u << 8) | *pSrc++;
-					if (pInfo->pDstEnd != MAXPTR ) switch (cMemSizeOfBasicTypes[TRDP_UINT32]) {
+					if (pInfo->pDstEnd != SIZE_DRYRUN ) switch (cMemSizeOfBasicTypes[TRDP_TIMEDATE32]) {
 					case 8:  *(UINT64 *)pDst = u; break;
 					case 4:  *(UINT32 *)pDst = u; break;
 					case 2:  *(UINT16 *)pDst = u; break;
 					case 1:            *pDst = u; break;
 					}
-					pDst += cMemSizeOfBasicTypes[TRDP_UINT32];
+					pDst += cMemSizeOfBasicTypes[TRDP_TIMEDATE32];
 
-					if (realign) pDst = alignPtr(pDst, cAlignOfBasicTypes[TRDP_UINT16]);
+					if (realign) pDst = alignPtr(pDst, cAlignOfBasicTypes[__TRDP_TIMEDATE64_US]);
 					u = *pSrc++;
+					/* sign extend */
+					if (u&0x80) u |= ~0xFF;
 					u = (u << 8) | *pSrc++;
-					if (pInfo->pDstEnd != MAXPTR ) switch (cMemSizeOfBasicTypes[TRDP_UINT16]) {
+					u = (u << 8) | *pSrc++;
+					u = (u << 8) | *pSrc++;
+					if (pInfo->pDstEnd != SIZE_DRYRUN ) switch (cMemSizeOfBasicTypes[__TRDP_TIMEDATE64_US]) {
 					case 8:  *(UINT64 *)pDst = u; break;
 					case 4:  *(UINT32 *)pDst = u; break;
 					case 2:  *(UINT16 *)pDst = u; break;
 					case 1:            *pDst = u; break;
 					}
-					pDst += cMemSizeOfBasicTypes[TRDP_UINT16];
+					pDst += cMemSizeOfBasicTypes[__TRDP_TIMEDATE64_US];
 				}
 			}
 
@@ -514,6 +585,8 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
 
 	/* Decrement recursion counter. Note: Recursion counter will not decrement in case of error */
 	pInfo->level--;
+	if (!pInfo->level && pInfo->pDstEnd == SIZE_DRYRUN) /* round up the size output, like sizeof() would do */
+		pInfo->pDst = alignPtr(pInfo->pDst, maxAlignOfDSMember(pDataset));
 
 	return TRDP_NO_ERR;
 }
@@ -541,33 +614,33 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
  */
 
 EXT_DECL TRDP_ERR_T tau_xinitMarshall ( void * *ppRefCon,
-    UINT32 numComId,   TRDP_COMID_DSID_MAP_T *pComIdDsIdMap,
-    UINT32 numDataSet, TRDP_DATASET_T        *pDataset[]     ) {
+		UINT32 numComId,   TRDP_COMID_DSID_MAP_T *pComIdDsIdMap,
+		UINT32 numDataSet, TRDP_DATASET_T        *pDataset[]     ) {
 
-    UINT32 i, j;
+	UINT32 i, j;
 
-    if (!pDataset || !numDataSet || !numComId || !pComIdDsIdMap ) return TRDP_PARAM_ERR;
+	if (!pDataset || !numDataSet || !numComId || !pComIdDsIdMap ) return TRDP_PARAM_ERR;
 
-    /*    Save the pointer to the comId mapping table    */
-    sComIdDsIdMap   = pComIdDsIdMap;
-    sNumComId       = numComId;
+	/*    Save the pointer to the comId mapping table    */
+	sComIdDsIdMap   = pComIdDsIdMap;
+	sNumComId       = numComId;
 
-    /* sort the table    */
-    vos_qsort(pComIdDsIdMap, numComId, sizeof(TRDP_COMID_DSID_MAP_T), compareComId);
+	/* sort the table    */
+	vos_qsort(pComIdDsIdMap, numComId, sizeof(TRDP_COMID_DSID_MAP_T), compareComId);
 
-    /*    Save the pointer to the table    */
-    sDataSets   = pDataset;
-    sNumEntries = numDataSet;
+	/*    Save the pointer to the table    */
+	sDataSets   = pDataset;
+	sNumEntries = numDataSet;
 
-    /* invalidate the cache */
-    for (i = 0u; i < numDataSet; i++)
-        for (j = 0u; j < pDataset[i]->numElement; j++)
-            pDataset[i]->pElement[j].pCachedDS = NULL;
+	/* invalidate the cache */
+	for (i = 0u; i < numDataSet; i++)
+		for (j = 0u; j < pDataset[i]->numElement; j++)
+			pDataset[i]->pElement[j].pCachedDS = NULL;
 
-    /* sort the table    */
-    vos_qsort(pDataset, numDataSet, sizeof(TRDP_DATASET_T *), compareDataset);
+	/* sort the table    */
+	vos_qsort(pDataset, numDataSet, sizeof(TRDP_DATASET_T *), compareDataset);
 
-    return TRDP_NO_ERR;
+	return TRDP_NO_ERR;
 }
 
 /**********************************************************************************************************************/
@@ -728,7 +801,7 @@ EXT_DECL TRDP_ERR_T tau_xcalcDatasetSize(void *pRefCon, UINT32 dsId, UINT8 *pSrc
 	info.pSrc = pSrc;
 	info.pSrcEnd = pSrc + srcSize;
 	info.pDst = 0u;
-	info.pDstEnd = MAXPTR; /* set to outer space for calculation */
+	info.pDstEnd = SIZE_DRYRUN; /* set to outer space for calculation */
 
 
 	result = unmarshallDs(&info, pDataset);
@@ -784,7 +857,7 @@ EXT_DECL TRDP_ERR_T tau_xcalcDatasetSizeByComId(void *pRefCon, UINT32 comId, UIN
 	info.pSrc = pSrc;
 	info.pSrcEnd = pSrc + srcSize;
 	info.pDst = 0u;
-	info.pDstEnd = MAXPTR; /* set to outer space for calculation */
+	info.pDstEnd = SIZE_DRYRUN; /* set to outer space for calculation */
 
 	result = unmarshallDs(&info, pDataset);
 
