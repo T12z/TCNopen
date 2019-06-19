@@ -35,7 +35,7 @@
 #include "getopt.h"
 #endif
 
-#include "trdp_if.h"
+#include "tlc_if.h"
 #include "vos_thread.h"
 #include "vos_utils.h"
 

@@ -75,7 +75,6 @@
 		0874F448228DC11F00038D72 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		0885F05820E26CFE000D1F2E /* libtrdp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2AAC046055464E500DB518D /* libtrdp.a */; settings = {ATTRIBUTES = (Required, ); }; };
 		0899476F22B7E484009D0D6C /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
-		0899477122B7E7BD009D0D6C /* trdp_if_soa_.h in Headers */ = {isa = PBXBuildFile; fileRef = 0899477022B7E7BD009D0D6C /* trdp_if_soa_.h */; };
 		0899477322B8C6A2009D0D6C /* trdp_serviceRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 0899477222B8C6A1009D0D6C /* trdp_serviceRegistry.h */; };
 		0899477422B8C6A2009D0D6C /* trdp_serviceRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 0899477222B8C6A1009D0D6C /* trdp_serviceRegistry.h */; };
 		0899477722B91586009D0D6C /* tlp_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899477622B91586009D0D6C /* tlp_if.c */; };
@@ -87,6 +86,11 @@
 		0899477F22B92D55009D0D6C /* tau_so_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899477E22B92D55009D0D6C /* tau_so_if.c */; };
 		0899478022B92D55009D0D6C /* tau_so_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899477E22B92D55009D0D6C /* tau_so_if.c */; };
 		0899478122B92D55009D0D6C /* tau_so_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899477E22B92D55009D0D6C /* tau_so_if.c */; };
+		0899478422BA83B0009D0D6C /* tlc_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899478322BA83AF009D0D6C /* tlc_if.c */; };
+		0899478522BA83B0009D0D6C /* tlc_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899478322BA83AF009D0D6C /* tlc_if.c */; };
+		0899478622BA83B0009D0D6C /* tlc_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899478322BA83AF009D0D6C /* tlc_if.c */; };
+		0899478822BA83B9009D0D6C /* tlc_if.h in Headers */ = {isa = PBXBuildFile; fileRef = 0899478722BA83B9009D0D6C /* tlc_if.h */; };
+		0899478922BA83B9009D0D6C /* tlc_if.h in Headers */ = {isa = PBXBuildFile; fileRef = 0899478722BA83B9009D0D6C /* tlc_if.h */; };
 		08A327C31E51FE2700B03846 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		08A327C81E51FE6800B03846 /* api_test.c in Sources */ = {isa = PBXBuildFile; fileRef = 08A327B91E51FDD400B03846 /* api_test.c */; };
 		08BC1D9A2100C38D009FC612 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
@@ -114,7 +118,6 @@
 		08D51C36200FB810004319B6 /* tau_cstinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 7303DC7E1BAAB016004C92D9 /* tau_cstinfo.c */; };
 		08D51C37200FB810004319B6 /* tau_marshall.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D6657A15D3D88700A352D4 /* tau_marshall.c */; };
 		08D51C38200FB810004319B6 /* tau_xml.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B291B70DFD20066EA06 /* tau_xml.c */; };
-		08D51C39200FB810004319B6 /* trdp_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F2F150777B00046E0AC /* trdp_if.c */; };
 		08D51C3B200FB810004319B6 /* trdp_mdcom.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F30150777B00046E0AC /* trdp_mdcom.c */; };
 		08D51C3D200FB810004319B6 /* trdp_pdcom.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F34150777B00046E0AC /* trdp_pdcom.c */; };
 		08D51C40200FB810004319B6 /* trdp_stats.c in Sources */ = {isa = PBXBuildFile; fileRef = 7387F506157795FE00DBAB73 /* trdp_stats.c */; };
@@ -190,7 +193,6 @@
 		73591F7B1B986C7900B758F0 /* tau_tti_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 73A00E5E1913CCAF0020A6EA /* tau_tti_types.h */; };
 		73591F7C1B986C7900B758F0 /* trdp_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F3A150777B00046E0AC /* trdp_utils.h */; };
 		73591F7D1B986C7900B758F0 /* trdp_stats.h in Headers */ = {isa = PBXBuildFile; fileRef = 7387F505157795FE00DBAB73 /* trdp_stats.h */; };
-		73591F7E1B986C7900B758F0 /* trdp_if.h in Headers */ = {isa = PBXBuildFile; fileRef = 7373E4AF157CE42C0084966B /* trdp_if.h */; };
 		73591F7F1B986C7900B758F0 /* trdp_pdcom.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F35150777B00046E0AC /* trdp_pdcom.h */; };
 		73591F801B986C7900B758F0 /* trdp_mdcom.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F31150777B00046E0AC /* trdp_mdcom.h */; };
 		73591F811B986C7900B758F0 /* tau_marshall.h in Headers */ = {isa = PBXBuildFile; fileRef = 73F457C9152DE1FE00D1C522 /* tau_marshall.h */; };
@@ -199,7 +201,6 @@
 		73591F851B986C7900B758F0 /* tau_dnr.h in Headers */ = {isa = PBXBuildFile; fileRef = 73A00E611913CCC50020A6EA /* tau_dnr.h */; };
 		73591F871B986C7900B758F0 /* vos_sock.c in Sources */ = {isa = PBXBuildFile; fileRef = 73E052721513537C0058D590 /* vos_sock.c */; };
 		73591F881B986C7900B758F0 /* vos_thread.c in Sources */ = {isa = PBXBuildFile; fileRef = 73E0535C1513685D0058D590 /* vos_thread.c */; };
-		73591F891B986C7900B758F0 /* trdp_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F2F150777B00046E0AC /* trdp_if.c */; };
 		73591F8A1B986C7900B758F0 /* trdp_pdcom.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F34150777B00046E0AC /* trdp_pdcom.c */; };
 		73591F8B1B986C7900B758F0 /* trdp_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F39150777B00046E0AC /* trdp_utils.c */; };
 		73591F8C1B986C7900B758F0 /* trdp_stats.c in Sources */ = {isa = PBXBuildFile; fileRef = 7387F506157795FE00DBAB73 /* trdp_stats.c */; };
@@ -208,7 +209,6 @@
 		73591F911B986C7900B758F0 /* vos_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B321B70E9DF0066EA06 /* vos_mem.c */; };
 		73591F921B986C7900B758F0 /* vos_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B331B70E9DF0066EA06 /* vos_utils.c */; };
 		73603CF6175CBE9A004608BD /* trdp-md-test.c in Sources */ = {isa = PBXBuildFile; fileRef = 7367955D17202EBE003C68ED /* trdp-md-test.c */; };
-		7373E4B0157CE42C0084966B /* trdp_if.h in Headers */ = {isa = PBXBuildFile; fileRef = 7373E4AF157CE42C0084966B /* trdp_if.h */; };
 		7381BE5C1643FB36003BC539 /* echoCallback.c in Sources */ = {isa = PBXBuildFile; fileRef = 7381BE511643FAC4003BC539 /* echoCallback.c */; };
 		7381BF0516442C90003BC539 /* getStatsMarshall.c in Sources */ = {isa = PBXBuildFile; fileRef = 7381BEF916442C14003BC539 /* getStatsMarshall.c */; };
 		73821FB51508DC780046E0AC /* trdp_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F2A150777B00046E0AC /* trdp_types.h */; };
@@ -232,7 +232,6 @@
 		73E052731513537C0058D590 /* vos_sock.c in Sources */ = {isa = PBXBuildFile; fileRef = 73E052721513537C0058D590 /* vos_sock.c */; };
 		73E0535D1513685D0058D590 /* vos_thread.c in Sources */ = {isa = PBXBuildFile; fileRef = 73E0535C1513685D0058D590 /* vos_thread.c */; };
 		73E0536015136BF60058D590 /* vos_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 73E0535F15136BF60058D590 /* vos_utils.h */; };
-		73F458B9152F331E00D1C522 /* trdp_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F2F150777B00046E0AC /* trdp_if.c */; };
 		73F458BC152F332400D1C522 /* trdp_pdcom.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F34150777B00046E0AC /* trdp_pdcom.c */; };
 		73F458BE152F332600D1C522 /* trdp_private.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F36150777B00046E0AC /* trdp_private.h */; };
 		73F5A50D16A408DC00335006 /* vos_shared_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 73F5A50C16A408DC00335006 /* vos_shared_mem.c */; };
@@ -753,11 +752,13 @@
 		086A4F6822B0F3AF00C9BB93 /* test_sdt.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = test_sdt.xml; sourceTree = "<group>"; };
 		0874F444228DC0C900038D72 /* speedTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = speedTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		088397771F06A2A4003A8C6F /* pdsend_example.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = pdsend_example.xml; sourceTree = "<group>"; };
-		0899477022B7E7BD009D0D6C /* trdp_if_soa_.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = trdp_if_soa_.h; sourceTree = "<group>"; };
 		0899477222B8C6A1009D0D6C /* trdp_serviceRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = trdp_serviceRegistry.h; sourceTree = "<group>"; };
 		0899477622B91586009D0D6C /* tlp_if.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tlp_if.c; sourceTree = "<group>"; };
 		0899477A22B917F7009D0D6C /* tlm_if.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tlm_if.c; sourceTree = "<group>"; };
 		0899477E22B92D55009D0D6C /* tau_so_if.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tau_so_if.c; sourceTree = "<group>"; };
+		0899478222BA82CC009D0D6C /* tau_so_if.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tau_so_if.h; sourceTree = "<group>"; };
+		0899478322BA83AF009D0D6C /* tlc_if.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tlc_if.c; sourceTree = "<group>"; };
+		0899478722BA83B9009D0D6C /* tlc_if.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tlc_if.h; sourceTree = "<group>"; };
 		08A327B91E51FDD400B03846 /* api_test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = api_test.c; sourceTree = "<group>"; };
 		08A327BA1E51FDD400B03846 /* hostsfile.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = hostsfile.txt; sourceTree = "<group>"; };
 		08A327BB1E51FDD400B03846 /* test6.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = test6.xml; sourceTree = "<group>"; };
@@ -859,7 +860,6 @@
 		7367955B17202E93003C68ED /* mdTestReplier.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mdTestReplier.c; sourceTree = "<group>"; };
 		7367955D17202EBE003C68ED /* trdp-md-test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "trdp-md-test.c"; sourceTree = "<group>"; };
 		7367955E17202EF3003C68ED /* ladderApplication_multiPD.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ladderApplication_multiPD.c; path = ../test/ladderpdtest/ladderApplication_multiPD.c; sourceTree = "<group>"; };
-		7373E4AF157CE42C0084966B /* trdp_if.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = trdp_if.h; sourceTree = "<group>"; tabWidth = 4; };
 		737B18BE15D9015800724FEF /* test_marshalling */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_marshalling; sourceTree = BUILT_PRODUCTS_DIR; };
 		737B18CE15D901F000724FEF /* test_marshalling.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_marshalling.c; path = marshalling/test_marshalling.c; sourceTree = "<group>"; };
 		7381BE511643FAC4003BC539 /* echoCallback.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = echoCallback.c; sourceTree = "<group>"; tabWidth = 4; };
@@ -868,7 +868,6 @@
 		7381BEFF16442C4B003BC539 /* getStatsMarshall */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = getStatsMarshall; sourceTree = BUILT_PRODUCTS_DIR; };
 		73821F29150777B00046E0AC /* trdp_if_light.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = trdp_if_light.h; sourceTree = "<group>"; tabWidth = 4; };
 		73821F2A150777B00046E0AC /* trdp_types.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = trdp_types.h; sourceTree = "<group>"; tabWidth = 4; };
-		73821F2F150777B00046E0AC /* trdp_if.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = trdp_if.c; sourceTree = "<group>"; tabWidth = 4; wrapsLines = 0; };
 		73821F30150777B00046E0AC /* trdp_mdcom.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = trdp_mdcom.c; sourceTree = "<group>"; tabWidth = 4; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		73821F31150777B00046E0AC /* trdp_mdcom.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = trdp_mdcom.h; sourceTree = "<group>"; tabWidth = 4; };
 		73821F34150777B00046E0AC /* trdp_pdcom.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = trdp_pdcom.c; sourceTree = "<group>"; tabWidth = 4; };
@@ -1448,7 +1447,7 @@
 				730F3B371BA2FEFE00737C74 /* iec61375-2-3.h */,
 				0899477222B8C6A1009D0D6C /* trdp_serviceRegistry.h */,
 				0846E26622396B84006C2BA7 /* trdp_tsn_def.h */,
-				0899477022B7E7BD009D0D6C /* trdp_if_soa_.h */,
+				0899478222BA82CC009D0D6C /* tau_so_if.h */,
 				73A00E5C1913CCA20020A6EA /* tau_ctrl_types.h */,
 				73A00E601913CCC50020A6EA /* tau_ctrl.h */,
 				08C44FE11F2231B300AB84EF /* tau_dnr_types.h */,
@@ -1474,8 +1473,8 @@
 				7303DC7E1BAAB016004C92D9 /* tau_cstinfo.c */,
 				73D6657A15D3D88700A352D4 /* tau_marshall.c */,
 				08594B291B70DFD20066EA06 /* tau_xml.c */,
-				73821F2F150777B00046E0AC /* trdp_if.c */,
-				7373E4AF157CE42C0084966B /* trdp_if.h */,
+				0899478322BA83AF009D0D6C /* tlc_if.c */,
+				0899478722BA83B9009D0D6C /* tlc_if.h */,
 				0899477622B91586009D0D6C /* tlp_if.c */,
 				0899477A22B917F7009D0D6C /* tlm_if.c */,
 				73821F30150777B00046E0AC /* trdp_mdcom.c */,
@@ -1672,10 +1671,10 @@
 				08C44FE31F2231B400AB84EF /* tau_dnr_types.h in Headers */,
 				0899477422B8C6A2009D0D6C /* trdp_serviceRegistry.h in Headers */,
 				73591F7D1B986C7900B758F0 /* trdp_stats.h in Headers */,
-				73591F7E1B986C7900B758F0 /* trdp_if.h in Headers */,
 				73591F7F1B986C7900B758F0 /* trdp_pdcom.h in Headers */,
 				73591F801B986C7900B758F0 /* trdp_mdcom.h in Headers */,
 				73591F811B986C7900B758F0 /* tau_marshall.h in Headers */,
+				0899478922BA83B9009D0D6C /* tlc_if.h in Headers */,
 				73591F821B986C7900B758F0 /* vos_shared_mem.h in Headers */,
 				73591F831B986C7900B758F0 /* tau_ctrl.h in Headers */,
 				73591F851B986C7900B758F0 /* tau_dnr.h in Headers */,
@@ -1692,7 +1691,6 @@
 				73821FB61508DC790046E0AC /* trdp_if_light.h in Headers */,
 				73E0526C151352CF0058D590 /* vos_mem.h in Headers */,
 				73E0526D151352CF0058D590 /* vos_sock.h in Headers */,
-				0899477122B7E7BD009D0D6C /* trdp_if_soa_.h in Headers */,
 				73A00E5D1913CCA20020A6EA /* tau_ctrl_types.h in Headers */,
 				730F3B381BA2FEFE00737C74 /* iec61375-2-3.h in Headers */,
 				73E0526E151352CF0058D590 /* vos_thread.h in Headers */,
@@ -1704,10 +1702,10 @@
 				73B6907915446B8C004968FA /* trdp_utils.h in Headers */,
 				08C44FE21F2231B400AB84EF /* tau_dnr_types.h in Headers */,
 				7387F507157795FE00DBAB73 /* trdp_stats.h in Headers */,
-				7373E4B0157CE42C0084966B /* trdp_if.h in Headers */,
 				08CE20721649613C0038151B /* trdp_pdcom.h in Headers */,
 				08CE2082164962BB0038151B /* trdp_mdcom.h in Headers */,
 				7327CA6016555BEA0020536A /* tau_marshall.h in Headers */,
+				0899478822BA83B9009D0D6C /* tlc_if.h in Headers */,
 				73F5A53B16A41A2000335006 /* vos_shared_mem.h in Headers */,
 				73A00E621913CCC50020A6EA /* tau_ctrl.h in Headers */,
 				73A00E631913CCC50020A6EA /* tau_dnr.h in Headers */,
@@ -2528,10 +2526,10 @@
 				08D51C36200FB810004319B6 /* tau_cstinfo.c in Sources */,
 				08D51C37200FB810004319B6 /* tau_marshall.c in Sources */,
 				08D51C38200FB810004319B6 /* tau_xml.c in Sources */,
-				08D51C39200FB810004319B6 /* trdp_if.c in Sources */,
 				08D51C3B200FB810004319B6 /* trdp_mdcom.c in Sources */,
 				08D51C3D200FB810004319B6 /* trdp_pdcom.c in Sources */,
 				08D51C40200FB810004319B6 /* trdp_stats.c in Sources */,
+				0899478622BA83B0009D0D6C /* tlc_if.c in Sources */,
 				0899478122B92D55009D0D6C /* tau_so_if.c in Sources */,
 				08D51C42200FB810004319B6 /* trdp_utils.c in Sources */,
 				08D51C44200FB810004319B6 /* trdp_xml.c in Sources */,
@@ -2651,7 +2649,6 @@
 				0899477822B91586009D0D6C /* tlp_if.c in Sources */,
 				73591F871B986C7900B758F0 /* vos_sock.c in Sources */,
 				73591F881B986C7900B758F0 /* vos_thread.c in Sources */,
-				73591F891B986C7900B758F0 /* trdp_if.c in Sources */,
 				73591F8A1B986C7900B758F0 /* trdp_pdcom.c in Sources */,
 				73591F8B1B986C7900B758F0 /* trdp_utils.c in Sources */,
 				73591F8C1B986C7900B758F0 /* trdp_stats.c in Sources */,
@@ -2659,9 +2656,10 @@
 				73591F8E1B986C7900B758F0 /* vos_shared_mem.c in Sources */,
 				731E1FE01C688D8100390A0A /* tau_xml.c in Sources */,
 				73591F911B986C7900B758F0 /* vos_mem.c in Sources */,
-				0899478022B92D55009D0D6C /* tau_so_if.c in Sources */,
+				0899478522BA83B0009D0D6C /* tlc_if.c in Sources */,
 				730B42AC1C650ED100A92265 /* trdp_xml.c in Sources */,
 				73591F921B986C7900B758F0 /* vos_utils.c in Sources */,
+				0899478022B92D55009D0D6C /* tau_so_if.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2754,7 +2752,6 @@
 			files = (
 				0899477B22B917F7009D0D6C /* tlm_if.c in Sources */,
 				0899477722B91586009D0D6C /* tlp_if.c in Sources */,
-				73F458B9152F331E00D1C522 /* trdp_if.c in Sources */,
 				081704F420C97BE700EF1FA7 /* tau_ctrl.c in Sources */,
 				730EB9741C0343430066FE7C /* tau_dnr.c in Sources */,
 				730EB9751C0343430066FE7C /* tau_cstinfo.c in Sources */,
@@ -2769,9 +2766,10 @@
 				73E0535D1513685D0058D590 /* vos_thread.c in Sources */,
 				08594B341B70E9DF0066EA06 /* vos_mem.c in Sources */,
 				08594B361B70E9DF0066EA06 /* vos_utils.c in Sources */,
-				0899477F22B92D55009D0D6C /* tau_so_if.c in Sources */,
+				0899478422BA83B0009D0D6C /* tlc_if.c in Sources */,
 				73F5A50D16A408DC00335006 /* vos_shared_mem.c in Sources */,
 				730B42A61C650DFC00A92265 /* tau_xml.c in Sources */,
+				0899477F22B92D55009D0D6C /* tau_so_if.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

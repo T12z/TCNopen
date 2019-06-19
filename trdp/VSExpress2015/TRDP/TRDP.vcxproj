@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -176,7 +176,9 @@
     <ClCompile Include="..\..\src\common\tau_marshall.c" />
     <ClCompile Include="..\..\src\common\tau_tti.c" />
     <ClCompile Include="..\..\src\common\tau_xml.c" />
-    <ClCompile Include="..\..\src\common\trdp_if.c" />
+    <ClCompile Include="..\..\src\common\tlc_if.c" />
+    <ClCompile Include="..\..\src\common\tlp_if.c" />
+    <ClCompile Include="..\..\src\common\tlm_if.c" />
     <ClCompile Include="..\..\src\common\trdp_mdcom.c" />
     <ClCompile Include="..\..\src\common\trdp_pdcom.c" />
     <ClCompile Include="..\..\src\common\trdp_stats.c" />
@@ -195,7 +197,8 @@
     <ClInclude Include="..\..\src\api\tau_dnr.h" />
     <ClInclude Include="..\..\src\api\tau_tti.h" />
     <ClInclude Include="..\..\src\api\tau_tti_types.h" />
-    <ClInclude Include="..\..\src\common\trdp_if.h" />
+    <ClCompile Include="..\..\src\common\tlc_if.h" />
+    <ClCompile Include="..\..\src\common\tlm_if.h" />
     <ClInclude Include="..\..\src\common\trdp_mdcom.h" />
     <ClInclude Include="..\..\src\common\trdp_pdcom.h" />
     <ClInclude Include="..\..\src\common\trdp_private.h" />

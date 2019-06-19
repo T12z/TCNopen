@@ -31,7 +31,8 @@
 #include <stdio.h>
 
 #include "trdp_if_light.h"
-#include "trdp_if_soa_.h"
+#include "tau_dnr.h"
+#include "tau_so_if.h"
 #include "vos_utils.h"
 
 /***********************************************************************************************************************
@@ -135,6 +136,7 @@ static void soMDCallback (
     TAU_CB_BLOCK_T *pContext = (TAU_CB_BLOCK_T *) pMsg->pUserRef;
 
     (void) pRefCon;
+    (void) appHandle;
 
     if (pContext == NULL)
     {
@@ -266,8 +268,8 @@ EXT_DECL TRDP_ERR_T tau_addServices (
     /* request the data now */
     err = tlm_request(appHandle, &context, soMDCallback, NULL,
                       TTDB_SERVICE_ADD_REQ_COMID, 0u,
-                      0u, 0u, ipFromURI(appHandle, TTDB_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                      TTDB_SERVICE_ADD_REQ_TO, NULL, context.pServiceEntry, dataSize, NULL, NULL);
+                      0u, 0u, tau_ipFromURI(appHandle, TTDB_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                      TTDB_SERVICE_ADD_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
 
     if (err != TRDP_NO_ERR)
     {
@@ -306,7 +308,7 @@ EXT_DECL TRDP_ERR_T tau_delServices (
     const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
     BOOL8                       waitForCompletion)
 {
-    ;
+    return TRDP_UNKNOWN_ERR;
 }
 
 EXT_DECL TRDP_ERR_T tau_updServices (
@@ -314,9 +316,15 @@ EXT_DECL TRDP_ERR_T tau_updServices (
     UINT16                      noOfServices,
     const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
     BOOL8                       waitForCompletion)
-{}
+{
+    return TRDP_UNKNOWN_ERR;
+
+}
 
 EXT_DECL TRDP_ERR_T tau_getServiceList (
     TRDP_APP_SESSION_T      appHandle,
     TTDB_SERVICE_ARRAY_T    *pServicesToAdd)
-{}
+{
+    return TRDP_UNKNOWN_ERR;
+
+}

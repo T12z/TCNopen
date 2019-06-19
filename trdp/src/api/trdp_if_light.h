@@ -132,9 +132,7 @@ EXT_DECL TRDP_ERR_T     tlp_getInterval (
     INT32               *pNoDesc);
 
 EXT_DECL TRDP_ERR_T tlp_processSend (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_FDS_T          *pRfds,
-    INT32               *pCount);
+    TRDP_APP_SESSION_T  appHandle);
 
 EXT_DECL TRDP_ERR_T tlp_processReceive (
     TRDP_APP_SESSION_T  appHandle,

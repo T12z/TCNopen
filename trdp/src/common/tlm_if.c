@@ -32,7 +32,7 @@
 
 #include <string.h>
 
-#include "trdp_if.h"
+#include "tlc_if.h"
 #include "trdp_utils.h"
 #include "trdp_mdcom.h"
 #include "trdp_stats.h"
@@ -60,6 +60,75 @@ extern "C" {
  * GLOBAL FUNCTIONS
  */
 
+/**********************************************************************************************************************/
+/** Work loop of the TRDP handler.
+ *    Search the queue for pending PDs to be sent
+ *    Search the receive queue for pending PDs (time out)
+ *
+ *
+ *  @param[in]      appHandle          The handle returned by tlc_openSession
+ *  @param[in]      pRfds              pointer to set of ready descriptors
+ *  @param[in,out]  pCount             pointer to number of ready descriptors
+ *
+ *  @retval         TRDP_NO_ERR        no error
+ *  @retval         TRDP_NOINIT_ERR    handle invalid
+ */
+EXT_DECL TRDP_ERR_T tlm_process (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_FDS_T          *pRfds,
+    INT32               *pCount)
+{
+    TRDP_ERR_T  result = TRDP_NO_ERR;
+    TRDP_ERR_T  err;
+
+    if (!trdp_isValidSession(appHandle))
+    {
+        return TRDP_NOINIT_ERR;
+    }
+
+    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    {
+        return TRDP_NOINIT_ERR;
+    }
+    else
+    {
+        /******************************************************
+         Find packets which are pending/overdue
+         ******************************************************/
+
+        err = trdp_mdSend(appHandle);
+        if (err != TRDP_NO_ERR)
+        {
+            if (err == TRDP_IO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "trdp_mdSend() incomplete \n");
+
+            }
+            else
+            {
+                result = err;
+                vos_printLog(VOS_LOG_ERROR, "trdp_mdSend() failed (Err: %d)\n", err);
+            }
+        }
+
+
+        /******************************************************
+         Find packets which are to be received
+         ******************************************************/
+
+
+        trdp_mdCheckListenSocks(appHandle, pRfds, pCount);
+
+        trdp_mdCheckTimeouts(appHandle);
+
+        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        {
+            vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+        }
+    }
+
+    return result;
+}
 
 /**********************************************************************************************************************/
 /** Initiate sending MD notification message.

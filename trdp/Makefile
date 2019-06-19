@@ -64,7 +64,7 @@ VOS_OBJS = vos_utils.o \
 TRDP_OBJS = trdp_pdcom.o \
 	    trdp_utils.o \
 	    tlp_if.o \
-		trdp_if.o \
+		tlc_if.o \
 	    trdp_stats.o \
 	    $(VOS_OBJS)
 
@@ -73,22 +73,25 @@ TRDP_OPT_OBJS = trdp_xml.o \
 		tau_xml.o \
 		tau_marshall.o \
 		tau_dnr.o \
+		tau_so_if.o \
 		tau_tti.o \
 		tau_ctrl.o
 
 
 # Set LINT Objects
 LINT_OBJECTS = trdp_stats.lob\
-           vos_utils.lob \
-	   vos_sock.lob \
-	   vos_mem.lob \
-	   vos_thread.lob \
-	   vos_shared_mem.lob \
-	   trdp_pdcom.lob \
-	   trdp_mdcom.lob \
-	   trdp_utils.lob \
-	   trdp_if.lob \
-	   trdp_stats.lob
+     	vos_utils.lob \
+	   	vos_sock.lob \
+	   	vos_mem.lob \
+	   	vos_thread.lob \
+	   	vos_shared_mem.lob \
+	   	trdp_pdcom.lob \
+	   	trdp_mdcom.lob \
+	   	trdp_utils.lob \
+	   	tlc_if.lob \
+		tlp_if.lob \
+		tlm_if.lob \
+	   	trdp_stats.lob
 
 # Set LDFLAGS
 LDFLAGS += -L $(OUTDIR)

@@ -86,7 +86,7 @@ CFLAGS += -Os  -DNO_DEBUG
 endif
 
 VOS_OBJS = vos_utils.o vos_sock.o vos_mem.o vos_thread.o vos_shared_mem.o
-TRDP_OBJS = trdp_pdcom.o trdp_utils.o trdp_if.o trdp_stats.o tau_marshall.o $(VOS_OBJS)
+TRDP_OBJS = trdp_pdcom.o trdp_utils.o tlc_if.o tlp_if.o trdp_stats.o tau_marshall.o $(VOS_OBJS)
 MDTESTLADDER_OBJS = mdTestMain.o mdTestLog.o mdTestMdReceiveManager.o mdTestCaller.o mdTestReplier.o mdTestCommon.o
 MDTESTLADDER_SRC = mdTestMain.c mdTestLog.c mdTestMdReceiveManager.c mdTestCaller.c mdTestReplier.c mdTestCommon.c
 

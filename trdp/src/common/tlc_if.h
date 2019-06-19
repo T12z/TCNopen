@@ -1,6 +1,6 @@
 /**********************************************************************************************************************/
 /**
- * @file            trdp_if.h
+ * @file            tlc_if.h
  *
  * @brief           Typedefs for TRDP communication
  *
@@ -26,8 +26,8 @@
  *      BL 2014-07-14: Ticket #46: Protocol change: operational topocount needed
  */
 
-#ifndef TRDP_IF_H
-#define TRDP_IF_H
+#ifndef TLC_IF_H
+#define TLC_IF_H
 
 /***********************************************************************************************************************
  * INCLUDES

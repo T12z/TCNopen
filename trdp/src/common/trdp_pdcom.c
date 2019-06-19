@@ -72,7 +72,7 @@
 #include "trdp_types.h"
 #include "trdp_utils.h"
 #include "trdp_pdcom.h"
-#include "trdp_if.h"
+#include "tlc_if.h"
 #include "trdp_stats.h"
 #include "vos_sock.h"
 #include "vos_mem.h"

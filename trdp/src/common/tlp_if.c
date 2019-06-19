@@ -32,7 +32,7 @@
 
 #include <string.h>
 
-#include "trdp_if.h"
+#include "tlc_if.h"
 #include "trdp_utils.h"
 #include "trdp_pdcom.h"
 #include "trdp_stats.h"
@@ -59,6 +59,116 @@ extern "C" {
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+
+/**********************************************************************************************************************/
+/** Work loop of the TRDP handler.
+ *    Search the queue for pending PDs to be sent
+ *    Search the receive queue for pending PDs (time out)
+ *
+ *
+ *  @param[in]      appHandle          The handle returned by tlc_openSession
+ *  @param[in]      pRfds              pointer to set of ready descriptors
+ *  @param[in,out]  pCount             pointer to number of ready descriptors
+ *
+ *  @retval         TRDP_NO_ERR        no error
+ *  @retval         TRDP_NOINIT_ERR    handle invalid
+ */
+EXT_DECL TRDP_ERR_T tlp_processReceive (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_FDS_T          *pRfds,
+    INT32               *pCount)
+{
+    TRDP_ERR_T  result = TRDP_NO_ERR;
+    TRDP_ERR_T  err;
+
+    if (!trdp_isValidSession(appHandle))
+    {
+        return TRDP_NOINIT_ERR;
+    }
+
+    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    {
+        return TRDP_NOINIT_ERR;
+    }
+    else
+    {
+        /******************************************************
+         Find packets which are pending/overdue
+         ******************************************************/
+
+        trdp_pdHandleTimeOuts(appHandle);
+
+        /******************************************************
+         Find packets which are to be received
+         ******************************************************/
+        err = trdp_pdCheckListenSocks(appHandle, pRfds, pCount);
+
+        if (err != TRDP_NO_ERR)
+        {
+            /*  We do not break here */
+            result = err;
+        }
+
+        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        {
+            vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+        }
+    }
+
+    return result;
+}
+
+/**********************************************************************************************************************/
+/** Work loop of the TRDP handler.
+ *    Search the queue for pending PDs to be sent
+ *    Search the receive queue for pending PDs (time out)
+ *
+ *
+ *  @param[in]      appHandle          The handle returned by tlc_openSession
+ *
+ *  @retval         TRDP_NO_ERR        no error
+ *  @retval         TRDP_NOINIT_ERR    handle invalid
+ */
+EXT_DECL TRDP_ERR_T tlp_processSend (
+    TRDP_APP_SESSION_T  appHandle)
+{
+    TRDP_ERR_T  result = TRDP_NO_ERR;
+    TRDP_ERR_T  err;
+
+    if (!trdp_isValidSession(appHandle))
+    {
+        return TRDP_NOINIT_ERR;
+    }
+
+    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    {
+        return TRDP_NOINIT_ERR;
+    }
+    else
+    {
+        vos_clearTime(&appHandle->nextJob);
+
+        /******************************************************
+         Find and send the packets which have to be sent next:
+         ******************************************************/
+
+        err = trdp_pdSendQueued(appHandle);
+
+        if (err != TRDP_NO_ERR)
+        {
+            /*  We do not break here, only report error */
+            result = err;
+            /* vos_printLog(VOS_LOG_ERROR, "trdp_pdSendQueued failed (Err: %d)\n", err);*/
+        }
+
+        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        {
+            vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+        }
+    }
+
+    return result;
+}
 
 /**********************************************************************************************************************/
 /** Do not send non-redundant PDs when we are follower.

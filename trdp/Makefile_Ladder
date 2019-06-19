@@ -86,7 +86,7 @@ CFLAGS += -Os  -DNO_DEBUG
 endif
 
 VOS_OBJS = vos_utils.o vos_sock.o vos_mem.o vos_thread.o vos_shared_mem.o
-TRDP_OBJS = trdp_pdcom.o trdp_utils.o trdp_if.o trdp_stats.o tau_marshall.o $(VOS_OBJS)
+TRDP_OBJS = trdp_pdcom.o trdp_utils.o tlp_if.o tlc_if.o trdp_stats.o tau_marshall.o $(VOS_OBJS)
 LADDER_OBJS = tau_pdcom_ladder.o tau_ladder.o $(TRDP_OBJS)
 
 ifeq ($(MD_SUPPORT),1)
@@ -117,6 +117,12 @@ $(OUTDIR)/tau_marshall.o:	tau_marshall.c
 
 $(OUTDIR)/trdp_if.o:	trdp_if.c
 			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(OUTDIR)/tlp_if.o:    tlp_if.c
+            $(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(OUTDIR)/tlm_if.o:    tlm_if.c
+            $(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OUTDIR)/%.o: %.c %.h trdp_if_light.h trdp_types.h vos_types.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@

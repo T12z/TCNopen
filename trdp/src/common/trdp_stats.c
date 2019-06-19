@@ -37,7 +37,7 @@
 
 #include "trdp_stats.h"
 #include "trdp_if_light.h"
-#include "trdp_if.h"
+#include "tlc_if.h"
 #include "trdp_private.h"
 #include "trdp_pdcom.h"
 #include "vos_mem.h"
