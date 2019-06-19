@@ -1,17 +1,36 @@
-/*
- * TRDPsession.cpp
+/**********************************************************************************************************************/
+/**
+ * @file            tau_xsession.h
  *
- *  Created on: 09.12.2018
- *      Author: thorsten
+ * @brief           Utility functions to simplify boilerplate code for an application based on an XML configuration.
  *
- *  Many lines straight copied from the XML example of TRDP.
+ * @details         tau_xsession uses the xml-config feature and provides "easy" abstraction accessing telegrams and
+ *                  setting up a simple cycle.
+ *                  The library also circumvents the trdp-xml-mem-config-chicken-and-egg-issue, ie., trdp-xml uses the
+ *                  vos-mem subsystem, but the read xml-config may include directives to configure this subsystem. See
+ *                  @see tau_xsession_load() for the work-around-approach.
+ *
+ *                  Initial routines and concepts were copied from the XML example of TRDP.
+ *
+ *
+ * @note            Project: TCNOpen TRDP prototype stack
+ *
+ * @author          Thorsten Schulz
+ *
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *          Copyright 2019 University of Rostock
+ *
+ * $Id$
  */
 
+#include "tau_xsession.h"
+#include "tau_marshall.h"
 #include "vos_utils.h"
 #include "trdp_xml.h"
 #include <string.h>
 #include <stdio.h>
-#include "tau_xsession.h"
+#include <stdint.h>
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -48,7 +67,6 @@ static TRDP_ERR_T findDataset(UINT32 datasetId, TRDP_DATASET_T **pDatasetDesc);
 
 static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchgPar, UINT32 *pubTelID, const UINT8 *data, UINT32 memLength, const TRDP_PD_INFO_T *info);
 static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchgPar, UINT32 *subTelID /*can be NULL*/, TRDP_PD_CALLBACK_T cb);
-/*static*/ TRDP_ERR_T subscribeAllTelegrams(TAU_XSESSION_T *our);
 static TRDP_ERR_T configureSession(TAU_XSESSION_T *our, TRDP_XML_DOC_HANDLE_T *pDocHnd, void *callbackRef);
 
 
@@ -161,13 +179,6 @@ static void dbgOut (void *pRefCon, TRDP_LOG_T category, const CHAR8 *pTime, cons
 
 }
 
-/*
-static void TRDPCB_dbgOut (void *pRefCon, TRDP_LOG_T category, const CHAR8 *pTime, const CHAR8 *pFile, UINT16 LineNumber, const CHAR8 *pMsgStr) {
-    TRDPsession *ts = (TRDPsession *)pRefCon;
-    if (ts) ts->dbgOut(category, pTime, pFile, LineNumber, pMsgStr);
-}
- */
-
 /*********************************************************************************************************************/
 /** Parse dataset configuration
  *  Initialize marshalling
@@ -184,7 +195,7 @@ static TRDP_ERR_T initMarshalling(const TRDP_XML_DOC_HANDLE_T * pDocHnd) {
 
 	/*  Initialize marshalling  */
 	/* basically, take values, sort the arrays, but takes no copy! */
-	if (__TAU_XTYPE_MAP[0]) {
+	if (__TAU_XTYPE_MAP[1]) {
 		result = tau_xinitMarshall(NULL /*cur. a nop*/, numComId, pComIdDsIdMap, numDataset, apDataset);
 		vos_printLog(VOS_LOG_INFO, "Using EXTENDED marshalling.");
 		printf("EXTENDED\n");
@@ -208,7 +219,8 @@ static TRDP_ERR_T initMarshalling(const TRDP_XML_DOC_HANDLE_T * pDocHnd) {
 	marshallCfg.pfCbUnmarshall =  __TAU_XTYPE_MAP[0] ? tau_xunmarshall : tau_unmarshall;
 	marshallCfg.pRefCon = NULL; /* if we overwrite with own functions, pRefCon may be set to @our or something like it */
 
-	vos_printLog(VOS_LOG_INFO, "Initialized marshalling for %d datasets, %d ComId to Dataset Id relations", numDataset, numComId);
+	vos_printLog(VOS_LOG_INFO, "Initialized marshalling for %d datasets, %d ComId to Dataset Id relations",
+			numDataset, numComId);
 	return TRDP_NO_ERR;
 }
 
@@ -257,21 +269,14 @@ int tau_xsession_up(TAU_XSESSION_T *our) {
  */
 static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchgPar, UINT32 *pubTelID, const UINT8 *data, UINT32 memLength, const TRDP_PD_INFO_T *info) {
 	UINT32 i;
-	TRDP_DATASET_T * pDatasetDesc = NULL;
 	TRDP_SEND_PARAM_T *pSendParam = NULL;
 	UINT32 interval = 0;
 	TRDP_FLAGS_T flags;
 	UINT32 redId = 0;
-	PUBLISHED_TLG_T *pPubTlg = NULL;
+	TLG_T *pTlg = NULL;
 	UINT32 destIP = 0;
 	TRDP_ERR_T result;
 
-	/*  Find dataset for the telegram   */
-	result = findDataset(pExchgPar->datasetId, &pDatasetDesc);
-	if (result != TRDP_NO_ERR) {
-		vos_printLog(VOS_LOG_ERROR, "Unknown datasetId %d for comID %d", pExchgPar->datasetId, pExchgPar->comId);
-		return TRDP_PARAM_ERR;
-	}
 
 	/*  Get communication parameters  */
 	if (pExchgPar->comParId == 1)      pSendParam = &our->pdConfig.sendParam;
@@ -302,8 +307,8 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 		if (i < pExchgPar->destCnt) pDest = pExchgPar->pDest[i];
 
 		/* Get free published telegram descriptor   */
-		if (our->numPubTelegrams >= MAX_PUB_TELEGRAMS) {
-			vos_printLog(VOS_LOG_ERROR, "Maximum number of published telegrams %d exceeded", MAX_PUB_TELEGRAMS);
+		if (our->numTelegrams >= MAX_TELEGRAMS) {
+			vos_printLog(VOS_LOG_ERROR, "Maximum number of published telegrams %d exceeded", MAX_TELEGRAMS);
 			return TRDP_PARAM_ERR;
 		}
 
@@ -312,13 +317,15 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 
 		if (pDest.pUriHost)
 			if (*pDest.pUriHost && **pDest.pUriHost && from_dottedIP(*(pDest.pUriHost), &destIP) != TRDP_NO_ERR) {
-				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s configured for comID %d, destID %d", *pDest.pUriHost, pExchgPar->comId, pDest.id);
+				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s configured for comID %d, destID %d",
+						*pDest.pUriHost, pExchgPar->comId, pDest.id);
 				return TRDP_PARAM_ERR;
 			}
 		if (!destIP && info) destIP = info->replyIpAddr? info->replyIpAddr : info->srcIpAddr;
 
 		if (interval && (destIP == 0 || destIP == 0xFFFFFFFF)) {
-			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s/%x specified for comID %d, destID %d", *pDest.pUriHost, destIP, pExchgPar->comId, pDest.id);
+			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s/%x specified for comID %d, destID %d",
+					*pDest.pUriHost, destIP, pExchgPar->comId, pDest.id);
 			return TRDP_PARAM_ERR;
 		}
 
@@ -333,25 +340,23 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 				data, memLength);
 
 		if (result != TRDP_NO_ERR) {
-			vos_printLog(VOS_LOG_ERROR, "tlp_publish for comID %d, destID %d failed: %s", pExchgPar->comId, pDest.id, tau_getResultString(result));
+			vos_printLog(VOS_LOG_ERROR, "tlp_publish for comID %d, destID %d failed: %s",
+					pExchgPar->comId, pDest.id, tau_getResultString(result));
 			return result;
 		} else {
 			vos_printLog(VOS_LOG_INFO, "Published telegram: ComId %d, DestId %d", pExchgPar->comId, pDest.id);
 
 			/*  Initialize telegram descriptor  */
-			pPubTlg = &our->aPubTelegrams[our->numPubTelegrams];
-			if (pubTelID) *pubTelID++ = our->numPubTelegrams;
-			our->numPubTelegrams++;
-			pPubTlg->pDatasetDesc = pDatasetDesc;
-			pPubTlg->pIfConfig = our->pIfConfig;
-			pPubTlg->comID = pExchgPar->comId;
-			pPubTlg->dstID = pDest.id;
-			pPubTlg->size  = memLength;
-			pPubTlg->pubHandle = pHnd;
+			pTlg = &our->aTelegrams[our->numTelegrams];
+			if (pubTelID) *pubTelID++ = our->numTelegrams;
+			our->numTelegrams++;
+			pTlg->comID = pExchgPar->comId;
+			pTlg->peerID = pDest.id;
+			pTlg->handle = pHnd;
 		}
 	}
 	/* Also check if we need to subscribe to requests. */
-	/* There maybe unexpected behaviour for mixed configurations. Revise some time. */
+	/* TODO There maybe unexpected behaviour for mixed configurations. Revise some time. */
 	if (!interval) subscribeTelegram(our, pExchgPar, NULL, NULL);
 
 	return TRDP_NO_ERR;
@@ -364,22 +369,14 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
  */
 static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchgPar, UINT32 *subTelID, TRDP_PD_CALLBACK_T cb) {
 	UINT32 i;
-	TRDP_DATASET_T * pDatasetDesc = NULL;
 	UINT32 timeout = 0;
 	TRDP_TO_BEHAVIOR_T toBehav;
 	TRDP_FLAGS_T flags;
-	SUBSCRIBED_TLG_T *pSubTlg = NULL;
+	TLG_T *pTlg = NULL;
 	UINT32 destMCIP = 0;
 	UINT32 srcIP1 = 0;
 	UINT32 srcIP2 = 0;
 	TRDP_ERR_T result;
-
-	/*  Find dataset for the telegram   */
-	result = findDataset(pExchgPar->datasetId, &pDatasetDesc);
-	if (result != TRDP_NO_ERR) {
-		vos_printLog(VOS_LOG_ERROR, "Unknown datasetId %d for comID %d", pExchgPar->datasetId, pExchgPar->comId);
-		return TRDP_PARAM_ERR;
-	}
 
 	/*  Get timeout, timeout behavior and flags   */
 	timeout = our->pdConfig.timeout;
@@ -406,71 +403,49 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 	/*  Iterate over all sources   */
 	for (i = 0; i < pExchgPar->srcCnt; i++) {
 		/* Get free subscribed telegram descriptor   */
-		if (our->numSubTelegrams < MAX_SUB_TELEGRAMS) {
-			pSubTlg = &our->aSubTelegrams[our->numSubTelegrams];
-			if (subTelID)
-				*subTelID = our->numSubTelegrams;
-			our->numSubTelegrams += 1;
+		if (our->numTelegrams < MAX_TELEGRAMS) {
+			pTlg = &our->aTelegrams[our->numTelegrams];
+			if (subTelID) *subTelID++ = our->numTelegrams;
+			our->numTelegrams += 1;
 		} else {
-			vos_printLog(VOS_LOG_ERROR, "Maximum number of subscribed telegrams %d exceeded", MAX_SUB_TELEGRAMS);
+			vos_printLog(VOS_LOG_ERROR, "Maximum number of subscribed telegrams %d exceeded", MAX_TELEGRAMS);
 			return TRDP_PARAM_ERR;
 		}
 		/*  Initialize telegram descriptor  */
-		pSubTlg->pDatasetDesc = pDatasetDesc;
-		pSubTlg->pktFlags = flags;
-		pSubTlg->pIfConfig = our->pIfConfig;
-		pSubTlg->comID = pExchgPar->comId;
-		pSubTlg->srcID = pExchgPar->pSrc[i].id;
+		pTlg->comID = pExchgPar->comId;
+		pTlg->peerID = pExchgPar->pSrc[i].id;
 
 		/*  Convert src URIs to IP address  */
 		srcIP1 = 0;
 		if (pExchgPar->pSrc[i].pUriHost1 && *pExchgPar->pSrc[i].pUriHost1 && **pExchgPar->pSrc[i].pUriHost1
 				&& (from_dottedIP(*(pExchgPar->pSrc[i].pUriHost1), &srcIP1) != TRDP_NO_ERR || srcIP1 == 0xFFFFFFFF)) {
-			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI1 in comID %d, destID %d", *pExchgPar->pSrc[i].pUriHost1, pExchgPar->comId, pExchgPar->pSrc[i].id);
+			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI1 in comID %d, destID %d",
+					*pExchgPar->pSrc[i].pUriHost1, pExchgPar->comId, pExchgPar->pSrc[i].id);
 			return result;
 		}
 		srcIP2 = 0;
 		if (pExchgPar->pSrc[i].pUriHost2 && (from_dottedIP(*(pExchgPar->pSrc[i].pUriHost2), &srcIP2) != TRDP_NO_ERR || srcIP2 == 0xFFFFFFFF || srcIP2 == 0)) {
-			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI2 in comID %d, destID %d", *pExchgPar->pSrc[i].pUriHost2, pExchgPar->comId, pExchgPar->pSrc[i].id);
+			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI2 in comID %d, destID %d",
+					*pExchgPar->pSrc[i].pUriHost2, pExchgPar->comId, pExchgPar->pSrc[i].id);
 			return TRDP_PARAM_ERR;
 		}
 
 		/*  Subscribe the telegram    */
 		result = tlp_subscribe(
-				our->sessionhandle, &pSubTlg->subHandle, pSubTlg, cb, pExchgPar->comId,
+				our->sessionhandle, &pTlg->handle, pTlg, cb, pExchgPar->comId,
 				0, 0, srcIP1, srcIP2, destMCIP, flags, timeout, toBehav);
 		if (result != TRDP_NO_ERR) {
-			vos_printLog(VOS_LOG_ERROR, "tlp_subscribe for comID %d, srcID %d failed: %s", pExchgPar->comId, pExchgPar->pSrc[i].id, tau_getResultString(result));
+			vos_printLog(VOS_LOG_ERROR, "tlp_subscribe for comID %d, srcID %d failed: %s",
+					pExchgPar->comId, pExchgPar->pSrc[i].id, tau_getResultString(result));
 			return result;
 		}
-		vos_printLog(VOS_LOG_INFO, "Subscribed telegram: ComId %d, SrcId %d", pExchgPar->comId, pExchgPar->pSrc[i].id);
+		vos_printLog(VOS_LOG_INFO, "Subscribed telegram: ComId %d, SrcId %d",
+				pExchgPar->comId, pExchgPar->pSrc[i].id);
 	}
 
 	return TRDP_NO_ERR;
 }
 
-/*********************************************************************************************************************/
-/** Publish and subscribe telegrams configured for one interface.
- */
-/*static*/ TRDP_ERR_T subscribeAllTelegrams(TAU_XSESSION_T *our) {
-	TRDP_ERR_T  result;
-
-	vos_printLog(VOS_LOG_INFO, "Configuring subscriptions for interface %s", our->pIfConfig->ifName);
-
-	/*  Over all configured telegrams   */
-	for (UINT32 tlgIdx = 0; tlgIdx < our->numExchgPar; tlgIdx++) {
-		if (our->pExchgPar[tlgIdx].srcCnt) {
-			/*  Sources defined - subscribe the telegram */
-			result = subscribeTelegram(our, &our->pExchgPar[tlgIdx], NULL, NULL);
-			if (result != TRDP_NO_ERR) {
-				vos_printLog(VOS_LOG_ERROR, "Failed to subscribe to telegram comId=%d for interface %s", our->pExchgPar[tlgIdx].comId, our->pIfConfig->ifName);
-				return result;
-			}
-		}
-	}
-
-	return TRDP_NO_ERR;
-}
 /*********************************************************************************************************************/
 /** Initialize and configure TRDP sessions - one for each configured interface
  */
@@ -487,7 +462,8 @@ static TRDP_ERR_T configureSession(TAU_XSESSION_T *our, TRDP_XML_DOC_HANDLE_T *p
 			&our->pdConfig, &our->mdConfig,
 			&our->numExchgPar, &our->pExchgPar);
 	if (result != TRDP_NO_ERR) {
-		vos_printLog(VOS_LOG_ERROR, "Failed to parse configuration for interface %s: %s", our->pIfConfig->ifName, tau_getResultString(result));
+		vos_printLog(VOS_LOG_ERROR, "Failed to parse configuration for interface %s: %s",
+				our->pIfConfig->ifName, tau_getResultString(result));
 		return result;
 	}
 
@@ -500,7 +476,8 @@ static TRDP_ERR_T configureSession(TAU_XSESSION_T *our, TRDP_XML_DOC_HANDLE_T *p
 			&marshallCfg, &our->pdConfig, &our->mdConfig, &our->processConfig);
 
 	if (result != TRDP_NO_ERR) {
-		vos_printLog(VOS_LOG_ERROR, "Failed to open session for interface %s: %s", our->pIfConfig->ifName, tau_getResultString(result));
+		vos_printLog(VOS_LOG_ERROR, "Failed to open session for interface %s: %s",
+				our->pIfConfig->ifName, tau_getResultString(result));
 		/* some clean up */
 		/*  Free allocated memory - parsed telegram configuration */
 		tau_freeTelegrams(our->numExchgPar, our->pExchgPar);
@@ -549,10 +526,12 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length) {
 				vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: ""%s", tau_getResultString(result));
 			} else {
 				if (numIfConfig > MAX_INTERFACES) {
-					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more interfaces available (%d) than expected (%d)", numIfConfig, MAX_INTERFACES);
+					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more interfaces available (%d) than expected (%d)",
+							numIfConfig, MAX_INTERFACES);
 					result = TRDP_PARAM_ERR;
 				} else if (numComPar > MAX_COMPAR) {
-					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more com-parameter available (%d) than expected (%d)", numComPar, MAX_COMPAR);
+					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more com-parameter available (%d) than expected (%d)",
+							numComPar, MAX_COMPAR);
 					result = TRDP_PARAM_ERR;
 				} else {
 					if (pTempIfConfig && numIfConfig) memcpy(ifConfig, pTempIfConfig, sizeof(TRDP_IF_CONFIG_T)*numIfConfig); else numIfConfig = 0;
@@ -636,7 +615,8 @@ TRDP_ERR_T tau_xsession_publish(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *pubTe
 			/*  Destinations defined - publish the telegram */
 			result = publishTelegram(our, &our->pExchgPar[tlgIdx], pubTelID, data, length, info);
 			if (result != TRDP_NO_ERR) {
-				vos_printLog(VOS_LOG_WARNING, "Failed to publish telegram comId=%d for interface %s", our->pExchgPar[tlgIdx].comId, our->pIfConfig->ifName);
+				vos_printLog(VOS_LOG_WARNING, "Failed to publish telegram comId=%d for interface %s",
+						our->pExchgPar[tlgIdx].comId, our->pIfConfig->ifName);
 			}
 			/* our should only match one telegram */
 			break;
@@ -654,7 +634,8 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *sub
 			/*  Sources defined - subscribe the telegram */
 			result = subscribeTelegram(our, &our->pExchgPar[tlgIdx], subTelID, cb);
 			if (result != TRDP_NO_ERR) {
-				vos_printLog(VOS_LOG_WARNING, "Failed to subscribe telegram comId=%d for interface %s", our->pExchgPar[tlgIdx].comId, our->pIfConfig->ifName);
+				vos_printLog(VOS_LOG_WARNING, "Failed to subscribe telegram comId=%d for interface %s",
+						our->pExchgPar[tlgIdx].comId, our->pIfConfig->ifName);
 			}
 			/* our should only match one telegram */
 			break;
@@ -733,11 +714,12 @@ TRDP_ERR_T tau_xsession_setCom(TAU_XSESSION_T *our, UINT32 pubTelID, const UINT8
 	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
 	TRDP_ERR_T result;
 
-	if (pubTelID < MAX_PUB_TELEGRAMS) {
-		result = tlp_put( our->sessionhandle, our->aPubTelegrams[pubTelID].pubHandle,	data, cap);
-		if (result != our->aPubTelegrams[pubTelID].lastErr) {
-			our->aPubTelegrams[pubTelID].lastErr = result;
-			vos_printLog(VOS_LOG_WARNING, "\nFailed to SET comId=%d from %8x. %s\n", our->aPubTelegrams[pubTelID].comID, our->aPubTelegrams[pubTelID].dstID, tau_getResultString(result));
+	if (pubTelID < MAX_TELEGRAMS) {
+		result = tlp_put( our->sessionhandle, our->aTelegrams[pubTelID].handle, data, cap);
+		if (result != our->aTelegrams[pubTelID].result) {
+			our->aTelegrams[pubTelID].result = result;
+			vos_printLog(VOS_LOG_WARNING, "\nFailed to SET comId=%d from %8x. %s\n",
+					our->aTelegrams[pubTelID].comID, our->aTelegrams[pubTelID].peerID, tau_getResultString(result));
 		}
 	} else {
 		vos_printLog(VOS_LOG_ERROR, "Invalid parameters to setCom buffer.");
@@ -751,12 +733,13 @@ TRDP_ERR_T tau_xsession_getCom(TAU_XSESSION_T *our, UINT32 subTelID, UINT8 *data
 	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
 	TRDP_ERR_T result;
 
-	if ((subTelID < MAX_SUB_TELEGRAMS) /*&& (*length == aSubTelegrams[subTelID].size) */) {
+	if ((subTelID < MAX_TELEGRAMS) /*&& (*length == aTelegrams[subTelID].size) */) {
 		if (length) *length = cap;
-		result = tlp_get( our->sessionhandle, our->aSubTelegrams[subTelID].subHandle, info, data, length);
-		if (result != our->aSubTelegrams[subTelID].result) {
-			our->aSubTelegrams[subTelID].result = result;
-			vos_printLog(VOS_LOG_WARNING, "\nFailed to get comId=%d from src=%d (%s)\n", our->aSubTelegrams[subTelID].comID, our->aSubTelegrams[subTelID].srcID, tau_getResultString(result));
+		result = tlp_get( our->sessionhandle, our->aTelegrams[subTelID].handle, info, data, length);
+		if (result != our->aTelegrams[subTelID].result) {
+			our->aTelegrams[subTelID].result = result;
+			vos_printLog(VOS_LOG_WARNING, "\nFailed to get comId=%d from src=%d (%s)\n",
+					our->aTelegrams[subTelID].comID, our->aTelegrams[subTelID].peerID, tau_getResultString(result));
 		}
 
 	} else {
@@ -771,11 +754,12 @@ TRDP_ERR_T tau_xsession_getCom(TAU_XSESSION_T *our, UINT32 subTelID, UINT8 *data
 TRDP_ERR_T tau_xsession_request(TAU_XSESSION_T *our, UINT32 subTelID) {
 	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
 	TRDP_ERR_T result;
-	TRDP_SUB_T sub = our->aSubTelegrams[subTelID].subHandle;
-	TRDP_IP_ADDR_T hIp = our->aSubTelegrams[subTelID].pIfConfig->hostIp;
-	result = tlp_request(our->sessionhandle, sub, sub->addr.comId, 0u, 0u, hIp, sub->addr.srcIpAddr, 0u, TRDP_FLAGS_NONE, 0u, NULL, 0u, 0u, 0u);
+	TRDP_SUB_T sub = our->aTelegrams[subTelID].handle;
+	result = tlp_request(our->sessionhandle, sub, sub->addr.comId, 0u, 0u, our->pIfConfig->hostIp, sub->addr.srcIpAddr,
+						0u, TRDP_FLAGS_NONE, 0u, NULL, 0u, 0u, 0u);
 	if (result != TRDP_NO_ERR)
-		vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%d from dst=%d (%s)", sub->addr.comId, sub->addr.srcIpAddr, tau_getResultString(result));
+		vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%d from dst=%d (%s)",
+				sub->addr.comId, sub->addr.srcIpAddr, tau_getResultString(result));
 
 	return result;
 }
@@ -783,13 +767,12 @@ TRDP_ERR_T tau_xsession_request(TAU_XSESSION_T *our, UINT32 subTelID) {
 TRDP_ERR_T tau_xsession_delete(TAU_XSESSION_T *our) {
 	TRDP_ERR_T result = TRDP_NO_ERR;
 	if (tau_xsession_up(our)) {
-		/*  Unpublish all telegrams */
-		for (UINT32 i = 0; i < our->numPubTelegrams; i++)
-			tlp_unpublish(our->sessionhandle, our->aPubTelegrams[i].pubHandle);
-
-		/*  Unsubscribe all telegrams */
-		for (UINT32 i = 0; i < our->numSubTelegrams; i++)
-			tlp_unsubscribe(our->sessionhandle, our->aSubTelegrams[i].subHandle);
+		/*  Unpublish/unsubscribe all telegrams */
+		for (UINT32 i = 0; i < our->numTelegrams; i++) {
+			/* tlp_unpublish recognizes whether the handle was published */
+			if (tlp_unpublish(our->sessionhandle, our->aTelegrams[i].handle) != TRDP_NO_ERR)
+				tlp_unsubscribe(our->sessionhandle, our->aTelegrams[i].handle);
+		}
 
 		/* Close session */
 		tlc_closeSession(our->sessionhandle);

@@ -215,7 +215,7 @@ extern const uint8_t __TAU_XTYPE_MAP[40];
  *
  *  If you would like xmarshall to behave as std-marshall you would write in your global namespace:
  *
- *  @code TAU_XMARSHALL_MAP(char, bool, char, int16_t, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, int32_t, int16_t, int32_t)
+ *  @code TAU_XMARSHALL_MAP(char, bool, char, int16_t, int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t, float, double, uint32_t, uint16_t, int32_t)
  *
  *  If you had an application that is unaware of fine-grained width-types, e.g., SCADE <=6.4
  *
