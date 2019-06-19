@@ -35,7 +35,7 @@
 #include <unistd.h>
 
 #include "trdp_utils.h"
-#include "trdp_if.h"
+#include "tlc_if.h"
 
 #include "vos_private.h"
 #include "vos_thread.h"
