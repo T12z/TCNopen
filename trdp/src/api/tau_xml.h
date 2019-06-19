@@ -113,18 +113,19 @@ typedef struct
 
 typedef struct
 {
-    UINT32              comId;      /**< source filter identifier */
-    UINT32              datasetId;  /**< data set identifier */
-    UINT32              comParId;   /**< communication parameter id */
-    TRDP_MD_PAR_T       *pMdPar;    /**< Pointer to MD Parameters for this connection */
-    TRDP_PD_PAR_T       *pPdPar;    /**< Pointer to PD Parameters for this connection */
-    UINT32              destCnt;    /**< number of destinations */
-    TRDP_DEST_T         *pDest;     /**< Pointer to array of destination descriptors */
-    UINT32              srcCnt;     /**< number of sources */
-    TRDP_SRC_T          *pSrc;      /**< Pointer to array of source descriptors */
-    TRDP_EXCHG_OPTION_T type;       /**< shall telegram be sent or received */
+    UINT32              comId;      /**< source filter identifier                       */
+    UINT32              datasetId;  /**< data set identifier                            */
+    UINT32              comParId;   /**< communication parameter id                     */
+    TRDP_MD_PAR_T       *pMdPar;    /**< Pointer to MD Parameters for this connection   */
+    TRDP_PD_PAR_T       *pPdPar;    /**< Pointer to PD Parameters for this connection   */
+    UINT32              destCnt;    /**< number of destinations                         */
+    TRDP_DEST_T         *pDest;     /**< Pointer to array of destination descriptors    */
+    UINT32              srcCnt;     /**< number of sources                              */
+    TRDP_SRC_T          *pSrc;      /**< Pointer to array of source descriptors         */
+    TRDP_EXCHG_OPTION_T type;       /**< shall telegram be sent or received             */
     BOOL8               create;     /**< TRUE: associated publisher/listener/subscriber
-                                         shall be generated automatically */
+                                         shall be generated automatically               */
+    UINT32              serviceId;  /**< optional serviceId                             */
 } TRDP_EXCHG_PAR_T;
 
 typedef struct
@@ -140,6 +141,57 @@ typedef struct
     UINT32              id;       /**< communication parameter identifier */
     TRDP_SEND_PARAM_T   sendParam; /**< Send parameter (TTL, QoS) */
 } TRDP_COM_PAR_T;
+
+typedef struct
+{
+    UINT32  comId;      /**< ComId of telegram used for event */
+    UINT16  eventId;    /**< Event identifier */
+}TRDP_EVENT_T;
+
+typedef struct
+{
+    UINT32  comId;      /**< ComId of telegram used for field */
+    UINT16  fieldId;    /**< Field identifier */
+}TRDP_FIELD_T;
+
+typedef struct
+{
+    UINT32  comId;      /**< ComId of telegram used for calling method */
+    UINT32  replyComId; /**< ComId of telegram used for method reply */
+    UINT16  methodId;   /**< Method identifier */
+    BOOL8   confirm;    /**< Confirmation has to be sent */
+}TRDP_METHOD_T;
+
+typedef struct
+{
+    UINT32  srcId;   /**< Id of source tags used in telegram in XML */
+    UINT32  dstId;  /**< Id of destination tags used in telegram in XML */
+    UINT8   instanceId; /**< Instance identifier */
+}TRDP_INSTANCE_T;
+
+typedef struct
+{
+    UINT32  comId;   /**< ComId of telegram used for field */
+    UINT32  srcId;   /**< Id of source tags used in telegram in XML */
+    UINT32  dstId;   /**< Id of destination tags used in telegram in XML */
+    UINT32  id;      /**< Unique identifier of the telegram reference */
+}TRDP_TELEGRAM_REF_T;
+
+typedef struct
+{
+    TRDP_URI_USER_T     serviceName;    /**< Service Type/Name */
+    UINT32              serviceId;      /**< Service Id (24 bits) */
+    UINT32              eventCnt;       /**< Number of Events in Service */
+    TRDP_EVENT_T        *pEvent;        /**< Pointer to the Service's Events */
+    UINT32              fieldCnt;       /**< Number of Fields in Service */
+    TRDP_FIELD_T        *pField;        /**< Pointer to the Service's Fields */
+    UINT32              methodCnt;      /**< Number of Methods in Service */
+    TRDP_METHOD_T       *pMethod;       /**< Pointer to the Service's Methods */
+    UINT32              instanceCnt;    /**< Number of Instances of Service */
+    TRDP_INSTANCE_T     *pInstance;     /**< Pointer to the Service's Instances */
+    UINT32              telegramRefCnt; /**< Number of telegrams in dummy Service */
+    TRDP_TELEGRAM_REF_T *pTelegramRef;  /**< Pointer to the telegrams in dummy Service */
+} TRDP_SERVICE_DEF_T;
 
 /** Control for debug output format on application level.
  */
@@ -339,6 +391,25 @@ EXT_DECL void tau_freeXmlDatasetConfig (
 EXT_DECL void tau_freeTelegrams (
     UINT32              numExchgPar,
     TRDP_EXCHG_PAR_T    *pExchgPar);
+
+/**********************************************************************************************************************/
+/**    Function to read the TRDP device service definitions out of the XML configuration file.
+ *  The user must release the memory for pServiceDefs (using vos_memFree)
+ *
+ *  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+ *  @param[out]     pNumServiceDefs   Pointer to number of defined Services
+ *  @param[out]     ppServiceDefs     Pointer to pointer to the defined Services
+ *
+ *  @retval         TRDP_NO_ERR       no error
+ *  @retval         TRDP_MEM_ERR      provided buffer to small
+ *  @retval         TRDP_PARAM_ERR    File not existing
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    UINT32                      *pNumServiceDefs,
+    TRDP_SERVICE_DEF_T          **ppServiceDefs
+    );
 
 #ifdef __cplusplus
 }

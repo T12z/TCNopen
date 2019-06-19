@@ -178,6 +178,15 @@ extern void *gRefCon;
  */
 
 /**********************************************************************************************************************/
+/** Return 1 if this is a big endian machine.
+ *
+ *  @retval    0        if machine is little endian
+ *  @retval    1        if machine is big endian
+ */
+
+EXT_DECL int vos_hostIsBigEndian(void);
+
+/**********************************************************************************************************************/
 /** Calculate CRC for the given buffer and length.
  *  For TRDP FCS CRC calculation the CRC32 according to IEEE802.3 with start value 0xffffffff is used.
  *  Note: Returned CRC is inverted

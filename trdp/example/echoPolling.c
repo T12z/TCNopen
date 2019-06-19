@@ -148,6 +148,7 @@ int main (int argc, char * *argv)
                          &subHandle,                /*    our subscription identifier          */
                          NULL,                      /*    user reference                       */
                          NULL,                      /*    callback function                    */
+                         0u,
                          PD_COMID1,                 /*    ComID                                */
                          0,                         /*    etbTopocount: local consist only     */
                          0,                         /*    opTopocount: local consist only      */
@@ -155,6 +156,7 @@ int main (int argc, char * *argv)
                          VOS_INADDR_ANY,            /*    source IP 1                          */
                          VOS_INADDR_ANY,            /*    Default destination IP (or MC Group) */
                          TRDP_FLAGS_DEFAULT,        /*    Flags                                */
+                         NULL,                      /*    default interface                    */
                          PD_COMID1_TIMEOUT,         /*    Time out in us                       */
                          TRDP_TO_SET_TO_ZERO);      /*    delete invalid data on timeout       */
 
@@ -171,6 +173,7 @@ int main (int argc, char * *argv)
     err = tlp_publish(  appHandle,                  /*    our application identifier        */
                         &pubHandle,                 /*    our pulication identifier         */
                         NULL, NULL,
+                        0u,
                         PD_COMID2,                  /*    ComID to send                     */
                         0u,                         /*    local consist only                */
                         0u,

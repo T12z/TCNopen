@@ -129,6 +129,7 @@
         <xs:element ref="mapped-device-list" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="data-set-list" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="com-parameter-list" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="service-list" minOccurs="0" maxOccurs="1"/>
      </xs:all>
      <xs:attribute name="type" type="name8">
         <xs:annotation>
@@ -179,6 +180,14 @@
     </xs:complexType>
   </xs:element>
  
+   <xs:element name="service-list">
+    <xs:complexType>
+       <xs:sequence>
+        <xs:element  ref="service" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+ 
    <xs:element name="bus-interface-list">
     <xs:complexType>
        <xs:sequence>
@@ -201,6 +210,131 @@
       <xs:sequence>
         <xs:element  ref="data-set" maxOccurs="unbounded"/>
       </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="service">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="event" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="field" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="method" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="instance" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="telegramRef" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Service type</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+            <xs:attribute name="id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Service identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>  
+  
+   <xs:element name="event">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Event identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for Event</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="field">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Field identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for field</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="method">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Method identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for method call</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="reply-com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for method reply</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="confirm" default="off" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="on"/>
+            <xs:enumeration value="off"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="instance">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Instance identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="src-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Source identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+            <xs:attribute name="dst-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Destination identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>  
+  
+    <xs:element name="telegramRef">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Telegram reference identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for method call</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>      
+      <xs:attribute name="src-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Source identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+            <xs:attribute name="dst-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Destination identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
   

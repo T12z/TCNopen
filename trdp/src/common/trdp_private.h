@@ -10,13 +10,19 @@
  *
  * @author          Bernd Loehr, NewTec GmbH
  *
- * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
  */
 /*
  * $Id$
  *
+ *      BL 2019-06-17: Ticket #264 Provide service oriented interface
+ *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
+ *      BL 2019-06-17: Ticket #161 Increase performance
+ *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+ *      V 2.0.0 --------- ^^^ -----------
+ *      V 1.4.2 --------- vvv -----------
  *      BL 2018-09-29: Ticket #191 Ready for TSN (PD2 Header)
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
@@ -24,7 +30,7 @@
  *      BL 2017-11-17: undone: Ticket #169 Encapsulate declaration of packed structures within a macro
  *      BL 2017-05-08: Compiler warnings: enum flags to #defines
  *      BL 2017-05-08: Ticket #155: Kill trdp_proto.h - move definitions to iec61375-2-3.h and here
- *      BL 2017-02-28: Ticket #140 TRDP_TIMER_FOREVER -> 
+ *      BL 2017-02-28: Ticket #140 TRDP_TIMER_FOREVER ->
  *      BL 2017-02-28: Ticket #142 Compiler warnings / MISRA-C 2012 issues
  *      BL 2015-08-31: Ticket #94: "beQuiet" removed
  *      BL 2015-08-05: Ticket #81: Counts for packet loss
@@ -50,22 +56,25 @@
 
 /* The TRDP version can be predefined as CFLAG   */
 #ifndef TRDP_VERSION
-#define TRDP_VERSION            0u
-#define TRDP_RELEASE            0u
-#define TRDP_UPDATE             0u
-#define TRDP_EVOLUTION          0u
+#define TRDP_VERSION    2u
+#define TRDP_RELEASE    0u
+#define TRDP_UPDATE     0u
+#define TRDP_EVOLUTION  0u
 #endif
 
-#define TRDP_TIMER_GRANULARITY              10000u                        /**< granularity in us                      */
+#define TRDP_TIMER_GRANULARITY          10000u                            /**< granularity in us                      */
 
-#define TRDP_DEBUG_DEFAULT_FILE_SIZE        65536u                        /**< Default maximum size of log file       */
+#define TRDP_DEBUG_DEFAULT_FILE_SIZE    65536u                            /**< Default maximum size of log file       */
 
-#define TRDP_MAGIC_PUB_HNDL_VALUE           0xCAFEBABEu
-#define TRDP_MAGIC_SUB_HNDL_VALUE           0xBABECAFEu
+#define TRDP_MAGIC_PUB_HNDL_VALUE       0xCAFEBABEu
+#define TRDP_MAGIC_SUB_HNDL_VALUE       0xBABECAFEu
 
-#define TRDP_SEQ_CNT_START_ARRAY_SIZE       64u                           /**< This should be enough for the start    */
+#define TRDP_SEQ_CNT_START_ARRAY_SIZE   64u                               /**< This should be enough for the start    */
 
-#define TRDP_IF_WAIT_FOR_READY              120u    /**< 120 seconds (120 tries each second to bind to an IP address) */
+#define TRDP_IF_WAIT_FOR_READY          120u        /**< 120 seconds (120 tries each second to bind to an IP address) */
+
+#undef  TRDP_PROTO_VER
+#define TRDP_PROTO_VER  0x0101u                                      /**< compatible protocol version with service Id */
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -97,17 +106,17 @@ typedef enum
 
 /** Internal flags for packets    */
 
-#define TRDP_PRIV_NONE          0u
-#define TRDP_MC_JOINT           0x1u
-#define TRDP_TIMED_OUT          0x2u        /**< if set, inform the user                                */
-#define TRDP_INVALID_DATA       0x4u        /**< if set, inform the user                                */
-#define TRDP_REQ_2B_SENT        0x8u        /**< if set, the request needs to be sent                   */
-#define TRDP_PULL_SUB           0x10u       /**< if set, its a PULL subscription                        */
-#define TRDP_REDUNDANT          0x20u       /**< if set, packet should not be sent (redundant)          */
-#define TRDP_CHECK_COMID        0x40u       /**< if set, do filter comId (addListener)                  */
-#define TRDP_IS_TSN             0x80u       /**< if set, PD will be sent on trdp_put() only             */
+#define TRDP_PRIV_NONE      0u
+#define TRDP_MC_JOINT       0x1u
+#define TRDP_TIMED_OUT      0x2u            /**< if set, inform the user                                */
+#define TRDP_INVALID_DATA   0x4u            /**< if set, inform the user                                */
+#define TRDP_REQ_2B_SENT    0x8u            /**< if set, the request needs to be sent                   */
+#define TRDP_PULL_SUB       0x10u           /**< if set, its a PULL subscription                        */
+#define TRDP_REDUNDANT      0x20u           /**< if set, packet should not be sent (redundant)          */
+#define TRDP_CHECK_COMID    0x40u           /**< if set, do filter comId (addListener)                  */
+#define TRDP_IS_TSN         0x80u           /**< if set, PD will be sent on trdp_put() only             */
 
-typedef UINT8   TRDP_PRIV_FLAGS_T;
+typedef UINT8 TRDP_PRIV_FLAGS_T;
 
 /** Socket usage    */
 typedef enum
@@ -128,6 +137,7 @@ typedef struct TRDP_HANDLE
     TRDP_IP_ADDR_T  mcGroup;                            /**< multicast group to join for PD             */
     UINT32          etbTopoCnt;                         /**< etb topocount belongs to addressing item   */
     UINT32          opTrnTopoCnt;                       /**< opTrn topocount belongs to addressing item */
+    UINT32          serviceId;                          /**< group of services this packet belongs to   */
 } TRDP_ADDRESSES_T /*, *TRDP_PUB_PT, *TRDP_SUB_PT*/;
 
 /** Tuples of last received sequence counter per comId  */
@@ -185,7 +195,8 @@ typedef struct
     UINT32  etbTopoCnt;                         /**< set by user: ETB to use, '0' for consist local traffic */
     UINT32  opTrnTopoCnt;                       /**< set by user: direction/side critical, '0' if ignored   */
     UINT32  datasetLength;                      /**< length of the data to transmit 0...1432                */
-    UINT32  reserved;                           /**< reserved for ServiceID/InstanceID support                         */
+    UINT32  reserved;                           /**< reserved for ServiceID/InstanceID support
+                                                                          */
     UINT32  replyComId;                         /**< used in PD request                                     */
     UINT32  replyIpAddress;                     /**< used for PD request                                    */
     UINT32  frameCheckSum;                      /**< CRC32 of header                                        */
@@ -200,7 +211,7 @@ typedef struct
                                                           0x03 (for multiple SDTv4 frame), others reserved  */
     UINT16  datasetLength;                      /**< length of the data to transmit 0...1432                */
     UINT32  comId;                              /**< set by user: unique id                                 */
-    UINT32  reserved;                           /**< reserved for future use                                */
+    UINT32  reserved;                           /**< reserved for ServiceID/InstanceID support              */
     UINT32  frameCheckSum;                      /**< CRC32 of header                                        */
 } GNU_PACKED PD2_HEADER_T;
 
@@ -229,13 +240,11 @@ typedef struct
     UINT8       data[TRDP_MAX_PD_DATA_SIZE];    /**< data ready to be sent or received                      */
 } GNU_PACKED PD_PACKET_T;
 
-#ifdef TRDP_TSN
 typedef struct
 {
     PD2_HEADER_T    frameHead;                      /**< Packet header in network byte order             */
     UINT8           data[TRDP_MAX_PD2_DATA_SIZE];   /**< data ready to be sent or received                  */
 } GNU_PACKED PD2_PACKET_T;
-#endif
 
 #if MD_SUPPORT
 /** TRDP MD packet    */
@@ -261,7 +270,7 @@ typedef struct PD_ELE
     UINT32              redId;                  /**< Redundancy group ID or zero                            */
     UINT32              curSeqCnt;              /**< the last sent or received sequence counter             */
     UINT32              curSeqCnt4Pull;         /**< the last sent sequence counter for PULL                */
-    TRDP_SEQ_CNT_LIST_T*pSeqCntList;            /**< pointer to list of received sequence numbers per comId */
+    TRDP_SEQ_CNT_LIST_T *pSeqCntList;            /**< pointer to list of received sequence numbers per comId */
     UINT32              numRxTx;                /**< Counter for received packets (statistics)              */
     UINT32              updPkts;                /**< Counter for updated packets (statistics)               */
     UINT32              getPkts;                /**< Counter for read packets (statistics)                  */
@@ -346,7 +355,7 @@ typedef struct MD_ELE
 /**    TCP file descriptor parameters   */
 typedef struct
 {
-    SOCKET	listen_sd;          /**< TCP general socket listening connection requests   */
+    SOCKET  listen_sd;          /**< TCP general socket listening connection requests   */
     SOCKET  max_sd;             /**< Maximum socket number in the file descriptor   */
     /* fd_set  master_set;         / **< Local file descriptor   * / */
 } TRDP_TCP_FD_T;

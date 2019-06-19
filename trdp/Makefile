@@ -9,6 +9,7 @@
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2018. All rights reserved.
 #//
+#//	BL 2019-06-18: V2 changes: dividing trdp_if.c into tlc_if.c, tlp_if.c and tlm_if.c
 #//	BL 2019-06-13: Helm's Deep 96Board configuration added
 #//	BL 2019-03-21: Prepared for TSN
 #//	BL 2019-01-24: Reduce noise
@@ -55,21 +56,15 @@ FLINT = $(LINT_BINPATH)flint
 
 # Set Objects
 VOS_OBJS = vos_utils.o \
-	   vos_mem.o \
-	   vos_thread.o \
-	   vos_shared_mem.o
-
-#include the TSN socket implementation, if needed
-ifneq (,$(findstring TSN,$(CFLAGS)))
-	VOS_OBJS += vos_sockTSN.o trdp_tsn.o # Found
-	INCLUDES += -I $(ADD_INC)
-else
-	VOS_OBJS += vos_sock.o # Not found
-endif
+		vos_mem.o \
+		vos_sock.o \
+		vos_thread.o \
+		vos_shared_mem.o
 
 TRDP_OBJS = trdp_pdcom.o \
 	    trdp_utils.o \
-	    trdp_if.o \
+	    tlp_if.o \
+		trdp_if.o \
 	    trdp_stats.o \
 	    $(VOS_OBJS)
 
@@ -104,6 +99,7 @@ ifeq ($(MD_SUPPORT),0)
 CFLAGS += -DMD_SUPPORT=0
 else
 TRDP_OBJS += trdp_mdcom.o
+TRDP_OBJS += tlm_if.o
 CFLAGS += -DMD_SUPPORT=1
 endif
 

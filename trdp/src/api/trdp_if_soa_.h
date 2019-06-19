@@ -1,11 +1,12 @@
 /**********************************************************************************************************************/
 /**
- * @file            trdp_if_soa.h
+ * @file            tau_soa.h
  *
- * @brief           Service oriented interface
+ * @brief           Access to the Service Registry
  *
- * @details         This header file defines the proposed extensions and additions to IEC61375-2-3:2017 regarding
- *                  the service oriented interface
+ * @details         This header file defines the proposed extensions and additions to access the
+ *                  service interface (proposed as extension to the TTDB defined in IEC61375-2-3:2017
+ *
  *
  * @note            Project: TCNOpen TRDP prototype stack & FDF/DbD
  *
@@ -26,11 +27,33 @@ extern "C" {
 #endif
 
 #include    "iec61375-2-3.h"
+#include    "trdp_serviceRegistry.h"
 
 /***********************************************************************************************************************
  * DEFINITIONS
  */
 
+EXT_DECL TRDP_ERR_T tau_addServices (
+    TRDP_APP_SESSION_T          appHandle,
+    UINT16                      noOfServices,
+    TTDB_SERVICE_ARRAY_T        *pServicesToAdd,
+    BOOL8                       waitForCompletion);
+
+EXT_DECL TRDP_ERR_T tau_delServices (
+    TRDP_APP_SESSION_T          appHandle,
+    UINT16                      noOfServices,
+    const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
+    BOOL8                       waitForCompletion);
+
+EXT_DECL TRDP_ERR_T tau_updServices (
+    TRDP_APP_SESSION_T          appHandle,
+    UINT16                      noOfServices,
+    const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
+    BOOL8                       waitForCompletion);
+
+EXT_DECL TRDP_ERR_T tau_getServiceList (
+    TRDP_APP_SESSION_T          appHandle,
+    TTDB_SERVICE_ARRAY_T        *pServicesToAdd);
 
 #ifdef __cplusplus
 }

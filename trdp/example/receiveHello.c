@@ -210,12 +210,14 @@ int main (int argc, char *argv[])
                          &subHandle,                /*    our subscription identifier           */
                          NULL,                      /*    user reference                        */
                          NULL,                      /*    callback functiom                     */
+                         0u,
                          comId,                     /*    ComID                                 */
                          0,                         /*    etbTopoCnt: local consist only        */
                          0,                         /*    opTopoCnt                             */
                          VOS_INADDR_ANY, VOS_INADDR_ANY,    /*    Source IP filter              */
                          dstIP,                     /*    Default destination    (or MC Group)  */
                          TRDP_FLAGS_DEFAULT,        /*    TRDP flags                            */
+                         NULL,                      /*    default interface                    */
                          PD_COMID_CYCLE * 3,        /*    Time out in us                        */
                          TRDP_TO_SET_TO_ZERO        /*    delete invalid data on timeout        */
                          );

@@ -26,6 +26,12 @@
 /*
 * $Id$
 *
+*      BL 2019-06-17: Ticket #264 Provide service oriented interface
+*      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
+*      BL 2019-06-17: Ticket #161 Increase performance
+*      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+*      V 2.0.0 --------- ^^^ -----------
+*      V 1.4.2 --------- vvv -----------
 *      BL 2019-06-11: Ticket #253 Incorrect storing of TTDB_STATIC_CONSIST_INFO_REPLY from network packet into local copy
 *      BL 2019-05-15: Ticket #254 API of TTI to get OwnOpCstNo and OwnTrnCstNo
 *      BL 2019-05-15: Ticket #255 opTrnState of pTTDB isn't copied completely
@@ -211,13 +217,16 @@ static void ttiPDCallback (
             }
 
             /* Store the state locally */
-            memcpy(&appHandle->pTTDB->opTrnState, pTelegram,
-                   (sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) < dataSize) ? sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) : dataSize);
+            memcpy(
+                &appHandle->pTTDB->opTrnState,
+                pTelegram,
+                (sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) <
+                 dataSize) ? sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) : dataSize);
 
             /* unmarshall manually:   */
             appHandle->pTTDB->opTrnState.etbTopoCnt         = vos_ntohl(pTelegram->etbTopoCnt);
             appHandle->pTTDB->opTrnState.state.opTrnTopoCnt = vos_ntohl(pTelegram->state.opTrnTopoCnt);
-            appHandle->pTTDB->opTrnState.state.crc          = vos_ntohl(pTelegram->state.crc);
+            appHandle->pTTDB->opTrnState.state.crc = vos_ntohl(pTelegram->state.crc);
 
             /* vos_printLog(VOS_LOG_INFO, "---> Operational status info received on %p\n", appHandle); */
 
@@ -300,7 +309,7 @@ static BOOL8 ttiStoreOpTrnDir (
 
     /* unmarshall manually and update the opTrnTopoCount   */
 
-    appHandle->pTTDB->opTrnDir.opTrnTopoCnt = *(UINT32*) (pData + size);
+    appHandle->pTTDB->opTrnDir.opTrnTopoCnt = *(UINT32 *) (pData + size);
 
     appHandle->pTTDB->opTrnDir.opTrnTopoCnt = vos_ntohl(appHandle->pTTDB->opTrnDir.opTrnTopoCnt);
 
@@ -753,7 +762,7 @@ static void ttiMDCallback (
             {
                 crc = 0xFFFFFFFF;
             }
-            if (crc == vos_ntohl(*(UINT32*)(pData + dataSize - 4)))
+            if (crc == vos_ntohl(*(UINT32 *)(pData + dataSize - 4)))
             {
                 /* find a free place in the cache, or overwrite oldest entry   */
                 (void) ttiStoreCstInfo(appHandle, pData, dataSize);
@@ -761,7 +770,7 @@ static void ttiMDCallback (
             else
             {
                 vos_printLog(VOS_LOG_WARNING, "CRC error of received consist info (%08x != %08x)!\n",
-                             crc, vos_ntohl(*(UINT32*)(pData + dataSize - 4)));
+                             crc, vos_ntohl(*(UINT32 *)(pData + dataSize - 4)));
                 return;
             }
         }
@@ -890,11 +899,13 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
     if (tlp_subscribe(appHandle,
                       &appHandle->pTTDB->pd100SubHandle1,
                       userAction, ttiPDCallback,
+                      0u,
                       TRDP_TTDB_OP_TRN_DIR_STAT_INF_COMID,
                       0u, 0u,
                       VOS_INADDR_ANY, VOS_INADDR_ANY,
                       vos_dottedIP(TTDB_STATUS_DEST_IP),
                       (TRDP_FLAGS_T) (TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB),
+                      NULL,                      /*    default interface                    */
                       TTDB_STATUS_TO * 1000u,
                       TRDP_TO_SET_TO_ZERO) != TRDP_NO_ERR)
     {
@@ -905,11 +916,13 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
     if (tlp_subscribe(appHandle,
                       &appHandle->pTTDB->pd100SubHandle2,
                       userAction, ttiPDCallback,
+                      0u,
                       TRDP_TTDB_OP_TRN_DIR_STAT_INF_COMID,
                       0u, 0u,
                       VOS_INADDR_ANY, VOS_INADDR_ANY,
                       vos_dottedIP(TTDB_STATUS_DEST_IP_ETB0),
                       (TRDP_FLAGS_T) (TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB),
+                      NULL,                      /*    default interface                    */
                       TTDB_STATUS_TO * 1000u,
                       TRDP_TO_SET_TO_ZERO) != TRDP_NO_ERR)
     {
@@ -1014,7 +1027,7 @@ EXT_DECL TRDP_ERR_T tau_getOpTrDirectory (
     {
         return TRDP_PARAM_ERR;
     }
-    if ((appHandle->pTTDB->opTrnDir.opCstCnt == 0 )||
+    if ((appHandle->pTTDB->opTrnDir.opCstCnt == 0) ||
         (appHandle->pTTDB->opTrnDir.opTrnTopoCnt != appHandle->opTrnTopoCnt))    /* need update? */
     {
         ttiRequestTTDBdata(appHandle, TTDB_OP_DIR_INFO_REQ_COMID, NULL);
@@ -1756,7 +1769,7 @@ EXT_DECL UINT8 tau_getOwnOpCstNo (
     if ((appHandle != NULL) &&
         (appHandle->pTTDB != NULL))
     {
-        return appHandle->pTTDB->opTrnState.ownOpCstNo;    //pTTDB opTrnState ownOpCstNo;
+        return appHandle->pTTDB->opTrnState.ownOpCstNo;    /* pTTDB opTrnState ownOpCstNo; */
     }
     return 0u;
 }

@@ -322,10 +322,11 @@ static void setup_ports()
                 apph,               /* session handle */
                 &p->ph,             /* publish handle */
                 NULL, NULL, 
-                p->comid,           /* comid          */
-                0,                  /* topo counter   */
+                0u,                 /* serviceId        */
+                p->comid,           /* comid            */
+                0,                  /* topo counter     */
                 0,
-                p->src,             /* source address */
+                p->src,             /* source address   */
                 p->dst,             /* destination address */
                 p->cycle,           /* cycle period   */
                 0,                  /* redundancy     */
@@ -344,6 +345,7 @@ static void setup_ports()
             p->err = tlp_request(
                 apph,               /* session handle */
                 ports[p->link].sh,  /* related subscribe handle */
+                0u,                 /* serviceId        */
                 p->comid,           /* comid          */
                 0,                  /* topo counter   */
                 0,
@@ -369,6 +371,7 @@ static void setup_ports()
                 &p->sh,             /* subscribe handle */
                 NULL,               /* user ref         */
                 NULL,               /* callback funktion */
+                0u,                 /* serviceId        */
                 p->comid,           /* comid            */
                 0,                  /* topo counter     */
                 0,
@@ -376,6 +379,7 @@ static void setup_ports()
                 VOS_INADDR_ANY,
                 p->dst,             /* destination address    */
                 TRDP_FLAGS_NONE,    /* No flags set     */
+                NULL,                   /*    default interface */
                 p->timeout,             /* timeout [usec]   */
                 TRDP_TO_SET_TO_ZERO);   /* timeout behavior */
 
@@ -723,7 +727,7 @@ static void process_data()
                     p->cycle / 1000, p->size, cycle);
             }
 
-            p->err = tlp_request(apph, ports[p->link].sh, p->comid, 0, 0,
+            p->err = tlp_request(apph, ports[p->link].sh, 0u, p->comid, 0u, 0u,
                 p->src, p->dst, 0, TRDP_FLAGS_NONE, NULL, p->data, p->size,
                 p->repid, p->rep);
         }

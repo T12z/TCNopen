@@ -1754,3 +1754,325 @@ EXT_DECL void tau_freeXmlDatasetConfig (
         ppDataset = NULL;
     }
 }
+
+/**********************************************************************************************************************/
+/**    Function to read the TRDP device service definitions out of the XML configuration file.
+ *  The user must release the memory for pServiceDefs (using vos_memFree)
+ *
+ *  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+ *  @param[out]     numServiceDefs    Number of defined Services
+ *  @param[out]     pServiceDefs      Pointer to the defined Services
+ *
+ *  @retval         TRDP_NO_ERR       no error
+ *  @retval         TRDP_MEM_ERR      provided buffer to small
+ *  @retval         TRDP_PARAM_ERR    File not existing
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    UINT32                      *pNumServiceDefs,
+    TRDP_SERVICE_DEF_T          **ppServiceDefs
+    )
+{
+    CHAR8   tag[MAX_TAG_LEN];
+    CHAR8   attribute[MAX_TOK_LEN];
+    CHAR8   value[MAX_TOK_LEN];
+    UINT32  valueInt;
+    TRDP_EVENT_T *pEvent = NULL;
+    TRDP_FIELD_T *pField = NULL;
+    TRDP_METHOD_T *pMethod = NULL;
+    TRDP_INSTANCE_T *pInstance = NULL;
+    TRDP_TELEGRAM_REF_T *pTelegramRef = NULL;
+
+    trdp_XMLRewind(pDocHnd->pXmlDocument);
+
+    /*  Default all parameters    */
+    if(pNumServiceDefs)
+    {
+        *pNumServiceDefs = 0u;
+    }
+    if (ppServiceDefs)
+    {
+        *ppServiceDefs = NULL;
+    }
+
+    trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+    if (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "device") == 0) /* Optional */
+    {
+
+        trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+        while (trdp_XMLSeekStartTagAny(pDocHnd->pXmlDocument, tag, MAX_TAG_LEN) == 0)
+        {
+            if (vos_strnicmp(tag, "service-list", MAX_TAG_LEN) == 0)
+            {
+                UINT32 count = 0u;
+                trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+                count = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "service");
+
+                *ppServiceDefs = (TRDP_SERVICE_DEF_T *)vos_memAlloc(count * sizeof(TRDP_SERVICE_DEF_T));
+
+                if (*ppServiceDefs != NULL)
+                {
+                    UINT32 i;
+                    *pNumServiceDefs = count;
+
+                    /* Read the interface params */
+                    for (i = 0u; i < count && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "service") == 0; i++)
+                    {
+                        while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt,
+                                                    value) == TOK_ATTRIBUTE)
+                        {
+                            if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                            {
+                                vos_strncpy((*ppServiceDefs)[i].serviceName, value, TRDP_MAX_URI_USER_LEN);
+                            }
+                            else if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                            {
+                                (*ppServiceDefs)[i].serviceId = (UINT32) valueInt;
+                            }
+                        }
+
+                        UINT32 eventCount;
+                        UINT32 fieldCount;
+                        UINT32 methodCount;
+                        UINT32 instanceCount;
+                        UINT32 telegramRefCount;
+
+                        trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+                        /* find out how many events,fields,methods and instances are defined beforehand */
+                        eventCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "event");
+                        (*ppServiceDefs)[i].pEvent = NULL;
+                        fieldCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "field");
+                        (*ppServiceDefs)[i].pField = NULL;
+                        methodCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "method");
+                        (*ppServiceDefs)[i].pMethod = NULL;
+                        instanceCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "instance");
+                        (*ppServiceDefs)[i].pInstance = NULL;
+                        telegramRefCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "telegramRef");
+                        (*ppServiceDefs)[i].pTelegramRef = NULL;
+
+                        while (trdp_XMLSeekStartTagAny(pDocHnd->pXmlDocument, tag, MAX_TAG_LEN) == 0)
+                        {
+                            if (vos_strnicmp(tag, "event", MAX_TAG_LEN) == 0)
+                            {
+                                if (eventCount > 0u)
+                                {
+                                    (*ppServiceDefs)[i].pEvent = (TRDP_EVENT_T *)vos_memAlloc(eventCount * sizeof(TRDP_EVENT_T));
+
+                                    if ((*ppServiceDefs)[i].pEvent == NULL)
+                                    {
+                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML event definitions!\n",
+                                                     (unsigned long) (eventCount * sizeof(TRDP_EVENT_T)));
+                                        return TRDP_MEM_ERR;
+                                    }
+                                    (*ppServiceDefs)[i].eventCnt = eventCount;
+                                    eventCount    = 0u;
+                                    pEvent        = (*ppServiceDefs)[i].pEvent;
+                                }
+                                while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                                {
+                                    if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pEvent->eventId = (UINT16) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pEvent->comId = (UINT16) valueInt;
+                                    }
+                                }
+                                if (pEvent != NULL)
+                                {
+                                    pEvent++;
+                                }
+
+                            }
+                            else if (vos_strnicmp(tag, "field", MAX_TAG_LEN) == 0)
+                            {
+                                if (fieldCount > 0u)
+                                {
+                                    (*ppServiceDefs)[i].pField = (TRDP_FIELD_T *)vos_memAlloc(fieldCount * sizeof(TRDP_FIELD_T));
+
+                                    if ((*ppServiceDefs)[i].pField == NULL)
+                                    {
+                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML field definitions!\n",
+                                                     (unsigned long) (fieldCount * sizeof(TRDP_FIELD_T)));
+                                        return TRDP_MEM_ERR;
+                                    }
+                                    (*ppServiceDefs)[i].fieldCnt = fieldCount;
+                                    fieldCount    = 0u;
+                                    pField        = (*ppServiceDefs)[i].pField;
+                                }
+                                while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                                {
+                                    if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pField->fieldId = (UINT16) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pField->comId = (UINT16) valueInt;
+                                    }
+                                }
+                                if (pField != NULL)
+                                {
+                                    pField++;
+                                }
+                            }
+                            else if (vos_strnicmp(tag, "method", MAX_TAG_LEN) == 0)
+                            {
+                                if (methodCount > 0u)
+                                {
+                                    (*ppServiceDefs)[i].pMethod = (TRDP_METHOD_T *)vos_memAlloc(methodCount * sizeof(TRDP_METHOD_T));
+
+                                    if ((*ppServiceDefs)[i].pMethod == NULL)
+                                    {
+                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML method definitions!\n",
+                                                     (unsigned long) (methodCount * sizeof(TRDP_METHOD_T)));
+                                        return TRDP_MEM_ERR;
+                                    }
+                                    (*ppServiceDefs)[i].methodCnt = methodCount;
+                                    methodCount    = 0u;
+                                    pMethod        = (*ppServiceDefs)[i].pMethod;
+                                }
+                                while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                                {
+                                    if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pMethod->methodId = (UINT16) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pMethod->comId = (UINT16) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "reply-com-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pMethod->replyComId = (UINT16) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "confirm", MAX_TOK_LEN) == 0)
+                                    {
+                                        if (vos_strnicmp(value, "on", MAX_TOK_LEN) == 0)
+                                        {
+                                            pMethod->confirm = TRUE;
+                                        }
+                                    }
+                                }
+                                if (pMethod != NULL)
+                                {
+                                    pMethod++;
+                                }
+                            }
+                            else if (vos_strnicmp(tag, "instance", MAX_TAG_LEN) == 0)
+                            {
+                                if (instanceCount > 0u)
+                                {
+                                    (*ppServiceDefs)[i].pInstance = (TRDP_INSTANCE_T *)vos_memAlloc(instanceCount * sizeof(TRDP_INSTANCE_T));
+
+                                    if ((*ppServiceDefs)[i].pInstance == NULL)
+                                    {
+                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML instance definitions!\n",
+                                                     (unsigned long) (instanceCount * sizeof(TRDP_INSTANCE_T)));
+                                        return TRDP_MEM_ERR;
+                                    }
+                                    (*ppServiceDefs)[i].instanceCnt = instanceCount;
+                                    instanceCount    = 0u;
+                                    pInstance        = (*ppServiceDefs)[i].pInstance;
+                                }
+                                while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                                {
+                                    if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pInstance->instanceId = (UINT8) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "src-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pInstance->srcId = (UINT16) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "dst-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pInstance->dstId = (UINT16) valueInt;
+                                    }
+                                }
+                                if (pInstance != NULL)
+                                {
+                                    pInstance++;
+                                }
+                            }
+                            else if (vos_strnicmp(tag, "telegramRef", MAX_TAG_LEN) == 0)
+                            {
+                                if (telegramRefCount > 0u)
+                                {
+                                    (*ppServiceDefs)[i].pTelegramRef = (TRDP_TELEGRAM_REF_T *)vos_memAlloc(telegramRefCount * sizeof(TRDP_TELEGRAM_REF_T));
+
+                                    if ((*ppServiceDefs)[i].pTelegramRef == NULL)
+                                    {
+                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML telegramDef definitions!\n",
+                                                     (unsigned long) (telegramRefCount * sizeof(TRDP_TELEGRAM_REF_T)));
+                                        return TRDP_MEM_ERR;
+                                    }
+                                    (*ppServiceDefs)[i].telegramRefCnt = telegramRefCount;
+                                    telegramRefCount    = 0u;
+                                    pTelegramRef        = (*ppServiceDefs)[i].pTelegramRef;
+                                }
+                                while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                                {
+                                    if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pTelegramRef->comId = (UINT32) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pTelegramRef->id = (UINT32) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "src-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pTelegramRef->srcId = (UINT32) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "dst-id", MAX_TOK_LEN) == 0)
+                                    {
+                                        pTelegramRef->dstId = (UINT32) valueInt;
+                                    }
+                                }
+                                if (pTelegramRef != NULL)
+                                {
+                                    pTelegramRef++;
+                                }
+                            }
+
+                        }
+
+//                        UINT32 j;
+//
+//                        eventCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "event");
+//
+//                        if (eventCount > 0u)
+//                        {
+//                            (*ppServiceDefs)[i].pEvent = (TRDP_EVENT_T *)vos_memAlloc(eventCount * sizeof(TRDP_EVENT_T));
+//
+//                            if (*ppServiceDefs != NULL)
+//                            {
+//                                (*ppServiceDefs)[i].eventCnt = eventCount;
+//                                for (j = 0u; j < eventCount && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "event") == 0; j++)
+//                                {
+//
+//                                }
+//                            }
+//                        }
+                        trdp_XMLLeave(pDocHnd->pXmlDocument);
+
+
+                    }
+                }
+                trdp_XMLLeave(pDocHnd->pXmlDocument);
+            }
+        }
+        trdp_XMLLeave(pDocHnd->pXmlDocument);
+    }
+
+    trdp_XMLLeave(pDocHnd->pXmlDocument);
+
+    return TRDP_NO_ERR;
+}

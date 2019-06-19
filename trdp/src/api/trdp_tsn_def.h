@@ -34,7 +34,7 @@ extern "C" {
 #define TRDP_MD_DEFAULT_QOS                 2u                          /**< matching new proposed priority classes */
 #undef TRDP_MD_DEFAULT_SEND_PARAM
 #define TRDP_MD_DEFAULT_SEND_PARAM          {TRDP_MD_DEFAULT_QOS, TRDP_MD_DEFAULT_TTL,\
-                                                TRDP_MD_DEFAULT_RETRIES, FALSE, 0u, ""}
+                                                TRDP_MD_DEFAULT_RETRIES, FALSE, 0u}
 
 /**  Default PD communication parameters   */
 #undef TRDP_PD_DEFAULT_QOS

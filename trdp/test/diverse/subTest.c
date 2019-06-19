@@ -234,6 +234,7 @@ int main (int argc, char *argv[])
     err = tlp_subscribe( appHandle,                 /*    our application identifier           */
                          &subHandle1,               /*    our subscription identifier          */
                          NULL, NULL,
+                         0u,
                          PD_COMID1,                 /*    ComID                                */
                          0,                         /*    topocount: local consist only        */
                          0,
@@ -241,6 +242,7 @@ int main (int argc, char *argv[])
                          VOS_INADDR_ANY,
                          vos_dottedIP(PD_COMID_MC), /*    Default destination    (or MC Group) */
                          0,
+                         NULL,                      /*    default interface                    */
                          PD_COMID1_CYCLE * 3,       /*    Time out in us                       */
                          TRDP_TO_SET_TO_ZERO);      /*  delete invalid data    on timeout      */
 
@@ -254,6 +256,7 @@ int main (int argc, char *argv[])
     err = tlp_subscribe( appHandle,                 /*    our application identifier             */
                          &subHandle2,               /*    our subscription identifier            */
                          NULL, NULL,
+                         0u,
                          PD_COMID2,                 /*    ComID                                  */
                          0,                         /*    topocount: local consist only          */
                          0,
@@ -261,6 +264,7 @@ int main (int argc, char *argv[])
                          VOS_INADDR_ANY,
                          vos_dottedIP(PD_COMID_MC), /* Default destination (or MC Group)         */
                          0,
+                         NULL,                      /*    default interface                    */
                          PD_COMID2_CYCLE * 3,       /*    Time out in us                       */
                          TRDP_TO_SET_TO_ZERO);      /*  delete invalid data    on timeout      */
 

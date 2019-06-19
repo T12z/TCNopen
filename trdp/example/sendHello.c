@@ -269,13 +269,14 @@ int main (int argc, char *argv[])
     err = tlp_publish(  appHandle,                  /*    our application identifier    */
                         &pubHandle,                 /*    our pulication identifier     */
                         NULL, NULL,
+                        0u,
                         comId,                      /*    ComID to send                 */
-                        0,                          /*    etbTopoCnt = 0 for local consist only     */
-                        0,                          /*    opTopoCnt = 0 for non-directinal data     */
+                        0u,                          /*    etbTopoCnt = 0 for local consist only     */
+                        0u,                          /*    opTopoCnt = 0 for non-directinal data     */
                         ownIP,                      /*    default source IP             */
                         destIP,                     /*    where to send to              */
                         cycleTime,                  /*    Cycle time in us              */
-                        0,                          /*    not redundant                 */
+                        0u,                          /*    not redundant                 */
                         TRDP_FLAGS_NONE,            /*    Use callback for errors       */
                         NULL,                       /*    default qos and ttl           */
                         (UINT8 *)outputBuffer,      /*    initial data                  */

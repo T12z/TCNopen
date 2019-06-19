@@ -1748,15 +1748,16 @@ TRDP_ERR_T subscribeTelegram (
                     pSubscribeTelegram->appHandle,                                  /* our application identifier */
                     &pSubscribeTelegram->subHandle,                                 /* our subscription identifier */
                     pSubscribeTelegram->pUserRef,                                   /* user reference value = offset */
-                    NULL,                                                                    /* callback function */
+                    NULL,                                                           /* callback function */
                     pSubscribeTelegram->comId,                                      /* ComID */
                     pSubscribeTelegram->etbTopoCount,                               /* ETB topocount to use, 0 if consist local communication */
                     pSubscribeTelegram->opTrnTopoCount,                             /* operational topocount, != 0 for orientation/direction sensitive communication */
-                    pSubscribeTelegram->srcIpAddr, 0,                                /* Source IP filter */
+                    pSubscribeTelegram->srcIpAddr, 0,                               /* Source IP filter */
                     pSubscribeTelegram->dstIpAddr,                                  /* Default destination  (or MC Group) */
                     pSubscribeTelegram->pPdParameter->flags,                        /* Option */
-                    pSubscribeTelegram->pPdParameter->timeout,                  /* Time out in us   */
-                    pSubscribeTelegram->pPdParameter->toBehav);                      /* delete invalid data on timeout */
+                    NULL,                                                           /* default interface */
+                    pSubscribeTelegram->pPdParameter->timeout,                      /* Time out in us   */
+                    pSubscribeTelegram->pPdParameter->toBehav);                     /* delete invalid data on timeout */
             if (err != TRDP_NO_ERR)
             {
                 /* Free Subscribe Dataset */
