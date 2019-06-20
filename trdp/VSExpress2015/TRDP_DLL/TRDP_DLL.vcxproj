@@ -187,7 +187,6 @@
     <ClInclude Include="..\..\src\api\trdp_if_light.h" />
     <ClInclude Include="..\..\src\api\trdp_types.h" />
     <ClCompile Include="..\..\src\common\tlc_if.h" />
-    <ClCompile Include="..\..\src\common\tlm_if.h" />
     <ClInclude Include="..\..\src\common\trdp_mdcom.h" />
     <ClInclude Include="..\..\src\common\trdp_pdcom.h" />
     <ClInclude Include="..\..\src\common\trdp_private.h" />
