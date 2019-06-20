@@ -900,7 +900,7 @@ TRDP_ERR_T  trdp_requestSocket (
                         }
                         continue;   /* No, socket cannot join more MC groups */
                     }
-                    vos_printLog(VOS_LOG_INFO, "socket %d joined %s!\n", iface[lIndex].sock, vos_ipDotted(mcGroup));
+                    vos_printLog(VOS_LOG_INFO, "socket %d joined %s!\n", (int) iface[lIndex].sock, vos_ipDotted(mcGroup));
                 }
             }
 
