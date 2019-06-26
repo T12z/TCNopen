@@ -29,16 +29,14 @@
 #include "vos_utils.h"
 #include "trdp_xml.h"
 #include <string.h>
-#include <stdio.h>
-#include <stdint.h>
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include "tau_xmarshall.h"
 
 
 /* static members */
 static INT32                  use = -1;
+static TAU_XSESSION_PRINT     app_cput;
+
 
 static UINT32                 numIfConfig;
 static TRDP_IF_CONFIG_T       ifConfig[MAX_INTERFACES];
@@ -153,30 +151,27 @@ static void dbgOut (void *pRefCon, TRDP_LOG_T category, const CHAR8 *pTime, cons
 	static const char *catStr[] = {"**Error: ", "Warning: ", "   Info: ", "  Debug: "};
 
 	/*  Check message category*/
-	if ((INT32)category > maxLogCategory) return;
+	if (!app_cput || (INT32)category > maxLogCategory) return;
 
 	/* chop the duplicate line break */
-	char chNL[] = "\n";
+	char putNL = 1;
 	if (pMsgStr && *pMsgStr) {
 		const char *p = pMsgStr;
 		do { p++; } while (*p);
-		if (*(--p) == '\n') *chNL=0;
+		if (*(--p) == '\n') putNL=0;
 	}
 
 	/*  Log message */
-
-	if (dbg) fprintf(stderr, "%s-%s%s:%u: %s%s",
+	if (dbg) {
+		char str[1024];
+		vos_snprintf(str, sizeof(str), "%s-%s%s:%u: ",
 			/* time */		(dbg->option & TRDP_DBG_TIME) ? pTime:"",
 			/* category */	(dbg->option & TRDP_DBG_CAT) ? catStr[category]:"",
 			/* location */	(dbg->option & TRDP_DBG_LOC) ? pFile:"",
-							(dbg->option & TRDP_DBG_LOC) ? LineNumber:0,
-											pMsgStr,
-											chNL);
-	else fprintf(stderr, "DBG: %s%s",
-			pMsgStr,
-			chNL);
-	fflush(stderr);
-
+							(dbg->option & TRDP_DBG_LOC) ? LineNumber:0);
+		app_cput(str, pMsgStr, putNL);
+	} else
+		app_cput("DBG: ", pMsgStr, putNL);
 }
 
 /*********************************************************************************************************************/
@@ -239,24 +234,6 @@ static TRDP_ERR_T findDataset(UINT32 datasetId, TRDP_DATASET_T **pDatasetDesc) {
 	return TRDP_PARAM_ERR;
 }
 
-/**********************************************************************************************************************/
-/** Convert IP address from dotted dec. to !host! endianess
- *  our is modified version of vos_dottedIP, with error separated from output
- *
- *  @param[in]          pDottedIP     IP address as dotted decimal.
- *  @param[out]         pIP           IP address in host endian u32
- *
- *  @retval             0 ok, non-0 error
- */
-static TRDP_ERR_T from_dottedIP (const CHAR8 *pDottedIP, UINT32 *addr) {
-	struct in_addr inaddr;
-	if (addr && inet_aton(pDottedIP, &inaddr) > 0) {
-		*addr = vos_ntohl(inaddr.s_addr);
-		return TRDP_NO_ERR;
-	} else {
-		return TRDP_PARAM_ERR;
-	}
-}
 
 int tau_xsession_up(TAU_XSESSION_T *our) {
 	return our && our->initialized;
@@ -315,12 +292,14 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 		/*  Convert host URI to IP address  */
 		destIP = 0;
 
-		if (pDest.pUriHost)
-			if (*pDest.pUriHost && **pDest.pUriHost && from_dottedIP(*(pDest.pUriHost), &destIP) != TRDP_NO_ERR) {
+		if (pDest.pUriHost) {
+			destIP = vos_dottedIP(*(pDest.pUriHost));
+			if (*pDest.pUriHost && **pDest.pUriHost && !destIP) {
 				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s configured for comID %d, destID %d",
 						*pDest.pUriHost, pExchgPar->comId, pDest.id);
 				return TRDP_PARAM_ERR;
 			}
+		}
 		if (!destIP && info) destIP = info->replyIpAddr? info->replyIpAddr : info->srcIpAddr;
 
 		if (interval && (destIP == 0 || destIP == 0xFFFFFFFF)) {
@@ -417,17 +396,22 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 
 		/*  Convert src URIs to IP address  */
 		srcIP1 = 0;
-		if (pExchgPar->pSrc[i].pUriHost1 && *pExchgPar->pSrc[i].pUriHost1 && **pExchgPar->pSrc[i].pUriHost1
-				&& (from_dottedIP(*(pExchgPar->pSrc[i].pUriHost1), &srcIP1) != TRDP_NO_ERR || srcIP1 == 0xFFFFFFFF)) {
-			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI1 in comID %d, destID %d",
-					*pExchgPar->pSrc[i].pUriHost1, pExchgPar->comId, pExchgPar->pSrc[i].id);
-			return result;
+		if (pExchgPar->pSrc[i].pUriHost1 && *pExchgPar->pSrc[i].pUriHost1 && **pExchgPar->pSrc[i].pUriHost1) {
+			srcIP1 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost1));
+			if (!srcIP1 || srcIP1 == 0xFFFFFFFF) {
+				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI1 in comID %d, destID %d",
+						*pExchgPar->pSrc[i].pUriHost1, pExchgPar->comId, pExchgPar->pSrc[i].id);
+				return result;
+			}
 		}
 		srcIP2 = 0;
-		if (pExchgPar->pSrc[i].pUriHost2 && (from_dottedIP(*(pExchgPar->pSrc[i].pUriHost2), &srcIP2) != TRDP_NO_ERR || srcIP2 == 0xFFFFFFFF || srcIP2 == 0)) {
-			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI2 in comID %d, destID %d",
-					*pExchgPar->pSrc[i].pUriHost2, pExchgPar->comId, pExchgPar->pSrc[i].id);
-			return TRDP_PARAM_ERR;
+		if (pExchgPar->pSrc[i].pUriHost2) {
+			srcIP2 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost2));
+			if (!srcIP2 || srcIP2 == 0xFFFFFFFF) {
+				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI2 in comID %d, destID %d",
+						*pExchgPar->pSrc[i].pUriHost2, pExchgPar->comId, pExchgPar->pSrc[i].id);
+				return TRDP_PARAM_ERR;
+			}
 		}
 
 		/*  Subscribe the telegram    */
@@ -492,7 +476,7 @@ static TRDP_ERR_T configureSession(TAU_XSESSION_T *our, TRDP_XML_DOC_HANDLE_T *p
 }
 
 
-TRDP_ERR_T tau_xsession_load(const char *xml, size_t length) {
+TRDP_ERR_T tau_xsession_load(const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print) {
 	TRDP_ERR_T result;
 
 	if (devDocHnd.pXmlDocument || use >= 0) return TRDP_INIT_ERR; /* must close first */
@@ -502,6 +486,7 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length) {
 	pComIdDsIdMap = NULL;
 	numDataset = 0u;
 	apDataset = NULL;
+	app_cput = dbg_print;
 
 	TRDP_IF_CONFIG_T *pTempIfConfig;
 	TRDP_COM_PAR_T   *pTempComPar;
@@ -698,7 +683,7 @@ TRDP_ERR_T tau_xsession_cycle(TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 				}
 			}
 
-			rv = select((int)noOfDesc+1, &rfds, NULL, NULL, &tv);
+			rv = vos_select((int)noOfDesc+1, &rfds, NULL, NULL, &tv);
 
 			//if (rv) vos_printLog(VOS_LOG_INFO, "Pending events: %d/%d/%2x\n", rv, noOfDesc, *((uint8_t *)&rfds));
 

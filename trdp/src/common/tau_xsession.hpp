@@ -60,8 +60,8 @@ public:
 	 *  @param[in] length Is 0 if xml contains a filename or describes the byte-length of the xml-config-buffer.
 	 *  @return    returns a suitable TRDP_ERR. Any occurrence of an error will clean up resources.
 	 */
-	static TRDP_ERR_T load(const char *xml, size_t length = 0)
-		{ return tau_xsession_load(xml, length); }
+	static TRDP_ERR_T load(const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print)
+		{ return tau_xsession_load(xml, length, dbg_print); }
 
 	/**
 	 *  initialize that specific bus interface for this session
