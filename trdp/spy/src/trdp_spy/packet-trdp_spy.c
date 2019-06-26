@@ -127,6 +127,8 @@ static gboolean g_scaled = TRUE;
 static gboolean g_strings_are_LE = FALSE;
 static gboolean g_char8_is_utf8 = TRUE;
 static gboolean g_0strings = FALSE;
+static gboolean g_time_local = TRUE;
+static gboolean g_time_raw = FALSE;
 
 /* Initialize the subtree pointers */
 static gint ett_trdp_spy = -1;
@@ -387,7 +389,6 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 			guint   slen = 0;
 			guint   bytelen = 0;
 			gdouble real64 = 0;
-			GTimeVal time = {0,0};
 			nstime_t nstime = {0,0};
 
 			switch(el->type) {
@@ -452,25 +453,25 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				real64 = tvb_get_ntohieee_double(tvb, offset);
 				break;
 			case TRDP_TIMEDATE32:
+				/* This should be time_t from general understanding, which is UNIX time, seconds since 1970
+				 * time_t is a signed long in modern POSIX ABIs, ie. often s64! However, vos_types.h defines this as
+				 * u32, which may introduce some odd complications -- later.
+				 * IEC61375-2-1 says for UNIX-time: SIGNED32 - that's a deal!
+				 */
 				vals = tvb_get_ntohil(tvb, offset);
-				time.tv_sec = (glong)vals;
 				nstime.secs = (long int)vals;
 				break;
 			case TRDP_TIMEDATE48:
 				vals = tvb_get_ntohil(tvb, offset);
-				time.tv_sec = (glong)vals;
-				nstime.secs = (long int)vals;
-				vals = tvb_get_ntohis(tvb, offset + 4);
-				nstime.nsecs = (int)vals*(1000000000L/15259L);  // TODO how are ticks calculated to microseconds?
-				time.tv_usec = nstime.nsecs/1000;
+				nstime.secs = (time_t)vals;
+				valu = tvb_get_ntohs(tvb, offset + 4);
+				nstime.nsecs = (int)(valu*(1000000000ULL/256ULL))/256;
 				break;
 			case TRDP_TIMEDATE64:
 				vals = tvb_get_ntohil(tvb, offset);
-				time.tv_sec = (glong)vals;
-				nstime.secs = (long int)vals;
+				nstime.secs = (time_t)vals;
 				vals = tvb_get_ntohil(tvb, offset + 4);
 				nstime.nsecs = (int)vals*1000;
-				time.tv_usec = (glong)vals;
 				break;
 			default:
 				PRNT(fprintf(stderr, "Unique type %d for %s\n", el->type, el->name));
@@ -526,8 +527,22 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 			case TRDP_TIMEDATE32:
 			case TRDP_TIMEDATE48:
 			case TRDP_TIMEDATE64:
-				//proto_tree_add_bytes_format_value(userdata_element, hf_trdp_ds_type16, tvb, offset, 8, NULL, "%s : %s %s", el->name.toLatin1().data(), g_time_val_to_iso8601(&time), (el->unit.length() != 0) ? el->unit.toLatin1().data() : "");
-				proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%s : %s %s", el->name, g_time_val_to_iso8601(&time), el->unit);
+				/* Is it allowed to have offset / scale?? I am not going to scale seconds, but there could be use for an offset, esp. when misused as relative time. */
+				if (g_scaled) nstime.secs += el->offset;
+				if (g_time_raw) {
+					switch (el->type) {
+					case TRDP_TIMEDATE32:
+						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld seconds", nstime.secs);
+						break;
+					case TRDP_TIMEDATE48:
+						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%05ld seconds (=%ld ticks)", nstime.secs, (nstime.nsecs+5000L)/10000L, valu);
+						break;
+					case TRDP_TIMEDATE64:
+						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%06ld seconds", nstime.secs, nstime.nsecs/1000L);
+						break;
+					}
+				} else
+					proto_tree_add_time(userdata_element, el->hf_id, tvb, offset, el->width, &nstime);
 				offset += el->width;
 				break;
 			}
@@ -880,7 +895,10 @@ static void add_element_reg_info(const char *parentName, Element *el) {
 	case TRDP_TIMEDATE32:
 	case TRDP_TIMEDATE48:
 	case TRDP_TIMEDATE64:
-		add_reg_info( &el->hf_id, name, abbrev, FT_ABSOLUTE_TIME, ABSOLUTE_TIME_LOCAL, blurb );
+		//add_reg_info( &el->hf_id, name, abbrev, FT_DOUBLE, BASE_NONE, blurb );
+		add_reg_info( &el->hf_id, name, abbrev,
+				g_time_raw ? FT_RELATIVE_TIME : FT_ABSOLUTE_TIME,
+				g_time_raw ? 0 : (g_time_local ? ABSOLUTE_TIME_LOCAL : ABSOLUTE_TIME_UTC), blurb );
 		break;
 	default:
 		add_reg_info( &el->hf_id, name, abbrev, FT_BYTES, BASE_NONE, blurb );
@@ -1100,6 +1118,12 @@ void proto_register_trdp(void) {
 			, FALSE
 #endif
 	);
+	prefs_register_bool_preference(trdp_spy_module, "time.local",
+			"Display time-types as local time, untick for UTC / no offsets.",
+			"Time types should be based on UTC. When ticked, Wireshark adds on local timezone offset. Untick if you like UTC to be displayed, or the source is not UTC.", &g_time_local);
+	prefs_register_bool_preference(trdp_spy_module, "time.raw",
+			"Display time-types as raw seconds, not absolute time.",
+			"Time types should be absolute time since the UNIX-Epoch. When ticked, they are shown as seconds.", &g_time_raw);
 	prefs_register_bool_preference(trdp_spy_module, "0strings",
 			"Variable-length CHAR8 and UTF16 arrays are 0-terminated. (non-standard)",
 			"When ticked, the length of a variable-length string (array-size=0) is calculated from searching for a terminator instead of using a previous length element.", &g_0strings);

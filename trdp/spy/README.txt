@@ -12,6 +12,13 @@ You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols-
 
 N E W S
 =======
+2019-06 Thorsten <thorsten.schulz@uni-rostock.de>
+
+ * Update on time types representation.
+ 
+ * Time display can be fine-tuned in the TRDP-Spy preferences.
+ 
+ 
 2019-04 Thorsten <thorsten.schulz@uni-rostock.de>
 
  * Support for Wireshark 2.6 and 3.0. It may not work with earlier versions -- checkout older SVN revions if needed.
