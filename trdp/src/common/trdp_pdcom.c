@@ -842,11 +842,13 @@ TRDP_ERR_T  trdp_pdReceive (
  *  @param[in]      appHandle           session pointer
  *  @param[in,out]  pFileDesc           pointer to set of ready descriptors
  *  @param[in,out]  pNoDesc             pointer to number of ready descriptors
+ *  @param[in]      checkSend           check send queue, too
  */
 void trdp_pdCheckPending (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc)
+    INT32               *pNoDesc,
+    int                 checkSend)
 {
     PD_ELE_T *iterPD;
 
@@ -882,14 +884,17 @@ void trdp_pdCheckPending (
         }
     }
 
-    /*    Find packet in send queue which evntually has to be sent earlier:    */
-    for (iterPD = appHandle->pSndQueue; iterPD != NULL; iterPD = iterPD->pNext)
+    if (checkSend)
     {
-        if (timerisset(&iterPD->interval) &&                        /* has a time out value?    */
-            (timercmp(&iterPD->timeToGo, &appHandle->nextJob, <) ||  /* earlier than current time-out? */
-             !timerisset(&appHandle->nextJob)))
+        /*    Find packet in send queue which evntually has to be sent earlier:    */
+        for (iterPD = appHandle->pSndQueue; iterPD != NULL; iterPD = iterPD->pNext)
         {
-            appHandle->nextJob = iterPD->timeToGo;                  /* set new next time value from queue element */
+            if (timerisset(&iterPD->interval) &&                        /* has a time out value?    */
+                (timercmp(&iterPD->timeToGo, &appHandle->nextJob, <) ||  /* earlier than current time-out? */
+                 !timerisset(&appHandle->nextJob)))
+            {
+                appHandle->nextJob = iterPD->timeToGo;                  /* set new next time value from queue element */
+            }
         }
     }
 }

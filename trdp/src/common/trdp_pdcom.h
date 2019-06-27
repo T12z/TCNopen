@@ -103,7 +103,8 @@ TRDP_ERR_T  trdp_pdReceive (
 void        trdp_pdCheckPending (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc);
+    INT32               *pNoDesc,
+    int                 checkSending);
 
 void        trdp_pdHandleTimeOuts (
     TRDP_SESSION_PT appHandle);

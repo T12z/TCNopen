@@ -86,7 +86,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
         return TRDP_NOINIT_ERR;
     }
 
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -121,7 +121,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
 
         trdp_mdCheckTimeouts(appHandle);
 
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -358,7 +358,7 @@ EXT_DECL TRDP_ERR_T  tlm_addListener (
     }
 
     /* lock mutex */
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -479,7 +479,7 @@ EXT_DECL TRDP_ERR_T  tlm_addListener (
     }
 
     /* Release mutex */
-    if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -521,7 +521,7 @@ TRDP_ERR_T tlm_delListener (
 
     /* lock mutex */
 
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -580,7 +580,7 @@ TRDP_ERR_T tlm_delListener (
     }
 
     /* Release mutex */
-    if ( vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR )
+    if ( vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR )
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -627,7 +627,7 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
         return TRDP_PARAM_ERR;
     }
     /* lock mutex */
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -673,7 +673,7 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
     }
 
     /* Release mutex */
-    if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -854,7 +854,7 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
 
     /* lock mutex */
 
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -883,7 +883,7 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
     while (iterMD != NULL);
 
     /* Release mutex */
-    if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }

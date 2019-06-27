@@ -364,12 +364,15 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
         return ret;
     }
 
-    ret = (TRDP_ERR_T) vos_mutexCreate(&pSession->mutex);
+    ret  = (TRDP_ERR_T) vos_mutexCreate(&pSession->mutex);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->pdSndMutex);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->pdRcvMutex);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mdMutex);
 
     if (ret != TRDP_NO_ERR)
     {
         vos_memFree(pSession);
-        vos_printLog(VOS_LOG_ERROR, "vos_mutexCreate() failed (Err: %d)\n", ret);
+        vos_printLog(VOS_LOG_ERROR, "Serious error: vos_mutexCreate() failed (Err: %d)\n", ret);
         return ret;
     }
 
@@ -1028,7 +1031,7 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
                 vos_getTime(&now);
                 vos_clearTime(&appHandle->nextJob);
 
-                trdp_pdCheckPending(appHandle, pFileDesc, pNoDesc);
+                trdp_pdCheckPending(appHandle, pFileDesc, pNoDesc, TRUE);
 
 #if MD_SUPPORT
                 trdp_mdCheckPending(appHandle, pFileDesc, pNoDesc);
@@ -1190,6 +1193,45 @@ const char *tlc_getVersionString (void)
 EXT_DECL const TRDP_VERSION_T *tlc_getVersion (void)
 {
     return &trdpVersion;
+}
+
+/**********************************************************************************************************************/
+/** Set new topocount for trainwide communication
+ *
+ *    This value is used for validating outgoing and incoming packets only!
+ *
+ *  @param[in]      appHandle           the handle returned by tlc_openSession
+ *  @param[in]      etbTopoCnt          New etbTopoCnt value
+ *
+ *  @retval         TRDP_NO_ERR         no error
+ *  @retval         TRDP_NOINIT_ERR     handle invalid
+ */
+EXT_DECL TRDP_ERR_T tlc_setETBTopoCount (
+    TRDP_APP_SESSION_T  appHandle,
+    UINT32              etbTopoCnt)
+{
+    TRDP_ERR_T ret;
+
+    if (trdp_isValidSession(appHandle))
+    {
+        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+        if (ret == TRDP_NO_ERR)
+        {
+            /*  Set the etbTopoCnt for each session  */
+            appHandle->etbTopoCnt = etbTopoCnt;
+
+            if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+            }
+        }
+    }
+    else
+    {
+        ret = TRDP_NOINIT_ERR;
+    }
+
+    return ret;
 }
 
 /**********************************************************************************************************************/

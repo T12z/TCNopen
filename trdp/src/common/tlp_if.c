@@ -61,6 +61,81 @@ extern "C" {
  */
 
 /**********************************************************************************************************************/
+/** Get the lowest time interval for PDs.
+ *  Return the maximum time interval suitable for 'select()' so that we
+ *    can send due PD packets in time.
+ *    If the PD send queue is empty, return zero time
+ *
+ *  @param[in]      appHandle          The handle returned by tlc_openSession
+ *  @param[out]     pInterval          pointer to needed interval
+ *  @param[in,out]  pFileDesc          pointer to file descriptor set
+ *  @param[out]     pNoDesc            pointer to put no of highest used descriptors (for select())
+ *
+ *  @retval         TRDP_NO_ERR        no error
+ *  @retval         TRDP_NOINIT_ERR    handle invalid
+ */
+EXT_DECL TRDP_ERR_T tlp_getInterval (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_TIME_T         *pInterval,
+    TRDP_FDS_T          *pFileDesc,
+    INT32               *pNoDesc)
+{
+    TRDP_TIME_T now;
+    TRDP_ERR_T  ret = TRDP_NOINIT_ERR;
+
+    if (trdp_isValidSession(appHandle))
+    {
+        if ((pInterval == NULL)
+            || (pFileDesc == NULL)
+            || (pNoDesc == NULL))
+        {
+            ret = TRDP_PARAM_ERR;
+        }
+        else
+        {
+            ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdRcvMutex);
+
+            if (ret != TRDP_NO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexLock() failed\n");
+            }
+            else
+            {
+                /*    Get the current time    */
+                vos_getTime(&now);
+                vos_clearTime(&appHandle->nextJob);
+
+                trdp_pdCheckPending(appHandle, pFileDesc, pNoDesc, FALSE);
+
+                /*    if next job time is known, return the time-out value to the caller   */
+                if (timerisset(&appHandle->nextJob) &&
+                    timercmp(&now, &appHandle->nextJob, <))
+                {
+                    vos_subTime(&appHandle->nextJob, &now);
+                    *pInterval = appHandle->nextJob;
+                }
+                else if (timerisset(&appHandle->nextJob))
+                {
+                    pInterval->tv_sec   = 0u;                               /* 0ms if time is over (were we delayed?) */
+                    pInterval->tv_usec  = 0;                                /* Application should limit this    */
+                }
+                else    /* if no timeout set, set maximum time to 1000sec   */
+                {
+                    pInterval->tv_sec   = 1u;                               /* 1000s if no timeout is set      */
+                    pInterval->tv_usec  = 0;                                /* Application should limit this    */
+                }
+
+                if (vos_mutexUnlock(appHandle->pdRcvMutex) != VOS_NO_ERR)
+                {
+                    vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+/**********************************************************************************************************************/
 /** Work loop of the TRDP handler.
  *    Search the queue for pending PDs to be sent
  *    Search the receive queue for pending PDs (time out)
@@ -86,7 +161,7 @@ EXT_DECL TRDP_ERR_T tlp_processReceive (
         return TRDP_NOINIT_ERR;
     }
 
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->pdRcvMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -109,7 +184,7 @@ EXT_DECL TRDP_ERR_T tlp_processReceive (
             result = err;
         }
 
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->pdRcvMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -140,7 +215,7 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
         return TRDP_NOINIT_ERR;
     }
 
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->pdSndMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -161,7 +236,7 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
             /* vos_printLog(VOS_LOG_ERROR, "trdp_pdSendQueued failed (Err: %d)\n", err);*/
         }
 
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -192,7 +267,7 @@ TRDP_ERR_T tlp_setRedundant (
 
     if (trdp_isValidSession(appHandle))
     {
-        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
         if (TRDP_NO_ERR == ret)
         {
             /*    Set the redundancy flag for every PD with the specified ID */
@@ -224,7 +299,7 @@ TRDP_ERR_T tlp_setRedundant (
                 ret = TRDP_PARAM_ERR;
             }
 
-            if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+            if (vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR)
             {
                 vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
             }
@@ -261,7 +336,7 @@ EXT_DECL TRDP_ERR_T tlp_getRedundant (
 
     if (trdp_isValidSession(appHandle))
     {
-        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
         if (ret == TRDP_NO_ERR)
         {
             /*    Search the redundancy flag for every PD with the specified ID */
@@ -281,50 +356,11 @@ EXT_DECL TRDP_ERR_T tlp_getRedundant (
                 }
             }
 
-            if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+            if (vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR)
             {
                 vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
             }
         }
-    }
-
-    return ret;
-}
-
-/**********************************************************************************************************************/
-/** Set new topocount for trainwide communication
- *
- *    This value is used for validating outgoing and incoming packets only!
- *
- *  @param[in]      appHandle           the handle returned by tlc_openSession
- *  @param[in]      etbTopoCnt          New etbTopoCnt value
- *
- *  @retval         TRDP_NO_ERR         no error
- *  @retval         TRDP_NOINIT_ERR     handle invalid
- */
-EXT_DECL TRDP_ERR_T tlc_setETBTopoCount (
-    TRDP_APP_SESSION_T  appHandle,
-    UINT32              etbTopoCnt)
-{
-    TRDP_ERR_T ret;
-
-    if (trdp_isValidSession(appHandle))
-    {
-        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
-        if (ret == TRDP_NO_ERR)
-        {
-            /*  Set the etbTopoCnt for each session  */
-            appHandle->etbTopoCnt = etbTopoCnt;
-
-            if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
-            {
-                vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
-            }
-        }
-    }
-    else
-    {
-        ret = TRDP_NOINIT_ERR;
     }
 
     return ret;
@@ -395,7 +431,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
     }
 
     /*    Reserve mutual access    */
-    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
     if (ret == TRDP_NO_ERR)
     {
         TRDP_ADDRESSES_T pubHandle;
@@ -601,7 +637,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
             }
         }
 
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -647,7 +683,7 @@ EXT_DECL TRDP_ERR_T tlp_republish (
     }
 
     /*    Reserve mutual access    */
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->pdSndMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -671,7 +707,7 @@ EXT_DECL TRDP_ERR_T tlp_republish (
     /*    Compute the header fields */
     trdp_pdInit(pubHandle, TRDP_MSG_PD, etbTopoCnt, opTrnTopoCnt, 0u, 0u, pubHandle->addr.serviceId);
 
-    if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -714,7 +750,7 @@ TRDP_ERR_T  tlp_unpublish (
     }
 
     /*    Reserve mutual access    */
-    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
     if (ret == TRDP_NO_ERR)
     {
         /*    Remove from queue?    */
@@ -734,7 +770,7 @@ TRDP_ERR_T  tlp_unpublish (
             ret = trdp_pdDistribute(appHandle->pSndQueue);
         }
 
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -783,7 +819,7 @@ TRDP_ERR_T tlp_put (
     }
 
     /*    Reserve mutual access    */
-    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
     if ( ret == TRDP_NO_ERR )
     {
         /*    Find the published queue entry    */
@@ -793,7 +829,7 @@ TRDP_ERR_T tlp_put (
                          pData,
                          dataSize);
 
-        if ( vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR )
+        if ( vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR )
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -922,7 +958,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
         }
     }
     /*    Reserve mutual access    */
-    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
 
     if ( ret == TRDP_NO_ERR)
     {
@@ -1043,7 +1079,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
             }
         }
 
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
         }
@@ -1121,7 +1157,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
     }
 
     /*    Reserve mutual access    */
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->pdRcvMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -1254,7 +1290,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
         } /*lint !e438 unused newPD */
     }
 
-    if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->pdRcvMutex) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -1297,7 +1333,7 @@ EXT_DECL TRDP_ERR_T tlp_unsubscribe (
     }
 
     /*    Reserve mutual access    */
-    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdRcvMutex);
     if (ret == TRDP_NO_ERR)
     {
         TRDP_IP_ADDR_T mcGroup = pElement->addr.mcGroup;
@@ -1320,7 +1356,7 @@ EXT_DECL TRDP_ERR_T tlp_unsubscribe (
         }
         vos_memFree(pElement);
         ret = TRDP_NO_ERR;
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->pdRcvMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -1372,7 +1408,7 @@ EXT_DECL TRDP_ERR_T tlp_resubscribe (
     }
 
     /*    Reserve mutual access    */
-    if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->pdRcvMutex) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -1425,7 +1461,7 @@ EXT_DECL TRDP_ERR_T tlp_resubscribe (
         subHandle->addr.mcGroup = 0u;
     }
 
-    if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->pdRcvMutex) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -1478,7 +1514,7 @@ EXT_DECL TRDP_ERR_T tlp_get (
     }
 
     /*    Reserve mutual access    */
-    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+    ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdRcvMutex);
     if (ret == TRDP_NO_ERR)
     {
         /*    Call the receive function if we are in non blocking mode    */
@@ -1534,7 +1570,7 @@ EXT_DECL TRDP_ERR_T tlp_get (
             pPdInfo->resultCode     = ret;
         }
 
-        if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->pdRcvMutex) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
