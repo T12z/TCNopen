@@ -838,9 +838,9 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
     SOCKET                  *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
-    int sock;
 #ifdef WIN32
 #else
+    int sock;
     if (!vosSockInitialised)
     {
         return VOS_INIT_ERR;
