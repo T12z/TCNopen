@@ -62,19 +62,19 @@
 #define TRDP_EVOLUTION  0u
 #endif
 
-#define TRDP_TIMER_GRANULARITY          10000u                            /**< granularity in us                      */
+#define TRDP_TIMER_GRANULARITY          100u                        /**< granularity in us - we allow 0.1ms now!      */
 
-#define TRDP_DEBUG_DEFAULT_FILE_SIZE    65536u                            /**< Default maximum size of log file       */
+#define TRDP_DEBUG_DEFAULT_FILE_SIZE    65536u                      /**< Default maximum size of log file             */
 
 #define TRDP_MAGIC_PUB_HNDL_VALUE       0xCAFEBABEu
 #define TRDP_MAGIC_SUB_HNDL_VALUE       0xBABECAFEu
 
-#define TRDP_SEQ_CNT_START_ARRAY_SIZE   64u                               /**< This should be enough for the start    */
+#define TRDP_SEQ_CNT_START_ARRAY_SIZE   64u                         /**< This should be enough for the start          */
 
 #define TRDP_IF_WAIT_FOR_READY          120u        /**< 120 seconds (120 tries each second to bind to an IP address) */
 
 #undef  TRDP_PROTO_VER
-#define TRDP_PROTO_VER  0x0101u                                      /**< compatible protocol version with service Id */
+#define TRDP_PROTO_VER                  0x0101u                     /**< compatible protocol version with service Id  */
 
 /***********************************************************************************************************************
  * TYPEDEFS

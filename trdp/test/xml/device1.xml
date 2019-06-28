@@ -7,18 +7,18 @@
     </device-configuration>
     
     <bus-interface-list>
-        <bus-interface network-id="1" name="eth0" host-ip="10.0.0.13">
-            <trdp-process blocking="no" cycle-time="10000" priority="80" traffic-shaping="on" />
+        <bus-interface network-id="1" name="eth0" host-ip="10.0.1.100">
+            <trdp-process blocking="no" cycle-time="1000" priority="80" traffic-shaping="on" />
             <pd-com-parameter marshall="on" port="17224" qos="5" ttl="64" timeout-value="100000" validity-behavior="keep" />
             <md-com-parameter udp-port="17225" tcp-port="17225"
                               confirm-timeout="1000000" connect-timeout="60000000" reply-timeout="5000000"
                               marshall="off" protocol="UDP" qos="3" retries="2" ttl="64" />
             <telegram name="tlg1001" com-id="1001" data-set-id="1001" com-parameter-id="1">
-                <pd-parameter cycle="10000" marshall="on" timeout ="1000000" validity-behavior="keep"/>
-                <source id="1" uri1="10.0.0.12">
+                <pd-parameter cycle="5000" marshall="on" timeout ="1000000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.101">
                     <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
                 </source>
-                <destination id="1" uri="10.0.0.12">
+                <destination id="1" uri="10.0.1.101">
                     <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
                 </destination>
             </telegram>

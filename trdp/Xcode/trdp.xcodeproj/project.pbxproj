@@ -71,6 +71,10 @@
 		0840586C20A0A59300C2821E /* mdTest4.c in Sources */ = {isa = PBXBuildFile; fileRef = 733615AA165BF91200A70D3D /* mdTest4.c */; };
 		08514BAF22C518590046916F /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		08514BB422C5187B0046916F /* trdp-xmlpd-test-fast.c in Sources */ = {isa = PBXBuildFile; fileRef = 08514BA822C50F370046916F /* trdp-xmlpd-test-fast.c */; };
+		08514BB622C6075D0046916F /* device1.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7366AC6F16B68C920068A893 /* device1.xml */; };
+		08514BB722C6075D0046916F /* device2.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7366AC7016B68C920068A893 /* device2.xml */; };
+		08514BB822C6075D0046916F /* speedtest1.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 08E446BD22B27B65009C6D0E /* speedtest1.xml */; };
+		08514BB922C6075D0046916F /* speedtest2.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 08E446BE22B28B62009C6D0E /* speedtest2.xml */; };
 		08594B341B70E9DF0066EA06 /* vos_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B321B70E9DF0066EA06 /* vos_mem.c */; };
 		08594B361B70E9DF0066EA06 /* vos_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B331B70E9DF0066EA06 /* vos_utils.c */; };
 		0864C3DC2243A3CE00E091E1 /* sendTSN.c in Sources */ = {isa = PBXBuildFile; fileRef = 0864C3DA2243A3CE00E091E1 /* sendTSN.c */; };
@@ -644,6 +648,19 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		08514BB522C607390046916F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+				08514BB622C6075D0046916F /* device1.xml in CopyFiles */,
+				08514BB722C6075D0046916F /* device2.xml in CopyFiles */,
+				08514BB822C6075D0046916F /* speedtest1.xml in CopyFiles */,
+				08514BB922C6075D0046916F /* speedtest2.xml in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1795,6 +1812,7 @@
 			buildPhases = (
 				08514BAC22C518590046916F /* Sources */,
 				08514BAE22C518590046916F /* Frameworks */,
+				08514BB522C607390046916F /* CopyFiles */,
 			);
 			buildRules = (
 			);

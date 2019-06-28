@@ -1136,7 +1136,7 @@ int main(int argc, char * argv[])
     printf("TRDP PD test using XML configuration\n\n");
     if (argc < 2)
     {
-        printf("usage: %s <xmlfilename> [quite]\n", argv[0]);
+        printf("usage: %s <xmlfilename> [quiet]\n", argv[0]);
         return 1;
     }
     pFileName = argv[1];

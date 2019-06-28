@@ -32,6 +32,7 @@
 #if (defined (WIN32) || defined (WIN64))
 #include <winsock2.h>
 #endif
+#include "vos_utils.h"
 #include "vos_sock.h"
 #include "vos_thread.h"
 #include "tau_xml.h"
@@ -451,37 +452,37 @@ static TRDP_ERR_T printDatasetElem(UINT8 * pBuff, UINT32 * pOffset, UINT32 elemT
         {
 
         case TRDP_BOOL8:
-            printf("B[%u]: %u, ", i, *(UINT8 *)pData);
+            printf("B[%u]: %01u, ", i, *(UINT8 *)pData);
             break;
         case TRDP_CHAR8:
-            printf("CH8[%u]: %u, ", i, *(UINT8 *)pData);
+            printf("CH8[%u]: %03u, ", i, *(UINT8 *)pData);
             break;
         case TRDP_UTF16:
-            printf("UTF16[%u]: %u, ", i, *(UINT16 *)pData);
+            printf("UTF16[%u]: %05u, ", i, *(UINT16 *)pData);
             break;
         case TRDP_INT8:
-            printf("I8[%u]: %i, ", i, *(INT8 *)pData);
+            printf("I8[%u]: %03i, ", i, *(INT8 *)pData);
             break;
         case TRDP_INT16:
-            printf("I16[%u]: %i, ", i, *(INT16 *)pData);
+            printf("I16[%u]: %05i, ", i, *(INT16 *)pData);
             break;
         case TRDP_INT32:
-            printf("I32[%u]: %i, ", i, *(INT32 *)pData);
+            printf("I32[%u]: %010i, ", i, *(INT32 *)pData);
             break;
         case TRDP_INT64:
-            printf("I64[%u]: %lli, ", i, *(INT64 *)pData);
+            printf("I64[%u]: %020lli, ", i, *(INT64 *)pData);
             break;
         case TRDP_UINT8:
-            printf("U8[%u]: %u, ", i, *(UINT8 *)pData);
+            printf("U8[%u]: %03u, ", i, *(UINT8 *)pData);
             break;
         case TRDP_UINT16:
-            printf("U16[%u]: %u, ", i, *(UINT16 *)pData);
+            printf("U16[%u]: %05u, ", i, *(UINT16 *)pData);
             break;
         case TRDP_UINT32:
-            printf("U32[%u]: %u, ", i, *(UINT32 *)pData);
+            printf("U32[%u]: %010u, ", i, *(UINT32 *)pData);
             break;
         case TRDP_UINT64:
-            printf("U64[%u]: %llu, ", i, *(UINT64 *)pData);
+            printf("U64[%u]: %020llu, ", i, *(UINT64 *)pData);
             break;
         case TRDP_REAL32:
             printf("R32[%u]: %f, ", i, *(float *)pData);
@@ -694,7 +695,7 @@ static TRDP_ERR_T publishTelegram(UINT32 ifcIdx, TRDP_EXCHG_PAR_T * pExchgPar)
         }
 
         /* For debugging: initialize the data buffer */
-        if (0)
+        if (/* DISABLES CODE */ (0))
         {
             UINT32  j;
             UINT8   *pBuf;
@@ -996,31 +997,46 @@ static TRDP_ERR_T configureSessions(TRDP_XML_DOC_HANDLE_T *pDocHnd)
     return TRDP_NO_ERR;
 }
 
+/*********************************************************************************************************************/
+/** Call tlp_processReceive asynchronously
+ */
 static void *receiverThread (void * arg)
 {
     sSESSION_CFG_T  *sessionConfig = (sSESSION_CFG_T*) arg;
-    TRDP_ERR_T result;
-    TRDP_TIME_T interval;
-    TRDP_FDS_T fileDesc;
-    INT32 noDesc;
+    TRDP_ERR_T      result;
+    TRDP_TIME_T     interval = {0,0};
+    TRDP_FDS_T      fileDesc;
+    INT32           noDesc = 0;
 
-    FD_ZERO(&fileDesc);
-    result = tlp_getInterval(sessionConfig->sessionhandle, &interval, &fileDesc, &noDesc);
-    if (result != TRDP_NO_ERR)
-        printf("tlp_processReceive failed: %s\n", getResultString(result));
-    vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
-    result = tlp_processReceive(sessionConfig->sessionhandle, NULL, NULL);
-    if (result != TRDP_NO_ERR)
-        printf("tlp_processReceive failed: %s\n", getResultString(result));
+    while (vos_threadDelay(0u) == VOS_NO_ERR)   /* this is a cancelation point! */
+    {
+        FD_ZERO(&fileDesc);
+        result = tlp_getInterval(sessionConfig->sessionhandle, &interval, &fileDesc, &noDesc);
+        if (result != TRDP_NO_ERR)
+        {
+            printf("tlp_getInterval failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+        }
+        noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        result = tlp_processReceive(sessionConfig->sessionhandle, &fileDesc, &noDesc);
+        if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
+        {
+            printf("tlp_processReceive failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+        }
+    }
     return NULL;
 }
 
+/*********************************************************************************************************************/
+/** Call tlp_processSend synchronously
+ */
 static void *senderThread (void * arg)
 {
     sSESSION_CFG_T  *sessionConfig = (sSESSION_CFG_T*) arg;
     TRDP_ERR_T result = tlp_processSend(sessionConfig->sessionhandle);
-    if (result != TRDP_NO_ERR)
-        printf("tlp_processSend failed: %s\n", getResultString(result));
+    if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
+    {
+        printf("tlp_processSend failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+    }
     return NULL;
 }
 
@@ -1039,20 +1055,24 @@ static void processData()
     BOOL8 bDataPeriod = FALSE;
     UINT32 dataSize;
 
-    /*  call process function for all sessions  */
+    /*  create and install threads for PD process functions for every configured session  */
     for (i = 0; i < numIfConfig; i++)
     {
+        /* Create new PD receiver and sender threads */
+        printf("Receiver task cycle:\t%uµs\n", 0);
 
-    /* Create new PD receiver and sender threads */
-
+        /* Receiver thread runs until cancel */
         vos_threadCreate (&aSessionCfg[i].rcvThread,
-                      "Receiver Task",
-                      VOS_THREAD_POLICY_OTHER,
-                      (VOS_THREAD_PRIORITY_T) aSessionCfg[i].processConfig.priority,
-                      aSessionCfg[i].processConfig.cycleTime,
-                      0u,
-                      (VOS_THREAD_FUNC_T) receiverThread,
-                      &aSessionCfg[i]);
+                          "Receiver Task",
+                          VOS_THREAD_POLICY_OTHER,
+                          (VOS_THREAD_PRIORITY_T) aSessionCfg[i].processConfig.priority,
+                          0u,
+                          0u,
+                          (VOS_THREAD_FUNC_T) receiverThread,
+                          &aSessionCfg[i]);
+
+        printf("Sender task cycle:\t%uµs\n", aSessionCfg[i].processConfig.cycleTime);
+      /* Send thread is a cyclic thread, runs until cancel */
         vos_threadCreate (&aSessionCfg[i].sndThread,
                           "Sender Task",
                           VOS_THREAD_POLICY_OTHER,
@@ -1062,12 +1082,19 @@ static void processData()
                           (VOS_THREAD_FUNC_T) senderThread,
                           &aSessionCfg[i]);
     }
-    /*  Cycle period  */
+
+    /*  Data Cycle period  */
     cyclePeriod.tv_usec = minCycleTime % 1000000;
     cyclePeriod.tv_sec = minCycleTime / 1000000;
     /*  Data update period  */
     dataPeriod.tv_usec = DATA_PERIOD % 1000000;
     dataPeriod.tv_sec = DATA_PERIOD / 1000000;
+
+    printf("Data update cycle:\t%uµs\n", dataPeriod.tv_usec);
+    /*  Wait for user to press enter    */
+    printf("Press Enter to start data processing...\n");
+    getchar();
+
     /*  Initiate next data period   */
     vos_getTime(&nextData);
 
@@ -1190,7 +1217,7 @@ int main(int argc, char * argv[])
     printf("TRDP PD test using XML configuration\n\n");
     if (argc < 2)
     {
-        printf("usage: %s <xmlfilename> [quite]\n", argv[0]);
+        printf("usage: %s <xmlfilename> [quiet]\n", argv[0]);
         return 1;
     }
     pFileName = argv[1];
@@ -1246,10 +1273,6 @@ int main(int argc, char * argv[])
     /*  Initialize TRDP sessions    */
     if (configureSessions(&docHnd) != TRDP_NO_ERR)
         return 1;
-
-    /*  Wait for user to press enter    */
-    printf("Press Enter to start data processing...\n");
-    getchar();
 
     /*  Send and receive data   */
     processData();

@@ -150,7 +150,7 @@ mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)
 
 vtests:		outdir $(OUTDIR)/vtest
 
-xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
+xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test $(OUTDIR)/trdp-xmlpd-test-fast
 
 
 
@@ -256,6 +256,14 @@ $(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdp.a $(addpr
 			@$(STRIP) $@
 
 $(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $^  \
+			$(CFLAGS) $(INCLUDES) -o $@\
+			-ltrdp -lz \
+			$(LDFLAGS)
+			@$(STRIP) $@
+
+$(OUTDIR)/trdp-xmlpd-test-fast:  trdp-xmlpd-test-fast.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
