@@ -474,6 +474,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                 pNewElement->privFlags  |= TRDP_INVALID_DATA;
                 pNewElement->dataSize   = dataSize;
 
+#ifdef TSN_SUPPORT
                 /* check for TSN and select the right message and socket type */
                 if (pCurrentSendParams->tsn == FALSE)
                 {
@@ -510,6 +511,12 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                     vos_printLogStr(VOS_LOG_ERROR, "Publish: Wrong send parameters for TSN!\n");
                     ret = TRDP_PARAM_ERR;
                 }
+#else
+                /*
+                 Compute the overal packet size
+                 */
+                pNewElement->grossSize = trdp_packetSizePD(dataSize);
+#endif
                 if (ret == TRDP_NO_ERR)
                 {
                     /*    Get a socket    */
@@ -617,10 +624,15 @@ EXT_DECL TRDP_ERR_T tlp_publish (
             trdp_queueInsFirst(&appHandle->pSndQueue, pNewElement);
 
             *pPubHandle = (TRDP_PUB_T) pNewElement;
-
-            /* We do not prepare data for TSN, skip this and also no need for distributing the schedules */
-            if (!(pNewElement->privFlags & TRDP_IS_TSN))
+#ifdef TSN_SUPPORT
+            if (pNewElement->privFlags & TRDP_IS_TSN)
             {
+                /* We set the vlan IP as we bound the socket to */
+                pNewElement->addr.srcIpAddr = appHandle->iface[pNewElement->socketIdx].bindAddr;
+            }
+            else
+#endif
+            {   /* We do not prepare data for TSN, skip this and also no need for distributing the schedules */
                 if (dataSize != 0u)
                 {
                     ret = tlp_put(appHandle, *pPubHandle, pData, dataSize);
@@ -629,11 +641,6 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                 {
                     ret = trdp_pdDistribute(appHandle->pSndQueue);
                 }
-            }
-            else
-            {
-                /* We set the vlan IP as we bound the socket to */
-                pNewElement->addr.srcIpAddr = appHandle->iface[pNewElement->socketIdx].bindAddr;
             }
         }
 
@@ -839,17 +846,19 @@ TRDP_ERR_T tlp_put (
 }
 
 /**********************************************************************************************************************/
-/** Update and send the process data.
- *  Update previously published data. The new telegram will be sent at txTime, if != 0 and the used interface
- *  supports TSN.
- *  Note:   This function is not protected by any mutexes and should not be called while adding or removing any
- *          publishers, subscribers or sessions!
+/** Update and send process data.
+ *  Update previously published data. The new telegram will be sent immediatly or at txTime, if txTime != 0 and TSN == 1
+ *  Should be used if application (or higher layer, e.g. ara::com and acyclic events) needs full control over process data schedule.
+ *
+ *  Note:   For TSN this function is not protected by any mutexes and should not be called while adding or removing any
+ *          publishers, subscribers or even sessions!
+ *          Also: Marshalling is not supported!
  *
  *  @param[in]      appHandle          the handle returned by tlc_openSession
  *  @param[in]      pubHandle          the handle returned by publish
  *  @param[in,out]  pData              pointer to application's data buffer
  *  @param[in,out]  dataSize           size of data
- *  @param[in]      pTxTime            when to send (absolute time)
+ *  @param[in]      pTxTime            when to send (absolute time), optional for TSN only
  *
  *  @retval         TRDP_NO_ERR        no error
  *  @retval         TRDP_PARAM_ERR     parameter error on uninitialized parameter or changed dataSize compared to published one
@@ -863,6 +872,7 @@ TRDP_ERR_T tlp_putImmediate (
     UINT32              dataSize,
     VOS_TIMEVAL_T       *pTxTime)
 {
+    PD_ELE_T * pElement = (PD_ELE_T *) pubHandle;
     if ((PD_ELE_T *)pubHandle == NULL || ((PD_ELE_T *)pubHandle)->magic != TRDP_MAGIC_PUB_HNDL_VALUE)
     {
         return TRDP_NOPUB_ERR;
@@ -873,10 +883,32 @@ TRDP_ERR_T tlp_putImmediate (
         return TRDP_NOINIT_ERR;
     }
 
-    /* For TSN telegrams, we do not take the mutex but send directly! */
-    PD2_PACKET_T *pPacket = (PD2_PACKET_T *)((PD_ELE_T *)pubHandle->pFrame);
-    memcpy(pPacket->data, pData, dataSize);
-    return trdp_pdSendImmediate(appHandle, (PD_ELE_T *)pubHandle, pTxTime);
+#ifdef TSN_SUPPORT
+    if (pElement->pktFlags & TRDP_FLAGS_TSN)
+    {
+        /* For TSN telegrams, we do not take the mutex but send directly! */
+        PD2_PACKET_T *pPacket = (PD2_PACKET_T *)(pElement->pFrame);
+        memcpy(pPacket->data, pData, dataSize);
+        return trdp_pdSendImmediateTSN(appHandle, pElement, pTxTime);
+    }
+    else
+#endif
+    {
+        /*    Reserve mutual access    */
+        TRDP_ERR_T err = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
+        if ( err == TRDP_NO_ERR )
+        {
+            PD_PACKET_T *pPacket = (PD_PACKET_T *)(pElement->pFrame);
+            pTxTime = pTxTime;  /* Unused parameter */
+            memcpy(pPacket->data, pData, dataSize);
+            err = trdp_pdSendImmediate(appHandle, pElement);
+            if ( vos_mutexUnlock(appHandle->pdSndMutex) != VOS_NO_ERR )
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+            }
+        }
+        return err;
+    }
 }
 
 

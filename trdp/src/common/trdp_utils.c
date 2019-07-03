@@ -62,6 +62,17 @@
  * DEFINES
  */
 
+/* if we are not interested in the service field, ignore it */
+#ifndef SOA_SAME_SERVICEID_OR0
+#define SOA_SAME_SERVICEID_OR0(a,b) TRUE
+#endif
+
+#ifndef SOA_SAME_SERVICEID
+#define SOA_SAME_SERVICEID(a,b) TRUE
+#endif
+
+#define SAME_SERVICE_COM_ID(a,b)    (((a).comId == (b).comId) && SOA_SAME_SERVICEID_OR0(a.serviceId,b.serviceId))
+
 /***********************************************************************************************************************
  * TYPEDEFS
  */
@@ -302,6 +313,7 @@ UINT32 trdp_packetSizePD (
     return packetSize;
 }
 
+#ifdef TSN_SUPPORT
 /**********************************************************************************************************************/
 /** Get the packet size from the raw data size
  *
@@ -328,6 +340,7 @@ UINT32 trdp_packetSizePD2 (
 
     return packetSize;
 }
+#endif
 
 /**********************************************************************************************************************/
 /** Get the packet size from the raw data size
@@ -414,7 +427,7 @@ PD_ELE_T *trdp_queueFindPubAddr (
             && ((iterPD->addr.srcIpAddr == 0) || (iterPD->addr.srcIpAddr == addr->srcIpAddr))
             && ((iterPD->addr.destIpAddr == 0) || (iterPD->addr.destIpAddr == addr->destIpAddr))
             && ((iterPD->addr.mcGroup == 0) || (iterPD->addr.mcGroup == addr->mcGroup))
-            && ((iterPD->addr.serviceId == 0) || iterPD->addr.serviceId == addr->serviceId))
+            && SOA_SAME_SERVICEID_OR0(iterPD->addr.serviceId, addr->serviceId))
         {
             return iterPD;
         }
@@ -447,8 +460,9 @@ PD_ELE_T *trdp_queueFindSubAddr (
     for (iterPD = pHead; iterPD != NULL; iterPD = iterPD->pNext)
     {
         /*  We match if src/dst/mc address is zero or matches */
-        if ((iterPD->addr.comId == addr->comId) &&
-            ((addr->serviceId == 0) || (iterPD->addr.serviceId == addr->serviceId)))
+       // if ((iterPD->addr.comId == addr->comId)
+       //     && SOA_SAME_SERVICEID_OR0(addr->serviceId, iterPD->addr.serviceId))
+        if (SAME_SERVICE_COM_ID(iterPD->addr, *addr))
         {
             /* if srcIP filter matches AND destIP matches THEN this is a direct hit */
             if ((iterPD->addr.srcIpAddr == addr->srcIpAddr) &&
@@ -504,8 +518,8 @@ PD_ELE_T *trdp_queueFindExistingSub (
     for (iterPD = pHead; iterPD != NULL; iterPD = iterPD->pNext)
     {
         /*  We match if src/dst/mc address is zero or matches */
-        if ((iterPD->addr.comId == addr->comId) &&
-            (iterPD->addr.serviceId == addr->serviceId))
+        if ((iterPD->addr.comId == addr->comId)
+            && SOA_SAME_SERVICEID(iterPD->addr.serviceId, addr->serviceId))
         {
             if ((iterPD->addr.srcIpAddr == addr->srcIpAddr)
                 && (iterPD->addr.destIpAddr == addr->destIpAddr))
@@ -998,6 +1012,7 @@ TRDP_ERR_T  trdp_requestSocket (
         sock_options.ifName[0]      = 0;
         switch (type)
         {
+#ifdef TSN_SUPPORT
             case TRDP_SOCK_PD_TSN:
                 sock_options.no_udp_crc = 1;    /* To speed up UDP header generation */
                 sock_options.txTime     = 1;
@@ -1110,6 +1125,7 @@ TRDP_ERR_T  trdp_requestSocket (
                     }
                 }
                 break;
+#endif /* TSN */
             case TRDP_SOCK_MD_UDP:
                 sock_options.nonBlocking = TRUE;  /* MD UDP sockets are always non blocking because they are polled */
             /* fall thru! */

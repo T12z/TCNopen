@@ -19,4 +19,12 @@ DOXYPATH = /Applications/Doxygen.app/Contents/Resources/
 
 CFLAGS += -Wall -m32 -fno-builtin -fsigned-char -pthread -fPIC -D__USE_BSD -D_DARWIN_C_SOURCE -DPOSIX -DL_ENDIAN
 CFLAGS += -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
+CFLAGS += -DTSN_SUPPORT -DSOA_SUPPORT
+
 INCPATH += -I /usr/include/uuid
+
+# Additional sources for TSN support
+VOS_OBJS        += vos_sockTSN.o
+
+TSN_SUPPORT = 1
+SOA_SUPPORT = 1

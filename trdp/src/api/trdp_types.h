@@ -55,7 +55,10 @@
 #include "vos_mem.h"
 #include "vos_sock.h"
 #include "iec61375-2-3.h"
+
+#ifdef TSN_SUPPORT
 #include "trdp_tsn_def.h"   /**< Real time extensions (preliminary)    */
+#endif
 
 #ifdef __cplusplus
 extern "C" {

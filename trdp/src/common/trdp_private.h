@@ -202,19 +202,6 @@ typedef struct
     UINT32  frameCheckSum;                      /**< CRC32 of header                                        */
 } GNU_PACKED PD_HEADER_T;
 
-/** TRDP TSN process data header - network order and alignment    */
-typedef struct
-{
-    UINT32  sequenceCounter;                    /**< Unique counter (autom incremented)                     */
-    UINT8   protocolVersion;                    /**< fix value for compatibility (= 2)                      */
-    UINT8   msgType;                            /**< MsgType: 0x01 (non-safe), 0x02 (Safe Data),
-                                                          0x03 (for multiple SDTv4 frame), others reserved  */
-    UINT16  datasetLength;                      /**< length of the data to transmit 0...1432                */
-    UINT32  comId;                              /**< set by user: unique id                                 */
-    UINT32  reserved;                           /**< reserved for ServiceID/InstanceID support              */
-    UINT32  frameCheckSum;                      /**< CRC32 of header                                        */
-} GNU_PACKED PD2_HEADER_T;
-
 /** TRDP message data header - network order and alignment    */
 typedef struct
 {
@@ -240,11 +227,27 @@ typedef struct
     UINT8       data[TRDP_MAX_PD_DATA_SIZE];    /**< data ready to be sent or received                      */
 } GNU_PACKED PD_PACKET_T;
 
+#ifdef TSN_SUPPORT
+/** TRDP TSN process data header - network order and alignment    */
+typedef struct
+{
+    UINT32  sequenceCounter;                    /**< Unique counter (autom incremented)                     */
+    UINT8   protocolVersion;                    /**< fix value for compatibility (= 2)                      */
+    UINT8   msgType;                            /**< MsgType: 0x01 (non-safe), 0x02 (Safe Data),
+                                                          0x03 (for multiple SDTv4 frame), others reserved  */
+    UINT16  datasetLength;                      /**< length of the data to transmit 0...1432                */
+    UINT32  comId;                              /**< set by user: unique id                                 */
+    UINT32  reserved;                           /**< reserved for ServiceID/InstanceID support              */
+    UINT32  frameCheckSum;                      /**< CRC32 of header                                        */
+} GNU_PACKED PD2_HEADER_T;
+
 typedef struct
 {
     PD2_HEADER_T    frameHead;                      /**< Packet header in network byte order             */
     UINT8           data[TRDP_MAX_PD2_DATA_SIZE];   /**< data ready to be sent or received                  */
 } GNU_PACKED PD2_PACKET_T;
+
+#endif /* TSN_SUPPORT*/
 
 #if MD_SUPPORT
 /** TRDP MD packet    */
@@ -253,7 +256,7 @@ typedef struct
     MD_HEADER_T frameHead;                      /**< Packet    header in network byte order                 */
     UINT8       data[TRDP_MAX_MD_DATA_SIZE];    /**< data ready to be sent or received                      */
 } GNU_PACKED MD_PACKET_T;
-#endif
+#endif /* MD_SUPPORT */
 
 #if (defined (WIN32) || defined (WIN64))
 #pragma pack(pop)

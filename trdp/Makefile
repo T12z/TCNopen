@@ -40,7 +40,7 @@ INCPATH += -I src/api
 VOS_PATH += -I src/vos/$(TARGET_VOS)
 VOS_INCPATH += -I src/vos/api -I src/common
 
-vpath %.c src/common src/vos/common test/udpmdcom src/vos/$(TARGET_VOS) test example test/diverse test/xml $(ADD_SRC)
+vpath %.c src/common src/vos/common test/udpmdcom src/vos/$(TARGET_VOS) test example example/TSN test/diverse test/xml $(ADD_SRC)
 vpath %.h src/api src/vos/api src/common src/vos/common $(ADD_INC)
 
 INCLUDES = $(INCPATH) $(VOS_INCPATH) $(VOS_PATH)
@@ -55,13 +55,13 @@ INCLUDES = $(INCPATH) $(VOS_INCPATH) $(VOS_PATH)
 FLINT = $(LINT_BINPATH)flint
 
 # Set Objects
-VOS_OBJS = vos_utils.o \
+VOS_OBJS += vos_utils.o \
 		vos_mem.o \
 		vos_sock.o \
 		vos_thread.o \
 		vos_shared_mem.o
 
-TRDP_OBJS = trdp_pdcom.o \
+TRDP_OBJS += trdp_pdcom.o \
 	    trdp_utils.o \
 	    tlp_if.o \
 		tlc_if.o \
@@ -69,11 +69,10 @@ TRDP_OBJS = trdp_pdcom.o \
 	    $(VOS_OBJS)
 
 # Optional objects for full blown TRDP usage
-TRDP_OPT_OBJS = trdp_xml.o \
+TRDP_OPT_OBJS += trdp_xml.o \
 		tau_xml.o \
 		tau_marshall.o \
 		tau_dnr.o \
-		tau_so_if.o \
 		tau_tti.o \
 		tau_ctrl.o
 
@@ -99,11 +98,11 @@ LDFLAGS += -L $(OUTDIR)
 # Enable / disable MD Support
 # by default MD_SUPPORT is always enabled (in current state)
 ifeq ($(MD_SUPPORT),0)
-CFLAGS += -DMD_SUPPORT=0
+	CFLAGS += -DMD_SUPPORT=0
 else
-TRDP_OBJS += trdp_mdcom.o
-TRDP_OBJS += tlm_if.o
-CFLAGS += -DMD_SUPPORT=1
+	TRDP_OBJS += trdp_mdcom.o
+	TRDP_OBJS += tlm_if.o
+	CFLAGS += -DMD_SUPPORT=1
 endif
 
 ifeq ($(DEBUG), TRUE)
@@ -117,21 +116,30 @@ LINT_OUTDIR  = $(OUTDIR)/lint
   
 # Enable / disable Debug
 ifeq ($(DEBUG),TRUE)
-CFLAGS += -g3 -O -DDEBUG
-LDFLAGS += -g3
-# Display the strip command and do not execute it
-STRIP = @$(ECHO) "do NOT strip: "
+	CFLAGS += -g3 -O -DDEBUG
+	LDFLAGS += -g3
+	# Display the strip command and do not execute it
+	STRIP = @$(ECHO) "do NOT strip: "
 else
-CFLAGS += -Os  -DNO_DEBUG
+	CFLAGS += -Os  -DNO_DEBUG
 endif
 
 TARGETS = outdir libtrdp
 
 ifneq ($(TARGET_OS),VXWORKS)
-TARGETS += example test pdtest mdtest xml
+	TARGETS += example test pdtest mdtest xml
 else
-TARGETS += vtests
+	TARGETS += vtests
 endif
+
+ifeq ($(SOA_SUPPORT),1)
+	TRDP_OPT_OBJS   += tau_so_if.o
+endif
+
+ifeq ($(TSN_SUPPORT),1)
+	TARGETS += tsn
+endif
+
 
 all:	$(TARGETS)
 
@@ -142,6 +150,8 @@ libtrdp:	outdir $(OUTDIR)/libtrdp.a
 
 example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
 
+tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
+
 test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
 
 pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_md_responder $(OUTDIR)/testSub
@@ -151,8 +161,6 @@ mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)
 vtests:		outdir $(OUTDIR)/vtest
 
 xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test $(OUTDIR)/trdp-xmlpd-test-fast
-
-
 
 %_config:
 	cp -f config/$@ config/config.mk
@@ -210,6 +218,22 @@ $(OUTDIR)/sendHello:   sendHello.c  $(OUTDIR)/libtrdp.a
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/receiveTSN: receiveTSN.c  $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) example/TSN/receiveTSN.c \
+			-ltrdp \
+			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			-o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/sendTSN:   sendTSN.c  $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) example/TSN/sendTSN.c \
+			-ltrdp \
+			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			-o $@
 			@$(STRIP) $@
 
 $(OUTDIR)/sendData:   sendData.c  $(OUTDIR)/libtrdp.a

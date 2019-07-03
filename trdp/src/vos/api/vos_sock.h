@@ -645,6 +645,7 @@ EXT_DECL VOS_IP4_ADDR_T vos_determineBindAddr ( VOS_IP4_ADDR_T  srcIP,
                                                 VOS_IP4_ADDR_T  mcGroup,
                                                 VOS_IP4_ADDR_T  rcvMostly);
 
+#ifdef TSN_SUPPORT
 /* Extension for TSN & VLAN support */
 EXT_DECL VOS_ERR_T  vos_ifnameFromVlanId (UINT16    vlanId,
                                           CHAR8     *pIFaceName);
@@ -671,6 +672,7 @@ EXT_DECL VOS_ERR_T  vos_sockBind2IF (SOCKET         sock,
                                      VOS_IF_REC_T   *pIFace,
                                      BOOL8          doBind);
 EXT_DECL void       vos_sockPrintOptions (SOCKET sock);
+#endif
 
 #ifdef __cplusplus
 }

@@ -32,6 +32,12 @@
 #error \
     "You are trying to compile the VXWORKS implementation of vos_sock.c - either define VXWORKS or exclude this file!"
 #endif
+
+#ifdef TSN_SUPPORT
+#warning \
+    "*** To build a TSN capable TRDP library the vos_sock implementation has to be extended! ***"
+#endif
+
 /***********************************************************************************************************************
  * INCLUDES
  */
@@ -211,62 +217,6 @@ UINT64 ntohll (UINT64 value)
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
-
-/* Unimplemented extensions for TSN & VLAN support */
-EXT_DECL VOS_ERR_T  vos_ifnameFromVlanId (UINT16    vlanId,
-                                          CHAR8     *pIFaceName)
-{
-    return VOS_NO_ERR;
-}
-
-EXT_DECL VOS_ERR_T  vos_createVlanIF (UINT16            vlanId,
-                                      CHAR8             *pIFaceName,
-                                      VOS_IP4_ADDR_T    ipAddr)
-{
-    return VOS_NO_ERR;
-}
-
-EXT_DECL VOS_ERR_T  vos_sockOpenTSN (SOCKET                 *pSock,
-                                     const VOS_SOCK_OPT_T   *pOptions)
-{
-    return VOS_NO_ERR;
-}
-
-EXT_DECL VOS_ERR_T  vos_sockSendTSN (SOCKET         sock,
-                                     const UINT8    *pBuffer,
-                                     UINT32         *pSize,
-                                     VOS_IP4_ADDR_T srcIpAddress,
-                                     VOS_IP4_ADDR_T dstIpAddress,
-                                     UINT16         port,
-                                     VOS_TIMEVAL_T  *pTxTime)
-{
-    return VOS_NO_ERR;
-}
-
-EXT_DECL VOS_ERR_T vos_sockReceiveTSN (SOCKET   sock,
-                                       UINT8    *pBuffer,
-                                       UINT32   *pSize,
-                                       UINT32   *pSrcIPAddr,
-                                       UINT16   *pSrcIPPort,
-                                       UINT32   *pDstIPAddr,
-                                       BOOL8    peek)
-{
-    return VOS_NO_ERR;
-}
-
-EXT_DECL VOS_ERR_T  vos_sockBind2IF (SOCKET         sock,
-                                     VOS_IF_REC_T   *pIFace,
-                                     BOOL8          doBind)
-{
-    return VOS_NO_ERR;
-}
-
-EXT_DECL void       vos_sockPrintOptions (SOCKET sock)
-{
-    return;
-}
-
-
 
 /**********************************************************************************************************************/
 /** Byte swapping.

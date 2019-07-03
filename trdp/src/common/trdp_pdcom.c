@@ -119,6 +119,7 @@ void    trdp_pdInit (
     {
         return;
     }
+#ifdef TSN_SUPPORT
     /* If TSN is set, use the smaller header */
     if (pPacket->privFlags & TRDP_IS_TSN)
     {
@@ -130,8 +131,9 @@ void    trdp_pdInit (
         pFrameHead->datasetLength   = vos_htons((UINT16) pPacket->dataSize);
         pFrameHead->reserved        = vos_htonl(serviceId);
     }
-    else    /* This is the standard header */
-    {
+    else
+#endif
+    {   /* This is the standard header */
         pPacket->pFrame->frameHead.protocolVersion  = vos_htons(TRDP_PROTO_VER);
         pPacket->pFrame->frameHead.etbTopoCnt       = vos_htonl(etbTopoCnt);
         pPacket->pFrame->frameHead.opTrnTopoCnt     = vos_htonl(opTrnTopoCnt);
@@ -246,6 +248,7 @@ TRDP_ERR_T trdp_pdPut (
     return ret;
 }
 
+#ifdef TSN_SUPPORT
 /******************************************************************************/
 /** Send TSN PD message immediately
  *
@@ -256,24 +259,16 @@ TRDP_ERR_T trdp_pdPut (
  *  @retval         TRDP_NO_ERR         no error
  *  @retval         TRDP_IO_ERR         socket I/O error
  */
-TRDP_ERR_T  trdp_pdSendImmediate (
+TRDP_ERR_T  trdp_pdSendImmediateTSN (
     TRDP_SESSION_PT appHandle,
     PD_ELE_T        *pSendPD,
     VOS_TIMEVAL_T   *pTxTime)
 {
     VOS_ERR_T       err;
-    UINT32          myCRC;
     PD2_PACKET_T    *pFrame = (PD2_PACKET_T *) pSendPD->pFrame;
 
     /*  Update the sequence counter and re-compute CRC    */
-    pSendPD->curSeqCnt++;
-
-    /* increment counter with each telegram */
-    pFrame->frameHead.sequenceCounter = vos_htonl(pSendPD->curSeqCnt);
-
-    /* Compute CRC32   */
-    myCRC = vos_crc32(INITFCS, (UINT8 *)&pFrame->frameHead, sizeof(PD2_HEADER_T) - SIZE_OF_FCS);
-    pFrame->frameHead.frameCheckSum = MAKE_LE(myCRC);
+    trdp_pdUpdate(pSendPD);
 
     /* We pass the error to the application, but we keep on going    */
     pSendPD->sendSize = pSendPD->grossSize;
@@ -293,8 +288,58 @@ TRDP_ERR_T  trdp_pdSendImmediate (
     }
     return (TRDP_ERR_T) err;
 }
+#endif
 
+/******************************************************************************/
+/** Send PD message immediately
+ *
+ *  @param[in]      appHandle           session pointer
+ *  @param[in]      pSendPD             pointer to element to be sent
+ *
+ *  @retval         TRDP_NO_ERR         no error
+ *  @retval         TRDP_IO_ERR         socket I/O error
+ */
+TRDP_ERR_T  trdp_pdSendImmediate (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T        *pSendPD)
+{
+    TRDP_ERR_T      err;
+    PD_PACKET_T     *pFrame = (PD_PACKET_T *) pSendPD->pFrame;
 
+    /*  Update the sequence counter and re-compute CRC    */
+    trdp_pdUpdate(pSendPD);
+
+    /* Publisher check from Table A.5:
+     Actual topography counter values <-> Locally stored with publish */
+    if ( !trdp_validTopoCounters(appHandle->etbTopoCnt,
+                                 appHandle->opTrnTopoCnt,
+                                 vos_ntohl(pSendPD->pFrame->frameHead.etbTopoCnt),
+                                 vos_ntohl(pSendPD->pFrame->frameHead.opTrnTopoCnt)))
+    {
+        err = TRDP_TOPO_ERR;
+        vos_printLogStr(VOS_LOG_WARNING, "Sending PD: TopoCount is out of date!\n");
+        /* We pass the error to the application, and do not send!    */
+    }
+    else
+    {
+
+        pSendPD->sendSize = pSendPD->grossSize;
+
+        err = (TRDP_ERR_T) vos_sockSendUDP(appHandle->iface[pSendPD->socketIdx].sock,
+                              (UINT8 *)&pFrame->frameHead,
+                              &pSendPD->sendSize,
+                              pSendPD->addr.destIpAddr,
+                              appHandle->pdDefault.port);
+
+        if (err == TRDP_NO_ERR)
+        {
+            appHandle->stats.pd.numSend++;
+            pSendPD->numRxTx++;
+        }
+    }
+
+    return err;
+}
 /******************************************************************************/
 /** Copy data
  *  Set the header infos
@@ -532,7 +577,6 @@ TRDP_ERR_T  trdp_pdReceive (
     SOCKET          sock)
 {
     PD_HEADER_T         *pNewFrameHead      = &appHandle->pNewFrame->frameHead;
-    PD2_HEADER_T        *pTSNFrameHead      = (PD2_HEADER_T *) pNewFrameHead;
     PD_ELE_T            *pExistingElement   = NULL;
     PD_ELE_T            *pPulledElement;
     TRDP_ERR_T          err             = TRDP_NO_ERR;
@@ -541,7 +585,9 @@ TRDP_ERR_T  trdp_pdReceive (
     int                 isTSN           = FALSE;
     TRDP_ADDRESSES_T    subAddresses    = { 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
     TRDP_MSG_T          msgType;
-
+#ifdef TSN_SUPPORT
+    PD2_HEADER_T        *pTSNFrameHead      = (PD2_HEADER_T *) pNewFrameHead;
+#endif
 
     /*  Get the packet from the wire:  */
     err = (TRDP_ERR_T) vos_sockReceiveUDP(sock,
@@ -575,6 +621,7 @@ TRDP_ERR_T  trdp_pdReceive (
             return err;
     }
 
+#ifdef TSN_SUPPORT
     if (TRUE == isTSN)
     {
         /*  Compute the subscription handle */
@@ -584,6 +631,7 @@ TRDP_ERR_T  trdp_pdReceive (
         msgType = pTSNFrameHead->msgType;
     }
     else    /* no PULL on TSN */
+#endif
     {
         /* First check incoming packet's topoCounts against session topoCounts */
         /* First subscriber check from Table A.5:
@@ -804,6 +852,7 @@ TRDP_ERR_T  trdp_pdReceive (
             theMessage.pUserRef     = pExistingElement->pUserRef; /* User reference given with the local subscribe? */
             theMessage.resultCode   = err;
 
+#ifdef TSN_SUPPORT
             if (TRUE == isTSN)
             {
                 theMessage.etbTopoCnt   = 0u;
@@ -819,6 +868,7 @@ TRDP_ERR_T  trdp_pdReceive (
                                                                   .datasetLength));
             }
             else
+#endif
             {
                 theMessage.etbTopoCnt   = vos_ntohl(pExistingElement->pFrame->frameHead.etbTopoCnt);
                 theMessage.opTrnTopoCnt = vos_ntohl(pExistingElement->pFrame->frameHead.opTrnTopoCnt);
@@ -938,6 +988,7 @@ void trdp_pdHandleTimeOuts (
                 theMessage.resultCode   = TRDP_TIMEOUT_ERR;
                 if (iterPD->pFrame != NULL)
                 {
+#ifdef TSN_SUPPORT
                     if (iterPD->privFlags & TRDP_IS_TSN)
                     {
                         PD2_PACKET_T *pFrame = (PD2_PACKET_T *) iterPD->pFrame;
@@ -946,6 +997,7 @@ void trdp_pdHandleTimeOuts (
                         theMessage.protVersion  = pFrame->frameHead.protocolVersion;
                     }
                     else
+#endif
                     {
                         theMessage.etbTopoCnt   = vos_ntohl(iterPD->pFrame->frameHead.etbTopoCnt);
                         theMessage.opTrnTopoCnt = vos_ntohl(iterPD->pFrame->frameHead.opTrnTopoCnt);
@@ -1063,6 +1115,7 @@ void    trdp_pdUpdate (
 {
     UINT32 myCRC;
 
+#ifdef TSN_SUPPORT
     /* If TSN is set, use the smaller header */
     if (pPacket->privFlags & TRDP_IS_TSN)
     {
@@ -1077,6 +1130,7 @@ void    trdp_pdUpdate (
         pFrameHead->frameCheckSum = MAKE_LE(myCRC);
     }
     else
+#endif
     {
         /* increment counter with each telegram */
         if (pPacket->pFrame->frameHead.msgType == vos_htons(TRDP_MSG_PP))
@@ -1115,6 +1169,7 @@ TRDP_ERR_T trdp_pdCheck (
     UINT32          myCRC;
     TRDP_ERR_T      err = TRDP_NO_ERR;
 
+#ifdef TSN_SUPPORT
     PD2_HEADER_T    *pPacket2 = (PD2_HEADER_T *) pPacket;
 
     /*  Check for TSN small header first    */
@@ -1155,8 +1210,9 @@ TRDP_ERR_T trdp_pdCheck (
             }
         }
     }
-    else    /* Version 1 TRDP (non-TSN) */
-    {
+    else
+#endif
+    {   /* Version 1 TRDP (non-TSN) */
         *pIsTSN = FALSE;
         /*  Check size    */
         if ((packetSize < TRDP_MIN_PD_HEADER_SIZE) ||

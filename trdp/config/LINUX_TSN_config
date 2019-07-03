@@ -21,12 +21,17 @@ DOXYPATH = /usr/local/bin/
 
 CFLAGS += -Wall -fstrength-reduce -fno-builtin -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX
 CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
-CFLAGS += -DTRDP_TSN
+CFLAGS += -DTSN_SUPPORT -DSOA_SUPPORT
 
 LDFLAGS += -lrt
 
 LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
 
 # Additional sources for TSN support
-ADD_INC += ../TSN
-ADD_SRC += ../TSN
+VOS_OBJS        += vos_sockTSN.o
+
+TSN_SUPPORT = 1
+SOA_SUPPORT = 1
+
+#ADD_INC += ../TSN
+#ADD_SRC += ../TSN

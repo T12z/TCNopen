@@ -31,6 +31,7 @@
 
 #include "vos_types.h"
 #include "vos_thread.h"
+#include "vos_sock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,6 +93,8 @@ void        vos_mutexLocalDelete (struct VOS_MUTEX *pMutex);
         }                                                              \
     }
 #endif
+
+EXT_DECL    VOS_ERR_T   vos_sockSetBuffer (SOCKET sock);
 
 #ifdef __cplusplus
 }

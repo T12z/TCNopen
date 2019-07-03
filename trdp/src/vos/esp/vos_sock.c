@@ -30,6 +30,11 @@
     "You are trying to compile the ESP32 implementation of vos_sock.c - either define ESP32 or exclude this file!"
 #endif
 
+#ifdef TSN_SUPPORT
+#warning \
+    "To build a TSN capable TRDP library another vos_sock implementation is necessary. Sorry!"
+#endif
+
 /***********************************************************************************************************************
  * INCLUDES
  */
@@ -62,6 +67,8 @@ static int vosSockInitialised = FALSE;
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+
+#ifdef TSN_SUPPORT
 
 /* Unimplemented extensions for TSN & VLAN support */
 EXT_DECL VOS_ERR_T  vos_ifnameFromVlanId (UINT16    vlanId,
@@ -116,6 +123,7 @@ EXT_DECL void       vos_sockPrintOptions (SOCKET sock)
 {
     return;
 }
+#endif
 
 /**********************************************************************************************************************/
 /** Byte swapping.
