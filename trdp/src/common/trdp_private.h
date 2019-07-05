@@ -62,7 +62,11 @@
 #define TRDP_EVOLUTION  0u
 #endif
 
-#define TRDP_TIMER_GRANULARITY          100u                        /**< granularity in us - we allow 0.1ms now!      */
+#ifdef HIGH_PERF_INDEX
+#define TRDP_TIMER_GRANULARITY          500u                        /**< granularity in us - we allow 0.5ms now!      */
+#else
+#define TRDP_TIMER_GRANULARITY          5000u                        /**< granularity in us - we allow 5ms now!      */
+#endif
 
 #define TRDP_DEBUG_DEFAULT_FILE_SIZE    65536u                      /**< Default maximum size of log file             */
 

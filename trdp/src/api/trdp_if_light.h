@@ -88,6 +88,9 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
     const TRDP_MD_CONFIG_T          *pMdDefault,
     const TRDP_PROCESS_CONFIG_T     *pProcessConfig);
 
+EXT_DECL TRDP_ERR_T tlc_updateSession (
+    TRDP_APP_SESSION_T appHandle);
+
 EXT_DECL TRDP_ERR_T tlc_closeSession (
     TRDP_APP_SESSION_T appHandle);
 

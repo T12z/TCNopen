@@ -683,6 +683,56 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
     return TRDP_NO_ERR;
 
 }
+
+/**********************************************************************************************************************/
+/** Update a session.
+ *
+ *  tlc_updateSession signals the end of the set-up phase to the stack. It shall be called after the last publisher
+ *  and subscriber was added and will create and compute the index tables to be used by the high-performance targets.
+ *  This function is currently a no-op on standard targets.
+ *
+ *  @param[in]      appHandle          A handle for further calls to the trdp stack
+ *
+ *  @retval         TRDP_NO_ERR         no error
+ *  @retval         TRDP_INIT_ERR       not yet inited
+ *  @retval         TRDP_PARAM_ERR      parameter error
+ */
+EXT_DECL TRDP_ERR_T tlc_updateSession (
+    TRDP_APP_SESSION_T              appHandle)
+{
+    TRDP_ERR_T ret = TRDP_NO_ERR;
+#ifdef HIGH_PERF_INDEX
+    if (trdp_isValidSession(appHandle))
+    {
+        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+        if (ret == TRDP_NO_ERR)
+        {
+            /*  Stop any ongoing communication by getting the other mutexes as well */
+            ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
+            if (ret == TRDP_NO_ERR)
+            {
+                trdp_indexCreatePubTable(appHandle);
+                (void) vos_mutexUnlock(appHandle->pdSndMutex);
+                ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdRcvMutex);
+                if (ret == TRDP_NO_ERR)
+                {
+                    trdp_indexCreateSubTable(appHandle);
+                    (void) vos_mutexUnlock(appHandle->pdRcvMutex);
+                }
+            }
+            (void) vos_mutexUnlock(appHandle->mutex);
+        }
+    }
+    else
+    {
+        ret = TRDP_NOINIT_ERR;
+    }
+#else
+    appHandle = appHandle;
+#endif
+    return ret;
+}
+
 /**********************************************************************************************************************/
 /** Close a session.
  *  Clean up and release all resources of that session
