@@ -72,6 +72,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_VOSTest", "TRDP_VOSTes
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP", "TRDP\TRDP.vcxproj", "{4E059552-03FF-4EE4-A868-C2253289E9F6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_HighPerformance", "TRDP_HighPerformance\TRDP_HighPerformance.vcxproj", "{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -200,6 +202,14 @@ Global
 		{4E059552-03FF-4EE4-A868-C2253289E9F6}.Release|x64.Build.0 = Release|x64
 		{4E059552-03FF-4EE4-A868-C2253289E9F6}.Release|x86.ActiveCfg = Release|Win32
 		{4E059552-03FF-4EE4-A868-C2253289E9F6}.Release|x86.Build.0 = Release|Win32
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Debug|x64.ActiveCfg = Debug|x64
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Debug|x64.Build.0 = Debug|x64
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Debug|x86.ActiveCfg = Debug|Win32
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Debug|x86.Build.0 = Debug|Win32
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Release|x64.ActiveCfg = Release|x64
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Release|x64.Build.0 = Release|x64
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Release|x86.ActiveCfg = Release|Win32
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
