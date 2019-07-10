@@ -11,7 +11,7 @@
  *
  * @remarks         Copyright NewTec GmbH, 2018. All rights reserved.
  *
- * $Id: sendTSN.c 2982 2018-11-12 13:39:42Z bloehr $
+ * $Id$
  *
  */
 

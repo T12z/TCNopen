@@ -11,7 +11,7 @@
  *
  * @remarks         Copyright NewTec GmbH, 2018. All rights reserved.
  *
- * $Id: receiveTSN.c 3005 2018-11-16 13:47:45Z bloehr $
+ * $Id$
  *
  */
 
