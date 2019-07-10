@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 14 for Windows Desktop
+# Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_Tests", "TRDP_Tests\TRDP_Tests.vcxproj", "{8238C177-25D0-42E3-AD8E-3A4E61CFA079}"
@@ -9,6 +9,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_Tests", "TRDP_Tests\TR
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_PDTest", "TRDP_PDTest\TRDP_PDTest.vcxproj", "{EF516E67-31DF-402D-8910-813FDF55965C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E059552-03FF-4EE4-A868-C2253289E9F6} = {4E059552-03FF-4EE4-A868-C2253289E9F6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_XMLPDTest", "TRDP_XMLPDTest\TRDP_XMLPDTest.vcxproj", "{DDBD7C18-B718-472C-8D18-BE40D887DD7C}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -48,12 +51,24 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_PDTest_CB", "TRDP_PDTe
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_MDRepetitionCaller", "TRDP_MDRepetitionCaller\TRDP_MDRepetitionCaller.vcxproj", "{8A3D314A-FCC4-44A1-8AFC-8A22E5F2C41F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E059552-03FF-4EE4-A868-C2253289E9F6} = {4E059552-03FF-4EE4-A868-C2253289E9F6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_MDRepetitionReplier", "TRDP_MDRepetitionReplier\TRDP_MDRepetitionReplier.vcxproj", "{2F22C2C5-4830-4D4B-8DF7-8E5E8874F6EF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E059552-03FF-4EE4-A868-C2253289E9F6} = {4E059552-03FF-4EE4-A868-C2253289E9F6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_MDTestBasic", "TRDP_MDTestBasic\TRDP_MDTestBasic.vcxproj", "{43B964A9-9C58-4E78-BA2B-BC6CC7651E10}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E059552-03FF-4EE4-A868-C2253289E9F6} = {4E059552-03FF-4EE4-A868-C2253289E9F6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_VOSTest", "TRDP_VOSTest\TRDP_VOSTest.vcxproj", "{CB425547-5F21-4E5F-AACF-9894E753D192}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E059552-03FF-4EE4-A868-C2253289E9F6} = {4E059552-03FF-4EE4-A868-C2253289E9F6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP", "TRDP\TRDP.vcxproj", "{4E059552-03FF-4EE4-A868-C2253289E9F6}"
 EndProject

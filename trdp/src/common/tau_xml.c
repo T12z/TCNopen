@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2018-07-10: Ticket #264: Added parsing of service definitions for service oriented interface
  *      BL 2019-06-12: Ticket #262 XML Parsing Bug Fixes for Debug Output Print Level and SDTv2 Parameters
  *      BL 2019-06-12: Ticket #246 Incorrect reading of "user" part of source uri and destination
  *      BL 2019-05-22: Ticket #249 Issue when parsing memory block configuration from config file
@@ -1781,6 +1782,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
     TRDP_EVENT_T *pEvent = NULL;
     TRDP_FIELD_T *pField = NULL;
     TRDP_METHOD_T *pMethod = NULL;
+    TRDP_SERVICE_DEVICE_T *pServiceDevice = NULL;
     TRDP_INSTANCE_T *pInstance = NULL;
     TRDP_TELEGRAM_REF_T *pTelegramRef = NULL;
 
@@ -1838,20 +1840,20 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                         UINT32 eventCount;
                         UINT32 fieldCount;
                         UINT32 methodCount;
-                        UINT32 instanceCount;
+                        UINT32 deviceCount;
                         UINT32 telegramRefCount;
 
                         trdp_XMLEnter(pDocHnd->pXmlDocument);
 
-                        /* find out how many events,fields,methods and instances are defined beforehand */
+                        /* find out how many events,fields,methods and devices are defined beforehand */
                         eventCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "event");
                         (*ppServiceDefs)[i].pEvent = NULL;
                         fieldCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "field");
                         (*ppServiceDefs)[i].pField = NULL;
                         methodCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "method");
                         (*ppServiceDefs)[i].pMethod = NULL;
-                        instanceCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "instance");
-                        (*ppServiceDefs)[i].pInstance = NULL;
+                        deviceCount    = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "service-device");
+                        (*ppServiceDefs)[i].pDevice= NULL;
                         telegramRefCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "telegramRef");
                         (*ppServiceDefs)[i].pTelegramRef = NULL;
 
@@ -1965,40 +1967,77 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     pMethod++;
                                 }
                             }
-                            else if (vos_strnicmp(tag, "instance", MAX_TAG_LEN) == 0)
+                            else if (vos_strnicmp(tag, "service-device", MAX_TAG_LEN) == 0)
                             {
-                                if (instanceCount > 0u)
+                                if (deviceCount > 0u)
                                 {
-                                    (*ppServiceDefs)[i].pInstance = (TRDP_INSTANCE_T *)vos_memAlloc(instanceCount * sizeof(TRDP_INSTANCE_T));
+                                    (*ppServiceDefs)[i].pDevice = (TRDP_SERVICE_DEVICE_T *)vos_memAlloc(deviceCount * sizeof(TRDP_SERVICE_DEVICE_T));
 
-                                    if ((*ppServiceDefs)[i].pInstance == NULL)
+                                    if ((*ppServiceDefs)[i].pDevice == NULL)
                                     {
                                         vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML instance definitions!\n",
-                                                     (unsigned long) (instanceCount * sizeof(TRDP_INSTANCE_T)));
+                                                     (unsigned long) (deviceCount * sizeof(TRDP_SERVICE_DEVICE_T)));
                                         return TRDP_MEM_ERR;
                                     }
-                                    (*ppServiceDefs)[i].instanceCnt = instanceCount;
-                                    instanceCount    = 0u;
-                                    pInstance        = (*ppServiceDefs)[i].pInstance;
+                                    (*ppServiceDefs)[i].deviceCnt = deviceCount;
+                                    deviceCount    = 0u;
+                                    pServiceDevice = (*ppServiceDefs)[i].pDevice;
                                 }
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
-                                    if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                    if (vos_strnicmp(attribute, "src-uri", MAX_TOK_LEN) == 0)
                                     {
-                                        pInstance->instanceId = (UINT8) valueInt;
+                                        vos_strncpy(pServiceDevice->hostUri, value, TRDP_MAX_URI_HOST_LEN);
                                     }
-                                    else if (vos_strnicmp(attribute, "src-id", MAX_TOK_LEN) == 0)
+                                    else if (vos_strnicmp(attribute, "dst-uri", MAX_TOK_LEN) == 0)
                                     {
-                                        pInstance->srcId = (UINT16) valueInt;
+                                        vos_strncpy(pServiceDevice->dstUri, value, TRDP_MAX_URI_HOST_LEN);
                                     }
-                                    else if (vos_strnicmp(attribute, "dst-id", MAX_TOK_LEN) == 0)
+                                    trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+                                    UINT32 instanceCount;
+                                    UINT32 j;
+
+                                    instanceCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "instance");
+
+                                    if (instanceCount > 0)
                                     {
-                                        pInstance->dstId = (UINT16) valueInt;
+                                        pServiceDevice->pInstance = (TRDP_INSTANCE_T *)vos_memAlloc(instanceCount * sizeof(TRDP_INSTANCE_T));
+
+                                        if (pServiceDevice->pInstance == NULL)
+                                        {
+                                            vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML instance definitions!\n",
+                                                         (unsigned long) (instanceCount * sizeof(TRDP_INSTANCE_T)));
+                                            return TRDP_MEM_ERR;
+                                        }
+                                        pServiceDevice->instanceCnt = instanceCount;
+                                        pInstance        = pServiceDevice->pInstance;
+                                        /* Read the interface params */
+                                        for (j = 0u; j < instanceCount && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "instance") == 0; j++)
+                                        {
+                                            while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                                            {
+                                                if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                                {
+                                                    pInstance->instanceId = (UINT8) valueInt;
+                                                }
+                                                else if (vos_strnicmp(attribute, "dst-uri", MAX_TOK_LEN) == 0)
+                                                {
+                                                    vos_strncpy(pInstance->dstUri, value, TRDP_MAX_URI_HOST_LEN);
+                                                }
+                                            }
+                                            if (pInstance != NULL)
+                                            {
+                                                pInstance++;
+                                            }
+                                        }
                                     }
+
+                                    trdp_XMLLeave(pDocHnd->pXmlDocument);
                                 }
-                                if (pInstance != NULL)
+                                if (pServiceDevice != NULL)
                                 {
-                                    pInstance++;
+                                    pServiceDevice++;
                                 }
                             }
                             else if (vos_strnicmp(tag, "telegramRef", MAX_TAG_LEN) == 0)
@@ -2044,23 +2083,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
 
                         }
 
-//                        UINT32 j;
-//
-//                        eventCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "event");
-//
-//                        if (eventCount > 0u)
-//                        {
-//                            (*ppServiceDefs)[i].pEvent = (TRDP_EVENT_T *)vos_memAlloc(eventCount * sizeof(TRDP_EVENT_T));
-//
-//                            if (*ppServiceDefs != NULL)
-//                            {
-//                                (*ppServiceDefs)[i].eventCnt = eventCount;
-//                                for (j = 0u; j < eventCount && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "event") == 0; j++)
-//                                {
-//
-//                                }
-//                            }
-//                        }
+
                         trdp_XMLLeave(pDocHnd->pXmlDocument);
 
 

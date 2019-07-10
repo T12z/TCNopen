@@ -20,6 +20,7 @@
 #  SVN           : $Id$
 #
 #  HISTORY       :
+#                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
 #                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)
 #                            1.11.0.0  Ticket #106: User needs to be informed on every received PD packet
 #                            1.10.0.0  sink/source attribute for telegrams added
@@ -219,7 +220,7 @@
         <xs:element ref="event" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="field" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="method" minOccurs="0" maxOccurs="unbounded"/>
-        <xs:element ref="instance" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="service-device" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="telegramRef" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="name" type="xs:string" use="required">
@@ -229,7 +230,25 @@
       </xs:attribute>
             <xs:attribute name="id" type="uint32" use="required">
         <xs:annotation>
-          <xs:documentation>Service identifier</xs:documentation>
+          <xs:documentation>Service identifier (24 bit)</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>  
+  
+    <xs:element name="service-device">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="instance" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="src-uri" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Source URI for the specific end device.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="dst-uri" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Destination URI for the specific end device.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
@@ -300,12 +319,7 @@
           <xs:documentation>Instance identifier</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="src-id" type="uint32" use="required">
-        <xs:annotation>
-          <xs:documentation>Source identifier of instance</xs:documentation>
-        </xs:annotation>
-      </xs:attribute>
-            <xs:attribute name="dst-id" type="uint32" use="required">
+      <xs:attribute name="dst-uri" type="xs:string" use="required">
         <xs:annotation>
           <xs:documentation>Destination identifier of instance</xs:documentation>
         </xs:annotation>
