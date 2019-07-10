@@ -61,6 +61,62 @@ extern "C" {
  */
 
 /**********************************************************************************************************************/
+/** Get the lowest time interval for PDs.
+ *  Return the maximum time interval suitable for 'select()' so that we
+ *    can send due PD packets in time.
+ *    If the PD send queue is empty, return zero time
+ *
+ *  @param[in]      appHandle          The handle returned by tlc_openSession
+ *  @param[out]     pInterval          pointer to needed interval
+ *  @param[in,out]  pFileDesc          pointer to file descriptor set
+ *  @param[out]     pNoDesc            pointer to put no of highest used descriptors (for select())
+ *
+ *  @retval         TRDP_NO_ERR        no error
+ *  @retval         TRDP_NOINIT_ERR    handle invalid
+ */
+EXT_DECL TRDP_ERR_T tlm_getInterval (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_TIME_T         *pInterval,
+    TRDP_FDS_T          *pFileDesc,
+    INT32               *pNoDesc)
+{
+    TRDP_ERR_T ret = TRDP_NOINIT_ERR;
+
+    if (trdp_isValidSession(appHandle))
+    {
+        if ((pInterval == NULL)
+            || (pFileDesc == NULL)
+            || (pNoDesc == NULL))
+        {
+            ret = TRDP_PARAM_ERR;
+        }
+        else
+        {
+            ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutexMD);
+
+            if (ret != TRDP_NO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexLock() failed\n");
+            }
+            else
+            {
+                trdp_mdCheckPending(appHandle, pFileDesc, pNoDesc);
+
+                /*  Return a time-out value to the caller   */
+                pInterval->tv_sec   = 0u;                       /* if no timeout is set             */
+                pInterval->tv_usec  = TRDP_MD_MAN_CYCLE_TIME;   /* Application should limit this    */
+
+                if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
+                {
+                    vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+/**********************************************************************************************************************/
 /** Work loop of the TRDP handler.
  *    Search the queue for pending PDs to be sent
  *    Search the receive queue for pending PDs (time out)
@@ -86,7 +142,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
         return TRDP_NOINIT_ERR;
     }
 
-    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -102,7 +158,6 @@ EXT_DECL TRDP_ERR_T tlm_process (
             if (err == TRDP_IO_ERR)
             {
                 vos_printLogStr(VOS_LOG_INFO, "trdp_mdSend() incomplete \n");
-
             }
             else
             {
@@ -121,7 +176,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
 
         trdp_mdCheckTimeouts(appHandle);
 
-        if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
+        if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
         }
@@ -358,7 +413,7 @@ EXT_DECL TRDP_ERR_T  tlm_addListener (
     }
 
     /* lock mutex */
-    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -479,7 +534,7 @@ EXT_DECL TRDP_ERR_T  tlm_addListener (
     }
 
     /* Release mutex */
-    if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -521,7 +576,7 @@ TRDP_ERR_T tlm_delListener (
 
     /* lock mutex */
 
-    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -580,7 +635,7 @@ TRDP_ERR_T tlm_delListener (
     }
 
     /* Release mutex */
-    if ( vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR )
+    if ( vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR )
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -627,7 +682,7 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
         return TRDP_PARAM_ERR;
     }
     /* lock mutex */
-    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -673,7 +728,7 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
     }
 
     /* Release mutex */
-    if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }
@@ -854,7 +909,7 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
 
     /* lock mutex */
 
-    if (vos_mutexLock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         return TRDP_NOINIT_ERR;
     }
@@ -883,7 +938,7 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
     while (iterMD != NULL);
 
     /* Release mutex */
-    if (vos_mutexUnlock(appHandle->mdMutex) != VOS_NO_ERR)
+    if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
     }

@@ -62,11 +62,13 @@
 #define TRDP_EVOLUTION  0u
 #endif
 
-#ifdef HIGH_PERF_INDEX
+#ifdef HIGH_PERF_INDEXED
 #define TRDP_TIMER_GRANULARITY          500u                        /**< granularity in us - we allow 0.5ms now!      */
 #else
-#define TRDP_TIMER_GRANULARITY          5000u                        /**< granularity in us - we allow 5ms now!      */
+#define TRDP_TIMER_GRANULARITY          5000u                       /**< granularity in us - we allow 5ms now!        */
 #endif
+
+#define TRDP_MD_MAN_CYCLE_TIME          5000u                       /**< cycle time [us} = delay for outgoing MD      */
 
 #define TRDP_DEBUG_DEFAULT_FILE_SIZE    65536u                      /**< Default maximum size of log file             */
 
@@ -247,7 +249,7 @@ typedef struct
 
 typedef struct
 {
-    PD2_HEADER_T    frameHead;                      /**< Packet header in network byte order             */
+    PD2_HEADER_T    frameHead;                      /**< Packet header in network byte order                */
     UINT8           data[TRDP_MAX_PD2_DATA_SIZE];   /**< data ready to be sent or received                  */
 } GNU_PACKED PD2_PACKET_T;
 
@@ -277,7 +279,7 @@ typedef struct PD_ELE
     UINT32              redId;                  /**< Redundancy group ID or zero                            */
     UINT32              curSeqCnt;              /**< the last sent or received sequence counter             */
     UINT32              curSeqCnt4Pull;         /**< the last sent sequence counter for PULL                */
-    TRDP_SEQ_CNT_LIST_T *pSeqCntList;            /**< pointer to list of received sequence numbers per comId */
+    TRDP_SEQ_CNT_LIST_T *pSeqCntList;           /**< pointer to list of received sequence numbers per comId */
     UINT32              numRxTx;                /**< Counter for received packets (statistics)              */
     UINT32              updPkts;                /**< Counter for updated packets (statistics)               */
     UINT32              getPkts;                /**< Counter for read packets (statistics)                  */
@@ -341,7 +343,7 @@ typedef struct MD_ELE
     INT32               socketIdx;              /**< index into the socket list                             */
     UINT16              replyPort;              /**< replies are sent to the requesters source port         */
     TRDP_MD_ELE_ST_T    stateEle;               /**< internal status                                        */
-    UINT8               sessionID[16u];          /**< UUID as a byte stream                                  */
+    UINT8               sessionID[16u];         /**< UUID as a byte stream                                  */
     UINT32              numExpReplies;          /**< number of expected repliers, 0 if unknown              */
     UINT32              numReplies;             /**< actual number of replies for the request               */
     UINT32              numRetriesMax;          /**< maximun number of retries for request to a know dev    */
@@ -375,8 +377,8 @@ typedef struct TRDP_SESSION
 {
     struct TRDP_SESSION     *pNext;             /**< Pointer to next session                                */
     VOS_MUTEX_T             mutex;              /**< protect this session                                   */
-    VOS_MUTEX_T             pdSndMutex;         /**< protect the sending queue                              */
-    VOS_MUTEX_T             pdRcvMutex;         /**< protect the receiving queue                            */
+    VOS_MUTEX_T             mutexTxPD;          /**< protect the sending queue                              */
+    VOS_MUTEX_T             mutexRxPD;          /**< protect the receiving queue                            */
     TRDP_IP_ADDR_T          realIP;             /**< Real IP address                                        */
     TRDP_IP_ADDR_T          virtualIP;          /**< Virtual IP address                                     */
     UINT32                  etbTopoCnt;         /**< current valid topocount or zero                        */
@@ -394,7 +396,7 @@ typedef struct TRDP_SESSION
     TRDP_TIME_T             initTime;           /**< initialization time of session                         */
     TRDP_STATISTICS_T       stats;              /**< statistics of this session                             */
 #if MD_SUPPORT
-    VOS_MUTEX_T             mdMutex;            /**< protect the message data handling                      */
+    VOS_MUTEX_T             mutexMD;            /**< protect the message data handling                      */
     struct TAU_TTDB         *pTTDB;             /**< session related TTDB data                              */
     void                    *pUser;             /**< space for higher layer data                            */
     TRDP_TCP_FD_T           tcpFd;              /**< TCP file descriptor parameters                         */

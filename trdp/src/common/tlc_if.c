@@ -22,6 +22,7 @@
 *      BL 2019-06-17: Ticket #161 Increase performance
 *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
 *      V 2.0.0 --------- ^^^ -----------
+*       new file derived from trdp_if.c
 *      V 1.4.2 --------- vvv -----------
 *      BL 2019-03-21: Ticket #191 Preparations for TSN (External code)
 *      BL 2019-03-15: Ticket #244 Extend SendParameters to support VLAN Id and TSN
@@ -99,6 +100,10 @@
 #include "trdp_mdcom.h"
 #endif
 
+#ifdef HIGH_PERF_INDEXED
+#include "trdp_pdindex.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -120,8 +125,10 @@ static BOOL8 sInited = FALSE;
  * LOCAL FUNCTIONS
  */
 
-BOOL8 trdp_isValidSession (TRDP_APP_SESSION_T pSessionHandle);
+BOOL8       trdp_isValidSession (TRDP_APP_SESSION_T pSessionHandle);
 TRDP_APP_SESSION_T *trdp_sessionQueue (void);
+TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T pSessionHandle);
+void        trdp_releaseAccess (TRDP_APP_SESSION_T pSessionHandle);
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
@@ -180,6 +187,76 @@ BOOL8    trdp_isValidSession (
 TRDP_APP_SESSION_T *trdp_sessionQueue (void)
 {
     return (TRDP_APP_SESSION_T *)sSession;
+}
+
+/**********************************************************************************************************************/
+/** Get mutual access to the session
+ *  Take all mutexes of that session
+ *
+ *  @param[in]      appHandle          A handle for further calls to the trdp stack
+ *  @retval         TRDP_NO_ERR
+ *  @retval         TRDP_INIT_ERR
+ *  @retval         TRDP_MUTEX_ERR
+ */
+TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T appHandle)
+{
+    TRDP_ERR_T ret = TRDP_INIT_ERR;
+    if (appHandle != NULL)
+    {
+        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+        if (ret == TRDP_NO_ERR)
+        {
+            /*  Wait for any ongoing communications by getting the other mutexes as well */
+            ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutexTxPD);
+            if (ret == TRDP_NO_ERR)
+            {
+                ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutexRxPD);
+                if (ret != TRDP_NO_ERR)
+                {
+                    /* In case of error release the locks already taken. */
+                    (void) vos_mutexUnlock(appHandle->mutexTxPD);
+                    (void) vos_mutexUnlock(appHandle->mutex);
+                    vos_printLog(VOS_LOG_WARNING, "taking mutexRxPD failed (%d)\n", ret);
+                }
+            }
+            else
+            {
+                (void) vos_mutexUnlock(appHandle->mutex);
+                vos_printLog(VOS_LOG_WARNING, "taking mutexTxPD failed (%d)\n", ret);
+            }
+        }
+        else
+        {
+            vos_printLog(VOS_LOG_WARNING, "taking mutex failed (%d)\n", ret);
+        }
+    }
+    return ret;
+}
+
+/**********************************************************************************************************************/
+/** Release access to the session
+ *
+ *  @param[in]      appHandle          A handle for further calls to the trdp stack
+ *  @retval         realIP
+ */
+void  trdp_releaseAccess (TRDP_APP_SESSION_T appHandle)
+{
+    /* In case of an error we cannot do anything, except logging... */
+    VOS_ERR_T err = vos_mutexUnlock(appHandle->mutexRxPD);
+    if (err != VOS_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_WARNING, "releasing mutexRxPD failed (%d)\n", err);
+    }
+    err = vos_mutexUnlock(appHandle->mutexTxPD);
+    if (err != VOS_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_WARNING, "releasing mutexTxPD failed (%d)\n", err);
+    }
+    err = vos_mutexUnlock(appHandle->mutex);
+    if (err != VOS_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_WARNING, "releasing mutex failed (%d)\n", err);
+    }
 }
 
 /**********************************************************************************************************************/
@@ -364,16 +441,16 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
         return ret;
     }
 
-    ret  = (TRDP_ERR_T) vos_mutexCreate(&pSession->mutex);
-    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->pdSndMutex);
-    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->pdRcvMutex);
-    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mdMutex);
+    ret = (TRDP_ERR_T) vos_mutexCreate(&pSession->mutex);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexTxPD);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexRxPD);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexMD);
 
     if (ret != TRDP_NO_ERR)
     {
         vos_memFree(pSession);
-        vos_printLog(VOS_LOG_ERROR, "Serious error: vos_mutexCreate() failed (Err: %d)\n", ret);
-        return ret;
+        vos_printLogStr(VOS_LOG_ERROR, "Serious error: Creating one of the mutexes failed\n");
+        return TRDP_INIT_ERR;
     }
 
     vos_clearTime(&pSession->nextJob);
@@ -397,6 +474,7 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
     pSession->pNewFrame = (PD_PACKET_T *) vos_memAlloc(TRDP_MAX_PD_PACKET_SIZE);
     if (pSession->pNewFrame == NULL)
     {
+        vos_memFree(pSession);
         vos_printLogStr(VOS_LOG_ERROR, "Out of meory!\n");
         return TRDP_MEM_ERR;
     }
@@ -406,6 +484,8 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
 
     if (ret != TRDP_NO_ERR)
     {
+        vos_memFree(pSession->pNewFrame);
+        vos_memFree(pSession);
         vos_printLog(VOS_LOG_ERROR, "vos_mutexLock() failed (Err: %d)\n", ret);
     }
     else
@@ -491,7 +571,7 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
  *  tlc_configSession is called by openSession, but may also be called later on to change the defaults.
  *  Only the supplied settings (pointer != NULL) will be evaluated.
  *
- *  @param[in]      appHandle          A handle for further calls to the trdp stack
+ *  @param[in]      appHandle           A handle for further calls to the trdp stack
  *  @param[in]      pMarshall           Pointer to marshalling configuration
  *  @param[in]      pPdDefault          Pointer to default PD configuration
  *  @param[in]      pMdDefault          Pointer to default MD configuration
@@ -698,38 +778,25 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
  *  @retval         TRDP_PARAM_ERR      parameter error
  */
 EXT_DECL TRDP_ERR_T tlc_updateSession (
-    TRDP_APP_SESSION_T              appHandle)
+    TRDP_APP_SESSION_T appHandle)
 {
     TRDP_ERR_T ret = TRDP_NO_ERR;
-#ifdef HIGH_PERF_INDEX
-    if (trdp_isValidSession(appHandle))
+
+#ifdef HIGH_PERF_INDEXED
+    /*  Stop any ongoing communication by getting the mutexes */
+    ret = trdp_getAccess(appHandle);
+    if (ret == TRDP_NO_ERR)
     {
-        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
-        if (ret == TRDP_NO_ERR)
-        {
-            /*  Stop any ongoing communication by getting the other mutexes as well */
-            ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdSndMutex);
-            if (ret == TRDP_NO_ERR)
-            {
-                trdp_indexCreatePubTable(appHandle);
-                (void) vos_mutexUnlock(appHandle->pdSndMutex);
-                ret = (TRDP_ERR_T) vos_mutexLock(appHandle->pdRcvMutex);
-                if (ret == TRDP_NO_ERR)
-                {
-                    trdp_indexCreateSubTable(appHandle);
-                    (void) vos_mutexUnlock(appHandle->pdRcvMutex);
-                }
-            }
-            (void) vos_mutexUnlock(appHandle->mutex);
-        }
-    }
-    else
-    {
-        ret = TRDP_NOINIT_ERR;
+        trdp_indexCreatePubTable(appHandle);
+        trdp_indexCreateSubTable(appHandle);
+        trdp_releaseAccess(appHandle);
     }
 #else
+
     appHandle = appHandle;
+
 #endif
+
     return ret;
 }
 
@@ -798,15 +865,14 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
             pSession = (TRDP_SESSION_PT) appHandle;
 
             /*    Take the session mutex to prevent someone sitting on the branch while we cut it    */
-            ret = (TRDP_ERR_T) vos_mutexLock(pSession->mutex);
+            ret = trdp_getAccess(pSession);
 
             if (ret != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "vos_mutexLock() failed (Err: %d)\n", ret);
+                vos_printLog(VOS_LOG_ERROR, "vos_mutexLock() failed (%s)\n", vos_getErrorString((VOS_ERR_T)ret));
             }
             else
             {
-
                 /*    Release all allocated sockets and memory    */
                 vos_memFree(pSession->pNewFrame);
 
@@ -912,15 +978,20 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
                     pSession->tcpFd.listen_sd = VOS_INVALID_SOCKET;
                 }
 #endif
-                if (vos_mutexUnlock(pSession->mutex) != VOS_NO_ERR)
-                {
-                    vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
-                }
+                trdp_releaseAccess(pSession);
 
                 vos_mutexDelete(pSession->mutex);
+                vos_mutexDelete(pSession->mutexTxPD);
+                vos_mutexDelete(pSession->mutexRxPD);
+                vos_mutexDelete(pSession->mutexMD);
+
                 vos_memFree(pSession);
             }
 
+        }
+        else
+        {
+            ret = TRDP_NOINIT_ERR;
         }
     }
 
