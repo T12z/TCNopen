@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device host-name="examplehost" leader-name="leaderhost" type="dummy">
+   <device-configuration memory-size="65535">
+      <mem-block-list>
+         <mem-block size="32" preallocate="0" />
+      </mem-block-list>
+   </device-configuration>
+	
+   <bus-interface-list>
+      <bus-interface network-id="1" name="eth0" host-ip="10.0.1.100">
+         <trdp-process blocking="yes" traffic-shaping="on" />
+         <pd-com-parameter port="17224"  marshall="off" validity-behavior="zero"/>
+         <telegram name="send_hello" com-id="1000" data-set-id="1000" com-parameter-id="3" type="source">
+            <pd-parameter cycle="10000" />
+            <destination id="1" uri="239.1.1.3" name="TSN_Talker">
+                <sdt-parameter smi1="1000" udv="1" rx-period="1" tx-period="1" />
+            </destination>
+            <source id="1" uri="10.0.1.101" name="TSN_Listener">
+                <sdt-parameter smi1="1000" udv="1" rx-period="1" tx-period="1" />
+            </source>
+        </telegram>
+         <telegram name="demo" com-id="1001" data-set-id="1001"  com-parameter-id="4" type="sink">
+           <pd-parameter cycle="10000" />
+           <source id="1" uri1="dev01.car01.cst01" uri2="dev02.car01.cst01" name="test_connection_2" />
+           <destination id="1" uri="grpAll.aCar.aCst" name="broadcast" />
+         </telegram>
+      </bus-interface>
+   </bus-interface-list>
+   
+   <com-parameter-list>
+      <com-parameter id="1" qos="2" ttl="64" />                     <!-- Suitable for TCMS control PD communication -->
+      <com-parameter id="2" qos="2" ttl="64" />                     <!-- Suitable for TCMS control MD communication -->
+      <com-parameter id="3" qos="3" ttl="64" vlan="10" iface="vlan0" tsn="on"/><!-- Suitable for TSN communication -->
+      <com-parameter id="4" qos="2" ttl="64" vlan="20" />           <!-- Suitable for PD communication on a VLAN -->
+   </com-parameter-list>
+   
+   <!--
+        BOOL8		1	=UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true)
+        CHAR8		2	char, can be used also as UTF8
+        UTF16		3	Unicode UTF-16 character
+        INT8		4	Signed integer, 8 bit
+        INT16		5	Signed integer, 16 bit
+        INT32		6	Signed integer, 32 bit
+        INT64		7	Signed integer, 64 bit
+        UINT8		8	Unsigned integer, 8 bit
+        UINT16		9	Unsigned integer, 16 bit
+        UINT32		10	Unsigned integer, 32 bit
+        UINT64		11	Unsigned integer, 64 bit
+        REAL32	12	Floating point real, 32 bit
+        REAL64	13	Floating point real, 64 bit
+        TIMEDATE32	14	32 bit UNIX time
+        TIMEDATE48	15	48 bit TCN time (32 bit seconds and 16 bit ticks)
+        TIMEDATE64	16	32 bit seconds and 32 bit microseconds
+   -->
+   <data-set-list>
+       <data-set name="send_TSN_data" id="1000"><!-- 32Byte string -->
+           <element name="string"  type="2" array-size="32" />
+       </data-set>
+       <data-set name="demo" id="1001">
+           <element name="cpu_temp" type="10" />
+           <element name="rx_bytes" type="10" />
+           <element name="rx_frames" type="10" />
+           <element name="tx_bytes" type="10" />
+           <element name="tx_frames" type="10" />
+           <element name="user_value" type="10" />
+        </data-set>
+   </data-set-list>
+   <debug  />
+</device>
