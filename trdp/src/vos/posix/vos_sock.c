@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2019-07-11: Added includes linux/if_vlan.h and linux/sockios.h 
 *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
 *      V 2.0.0 --------- ^^^ -----------
 *      V 1.4.2 --------- vvv -----------
@@ -62,6 +63,8 @@
 #ifdef __linux
 #   include <linux/if.h>
 #   include <byteswap.h>
+#   include <linux/if_vlan.h>
+#   include <linux/sockios.h>
 #else
 #   include <net/if.h>
 #   include <net/if_types.h>
