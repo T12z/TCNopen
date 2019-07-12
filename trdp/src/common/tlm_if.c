@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2019-07-12: Removing callback during tlm_abortSession to prevent it from being called with deleted pUserRef
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -929,6 +930,7 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
         {
             if (memcmp(iterMD->sessionID, pSessionId, TRDP_SESS_ID_SIZE) == 0)
             {
+                iterMD->pfCbFunction = NULL;
                 iterMD->morituri = TRUE;
                 err = TRDP_NO_ERR;
             }
