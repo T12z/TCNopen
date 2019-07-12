@@ -34,9 +34,11 @@
 #include "vos_utils.h"
 #include "trdp_pdindex.h"
 
+/*
 #ifdef __cplusplus
 extern "C" {
 #endif
+ */
 
 /***********************************************************************************************************************
  * DEFINES
@@ -45,6 +47,32 @@ extern "C" {
 /***********************************************************************************************************************
  * TYPEDEFS
  */
+
+
+/* Definitions for the transmitter optimisation */
+
+/** low-time slots */
+typedef PD_ELE_T *TRDP_HP_LIST;
+
+/** low-time slots */
+typedef struct hp_slots {
+    //UINT8           noOfEntries;
+    TRDP_HP_LIST    slots[TRDP_DEFAULT_NO_SLOTS_PER_IDX];
+} TRDP_HP_CAT_SLOT_T;
+
+/* Definitions for the receiver optimisation */
+
+/** entry for the application session */
+typedef struct hp_slot {
+    UINT8                   noOfTxEntriesLow;
+    UINT8                   noOfTxEntriesMid;
+    UINT8                   noOfTxEntriesHigh;
+    UINT8                   noOfRxEntries;
+    TRDP_HP_CAT_SLOT_T      *lowCat;
+    TRDP_HP_CAT_SLOT_T      *midCat;
+    TRDP_HP_CAT_SLOT_T      *highCat;
+    PD_ELE_T                *pRcvTable;
+} TRDP_HP_SLOTS_T;
 
 /***********************************************************************************************************************
  * LOCALS
@@ -70,8 +98,8 @@ TRDP_ERR_T trdp_indexCreatePubTable (TRDP_SESSION_PT appHandle)
 }
 
 /**********************************************************************************************************************/
-/** Create the transmitter index tables
- *  Create the index tables from the publisher elements currently in the send queue
+/** Create the receiver index tables
+ *  Create the index tables from the subscriber elements currently in the receive queue
  *
  *  @param[in]      appHandle         pointer to the packet element to send
  *
@@ -84,6 +112,8 @@ TRDP_ERR_T trdp_indexCreateSubTable (TRDP_SESSION_PT appHandle)
     return TRDP_NO_ERR;
 }
 
-#ifdef __cplusplus
-} /* extern "C" */
+/*
+ #ifdef __cplusplus
+}
 #endif
+*/

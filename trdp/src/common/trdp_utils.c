@@ -1304,7 +1304,8 @@ void  trdp_releaseSocket (
         /* Handle a specified socket */
         if (iface[lIndex].sock != VOS_INVALID_SOCKET &&
             (iface[lIndex].type == TRDP_SOCK_MD_UDP ||
-             iface[lIndex].type == TRDP_SOCK_PD))
+             iface[lIndex].type == TRDP_SOCK_PD ||
+             iface[lIndex].type == TRDP_SOCK_PD_TSN))
         {
             vos_printLog(VOS_LOG_DBG,
                          "Decrement the socket %d usage = %d\n",

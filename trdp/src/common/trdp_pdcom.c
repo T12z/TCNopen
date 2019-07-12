@@ -1082,11 +1082,9 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
                 switch (err)
                 {
                     case TRDP_NO_ERR:
-                        break;
                     case TRDP_NOSUB_ERR:        /* missing subscription should not lead to extensive error output */
                     case TRDP_BLOCK_ERR:
-                    case TRDP_NODATA_ERR:
-                        result = err;
+                    case TRDP_NODATA_ERR:       /* ignore would-block or sporadic unsolicited messages */
                         break;
                     case TRDP_TOPO_ERR:
                     case TRDP_TIMEOUT_ERR:

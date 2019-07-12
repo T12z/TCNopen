@@ -63,9 +63,20 @@
 #endif
 
 #ifdef HIGH_PERF_INDEXED
-#define TRDP_TIMER_GRANULARITY          500u                        /**< granularity in us - we allow 0.5ms now!      */
+#   define TRDP_TIMER_GRANULARITY          500u                     /**< granularity in us - we allow 0.5ms now!      */
 #else
-#define TRDP_TIMER_GRANULARITY          5000u                       /**< granularity in us - we allow 5ms now!        */
+#   define TRDP_TIMER_GRANULARITY          5000u                    /**< granularity in us - we allow 5ms now!        */
+#endif
+
+#if MD_SUPPORT
+#   ifndef TRDP_MAX_MD_SOCKET_CNT                                   /**< Allow overwrite of default socket usage      */
+#       define TRDP_MAX_MD_SOCKET_CNT   (VOS_MAX_SOCKET_CNT / 4)    /**< Reserve 1/4 of the sockets for MD            */
+#   endif
+#   ifndef TRDP_MAX_PD_SOCKET_CNT
+#       define TRDP_MAX_PD_SOCKET_CNT   (VOS_MAX_SOCKET_CNT - TRDP_MAX_MD_SOCKET_CNT)
+#   endif
+#else
+#   define TRDP_MAX_PD_SOCKET_CNT       VOS_MAX_SOCKET_CNT          /**< all available sockets for PD                 */
 #endif
 
 #define TRDP_MD_MAN_CYCLE_TIME          5000u                       /**< cycle time [us} = delay for outgoing MD      */
@@ -171,7 +182,7 @@ typedef struct TRDP_SOCKET_TCP
     TRDP_TIME_T     sendingTimeout;                     /**< The timeout sending the message              */
     BOOL8           addFileDesc;                        /**< Ready to add the socket in the fd            */
     BOOL8           morituri;                           /**< about to die                                 */
-}TRDP_SOCKET_TCP_T;
+} TRDP_SOCKET_TCP_T;
 
 
 /** Socket item    */
@@ -263,6 +274,10 @@ typedef struct
     UINT8       data[TRDP_MAX_MD_DATA_SIZE];    /**< data ready to be sent or received                      */
 } GNU_PACKED MD_PACKET_T;
 #endif /* MD_SUPPORT */
+
+#ifdef HIGH_PERF_INDEXED
+typedef struct hp_slot TRDP_HP_SLOTS_T;                 /**< forward declaration                                    */
+#endif /* HIGH_PERF_INDEXED */
 
 #if (defined (WIN32) || defined (WIN64))
 #pragma pack(pop)
@@ -395,6 +410,10 @@ typedef struct TRDP_SESSION
     PD_PACKET_T             *pNewFrame;         /**< pointer to received PD frame                           */
     TRDP_TIME_T             initTime;           /**< initialization time of session                         */
     TRDP_STATISTICS_T       stats;              /**< statistics of this session                             */
+#ifdef HIGH_PERF_INDEXED
+    TRDP_HP_SLOTS_T         *pSlot;             /**< pointer to a struct holding a list of slots for
+                                                                        high speed access to PD telegrams   */
+#endif
 #if MD_SUPPORT
     VOS_MUTEX_T             mutexMD;            /**< protect the message data handling                      */
     struct TAU_TTDB         *pTTDB;             /**< session related TTDB data                              */

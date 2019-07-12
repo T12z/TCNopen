@@ -127,7 +127,7 @@ endif
 TARGETS = outdir libtrdp
 
 ifneq ($(TARGET_OS),VXWORKS)
-	TARGETS += example test pdtest mdtest xml
+	TARGETS += example test pdtest mdtest xml highperf
 else
 	TARGETS += vtests
 endif
@@ -171,7 +171,9 @@ mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)
 
 vtests:		outdir $(OUTDIR)/vtest
 
-xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test $(OUTDIR)/trdp-xmlpd-test-fast
+xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
+
+highperf:	outdir $(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2
 
 %_config:
 	cp -f config/$@ config/config.mk
@@ -407,8 +409,16 @@ $(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a $(addprefix $(O
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
-				-ltrdp -lz \
+				-ltrdp \
 				$(LDFLAGS)
+			@$(STRIP) $@
+
+$(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdp \
+			$(LDFLAGS)
 			@$(STRIP) $@
 
 $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
@@ -518,6 +528,7 @@ help:
 	@$(ECHO) "  * make example   # build the example for MD communication, but needs libuuid!" >&2
 	@$(ECHO) "  * make libtrdp   # build the static library, only" >&2
 	@$(ECHO) "  * make xml       # build the xml test applications" >&2
+	@$(ECHO) "  * make highperf  # build test applications for high performance (separate PD/MD threads)" >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Static analysis (currently in prototype state) " >&2
 	@$(ECHO) "  * make lint      - build LINT analysis files using the LINT binary under $FLINT" >&2

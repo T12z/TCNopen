@@ -35,6 +35,8 @@
  * DEFINES
  */
 
+#define TRDP_DEFAULT_NO_IDX_PER_CATEGORY    100
+#define TRDP_DEFAULT_NO_SLOTS_PER_IDX       5
 
 /***********************************************************************************************************************
  * TYPEDEFS

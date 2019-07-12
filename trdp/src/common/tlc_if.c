@@ -444,7 +444,9 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
     ret = (TRDP_ERR_T) vos_mutexCreate(&pSession->mutex);
     ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexTxPD);
     ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexRxPD);
+#if MD_SUPPORT
     ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexMD);
+#endif
 
     if (ret != TRDP_NO_ERR)
     {
@@ -983,8 +985,9 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
                 vos_mutexDelete(pSession->mutex);
                 vos_mutexDelete(pSession->mutexTxPD);
                 vos_mutexDelete(pSession->mutexRxPD);
+#if MD_SUPPORT
                 vos_mutexDelete(pSession->mutexMD);
-
+#endif
                 vos_memFree(pSession);
             }
 
