@@ -75,7 +75,7 @@ typedef struct TRDP_DNS_REQUEST
                                              1 = ETB1 (multimedia network)
                                              2 = ETB2 (other network)
                                              3 = ETB3 (other network)
-                                             255 = dont care (for access to
+                                             255 = don't care (for access to
                                              local DNS server) */
     UINT8               reserved02;
     UINT8               reserved03;
@@ -100,7 +100,7 @@ typedef struct TRDP_DNS_REPLY
                                              1 = ETB1 (multimedia network)
                                              2 = ETB2 (other network)
                                              3 = ETB3 (other network)
-                                             255 = dont care (for access to
+                                             255 = don't care (for access to
                                              local DNS server)          */
     INT8 dnsStatus;                         /**< 0 = OK
                                              -1 = DNS Server not ready

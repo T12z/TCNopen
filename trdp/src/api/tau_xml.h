@@ -405,8 +405,8 @@ EXT_DECL void tau_freeTelegrams (
  *  The user must release the memory for pServiceDefs (using vos_memFree)
  *
  *  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
- *  @param[out]     pNumServiceDefs   Pointer to number of defined Services
- *  @param[out]     ppServiceDefs     Pointer to pointer to the defined Services
+ *  @param[out]     pNumServiceDefs   Number of defined Services
+ *  @param[out]     ppServiceDefs     Pointer to pointer of the defined Services
  *
  *  @retval         TRDP_NO_ERR       no error
  *  @retval         TRDP_MEM_ERR      provided buffer to small

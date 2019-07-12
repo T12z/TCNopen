@@ -1761,8 +1761,8 @@ EXT_DECL void tau_freeXmlDatasetConfig (
  *  The user must release the memory for pServiceDefs (using vos_memFree)
  *
  *  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
- *  @param[out]     numServiceDefs    Number of defined Services
- *  @param[out]     pServiceDefs      Pointer to the defined Services
+ *  @param[out]     pNumServiceDefs   Number of defined Services
+ *  @param[out]     ppServiceDefs     Pointer to pointer of the defined Services
  *
  *  @retval         TRDP_NO_ERR       no error
  *  @retval         TRDP_MEM_ERR      provided buffer to small
