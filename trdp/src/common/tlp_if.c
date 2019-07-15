@@ -199,7 +199,6 @@ EXT_DECL TRDP_ERR_T tlp_processReceive (
 /**********************************************************************************************************************/
 /** Work loop of the TRDP handler.
  *    Search the queue for pending PDs to be sent
- *    Search the receive queue for pending PDs (time out)
  *
  *
  *  @param[in]      appHandle          The handle returned by tlc_openSession

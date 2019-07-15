@@ -738,7 +738,7 @@ typedef struct
 }
 #endif
 
-/*
+/**
    \mainpage The TRDP Light Library API Specification
 
    \image html TCNOpen.png
@@ -763,13 +763,14 @@ typedef struct
    \subsection document_sec Related documents
 
    TCN-TRDP2-D-BOM-004-01 IEC61375-2-3_CD_ANNEXA  Protocol definition of the TRDP standard
+   TCN-TRDP2-D-BOM-011-32 TRDP User's Manual
 
    \subsection abbreviation_sec Abbreviations and Definitions
 
-   -<em> API </em>    Application Programming Interface
-   -<em> ECN </em>    Ethernet Consist Network
-   -<em> TRDP </em> Train Real-time Data Protocol
-   -<em> TCMS </em>    Train Control Management System
+   -<em> API </em>      Application Programming Interface
+   -<em> ECN </em>      Ethernet Consist Network
+   -<em> TRDP </em>     Train Real-time Data Protocol
+   -<em> TCMS </em>     Train Control Management System
 
    \section terminology_sec Terminology
 
@@ -789,13 +790,34 @@ typedef struct
    abstraction layer which offers memory, networking, threading, queues and debug functions.
    The VOS API is documented here.
 
-   The following diagram shows how these pieces of software are
-   interrelated.
+    \section usecase_sec Use Cases
+    The following diagram shows how these pieces of software are
+    interrelated. Single threaded flow:
 
-   \image html SingleThreadedWorkflowPD.pdf "Sample client workflow"
-   \image latex SingleThreadedWorkflowPD.eps "Sample client workflow" height=15cm
+    \image html SingleThreadedWorkflowPD.pdf "Sample client workflow (Single Thread)"
+    \image latex SingleThreadedWorkflowPD.eps "Sample client workflow (Single Thread)" height=15cm
 
+    Usage of the separate process handling (separate threads for PD and MD):
+    \image html TRDPSpeedupFlowPDReceive.pdf "Multi-threaded processing of PD Reception"
+    \image latex TRDPSpeedupFlowPDReceive.pdf "Multi-threaded processing of PD Reception" height=15cm
 
+    \latexonly
+    \pagebreak
+    \endlatexonly
+    The transmit thread should be a cyclic thread – cycle times down to 1ms are supported:
+    \image html TRDPSpeedupFlowPDTransmit.pdf "Multi-threaded processing of PD Transmit"
+    \image latex TRDPSpeedupFlowPDTransmit.pdf "Multi-threaded processing of PD Transmit" height=15cm
+
+    \latexonly
+    \pagebreak
+    \endlatexonly
+    If Message Data support is needed (MD_SUPPORT=1):
+    \image html TRDPSpeedupFlowMD.pdf "Multi-threaded processing of MD"
+    \image latex TRDPSpeedupFlowMD.pdf "Multi-threaded processing of MD" height=15cm
+
+    Note: Mixed usage of the single threaded call tlc_process() with the multi-threaded
+    calls tlm_process/tlp_processTransmit/tlp_processReceive is not supported!
+ 
    \section api_conventions_sec Conventions of the API
 
    The API comprises a set of C header files that can also be used
@@ -824,7 +846,8 @@ typedef struct
    application has to include individual headers for each feature set
    it wants to use.
 
-
+   Further description of the API and the usage of the TRDP protocol stack
+   can be found in the TCNOpen TRDP User's Manual (at tcnopen.eu).
 
 
  */

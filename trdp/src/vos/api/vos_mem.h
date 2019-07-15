@@ -67,7 +67,7 @@ typedef enum
 
 #define VOS_MEM_PREALLOCATE  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 10u, 0u, 2u, 0u, 1u, 0u, 1u, 0u}
 
-#elseif MD_SUPPORT
+#elif MD_SUPPORT
 /** We internally allocate memory always by these block sizes. The largest available block is 524288 Bytes, provided
     the overal size of the used memory allocation area is larger. */
 

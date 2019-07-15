@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-07-15: Ticket #272 Missing initialization of values in Global Statistics
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -669,6 +670,13 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
         }
     }
 
+    /* Set some statistic defaults here */
+    {
+        pSession->stats.pd.defQos = pSession->pdDefault.sendParam.qos;
+        pSession->stats.pd.defTtl = pSession->pdDefault.sendParam.ttl;
+        pSession->stats.pd.defTimeout = pSession->pdDefault.timeout;
+    }
+
 #if MD_SUPPORT
 
     if (pMdDefault != NULL)
@@ -759,6 +767,18 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
             pSession->mdDefault.maxNumSessions = pMdDefault->maxNumSessions;
         }
 
+    }
+
+    /* Set some statistic defaults here */
+    {
+        pSession->stats.udpMd.defQos = pSession->mdDefault.sendParam.qos;
+        pSession->stats.tcpMd.defQos = pSession->mdDefault.sendParam.qos;
+        pSession->stats.udpMd.defTtl = pSession->mdDefault.sendParam.ttl;
+        pSession->stats.tcpMd.defTtl = pSession->mdDefault.sendParam.ttl;
+        pSession->stats.udpMd.defConfirmTimeout = pSession->mdDefault.confirmTimeout;
+        pSession->stats.tcpMd.defConfirmTimeout = pSession->mdDefault.confirmTimeout;
+        pSession->stats.udpMd.defReplyTimeout = pSession->mdDefault.replyTimeout;
+        pSession->stats.tcpMd.defReplyTimeout = pSession->mdDefault.replyTimeout;
     }
 
 #endif
