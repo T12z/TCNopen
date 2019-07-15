@@ -138,8 +138,10 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
 
 /**********************************************************************************************************************/
 /** Work loop of the TRDP handler.
- *    Search the queue for pending PDs to be sent
- *    Search the receive queue for pending PDs (time out)
+ *    Check the sockets for incoming PD telegrams.
+ *    Search the receive queue for pending PDs (time out) and report them,
+ *    either by informing the higher layer via the callback mechanism or just by
+ *    marking the subscriber as timed-out
  *
  *
  *  @param[in]      appHandle          The handle returned by tlc_openSession

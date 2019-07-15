@@ -1191,9 +1191,17 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
 
 /**********************************************************************************************************************/
 /** Work loop of the TRDP handler.
- *    Search the queue for pending PDs to be sent
- *    Search the receive queue for pending PDs (time out)
+ *    Search the queue for pending PDs and MDs to be sent
+ *    Search the receive queue for pending PDs and MDs (time out)
  *
+ *  Note:
+ *      If using tlc_process(), do not use tlp_process*() and tlm_process() calls at the same time!
+ *      Single thread usage -> use tlc_getInterval(), vos_select(), tlc_process()
+ *      Multiple threads    -> thread 1: use tlp_getInterval(), vos_select(), tlp_processReceive()
+ *                          -> thread 2: cyclically call tlp_processSend()
+ *                          -> thread 3: use tlm_getInterval(), vos_select(), tlm_process() for message data
+ *
+ *      Also see User Manual.
  *
  *  @param[in]      appHandle          The handle returned by tlc_openSession
  *  @param[in]      pRfds              pointer to set of ready descriptors

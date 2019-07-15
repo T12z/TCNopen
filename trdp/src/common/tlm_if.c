@@ -62,10 +62,9 @@ extern "C" {
  */
 
 /**********************************************************************************************************************/
-/** Get the lowest time interval for PDs.
+/** Get the lowest time interval for MDs.
  *  Return the maximum time interval suitable for 'select()' so that we
- *    can send due PD packets in time.
- *    If the PD send queue is empty, return zero time
+ *    can report time outs to the higher layer.
  *
  *  @param[in]      appHandle          The handle returned by tlc_openSession
  *  @param[out]     pInterval          pointer to needed interval
@@ -118,9 +117,9 @@ EXT_DECL TRDP_ERR_T tlm_getInterval (
 }
 
 /**********************************************************************************************************************/
-/** Work loop of the TRDP handler.
- *    Search the queue for pending PDs to be sent
- *    Search the receive queue for pending PDs (time out)
+/** Message Data Work loop of the TRDP handler.
+ *    Search the queue for pending MDs to be sent
+ *    Search the receive queue for pending MDs (replies, time outs) and incoming requests
  *
  *
  *  @param[in]      appHandle          The handle returned by tlc_openSession
