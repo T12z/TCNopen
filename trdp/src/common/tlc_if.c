@@ -460,9 +460,10 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
     vos_getTime(&pSession->initTime);
 
     /*    Clear the socket pool    */
-    trdp_initSockets(pSession->iface);
+    trdp_initSockets(pSession->ifacePD, TRDP_MAX_PD_SOCKET_CNT);
 
 #if MD_SUPPORT
+    trdp_initSockets(pSession->ifaceMD, TRDP_MAX_MD_SOCKET_CNT);
     /* Initialize pointers to Null in the incomplete message structure */
     trdp_initUncompletedTCP(pSession);
 #endif
@@ -902,9 +903,9 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
                 {
                     PD_ELE_T *pNext = pSession->pSndQueue->pNext;
 
-                    /*  UnPublish our packets   */
-                    trdp_releaseSocket(appHandle->iface, pSession->pSndQueue->socketIdx, 0, FALSE, VOS_INADDR_ANY);
-
+                    /*  UnPublish our packets ???
+                    trdp_releaseSocket(appHandle->ifacePD, pSession->pSndQueue->socketIdx, 0, FALSE, VOS_INADDR_ANY);
+                     */
                     if (pSession->pSndQueue->pSeqCntList != NULL)
                     {
                         vos_memFree(pSession->pSndQueue->pSeqCntList);
@@ -912,7 +913,7 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
                     vos_memFree(pSession->pSndQueue->pFrame);
 
                     /*    Only close socket if not used anymore    */
-                    trdp_releaseSocket(pSession->iface, pSession->pSndQueue->socketIdx, 0, FALSE, VOS_INADDR_ANY);
+                    trdp_releaseSocket(pSession->ifacePD, pSession->pSndQueue->socketIdx, 0, FALSE, VOS_INADDR_ANY);
 
                     vos_memFree(pSession->pSndQueue);
                     pSession->pSndQueue = pNext;
@@ -924,7 +925,7 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
 
                     /*  UnPublish our statistics packet   */
                     /*    Only close socket if not used anymore    */
-                    trdp_releaseSocket(pSession->iface, pSession->pRcvQueue->socketIdx, 0, FALSE, VOS_INADDR_ANY);
+                    trdp_releaseSocket(pSession->ifacePD, pSession->pRcvQueue->socketIdx, 0, FALSE, VOS_INADDR_ANY);
                     if (pSession->pRcvQueue->pSeqCntList != NULL)
                     {
                         vos_memFree(pSession->pRcvQueue->pSeqCntList);
@@ -954,7 +955,7 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
                     MD_ELE_T *pNext = pSession->pMDSndQueue->pNext;
 
                     /*    Only close socket if not used anymore    */
-                    trdp_releaseSocket(pSession->iface,
+                    trdp_releaseSocket(pSession->ifaceMD,
                                        pSession->pMDSndQueue->socketIdx,
                                        pSession->mdDefault.connectTimeout,
                                        FALSE,
@@ -968,7 +969,7 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
                     MD_ELE_T *pNext = pSession->pMDRcvQueue->pNext;
 
                     /*    Only close socket if not used anymore    */
-                    trdp_releaseSocket(pSession->iface,
+                    trdp_releaseSocket(pSession->ifaceMD,
                                        pSession->pMDRcvQueue->socketIdx,
                                        pSession->mdDefault.connectTimeout,
                                        FALSE,
@@ -984,7 +985,7 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
                     /*    Only close socket if not used anymore    */
                     if (pSession->pMDListenQueue->socketIdx != -1)
                     {
-                        trdp_releaseSocket(pSession->iface,
+                        trdp_releaseSocket(pSession->ifaceMD,
                                            pSession->pMDListenQueue->socketIdx,
                                            pSession->mdDefault.connectTimeout,
                                            FALSE,
@@ -1095,7 +1096,7 @@ EXT_DECL TRDP_ERR_T tlc_reinitSession (
                     iterPD->socketIdx != -1)
                 {
                     /*    Join the MC group again    */
-                    ret = (TRDP_ERR_T) vos_sockJoinMC(appHandle->iface[iterPD->socketIdx].sock,
+                    ret = (TRDP_ERR_T) vos_sockJoinMC(appHandle->ifacePD[iterPD->socketIdx].sock,
                                                       iterPD->addr.mcGroup,
                                                       appHandle->realIP);
                 }
@@ -1110,7 +1111,7 @@ EXT_DECL TRDP_ERR_T tlc_reinitSession (
                         iterMD->socketIdx != -1)
                     {
                         /*    Join the MC group again    */
-                        ret = (TRDP_ERR_T) vos_sockJoinMC(appHandle->iface[iterMD->socketIdx].sock,
+                        ret = (TRDP_ERR_T) vos_sockJoinMC(appHandle->ifaceMD[iterMD->socketIdx].sock,
                                                           iterMD->addr.mcGroup,
                                                           appHandle->realIP);
                     }

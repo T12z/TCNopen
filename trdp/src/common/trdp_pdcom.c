@@ -273,7 +273,7 @@ TRDP_ERR_T  trdp_pdSendImmediateTSN (
     /* We pass the error to the application, but we keep on going    */
     pSendPD->sendSize = pSendPD->grossSize;
 
-    err = vos_sockSendTSN(appHandle->iface[pSendPD->socketIdx].sock,
+    err = vos_sockSendTSN(appHandle->ifacePD[pSendPD->socketIdx].sock,
                           (UINT8 *)&pFrame->frameHead,
                           &pSendPD->sendSize,
                           pSendPD->addr.srcIpAddr,
@@ -325,7 +325,7 @@ TRDP_ERR_T  trdp_pdSendImmediate (
 
         pSendPD->sendSize = pSendPD->grossSize;
 
-        err = (TRDP_ERR_T) vos_sockSendUDP(appHandle->iface[pSendPD->socketIdx].sock,
+        err = (TRDP_ERR_T) vos_sockSendUDP(appHandle->ifacePD[pSendPD->socketIdx].sock,
                               (UINT8 *)&pFrame->frameHead,
                               &pSendPD->sendSize,
                               pSendPD->addr.destIpAddr,
@@ -489,7 +489,7 @@ TRDP_ERR_T  trdp_pdSendQueued (
                                              vos_ntohl(iterPD->pFrame->frameHead.datasetLength));
                     }
                     /* We pass the error to the application, but we keep on going    */
-                    result = trdp_pdSend(appHandle->iface[iterPD->socketIdx].sock, iterPD, appHandle->pdDefault.port);
+                    result = trdp_pdSend(appHandle->ifacePD[iterPD->socketIdx].sock, iterPD, appHandle->pdDefault.port);
                     if (result == TRDP_NO_ERR)
                     {
                         appHandle->stats.pd.numSend++;
@@ -531,7 +531,7 @@ TRDP_ERR_T  trdp_pdSendQueued (
             {
                 PD_ELE_T *pTemp;
                 /* Decrease the socket ref */
-                trdp_releaseSocket(appHandle->iface, iterPD->socketIdx, 0u, FALSE, VOS_INADDR_ANY);
+                trdp_releaseSocket(appHandle->ifacePD, iterPD->socketIdx, 0u, FALSE, VOS_INADDR_ANY);
                 /* Save next element */
                 pTemp = iterPD->pNext;
                 /* Remove current element */
@@ -919,17 +919,17 @@ void trdp_pdCheckPending (
 
         /*    Check and set the socket file descriptor, if not already done    */
         if (iterPD->socketIdx != -1 &&
-            appHandle->iface[iterPD->socketIdx].sock != -1 &&
-            !FD_ISSET(appHandle->iface[iterPD->socketIdx].sock, (fd_set *)pFileDesc))     /*lint !e573 !e505
+            appHandle->ifacePD[iterPD->socketIdx].sock != -1 &&
+            !FD_ISSET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pFileDesc))     /*lint !e573 !e505
                                                                                           signed/unsigned division in macro /
                                                                                           Redundant left argument to comma */
         {
-            FD_SET(appHandle->iface[iterPD->socketIdx].sock, (fd_set *)pFileDesc);       /*lint !e573 !e505
+            FD_SET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pFileDesc);       /*lint !e573 !e505
                                                                                           signed/unsigned division in macro /
                                                                                           Redundant left argument to comma */
-            if (appHandle->iface[iterPD->socketIdx].sock > *pNoDesc)
+            if (appHandle->ifacePD[iterPD->socketIdx].sock > *pNoDesc)
             {
-                *pNoDesc = (INT32) appHandle->iface[iterPD->socketIdx].sock;
+                *pNoDesc = (INT32) appHandle->ifacePD[iterPD->socketIdx].sock;
             }
         }
     }
@@ -1062,7 +1062,7 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
         for (iterPD = appHandle->pRcvQueue; iterPD != NULL; iterPD = iterPD->pNext)
         {
             if ((iterPD->socketIdx != -1) &&
-                (FD_ISSET(appHandle->iface[iterPD->socketIdx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned
+                (FD_ISSET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned
                                                                                          division in macro */
             {
                 VOS_LOG_T logType = VOS_LOG_ERROR;
@@ -1074,7 +1074,7 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
                 do
                 {
                     /* Read as long as data is available */
-                    err = trdp_pdReceive(appHandle, appHandle->iface[iterPD->socketIdx].sock);
+                    err = trdp_pdReceive(appHandle, appHandle->ifacePD[iterPD->socketIdx].sock);
 
                 }
                 while (err == TRDP_NO_ERR && nonBlocking);
@@ -1095,7 +1095,7 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
                         break;
                 }
                 (*pCount)--;
-                FD_CLR(appHandle->iface[iterPD->socketIdx].sock, (fd_set *)pRfds); /*lint !e502 !e573 !e505
+                FD_CLR(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pRfds); /*lint !e502 !e573 !e505
                                                                                      signed/unsigned division in macro */
             }
         }

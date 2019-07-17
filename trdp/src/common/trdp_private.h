@@ -68,15 +68,20 @@
 #   define TRDP_TIMER_GRANULARITY          5000u                    /**< granularity in us - we allow 5ms now!        */
 #endif
 
+/** Separate PD and MD socket lists. Reserve 1/4 of sockets for MD, if supported */
 #if MD_SUPPORT
 #   ifndef TRDP_MAX_MD_SOCKET_CNT                                   /**< Allow overwrite of default socket usage      */
 #       define TRDP_MAX_MD_SOCKET_CNT   (VOS_MAX_SOCKET_CNT / 4)    /**< Reserve 1/4 of the sockets for MD            */
 #   endif
 #   ifndef TRDP_MAX_PD_SOCKET_CNT
-#       define TRDP_MAX_PD_SOCKET_CNT   (VOS_MAX_SOCKET_CNT - TRDP_MAX_MD_SOCKET_CNT)
+#       define TRDP_MAX_PD_SOCKET_CNT   (VOS_MAX_SOCKET_CNT - (VOS_MAX_SOCKET_CNT / 4))
 #   endif
 #else
 #   define TRDP_MAX_PD_SOCKET_CNT       VOS_MAX_SOCKET_CNT          /**< all available sockets for PD                 */
+#endif
+
+#if (TRDP_MAX_PD_SOCKET_CNT <= 0)
+#error "**** Not enough sockets available!"
 #endif
 
 #define TRDP_MD_MAN_CYCLE_TIME          5000u                       /**< cycle time [us} = delay for outgoing MD      */
@@ -138,10 +143,11 @@ typedef UINT8 TRDP_PRIV_FLAGS_T;
 /** Socket usage    */
 typedef enum
 {
-    TRDP_SOCK_PD        = 0u,               /**< Socket is used for UDP process data                    */
-    TRDP_SOCK_MD_UDP    = 1u,               /**< Socket is used for UDP message data                    */
-    TRDP_SOCK_MD_TCP    = 2u,               /**< Socket is used for TCP message data                    */
-    TRDP_SOCK_PD_TSN    = 3u,               /**< Socket is used for TSN process data                    */
+    TRDP_SOCK_INVAL     = 0u,               /**< Socket is undefined                                    */
+    TRDP_SOCK_PD        = 1u,               /**< Socket is used for UDP process data                    */
+    TRDP_SOCK_MD_UDP    = 2u,               /**< Socket is used for UDP message data                    */
+    TRDP_SOCK_MD_TCP    = 3u,               /**< Socket is used for TCP message data                    */
+    TRDP_SOCK_PD_TSN    = 4u,               /**< Socket is used for TSN process data                    */
 } TRDP_SOCK_TYPE_T;
 
 /** Hidden handle definition, used as unique addressing item    */
@@ -404,7 +410,7 @@ typedef struct TRDP_SESSION
     TRDP_PD_CONFIG_T        pdDefault;          /**< Default configuration for process data                 */
     TRDP_MEM_CONFIG_T       memConfig;          /**< Internal memory handling configuration                 */
     TRDP_OPTION_T           option;             /**< Stack behavior options                                 */
-    TRDP_SOCKETS_T          iface[VOS_MAX_SOCKET_CNT];  /**< Collection of sockets to use                   */
+    TRDP_SOCKETS_T          ifacePD[TRDP_MAX_PD_SOCKET_CNT];  /**< Collection of sockets to use               */
     PD_ELE_T                *pSndQueue;         /**< pointer to first element of send queue                 */
     PD_ELE_T                *pRcvQueue;         /**< pointer to first element of rcv queue                  */
     PD_PACKET_T             *pNewFrame;         /**< pointer to received PD frame                           */
@@ -416,6 +422,7 @@ typedef struct TRDP_SESSION
 #endif
 #if MD_SUPPORT
     VOS_MUTEX_T             mutexMD;            /**< protect the message data handling                      */
+    TRDP_SOCKETS_T          ifaceMD[TRDP_MAX_MD_SOCKET_CNT];  /**< Collection of sockets to use             */
     struct TAU_TTDB         *pTTDB;             /**< session related TTDB data                              */
     void                    *pUser;             /**< space for higher layer data                            */
     TRDP_TCP_FD_T           tcpFd;              /**< TCP file descriptor parameters                         */

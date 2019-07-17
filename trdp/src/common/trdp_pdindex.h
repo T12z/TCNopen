@@ -15,7 +15,7 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019. All rights reserved.
  */
 /*
- * $Id: $
+ * $Id$
  *
  *      BL 2019-07-10: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2019-07-10: Ticket #161 Increase performance

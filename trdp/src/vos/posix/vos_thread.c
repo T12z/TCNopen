@@ -329,7 +329,7 @@ static void vos_runCyclicThread (
 
         execTime    = ((UINT32)now.tv_usec % interval);
         waitingTime = interval - execTime;
-        if (waitingTime >= interval)
+        if (waitingTime > interval)
         {
             vos_printLog(VOS_LOG_ERROR,
                          "waiting time > interval:  %u > %u usec!\n",

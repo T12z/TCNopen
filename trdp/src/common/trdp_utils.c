@@ -58,6 +58,10 @@
 #include "tlc_if.h"
 #include "trdp_utils.h"
 
+#ifdef SOA_SUPPORT
+#include "trdp_serviceRegistry.h"
+#endif
+
 /***********************************************************************************************************************
  * DEFINES
  */
@@ -80,7 +84,8 @@
 /***********************************************************************************************************************
  *   Locals
  */
-static INT32 sCurrentMaxSocketCnt = 0;
+static INT32 sCurrentMaxPDSocketCnt = 0;
+static INT32 sCurrentMaxMDSocketCnt = 0;
 
 /***********************************************************************************************************************
  *   Local Functions
@@ -105,7 +110,7 @@ void printSocketUsage (
 {
     INT32 lIndex = 0;
     vos_printLogStr(VOS_LOG_DBG, "------- Socket usage -------\n");
-    for (lIndex = 0; lIndex < sCurrentMaxSocketCnt; lIndex++)
+    for (lIndex = 0; lIndex < trdp_getCurrentMaxSocketCnt(iface[0].type); lIndex++)
     {
         if (iface[lIndex].sock == -1)
         {
@@ -235,14 +240,38 @@ TRDP_IP_ADDR_T trdp_getOwnIP ()
  *   Globals
  */
 
-INT32 trdp_getCurrentMaxSocketCnt ()
+INT32 trdp_getCurrentMaxSocketCnt (
+ TRDP_SOCK_TYPE_T   type)
 {
-    return sCurrentMaxSocketCnt;
+    switch (type)
+    {
+        case  TRDP_SOCK_PD:
+        case  TRDP_SOCK_PD_TSN:
+            return sCurrentMaxPDSocketCnt;
+        case  TRDP_SOCK_MD_TCP:
+        case  TRDP_SOCK_MD_UDP:
+        default:
+            break;
+    }
+    return sCurrentMaxMDSocketCnt;
 }
 
-void trdp_setCurrentMaxSocketCnt (INT32 currentMaxSocketCnt)
+void trdp_setCurrentMaxSocketCnt (
+    TRDP_SOCK_TYPE_T    type,
+    INT32               currentMaxSocketCnt)
 {
-    sCurrentMaxSocketCnt = currentMaxSocketCnt;
+    switch (type)
+    {
+        case  TRDP_SOCK_PD:
+        case  TRDP_SOCK_PD_TSN:
+            sCurrentMaxPDSocketCnt = currentMaxSocketCnt;
+            break;
+        case  TRDP_SOCK_MD_TCP:
+        case  TRDP_SOCK_MD_UDP:
+        default:
+            sCurrentMaxMDSocketCnt = currentMaxSocketCnt;
+            break;
+    }
 }
 
 /**********************************************************************************************************************/
@@ -805,14 +834,18 @@ void    trdp_queueInsFirst (
 /** Handle the socket pool: Initialize it
  *
  *  @param[in]      iface          pointer to the socket pool
+ *  @param[in]      noOfEntries           entries in the socket pool
  */
-void trdp_initSockets (TRDP_SOCKETS_T iface[])
+void trdp_initSockets (
+    TRDP_SOCKETS_T  iface[],
+    UINT8           noOfEntries)
 {
-    int lIndex;
+    UINT8 lIndex;
     /* Clear the socket pool */
-    for (lIndex = 0; lIndex < VOS_MAX_SOCKET_CNT; lIndex++)
+    for (lIndex = 0; lIndex < noOfEntries; lIndex++)
     {
         iface[lIndex].sock = VOS_INVALID_SOCKET;
+        iface[lIndex].type = TRDP_SOCK_INVAL;
     }
 }
 
@@ -871,7 +904,7 @@ TRDP_ERR_T  trdp_requestSocket (
      and possibly add that group, if everything else fits.
      We remember already closed sockets on the way to be able to fill up gaps  */
 
-    for (lIndex = 0; lIndex < trdp_getCurrentMaxSocketCnt(); lIndex++)
+    for (lIndex = 0; lIndex < trdp_getCurrentMaxSocketCnt(type); lIndex++)
     {
         /*  Check if the wanted socket is already in our list; if yes, increment usage */
         if (useSocket != VOS_INVALID_SOCKET &&
@@ -961,7 +994,7 @@ TRDP_ERR_T  trdp_requestSocket (
         }
         else
         {
-            trdp_setCurrentMaxSocketCnt(lIndex + 1);
+            trdp_setCurrentMaxSocketCnt(type, lIndex + 1);
         }
 
         iface[lIndex].sock      = VOS_INVALID_SOCKET;
@@ -1266,7 +1299,7 @@ void  trdp_releaseSocket (
     {
         /* Check all the sockets */
         /* Close the morituri = TRUE sockets */
-        for (lIndex = 0; lIndex < trdp_getCurrentMaxSocketCnt(); lIndex++)
+        for (lIndex = 0; lIndex < trdp_getCurrentMaxSocketCnt(iface[0].type); lIndex++)
         {
             if (iface[lIndex].tcpParams.morituri == TRUE)
             {
@@ -1287,7 +1320,7 @@ void  trdp_releaseSocket (
                 iface[lIndex].sendParam.ttl = 0;
                 iface[lIndex].usage         = 0;
                 iface[lIndex].bindAddr      = 0;
-                iface[lIndex].type      = (TRDP_SOCK_TYPE_T) 0;
+                iface[lIndex].type      = TRDP_SOCK_INVAL;
                 iface[lIndex].rcvMostly = FALSE;
                 iface[lIndex].tcpParams.cornerIp = 0;
                 iface[lIndex].tcpParams.connectionTimeout.tv_sec    = 0;

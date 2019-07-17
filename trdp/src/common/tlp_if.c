@@ -523,7 +523,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                 {
                     /*    Get a socket    */
                     ret = trdp_requestSocket(
-                            appHandle->iface,
+                            appHandle->ifacePD,
                             appHandle->pdDefault.port,
                             pCurrentSendParams,
                             srcIpAddr,
@@ -630,7 +630,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
             if (pNewElement->privFlags & TRDP_IS_TSN)
             {
                 /* We set the vlan IP as we bound the socket to */
-                pNewElement->addr.srcIpAddr = appHandle->iface[pNewElement->socketIdx].bindAddr;
+                pNewElement->addr.srcIpAddr = appHandle->ifacePD[pNewElement->socketIdx].bindAddr;
             }
             else
 #endif
@@ -764,7 +764,7 @@ TRDP_ERR_T  tlp_unpublish (
     {
         /*    Remove from queue?    */
         trdp_queueDelElement(&appHandle->pSndQueue, pElement);
-        trdp_releaseSocket(appHandle->iface, pElement->socketIdx, 0u, FALSE, VOS_INADDR_ANY);
+        trdp_releaseSocket(appHandle->ifacePD, pElement->socketIdx, 0u, FALSE, VOS_INADDR_ANY);
         pElement->magic = 0u;
         if (pElement->pSeqCntList != NULL)
         {
@@ -1035,7 +1035,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
             else
             {
                 /*    Get a socket    */
-                ret = trdp_requestSocket(appHandle->iface,
+                ret = trdp_requestSocket(appHandle->ifacePD,
                                          appHandle->pdDefault.port,
                                          (pSendParam != NULL) ? pSendParam : &appHandle->pdDefault.sendParam,
                                          srcIpAddr,
@@ -1234,7 +1234,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
             usage = TRDP_SOCK_PD_TSN;
         }
         /*    Find a (new) socket    */
-        ret = trdp_requestSocket(appHandle->iface,
+        ret = trdp_requestSocket(appHandle->ifacePD,
                                  appHandle->pdDefault.port,
                                  (pRecParams != NULL) ? pRecParams : &appHandle->pdDefault.sendParam,
                                  appHandle->realIP,
@@ -1258,7 +1258,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
             if (newPD == NULL)
             {
                 ret = TRDP_MEM_ERR;
-                trdp_releaseSocket(appHandle->iface, lIndex, 0u, FALSE, VOS_INADDR_ANY);
+                trdp_releaseSocket(appHandle->ifacePD, lIndex, 0u, FALSE, VOS_INADDR_ANY);
             }
             else
             {
@@ -1380,7 +1380,7 @@ EXT_DECL TRDP_ERR_T tlp_unsubscribe (
         {
             mcGroup = trdp_findMCjoins(appHandle, mcGroup);
         }
-        trdp_releaseSocket(appHandle->iface, pElement->socketIdx, 0u, FALSE, mcGroup);
+        trdp_releaseSocket(appHandle->ifacePD, pElement->socketIdx, 0u, FALSE, mcGroup);
         pElement->magic = 0u;
         if (pElement->pFrame != NULL)
         {
@@ -1464,8 +1464,8 @@ EXT_DECL TRDP_ERR_T tlp_resubscribe (
         {
             /*  Find the correct socket
              Release old usage first, we unsubscribe to the former MC group, because it is not valid anymore */
-            trdp_releaseSocket(appHandle->iface, subHandle->socketIdx, 0u, FALSE, subHandle->addr.mcGroup);
-            ret = trdp_requestSocket(appHandle->iface,
+            trdp_releaseSocket(appHandle->ifacePD, subHandle->socketIdx, 0u, FALSE, subHandle->addr.mcGroup);
+            ret = trdp_requestSocket(appHandle->ifacePD,
                                      appHandle->pdDefault.port,
                                      &appHandle->pdDefault.sendParam,
                                      appHandle->realIP,
@@ -1559,7 +1559,7 @@ EXT_DECL TRDP_ERR_T tlp_get (
             /* read all you can get, return value is not interesting */
             do
             {}
-            while (trdp_pdReceive(appHandle, appHandle->iface[pElement->socketIdx].sock) == TRDP_NO_ERR);
+            while (trdp_pdReceive(appHandle, appHandle->ifacePD[pElement->socketIdx].sock) == TRDP_NO_ERR);
         }
 
         /*    Get the current time    */

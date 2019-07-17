@@ -485,7 +485,7 @@ EXT_DECL TRDP_ERR_T  tlm_addListener (
                 {
                     /* socket to receive UDP MD */
                     errv = trdp_requestSocket(
-                            appHandle->iface,
+                            appHandle->ifaceMD,
                             appHandle->mdDefault.udpPort,
                             &appHandle->mdDefault.sendParam,
                             appHandle->realIP,
@@ -613,7 +613,7 @@ TRDP_ERR_T tlm_delListener (
                 {
                     mcGroup = trdp_findMCjoins(appHandle, pDelete->addr.mcGroup);
                 }
-                trdp_releaseSocket(appHandle->iface,
+                trdp_releaseSocket(appHandle->ifaceMD,
                                    pDelete->socketIdx,
                                    appHandle->mdDefault.connectTimeout,
                                    FALSE,
@@ -697,8 +697,8 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
             pListener->addr.mcGroup != mcDestIpAddr)                /* nor if there's no change in group */
         {
             /*  Find the correct socket    */
-            trdp_releaseSocket(appHandle->iface, pListener->socketIdx, 0u, FALSE, mcDestIpAddr);
-            ret = trdp_requestSocket(appHandle->iface,
+            trdp_releaseSocket(appHandle->ifaceMD, pListener->socketIdx, 0u, FALSE, mcDestIpAddr);
+            ret = trdp_requestSocket(appHandle->ifaceMD,
                                      appHandle->mdDefault.udpPort,
                                      &appHandle->mdDefault.sendParam,
                                      appHandle->realIP,

@@ -124,13 +124,16 @@ void        trdp_MDqueueInsFirst (
     MD_ELE_T    *pNew);
 #endif
 
-INT32   trdp_getCurrentMaxSocketCnt (void);
-void    trdp_setCurrentMaxSocketCnt (INT32 currentMaxSocketCnt);
+INT32   trdp_getCurrentMaxSocketCnt (
+    TRDP_SOCK_TYPE_T    type);
 
+void trdp_setCurrentMaxSocketCnt (
+    TRDP_SOCK_TYPE_T    type,
+    INT32               currentMaxSocketCnt);
 
-void    trdp_initSockets(
-    TRDP_SOCKETS_T iface[]);
-
+void trdp_initSockets (
+    TRDP_SOCKETS_T  iface[],
+    UINT8           noOfEntries);
 
 void    trdp_initUncompletedTCP (
     TRDP_APP_SESSION_T appHandle);
