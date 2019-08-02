@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      BL 2019-08-02: SCHEDULE_DEADLINE option: interval * 1000 (-> nanosec)
  *      BL 2019-06-11: Possible NULL pointer access
  *      BL 2019-04-05: QNX monotonic time for semaphore; unused code removed
  *      BL 2019-03-21: RTE version++
@@ -231,6 +232,15 @@ typedef struct
     void                *pArguments;
 } VOS_THREAD_CYC_T;
 
+/**********************************************************************************************************************/
+/** Execute a cyclic thread function.
+ *  This function blocks by cyclically executing the provided user function. If supported by the OS,
+ *  uses real-time threads and tries to sync to the supplied start time.
+ *
+ *  @param[in]      pParameters     Pointer to the thread function parameters
+ *
+ *  @retval         none
+ */
 static void vos_runCyclicThread (
     VOS_THREAD_CYC_T *pParameters)
 {
@@ -251,6 +261,7 @@ static void vos_runCyclicThread (
 
 #if defined(SCHED_DEADLINE) && defined (RT_THREADS)
 
+    UINT64              interval_ns = interval * NSECS_PER_USEC;
     int retCode;
     /* Cyclic tasks are real-time tasks (RTLinux only) */
     {
@@ -261,9 +272,9 @@ static void vos_runCyclicThread (
         rt_attribs.sched_nice       = 0;            /* Nice value (SCHED_OTHER, SCHED_BATCH) */
         rt_attribs.sched_priority   = 0u;           /* Static priority (SCHED_FIFO, SCHED_RR) */
         /* Remaining fields are for SCHED_DEADLINE only */
-        rt_attribs.sched_runtime    = pParameters->interval / 4u;
-        rt_attribs.sched_deadline   = pParameters->interval / 2u;
-        rt_attribs.sched_period     = pParameters->interval;
+        rt_attribs.sched_runtime    = interval_ns / 4u;
+        rt_attribs.sched_deadline   = interval_ns / 2u;
+        rt_attribs.sched_period     = interval_ns;
         retCode = sched_setattr(0, &rt_attribs, 0);
         if (retCode != 0)
         {
@@ -298,7 +309,7 @@ static void vos_runCyclicThread (
         pFunction(pArguments);
 
         /* calculate next deadline */
-        deadline.tv_nsec    += interval;
+        deadline.tv_nsec    += interval_ns;
         deadline.tv_sec     += deadline.tv_nsec / NSECS_PER_SEC;
         deadline.tv_nsec    = deadline.tv_nsec % NSECS_PER_SEC;
 
@@ -307,7 +318,7 @@ static void vos_runCyclicThread (
         {
             /*severe error: cyclic task time violated*/
             /* calculate next deadline */
-            deadline.tv_nsec    += interval;
+            deadline.tv_nsec    += interval_ns;
             deadline.tv_sec     += deadline.tv_nsec / NSECS_PER_SEC;
             deadline.tv_nsec    = deadline.tv_nsec % NSECS_PER_SEC;
             /* Log the runtime violation */
@@ -518,9 +529,9 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
         rt_attribs.sched_nice       = 0;            /* Nice value (SCHED_OTHER, SCHED_BATCH) */
         rt_attribs.sched_priority   = 0u;           /* Static priority (SCHED_FIFO, SCHED_RR) */
         /* Remaining fields are for SCHED_DEADLINE only */
-        rt_attribs.sched_runtime    = interval;
-        rt_attribs.sched_deadline   = interval;
-        rt_attribs.sched_period     = interval;
+        rt_attribs.sched_runtime    = interval * NSECS_PER_USEC;
+        rt_attribs.sched_deadline   = interval * NSECS_PER_USEC;
+        rt_attribs.sched_period     = interval * NSECS_PER_USEC;
         retCode = sched_setattr(0, &rt_attribs, 0);
         if (retCode != 0)
         {
