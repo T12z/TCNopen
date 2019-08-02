@@ -111,6 +111,11 @@ else
 	OUTDIR = bld/output/$(ARCH)-rel
 endif
 
+# Enable / Disable realtime scheduling (posix only)
+ifeq ($(RT_THREADS), 1)
+CFLAGS += -DRT_THREADS
+endif
+
 # Set LINT result outdir now after OUTDIR is known
 LINT_OUTDIR  = $(OUTDIR)/lint
   
@@ -520,6 +525,7 @@ help:
 	@$(ECHO) "in the 'Other builds:' list with #" >&2
 	@$(ECHO) "To build debug binaries, append 'DEBUG=TRUE' to the make command " >&2
 	@$(ECHO) "To exclude message data support, append 'MD_SUPPORT=0' to the make command " >&2
+	@$(ECHO) "To include realtime scheduling support, append 'RT_THREADS=1' to the make command " >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Other builds:" >&2
 	@$(ECHO) "  * make test      # build the test server application" >&2

@@ -28,6 +28,7 @@ LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
 
 TSN_SUPPORT = 1
 SOA_SUPPORT = 1
+RT_THREADS = 1
 
 #ADD_INC += ../TSN
 #ADD_SRC += ../TSN

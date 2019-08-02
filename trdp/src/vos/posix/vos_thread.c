@@ -74,7 +74,7 @@ const UINT32    cMutextMagic        = 0x1234FEDCu;
 
 int             vosThreadInitialised = FALSE;
 
-#ifdef SCHED_DEADLINE
+#if defined(SCHED_DEADLINE) && defined (RT_THREADS)
 
 /* __NR_sched_setattr number */
 #ifndef __NR_sched_setattr
@@ -234,7 +234,7 @@ typedef struct
 static void vos_runCyclicThread (
     VOS_THREAD_CYC_T *pParameters)
 {
-#ifdef SCHED_DEADLINE
+#if defined(SCHED_DEADLINE) && defined (RT_THREADS)
     struct timespec     deadline;
     struct timespec     now;
 #else
@@ -249,7 +249,7 @@ static void vos_runCyclicThread (
     void *pArguments = pParameters->pArguments;
     VOS_TIMEVAL_T       startTime = pParameters->startTime;
 
-#ifdef SCHED_DEADLINE
+#if defined(SCHED_DEADLINE) && defined (RT_THREADS)
 
     int retCode;
     /* Cyclic tasks are real-time tasks (RTLinux only) */
@@ -506,7 +506,7 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
         return VOS_THREAD_ERR;
     }
 
-#ifdef SCHED_DEADLINE
+#if defined(SCHED_DEADLINE) && defined (RT_THREADS)
     /* Experimental !!! */
     /* Real-time task handling (RTLinux only) */
     if (policy == VOS_THREAD_POLICY_DEADLINE)
