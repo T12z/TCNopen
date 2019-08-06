@@ -41,6 +41,10 @@
 #include "vos_mem.h"
 #include "vos_utils.h"
 
+#ifdef HIGH_PERF_INDEXED
+#include "trdp_pdindex.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -229,8 +233,11 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
          Find and send the packets which have to be sent next:
          ******************************************************/
 
+#ifdef HIGH_PERF_INDEXED
+        err = trdp_pdSendIndexed(appHandle);
+#else
         err = trdp_pdSendQueued(appHandle);
-
+#endif
         if (err != TRDP_NO_ERR)
         {
             /*  We do not break here, only report error */
@@ -622,10 +629,16 @@ EXT_DECL TRDP_ERR_T tlp_publish (
             /*    Compute the header fields */
             trdp_pdInit(pNewElement, msgType, etbTopoCnt, opTrnTopoCnt, 0u, 0u, serviceId);
 
+#ifdef HIGH_PERF_INDEXED
+            /*    Keep queue sorted    */
+            trdp_queueInsThroughputAccending(&appHandle->pSndQueue, pNewElement);
+#else
             /*    Insert at front    */
             trdp_queueInsFirst(&appHandle->pSndQueue, pNewElement);
+#endif
 
             *pPubHandle = (TRDP_PUB_T) pNewElement;
+
 #ifdef TSN_SUPPORT
             if (pNewElement->privFlags & TRDP_IS_TSN)
             {
