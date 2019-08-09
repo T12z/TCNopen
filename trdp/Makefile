@@ -546,10 +546,10 @@ help:
 	@$(ECHO) "  * make mdtest    # build the UDPMDcom test application" >&2
 	@$(ECHO) "  * make example   # build the example for MD communication, but needs libuuid!" >&2
 	@$(ECHO) "  * make libtrdp   # build the static library, only" >&2
-    @$(ECHO) "  * make libtrdpap # build the static library including xml parsing, marshalling, dnr and tti" >&2
+	@$(ECHO) "  * make libtrdpap # build the static library including xml parsing, marshalling, dnr and tti" >&2
 	@$(ECHO) "  * make xml       # build the xml test applications" >&2
 	@$(ECHO) "  * make highperf  # build test applications for high performance (separate PD/MD threads)" >&2
-    @$(ECHO) "  * make install   # requires INSTALLDIR to be set and copies the libtrdpap.a lib there" >&2
+	@$(ECHO) "  * make install   # requires INSTALLDIR to be set and copies the libtrdpap.a lib there" >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Static analysis (currently in prototype state) " >&2
 	@$(ECHO) "  * make lint      - build LINT analysis files using the LINT binary under $FLINT" >&2
