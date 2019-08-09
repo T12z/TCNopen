@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
+# Visual Studio Express 14 for Windows Desktop
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_Tests", "TRDP_Tests\TRDP_Tests.vcxproj", "{8238C177-25D0-42E3-AD8E-3A4E61CFA079}"
@@ -73,6 +73,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP", "TRDP\TRDP.vcxproj", "{4E059552-03FF-4EE4-A868-C2253289E9F6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_HighPerformance", "TRDP_HighPerformance\TRDP_HighPerformance.vcxproj", "{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_LocalTest", "TRDP_LocalTest\TRDP_LocalTest.vcxproj", "{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_XMLPDTestFast", "TRDP_XMLPDTestFast\TRDP_XMLPDTestFast.vcxproj", "{871C2971-2155-4FD6-BFAB-0FABAFEC0633}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -210,6 +214,22 @@ Global
 		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Release|x64.Build.0 = Release|x64
 		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Release|x86.ActiveCfg = Release|Win32
 		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}.Release|x86.Build.0 = Release|Win32
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Debug|x64.ActiveCfg = Debug|x64
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Debug|x64.Build.0 = Debug|x64
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Debug|x86.ActiveCfg = Debug|Win32
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Debug|x86.Build.0 = Debug|Win32
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Release|x64.ActiveCfg = Release|x64
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Release|x64.Build.0 = Release|x64
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Release|x86.ActiveCfg = Release|Win32
+		{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}.Release|x86.Build.0 = Release|Win32
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Debug|x64.ActiveCfg = Debug|x64
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Debug|x64.Build.0 = Debug|x64
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Debug|x86.ActiveCfg = Debug|Win32
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Debug|x86.Build.0 = Debug|Win32
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Release|x64.ActiveCfg = Release|x64
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Release|x64.Build.0 = Release|x64
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Release|x86.ActiveCfg = Release|Win32
+		{871C2971-2155-4FD6-BFAB-0FABAFEC0633}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
