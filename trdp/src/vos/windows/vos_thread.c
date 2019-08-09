@@ -68,6 +68,15 @@ const UINT32    cMutextMagic = 0x1234FEDC;
 
 static BOOL8 vosThreadInitialised = FALSE;
 
+typedef struct
+{
+	const CHAR8         *pName;
+	VOS_TIMEVAL_T       startTime;
+	UINT32              interval;
+	VOS_THREAD_FUNC_T   pFunction;
+	void                *pArguments;
+} VOS_THREAD_CYC_T;
+
 /***********************************************************************************************************************
 * GLOBAL FUNCTIONS
 */
@@ -76,6 +85,21 @@ static BOOL8 vosThreadInitialised = FALSE;
 /* Threads
 */
 /**********************************************************************************************************************/
+
+/**********************************************************************************************************************/
+/** Execute a cyclic thread function.
+*  This function blocks by cyclically executing the provided user function. If supported by the OS,
+*  uses real-time threads and tries to sync to the supplied start time.
+*
+*  @param[in]      pParameters     Pointer to the thread function parameters
+*
+*  @retval         none
+*/
+static void vos_runCyclicThread(
+	VOS_THREAD_CYC_T *pParameters)
+{
+	vos_cyclicThread(pParameters->interval, pParameters->pFunction, pParameters->pArguments);
+}
 
 /**********************************************************************************************************************/
 /** Cyclic thread functions.
@@ -163,6 +187,8 @@ EXT_DECL void vos_threadTerm(void)
    vosThreadInitialised = FALSE;
 }
 
+
+
 /**********************************************************************************************************************/
 /** Create a thread.
 *  Create a thread and return a thread handle for further requests. Not each parameter may be supported by all
@@ -173,6 +199,7 @@ EXT_DECL void vos_threadTerm(void)
 *  @param[in]      policy          Scheduling policy (FIFO, Round Robin or other)
 *  @param[in]      priority        Scheduling priority (1...255 (highest), default 0)
 *  @param[in]      interval        Interval for cyclic threads in us (optional)
+*  @param[in]      pStartTime      Starting time for cyclic threads (optional for real time threads)
 *  @param[in]      stackSize       Minimum stacksize, default 0: 16kB
 *  @param[in]      pFunction       Pointer to the thread function
 *  @param[in]      pArguments      Pointer to the thread function parameters
@@ -184,12 +211,13 @@ EXT_DECL void vos_threadTerm(void)
 *  @retval         VOS_INIT_ERR    no threads available
 */
 
-EXT_DECL VOS_ERR_T vos_threadCreate(
+EXT_DECL VOS_ERR_T vos_threadCreateSync(
    VOS_THREAD_T            *pThread,
    const CHAR8             *pName,
    VOS_THREAD_POLICY_T     policy,
    VOS_THREAD_PRIORITY_T   priority,
    UINT32                  interval,
+   VOS_TIMEVAL_T           *pStartTime,
    UINT32                  stackSize,
    VOS_THREAD_FUNC_T       pFunction,
    void                    *pArguments)
@@ -212,19 +240,37 @@ EXT_DECL VOS_ERR_T vos_threadCreate(
 
    if (interval > 0)
    {
-      vos_printLog(VOS_LOG_ERROR, "%s cyclic threads not implemented yet\n", pName);
-      return VOS_INIT_ERR;
+	   VOS_THREAD_CYC_T params = { pName,{ 0, 0 }, interval, pFunction, pArguments };
+	   if (pStartTime != NULL)
+	   {
+		   params.startTime = *pStartTime;
+	   }
+	   /* Create a cyclic thread */
+	   hThread = CreateThread(
+		   NULL,                           /* default security attributes */
+		   stackSize,                                      /* use default stack size */
+		   (LPTHREAD_START_ROUTINE)vos_runCyclicThread,       /* thread function name */
+		   (LPVOID)&params,                             /* argument to thread function */
+		   0,                                              /* use default creation flags */
+		   &threadId);
+	   
+//	   vos_printLog(VOS_LOG_ERROR, "%s cyclic threads not implemented yet\n", pName);
+//      return VOS_INIT_ERR;
+   }
+   else
+   {
+	   /* Create the thread to begin execution on its own. */
+
+	   hThread = CreateThread(
+		   NULL,                                           /* default security attributes */
+		   stackSize,                                      /* use default stack size */
+		   (LPTHREAD_START_ROUTINE)pFunction,              /* thread function name */
+		   (LPVOID)pArguments,                             /* argument to thread function */
+		   0,                                              /* use default creation flags */
+		   &threadId);                                     /* returns the thread identifier */
+
    }
 
-   /* Create the thread to begin execution on its own. */
-
-   hThread = CreateThread(
-      NULL,                                           /* default security attributes */
-      stackSize,                                      /* use default stack size */
-      (LPTHREAD_START_ROUTINE)pFunction,              /* thread function name */
-      (LPVOID)pArguments,                             /* argument to thread function */
-      0,                                              /* use default creation flags */
-      &threadId);                                     /* returns the thread identifier */
 
                                           /* Failed? */
    if (hThread == NULL)
@@ -265,6 +311,40 @@ EXT_DECL VOS_ERR_T vos_threadCreate(
    return VOS_NO_ERR;
 }
 
+
+/**********************************************************************************************************************/
+/** Create a thread.
+*  Create a thread and return a thread handle for further requests. Not each parameter may be supported by all
+*  target systems!
+*
+*  @param[out]     pThread         Pointer to returned thread handle
+*  @param[in]      pName           Pointer to name of the thread (optional)
+*  @param[in]      policy          Scheduling policy (FIFO, Round Robin or other)
+*  @param[in]      priority        Scheduling priority (1...255 (highest), default 0)
+*  @param[in]      interval        Interval for cyclic threads in us (optional, range 0...999999)
+*  @param[in]      stackSize       Minimum stacksize, default 0: 16kB
+*  @param[in]      pFunction       Pointer to the thread function
+*  @param[in]      pArguments      Pointer to the thread function parameters
+*  @retval         VOS_NO_ERR      no error
+*  @retval         VOS_INIT_ERR    module not initialised
+*  @retval         VOS_NOINIT_ERR  invalid handle
+*  @retval         VOS_PARAM_ERR   parameter out of range/invalid
+*  @retval         VOS_THREAD_ERR  thread creation error
+*/
+
+EXT_DECL VOS_ERR_T vos_threadCreate(
+	VOS_THREAD_T            *pThread,
+	const CHAR8             *pName,
+	VOS_THREAD_POLICY_T     policy,
+	VOS_THREAD_PRIORITY_T   priority,
+	UINT32                  interval,
+	UINT32                  stackSize,
+	VOS_THREAD_FUNC_T       pFunction,
+	void                    *pArguments)
+{
+	return vos_threadCreateSync(pThread, pName, policy, priority, interval,
+		NULL, stackSize, pFunction, pArguments);
+}
 
 /**********************************************************************************************************************/
 /** Terminate a thread.
