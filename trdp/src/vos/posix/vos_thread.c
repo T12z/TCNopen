@@ -595,13 +595,23 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     }
     if (interval > 0u)
     {
-        VOS_THREAD_CYC_T params = {pName, {0, 0}, interval, pFunction, pArguments};
+	    VOS_THREAD_CYC_T *p_params = vos_memAlloc(sizeof(VOS_THREAD_CYC_T)); /* malloc not freed, improved implementation highly recommended !!!!*/
+
+	    p_params->pName = pName;
+	    p_params->startTime.tv_sec = 0;
+	    p_params->startTime.tv_usec = 0;
+	    p_params->interval = interval; 
+	    p_params->pFunction = pFunction;
+	    p_params->pArguments = pArguments;
+
+		
+        //VOS_THREAD_CYC_T params = {pName, {0, 0}, interval, pFunction, pArguments};
         if (pStartTime != NULL)
         {
-            params.startTime = *pStartTime;
+            p_params->startTime = *pStartTime;
         }
         /* Create a cyclic thread */
-        retCode = pthread_create(&hThread, &threadAttrib, (void *(*)(void *))vos_runCyclicThread, &params);
+        retCode = pthread_create(&hThread, &threadAttrib, (void *(*)(void *))vos_runCyclicThread, p_params);
         vos_threadDelay(10000u);
     }
     else
