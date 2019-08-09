@@ -35,11 +35,12 @@
 #include "vos_utils.h"
 #include "trdp_pdindex.h"
 
-/*
+#ifdef HIGH_PERF_INDEXED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
- */
+
 
 /***********************************************************************************************************************
  * DEFINES
@@ -932,8 +933,9 @@ PD_ELE_T *trdp_indexedFindSubAddr (
     return trdp_findSubAddr (pFirstMatchedPD, pAddr, pAddr->comId);
 }
 
-/*
- #ifdef __cplusplus
+
+#ifdef __cplusplus
 }
 #endif
-*/
+#endif
+
