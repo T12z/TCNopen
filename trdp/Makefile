@@ -9,6 +9,7 @@
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2018. All rights reserved.
 #//
+#//     SB 2019-08-09: Added new lib target including tti, marshalling, xml parsing etc. and added install option
 #//	BL 2019-06-18: V2 changes: dividing trdp_if.c into tlc_if.c, tlp_if.c and tlm_if.c
 #//	BL 2019-06-13: Helm's Deep 96Board configuration added
 #//	BL 2019-03-21: Prepared for TSN
@@ -164,6 +165,8 @@ outdir:
 
 libtrdp:	outdir $(OUTDIR)/libtrdp.a
 
+libtrdpap: outdir $(OUTDIR)/libtrdpap.a
+
 example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
 
 tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
@@ -190,6 +193,11 @@ $(OUTDIR)/libtrdp.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
 			@$(ECHO) ' ### Building the lib $(@F)'
 			@$(RM) $@
 			$(AR) cq $@ $^
+			
+$(OUTDIR)/libtrdpap.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS))) $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building the lib $(@F)'
+			@$(RM) $@
+			$(AR) cq $@ $^			
 
 
 ###############################################################################
@@ -491,7 +499,12 @@ doc/latex/refman.pdf: Doxyfile trdp_if_light.h trdp_types.h
 			$(DOXYPATH)doxygen Doxyfile
 			make -C doc/latex
 			cp doc/latex/refman.pdf "doc/TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf"
-                                                 
+          
+ifdef INSTALLDIR
+install:
+	@$(MD) ../$(INSTALLDIR)
+	cp $(OUTDIR)/libtrdpap.a ../$(INSTALLDIR)/libtrdpap.a
+endif
 
 ###############################################################################
 #
