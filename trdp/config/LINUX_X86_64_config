@@ -24,3 +24,10 @@ CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-functio
 LDFLAGS += -lrt
 
 LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
+
+# Additional sources for TSN support
+#TSN_SUPPORT = 1
+#SOA_SUPPORT = 1
+
+
+HIGH_PERF_INDEXED = 1
