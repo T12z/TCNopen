@@ -36,24 +36,24 @@ extern "C" {
 EXT_DECL TRDP_ERR_T tau_addServices (
     TRDP_APP_SESSION_T          appHandle,
     UINT16                      noOfServices,
-    TTDB_SERVICE_ARRAY_T        *pServicesToAdd,
+    SRM_SERVICE_ARRAY_T        *pServicesToAdd,
     BOOL8                       waitForCompletion);
 
 EXT_DECL TRDP_ERR_T tau_delServices (
     TRDP_APP_SESSION_T          appHandle,
     UINT16                      noOfServices,
-    const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
+    const SRM_SERVICE_ARRAY_T  *pServicesToAdd,
     BOOL8                       waitForCompletion);
 
 EXT_DECL TRDP_ERR_T tau_updServices (
     TRDP_APP_SESSION_T          appHandle,
     UINT16                      noOfServices,
-    const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
+    const SRM_SERVICE_ARRAY_T  *pServicesToAdd,
     BOOL8                       waitForCompletion);
 
 EXT_DECL TRDP_ERR_T tau_getServiceList (
     TRDP_APP_SESSION_T          appHandle,
-    TTDB_SERVICE_ARRAY_T        *pServicesToAdd);
+    SRM_SERVICE_ARRAY_T        *pServicesToAdd);
 
 #ifdef __cplusplus
 }

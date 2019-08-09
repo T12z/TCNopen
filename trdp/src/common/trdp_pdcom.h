@@ -88,6 +88,10 @@ TRDP_ERR_T trdp_pdGet (
     const UINT8         *pData,
     UINT32              *pDataSize);
 
+TRDP_ERR_T  trdp_pdSendElement (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T    **ppElement);
+
 TRDP_ERR_T  trdp_pdSendQueued (
     TRDP_SESSION_PT appHandle);
 

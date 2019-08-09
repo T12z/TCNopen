@@ -282,7 +282,7 @@ typedef struct
 #endif /* MD_SUPPORT */
 
 #ifdef HIGH_PERF_INDEXED
-typedef struct hp_slot TRDP_HP_SLOTS_T;                 /**< forward declaration                                    */
+typedef struct hp_slots TRDP_HP_SLOTS_T;        /**< forward declaration                                    */
 #endif /* HIGH_PERF_INDEXED */
 
 #if (defined (WIN32) || defined (WIN64))

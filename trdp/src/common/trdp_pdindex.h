@@ -35,8 +35,21 @@
  * DEFINES
  */
 
-#define TRDP_DEFAULT_NO_IDX_PER_CATEGORY    100
-#define TRDP_DEFAULT_NO_SLOTS_PER_IDX       5
+//#define TRDP_DEFAULT_NO_IDX_PER_CATEGORY    100
+//#define TRDP_DEFAULT_NO_SLOTS_PER_IDX       5
+
+/** Supported and recomended cycle times for the tlp_processTransmit loop   */
+#define TRDP_DEFAULT_CYCLE                  1000u
+#define TRDP_MIN_CYCLE                      1000u
+#define TRDP_MAX_CYCLE                      5000u
+
+#define TRDP_LOW_CYCLE                      1000        /* 1...99ms */
+#define TRDP_MID_CYCLE                      10000       /* 100ms...990ms */
+#define TRDP_HIGH_CYCLE                     100000      /* >= 1000ms */
+
+#define TRDP_LOW_CYCLE_LIMIT                100000     /* 0.5...100ms */
+#define TRDP_MID_CYCLE_LIMIT                1000000    /* 101ms...1000ms */
+#define TRDP_HIGH_CYCLE_LIMIT               10000000   /* > 1000ms */
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -45,8 +58,16 @@
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+void  trdp_queueInsIntervalAccending (PD_ELE_T    * *ppHead,
+                                            PD_ELE_T    *pNew);
+void  trdp_queueInsThroughputAccending (PD_ELE_T    * *ppHead,
+                                        PD_ELE_T    *pNew);
 
-TRDP_ERR_T  trdp_indexCreatePubTable (TRDP_SESSION_PT appHandle);
-TRDP_ERR_T  trdp_indexCreateSubTable (TRDP_SESSION_PT appHandle);
+TRDP_ERR_T  trdp_pdSendIndexed (TRDP_SESSION_PT appHandle);
+PD_ELE_T    *trdp_indexedFindSubAddr (TRDP_SESSION_PT     appHandle,
+                                      TRDP_ADDRESSES_T    *pAddr);
+
+TRDP_ERR_T  trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle);
+TRDP_ERR_T  trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle);
 
 #endif /* TRDP_PDINDEX_H */

@@ -46,7 +46,7 @@
 typedef struct mdData
 {
     VOS_SEMA_T              waitForResponse;    /**< semaphore to be released       */
-    TTDB_SERVICE_ARRAY_T    *pServiceEntry;     /**< pointer to request/reply data  */
+    SRM_SERVICE_ARRAY_T    *pServiceEntry;     /**< pointer to request/reply data  */
     TRDP_ERR_T              returnVal;          /**< error return                   */
 } TAU_CB_BLOCK_T;
 
@@ -68,8 +68,8 @@ typedef struct mdData
  */
 
 static void netcpy (
-    TTDB_SERVICE_ARRAY_T        *pDest,
-    const TTDB_SERVICE_ARRAY_T  *pSource,
+    SRM_SERVICE_ARRAY_T        *pDest,
+    const SRM_SERVICE_ARRAY_T  *pSource,
     UINT32                      srcSize)
 {
     TRDP_SDTv2_T    *pSafetyTrail;
@@ -91,8 +91,8 @@ static void netcpy (
         UINT32 i;
 
         /* Determine number of entries */
-        noOfServices = (srcSize - (sizeof(TTDB_SERVICE_ARRAY_T) - sizeof(TTDB_SERVICE_REGISTRY_ENTRY))) /
-            sizeof(TTDB_SERVICE_REGISTRY_ENTRY);
+        noOfServices = (srcSize - (sizeof(SRM_SERVICE_ARRAY_T) - sizeof(SRM_SERVICE_REGISTRY_ENTRY))) /
+            sizeof(SRM_SERVICE_REGISTRY_ENTRY);
         pDest->noOfEntries = vos_htons(pDest->noOfEntries);
         for (i = 0; i < noOfServices; i++)
         {
@@ -148,12 +148,12 @@ static void soMDCallback (
 
     if (pMsg->resultCode == TRDP_NO_ERR)
     {
-        if (pMsg->comId == TTDB_SERVICE_ADD_REP_COMID)      /* Reply from ECSP */
+        if (pMsg->comId == SRM_SERVICE_ADD_REP_COMID)      /* Reply from ECSP */
         {
             if (pContext->waitForResponse != NULL)
             {
                 /* copy if SDT or (un)marshall reply data */
-                netcpy(pContext->pServiceEntry, (TTDB_SERVICE_ARRAY_T *) pData, dataSize);
+                netcpy(pContext->pServiceEntry, (SRM_SERVICE_ARRAY_T *) pData, dataSize);
             }
             else
             {
@@ -161,7 +161,7 @@ static void soMDCallback (
             }
             pContext->returnVal = TRDP_NO_ERR;
         }
-        if ((pMsg->comId == TTDB_SERVICE_DEL_REP_COMID) &&      /* Delete reply from ECSP */
+        if ((pMsg->comId == SRM_SERVICE_DEL_REP_COMID) &&      /* Delete reply from ECSP */
             (pMsg->msgType == TRDP_MSG_MP))
         {
             pContext->returnVal = TRDP_NO_ERR;
@@ -208,14 +208,14 @@ static void soMDCallback (
 EXT_DECL TRDP_ERR_T tau_addServices (
     TRDP_APP_SESSION_T      appHandle,
     UINT16                  noOfServices,
-    TTDB_SERVICE_ARRAY_T    *pServicesToAdd,
+    SRM_SERVICE_ARRAY_T    *pServicesToAdd,
     BOOL8                   waitForCompletion)
 {
     TRDP_ERR_T              err;
     TRDP_SDTv2_T            *pSafetyTrail;
-    TTDB_SERVICE_ARRAY_T    *pPrivateBuffer = NULL;
+    SRM_SERVICE_ARRAY_T     *pPrivateBuffer = NULL;
     UINT32                  dataSize;
-    TAU_CB_BLOCK_T          context;
+    TAU_CB_BLOCK_T          context = {0, NULL, TRDP_NO_ERR};
 
 
     if ((appHandle == NULL) ||
@@ -226,7 +226,7 @@ EXT_DECL TRDP_ERR_T tau_addServices (
     }
 
     /* Compute the size of the data */;
-    dataSize = sizeof(TTDB_SERVICE_ARRAY_T) + (noOfServices - 1u) * sizeof(TTDB_SERVICE_REGISTRY_ENTRY);
+    dataSize = sizeof(SRM_SERVICE_ARRAY_T) + (noOfServices - 1u) * sizeof(SRM_SERVICE_REGISTRY_ENTRY);
 
     /* if the SDT trailer is not set, we need to copy/marshall the payload */
 
@@ -238,7 +238,7 @@ EXT_DECL TRDP_ERR_T tau_addServices (
 
     if (!(*pSafetyTrail[0] | *pSafetyTrail[1] | *pSafetyTrail[2] | *pSafetyTrail[3]) && !vos_hostIsBigEndian())
     {
-        pPrivateBuffer = (TTDB_SERVICE_ARRAY_T *) vos_memAlloc(dataSize);
+        pPrivateBuffer = (SRM_SERVICE_ARRAY_T *) vos_memAlloc(dataSize);
         if (pPrivateBuffer == NULL)
         {
             err = TRDP_MEM_ERR;
@@ -267,9 +267,9 @@ EXT_DECL TRDP_ERR_T tau_addServices (
 
     /* request the data now */
     err = tlm_request(appHandle, &context, soMDCallback, NULL,
-                      TTDB_SERVICE_ADD_REQ_COMID, 0u,
-                      0u, 0u, tau_ipFromURI(appHandle, TTDB_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                      TTDB_SERVICE_ADD_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+                      SRM_SERVICE_ADD_REQ_COMID, 0u,
+                      0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                      SRM_SERVICE_ADD_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
 
     if (err != TRDP_NO_ERR)
     {
@@ -281,7 +281,7 @@ EXT_DECL TRDP_ERR_T tau_addServices (
         (void) tlm_process(appHandle, NULL, NULL);
 
         /* wait on semaphore or timeout */
-        VOS_ERR_T vos_err = vos_semaTake(context.waitForResponse, TTDB_SERVICE_ADD_REQ_TO);
+        VOS_ERR_T vos_err = vos_semaTake(context.waitForResponse, SRM_SERVICE_ADD_REQ_TO);
         if (vos_err == VOS_SEMA_ERR)
         {
             err = TRDP_TIMEOUT_ERR;
@@ -305,7 +305,7 @@ cleanup:
 EXT_DECL TRDP_ERR_T tau_delServices (
     TRDP_APP_SESSION_T          appHandle,
     UINT16                      noOfServices,
-    const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
+    const SRM_SERVICE_ARRAY_T  *pServicesToAdd,
     BOOL8                       waitForCompletion)
 {
     return TRDP_UNKNOWN_ERR;
@@ -314,7 +314,7 @@ EXT_DECL TRDP_ERR_T tau_delServices (
 EXT_DECL TRDP_ERR_T tau_updServices (
     TRDP_APP_SESSION_T          appHandle,
     UINT16                      noOfServices,
-    const TTDB_SERVICE_ARRAY_T  *pServicesToAdd,
+    const SRM_SERVICE_ARRAY_T  *pServicesToAdd,
     BOOL8                       waitForCompletion)
 {
     return TRDP_UNKNOWN_ERR;
@@ -323,7 +323,7 @@ EXT_DECL TRDP_ERR_T tau_updServices (
 
 EXT_DECL TRDP_ERR_T tau_getServiceList (
     TRDP_APP_SESSION_T      appHandle,
-    TTDB_SERVICE_ARRAY_T    *pServicesToAdd)
+    SRM_SERVICE_ARRAY_T    *pServicesToAdd)
 {
     return TRDP_UNKNOWN_ERR;
 

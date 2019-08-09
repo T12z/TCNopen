@@ -21,6 +21,8 @@
  *      BL 2019-07-09: Ticket #161/162 Tests for Version 2 features
  */
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 /***********************************************************************************************************************
  * INCLUDES
@@ -422,14 +424,14 @@ static void dbgOut (
     const CHAR8 *pMsgStr)
 {
     const char *catStr[] = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
-
+    CHAR8       *pF = strrchr(pFile, VOS_DIR_SEP);
 
     if (gFullLog || ((category == VOS_LOG_USR) || (category != VOS_LOG_DBG && category != VOS_LOG_INFO)))
     {
         fprintf(gFp, "%s %s %s:%d\t%s",
                 strrchr(pTime, '-') + 1,
                 catStr[category],
-                strrchr(pFile, '/') + 1,
+                (pF == NULL)? "" : pF + 1,
                 lineNumber,
                 pMsgStr);
     }
@@ -2537,6 +2539,282 @@ static int test19 ()
 }
 
 
+/**********************************************************************************************************************/
+/** test20
+ *
+ *  @retval         0        no error
+ *  @retval         1        some error
+ */
+
+static void  test20CBFunction (
+                               void                    *pRefCon,
+                               TRDP_APP_SESSION_T      appHandle,
+                               const TRDP_PD_INFO_T    *pMsg,
+                               UINT8                   *pData,
+                               UINT32                  dataSize)
+{
+
+    /*    Check why we have been called    */
+    switch (pMsg->resultCode)
+    {
+        case TRDP_NO_ERR:
+            vos_printLog(VOS_LOG_USR, "received comId: %u (seq: %u, size: %u, src: %s)\n",
+                        pMsg->comId, pMsg->seqCount, dataSize, vos_ipDotted(pMsg->srcIpAddr));
+            break;
+
+        case TRDP_TIMEOUT_ERR:
+            /* The application can decide here if old data shall be invalidated or kept    */
+            vos_printLog(VOS_LOG_USR, "Packet timed out (ComId %d)\n", pMsg->comId);
+            break;
+        default:
+            vos_printLog(VOS_LOG_USR, "Error on packet received (ComId %d), err = %d\n",
+                    pMsg->comId,
+                    pMsg->resultCode);
+            break;
+    }
+}
+
+static int test20 ()
+{
+    PREPARE("Send and receive many telegrams, to check new indexed algorithm", "test");     /* allocates appHandle1,
+                                                                                 appHandle2, failed = 0, err */
+
+    /* ------------------------- test code starts here --------------------------- */
+
+#define TEST20_CYCLE_TIME           5000u          // 5ms
+#define TEST20_NO_OF_TELEGRAMS      100u
+
+#define TEST20_COMID_BASE           1000u
+#define TEST20_COMID_BASE1          2000u
+#define TEST20_COMID_BASE2          3000u
+
+#define TEST20_INTERVAL_BASE        20000u          // x 60ms timeout
+#define TEST20_INTERVAL_BASE_MID    100000u         // x 300ms timeout
+#define TEST20_INTERVAL_BASE_HIGH   1000000u        // x 3s timeout
+
+#define TEST20_DATA1                "Hello World!"
+#define TEST20_PACKET_SIZE1         16u
+#define TEST20_DATA2                "Hello Big World!Hello Big World!Hello Big World!Hello Big World!"
+#define TEST20_PACKET_SIZE2         64u
+#define TEST20_DATA3                "Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!"
+#define TEST20_PACKET_SIZE3         128u
+#define TEST20_DATA4                "Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!""Hello Big World!Hello Big World!Hello Big World!Hello Big World!"
+#define TEST20_PACKET_SIZE4         1024u
+
+#define TEST20_SRC1                 0x0a000301
+#define TEST20_SRC2                 0x0a000302
+#define TEST20_SRC3                 0x0a000303
+#define TEST20_SRC4                 0x0a000304
+#define TEST20_DESTINATION          0xEF020202
+
+    {
+        struct telegram_array {
+            UINT32          comId;      /* + index of loop */
+            UINT32          interval;   /* == timeout */
+            CHAR8           *pData;
+            UINT32          dataLen;
+            UINT32          srcIP1;     /* opt. filtering */
+            UINT32          srcIP2;     /* opt. filtering */
+            UINT32          dstIP;      /* MC group */
+        } lArray[] = {
+            /* 16 fastest packets */
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, TEST20_SRC1, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC1, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, TEST20_SRC1, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, TEST20_SRC1, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST19_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST19_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 1 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            // 32 slower packets up to 10 times
+            {TEST20_COMID_BASE, 2 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE, 2 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE, 2 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE, 2 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST19_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 4 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 4 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 4 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, TEST20_SRC2, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 4 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 3 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, TEST20_SRC3, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, TEST20_SRC3, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC3, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 10 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 5 * TEST20_INTERVAL_BASE, TEST20_DATA1, TEST20_PACKET_SIZE1, TEST20_SRC3, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 5 * TEST20_INTERVAL_BASE, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC3, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 5 * TEST20_INTERVAL_BASE, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE, 5 * TEST20_INTERVAL_BASE, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            // 32 mid packets up to 10 times
+            {TEST20_COMID_BASE1, 2 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 2 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 2 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 2 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST19_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 4 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 4 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 4 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 4 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST19_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 3 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 10 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE1, 5 * TEST20_INTERVAL_BASE_MID, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE1, 5 * TEST20_INTERVAL_BASE_MID, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 5 * TEST20_INTERVAL_BASE_MID, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE1, 5 * TEST20_INTERVAL_BASE_MID, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            /* 16 slow (high interval) packets */
+            {TEST20_COMID_BASE2, 1 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 1 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 1 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 1 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 2 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 2 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 2 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA3, TEST20_PACKET_SIZE3, TEST20_SRC3, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE2, 2 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA4, TEST20_PACKET_SIZE4, TEST20_SRC3, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE2, 5 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA1, TEST20_PACKET_SIZE1, TEST20_SRC3, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE2, 5 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA2, TEST20_PACKET_SIZE2, TEST20_SRC3, INADDR_ANY, TEST20_DESTINATION},
+            {TEST20_COMID_BASE2, 5 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA3, TEST20_PACKET_SIZE3, TEST20_SRC3, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 5 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA4, TEST20_PACKET_SIZE4, TEST20_SRC3, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 10 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA1, TEST20_PACKET_SIZE1, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 10 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA2, TEST20_PACKET_SIZE2, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 10 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA3, TEST20_PACKET_SIZE3, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {TEST20_COMID_BASE2, 10 * TEST20_INTERVAL_BASE_HIGH, TEST20_DATA4, TEST20_PACKET_SIZE4, INADDR_ANY, INADDR_ANY, INADDR_ANY},
+            {0,0,NULL,0,INADDR_ANY,INADDR_ANY,INADDR_ANY}
+        };
+
+        UINT32  noOfTelegrams = sizeof(lArray) / sizeof(struct telegram_array);
+
+        TRDP_PUB_T  pubHandle[noOfTelegrams];
+        TRDP_SUB_T  subHandle[noOfTelegrams];
+
+        UINT32      i;
+
+        TRDP_PROCESS_CONFIG_T   procConf = {"TestHost", "me", TEST20_CYCLE_TIME, 0, TRDP_OPTION_NONE};
+        TRDP_PD_CONFIG_T        pdConfig = {test20CBFunction, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_FORCE_CB,
+                                            100000u, TRDP_TO_SET_TO_ZERO, 0};
+
+        gFullLog = TRUE;
+
+        /* Configure two sessions   */
+        err = tlc_configSession (gSession1.appHandle, NULL, NULL, NULL, &procConf);
+        IF_ERROR("tlc_configSession 1");
+
+        err = tlc_configSession (gSession2.appHandle, NULL, &pdConfig, NULL, &procConf);
+        IF_ERROR("tlc_configSession 2");
+
+        for (i = 0; i < noOfTelegrams; i++)
+        {
+            /*    Session1 Install all publishers    */
+
+            err = tlp_publish(gSession1.appHandle, &pubHandle[i], NULL, NULL, 0u,
+                              lArray[i].comId + i, 0u, 0u,
+                              0u,
+                              gSession2.ifaceIP, // TEST20_DESTINATION,                              /* MC Destination */
+                              lArray[i].interval,
+                              0u, TRDP_FLAGS_DEFAULT, NULL, (UINT8 *) lArray[i].pData, lArray[i].dataLen);
+
+            IF_ERROR("tlp_publish");
+
+            err = tlp_subscribe(gSession2.appHandle, &subHandle[i], NULL, NULL,
+                                0u, /* service Id */
+                                lArray[i].comId + i, 0u, 0u,
+                                lArray[i].srcIP1, lArray[i].srcIP2,
+                                0u, //TEST20_DESTINATION,                              /* MC Destination */
+                                TRDP_FLAGS_DEFAULT, NULL,
+                                lArray[i].interval * 3, TRDP_TO_DEFAULT);
+
+            IF_ERROR("tlp_subscribe");
+
+        }
+
+        fprintf(gFp, "\nInitialized %u publishers!\n", i);
+
+        err = tlc_updateSession(gSession1.appHandle);
+
+        IF_ERROR("tlc_updateSession");
+
+        err = tlc_updateSession(gSession2.appHandle);
+
+        IF_ERROR("tlc_updateSession");
+        /*
+         Enter the main processing loop.
+         */
+        fprintf(gFp, "Transmission is going on...\n");
+        fprintf(gFp, "...changing some data...\n");
+        int counter = 0;
+        UINT8   buffer[2000];
+        UINT32  size = 2000;
+
+        while (counter++ < 10)         /* 1 * TEST9_NO_OF_TELEGRAMS seconds -> 200s */
+        {
+            //TRDP_PD_INFO_T pdInfo;
+
+            for (i = 0; i < noOfTelegrams; i++)
+            {
+                //sprintf(lArray[i].pData, "ComId %08u", i);
+                (void) tlp_put(gSession1.appHandle, pubHandle[i], (UINT8 *) lArray[i].pData, lArray[i].dataLen);
+
+            }
+
+/*
+            for (i = 0; i < noOfTelegrams; i++)
+            {
+                TRDP_PD_INFO_T pdInfo;
+                //sprintf(lArray[i].pData, "ComId %08u", i);
+                (void) tlp_get(gSession2.appHandle, subHandle[i], &pdInfo, buffer, &size);
+            }
+ */
+        }
+
+        usleep(100000000);   /* Let it run for 100s */
+        fprintf(gFp, "\n...transmission is finished\n");
+        gFullLog = FALSE;
+    }
+
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+}
+
+
 
 
 /**********************************************************************************************************************/
@@ -2563,7 +2841,8 @@ test_func_t *testArray[] =
 //    test16,     /* MD Request - Reply / UDP */
 //    test17,     /* CRC */
 //    test18,     /* XML stream */
-    test19,     /* Basic test of PD send performance enhancement */
+//    test19,     /* Basic test of PD send performance enhancement */
+    test20,     /* Basic test of PD receive performance enhancement */
     NULL
 };
 

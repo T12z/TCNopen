@@ -807,7 +807,7 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
 
 #ifdef HIGH_PERF_INDEXED
 
-/*#error "High performance extension is not ready yet!"*/
+//#error "High performance extension is not ready yet!"
     
     /*  Stop any ongoing communication by getting the mutexes */
     ret = trdp_getAccess(appHandle);

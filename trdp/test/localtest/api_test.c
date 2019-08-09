@@ -21,6 +21,8 @@
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  */
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 /***********************************************************************************************************************
  * INCLUDES
@@ -415,14 +417,14 @@ static void dbgOut (
     const CHAR8 *pMsgStr)
 {
     const char *catStr[] = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
-
+    CHAR8       *pF = strrchr(pFile, VOS_DIR_SEP);
 
     if (gFullLog || ((category == VOS_LOG_USR) || (category != VOS_LOG_DBG && category != VOS_LOG_INFO)))
     {
         fprintf(gFp, "%s %s %s:%d %s",
                 strrchr(pTime, '-') + 1,
                 catStr[category],
-                strrchr(pFile, '/') + 1,
+                (pF == NULL)? "" : pF + 1,
                 lineNumber,
                 pMsgStr);
     }

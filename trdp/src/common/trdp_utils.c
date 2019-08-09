@@ -75,7 +75,7 @@
 #define SOA_SAME_SERVICEID(a,b) TRUE
 #endif
 
-#define SAME_SERVICE_COM_ID(a,b)    (((a).comId == (b).comId) && SOA_SAME_SERVICEID_OR0(a.serviceId,b.serviceId))
+#define SAME_SERVICE_COM_ID(a,b)    (((a).comId == (b).comId) && SOA_SAME_SERVICEID_OR0((a).serviceId,(b).serviceId))
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -118,8 +118,9 @@ void printSocketUsage (
         }
         vos_printLog(VOS_LOG_DBG, "iface[%d].sock = %d\n", lIndex, (int) iface[lIndex].sock);
         vos_printLog(VOS_LOG_DBG, "iface[%d].bindAddr = %x\n", lIndex, iface[lIndex].bindAddr);
-        vos_printLog(VOS_LOG_DBG, "iface[%d].type = %s \n", lIndex, (iface[lIndex].type == 0 ? "PD_UDP" :
-                                                                     (iface[lIndex].type == 1 ? "MD_UDP" : "MD_TCP")));
+        vos_printLog(VOS_LOG_DBG, "iface[%d].type = %s \n", lIndex, (iface[lIndex].type == TRDP_SOCK_PD ? "PD_UDP" :
+                                                                     (iface[lIndex].type == TRDP_SOCK_MD_UDP ? "MD_UDP" :
+                                                                      (iface[lIndex].type == TRDP_SOCK_MD_TCP ? "MD_TCP" : "PD_TSN"))));
         vos_printLog(VOS_LOG_DBG,
                      "iface[%d].sendParam.qos = %u, ttl = %u\n",
                      lIndex,
@@ -478,6 +479,24 @@ PD_ELE_T *trdp_queueFindSubAddr (
     PD_ELE_T            *pHead,
     TRDP_ADDRESSES_T    *addr)
 {
+    return trdp_findSubAddr (pHead, addr, 0u);
+}
+
+/**********************************************************************************************************************/
+/** Return the element with same comId and IP addresses
+ *
+ *  @param[in]      pHead           pointer to head of queue
+ *  @param[in]      addr            Pub/Sub handle (Address, ComID, srcIP & dest IP, serviceId) to search for
+ *  @param[in]      comId           ComId to stay on on a sorted search, 0 when searching on unsorted queues
+ *
+ *  @retval         != NULL         pointer to PD element
+ *  @retval         NULL            No PD element found
+ */
+PD_ELE_T *trdp_findSubAddr (
+    PD_ELE_T            *pHead,
+    TRDP_ADDRESSES_T    *addr,
+    UINT32              comId)
+{
     PD_ELE_T    *iterPD;
     PD_ELE_T    *pFirstMatchedPD = NULL;
 
@@ -488,6 +507,11 @@ PD_ELE_T *trdp_queueFindSubAddr (
 
     for (iterPD = pHead; iterPD != NULL; iterPD = iterPD->pNext)
     {
+        /* watch a comId change (needed for indexed search) */
+        if ((comId != 0u) && (iterPD->addr.comId != comId))
+        {
+            break;
+        }
         /*  We match if src/dst/mc address is zero or matches */
        // if ((iterPD->addr.comId == addr->comId)
        //     && SOA_SAME_SERVICEID_OR0(addr->serviceId, iterPD->addr.serviceId))
@@ -917,7 +941,7 @@ TRDP_ERR_T  trdp_requestSocket (
             goto err_exit;
         }
         else if ((iface[lIndex].sock != VOS_INVALID_SOCKET)
-                 && !((mcGroup != 0u) && (srcIP != 0u))  /* do no use if multicast and different iface specified! */
+                 && !((mcGroup != 0u) && (bindAddr != iface[lIndex].bindAddr))  /* do no use if multicast and different iface specified! */
                  && ((bindAddr == 0) || (iface[lIndex].bindAddr == bindAddr))
                  && (iface[lIndex].type == type)
                  && (iface[lIndex].sendParam.qos == params->qos)

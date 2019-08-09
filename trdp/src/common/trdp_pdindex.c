@@ -84,12 +84,12 @@ typedef struct hp_slots
     TRDP_HP_CAT_SLOT_T  midCat;                         /**< array dim[slot][depth]          */
     TRDP_HP_CAT_SLOT_T  highCat;                        /**< array dim[slot][depth]          */
 
-    UINT8               noOfRxEntries;                  /**< number of subscribed PDs to be handled             */
-    PD_ELE_T            * *pRcvTable;                   /**< Pointer to sorted array of PDs to be handled       */
+    UINT32              noOfRxEntries;                  /**< number of subscribed PDs to be handled             */
+    PD_ELE_T            **pRcvTable;                   /**< Pointer to sorted array of PDs to be handled       */
 
     UINT32              largeCycle;                     /**< overflow cycle to handle slow PDs and PD requests  */
     UINT8               noOfExtTxEntries;               /**< number of 'special' PDs to be handled              */
-    PD_ELE_T            * *pExtTxTable;                 /**< Pointer to array of PDs to be handled              */
+    PD_ELE_T            **pExtTxTable;                 /**< Pointer to array of PDs to be handled              */
 } TRDP_HP_CAT_SLOTS_T;
 
 /***********************************************************************************************************************
@@ -406,6 +406,36 @@ static TRDP_ERR_T indexCreatePubTable (
     return TRDP_NO_ERR;
 }
 
+/**********************************************************************************************************************/
+/** Sort by comId
+ *
+ *  @param[in]      pPDElement1         pointer to first element
+ *  @param[in]      pPDElement2         pointer to second element
+ */
+static int compareComIds (const void *pPDElement1, const void *pPDElement2)
+{
+    if (((PD_ELE_T*)pPDElement1)->addr.comId > ((PD_ELE_T*)pPDElement2)->addr.comId)
+    {
+        return 1;
+    }
+    else if (((PD_ELE_T*)pPDElement1)->addr.comId < ((PD_ELE_T*)pPDElement2)->addr.comId)
+    {
+        return -1;
+    }
+    return 0;
+}
+
+/**********************************************************************************************************************/
+/** Sort by timeout
+ *
+ *  @param[in]      pPDElement1         pointer to first element
+ *  @param[in]      pPDElement2         pointer to second element
+ */
+static int compareTimeouts (const void *pPDElement1, const void *pPDElement2)
+{
+    return vos_cmpTime(&((PD_ELE_T*)pPDElement1)->interval, &((PD_ELE_T*)pPDElement2)->interval);
+}
+
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
@@ -598,7 +628,7 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
             return TRDP_PARAM_ERR;
         }
         /* create the extended list, if needed  */
-        pSlot->pExtTxTable = (PD_ELE_T * *) vos_memAlloc(extCat_noOfTxEntries * sizeof(PD_ELE_T *));
+        pSlot->pExtTxTable = (PD_ELE_T **) vos_memAlloc(extCat_noOfTxEntries * sizeof(PD_ELE_T *));
         if (pSlot->pExtTxTable == NULL)
         {
             return TRDP_MEM_ERR;
@@ -682,8 +712,8 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
     }
 
     /* Compute the indexes from the current cycle */
-    UINT32 idxLow, idxMid, idxHigh;
-    UINT32 depth;
+    UINT32          idxLow, idxMid, idxHigh;
+    UINT32          depth;
     TRDP_HP_SLOTS_T *pSlot = appHandle->pSlot;
     PD_ELE_T        *pCurElement;
     UINT32          i;
@@ -694,12 +724,11 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
     {
         /* cycleN is the Nth send cycle in us */
         UINT32 cycleN = pSlot->currentCycle;
+
         idxLow = (cycleN / pSlot->lowCat.slotCycle) % pSlot->lowCat.noOfTxEntries;
 
-        vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u\n",
-                     dbCount,
-                     cycleN,
-                     idxLow);
+//        vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u\n",
+//                     (int) dbCount, (unsigned int) cycleN, (unsigned int) idxLow);
 
         /* send the packets with the shortest intervals first */
         for (depth = 0u; depth < pSlot->lowCat.depthOfTxEntries; depth++)
@@ -719,11 +748,9 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
         if ((idxLow % 10) == 0u)
         {
             idxMid = (cycleN / pSlot->midCat.slotCycle) % pSlot->midCat.noOfTxEntries;
-            vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u idxMid: %03u\n",
-                         dbCount,
-                         cycleN,
-                         idxLow,
-                         idxMid);
+//            vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u idxMid: %03u\n",
+//                         (int) dbCount, (unsigned int) cycleN,
+//                         (unsigned int) idxLow, (unsigned int) idxMid);
 
             /* send the packets with medium intervals */
             for (depth = 0; depth < pSlot->midCat.depthOfTxEntries; depth++)
@@ -756,12 +783,9 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
         if (idxLow == 0u)       /* Every 100ms check the > 1s PDs   */
         {
             idxHigh = (cycleN / pSlot->highCat.slotCycle) % pSlot->highCat.noOfTxEntries;
-            vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u idxMid: %03u idxHigh: %03u\n",
-                         dbCount,
-                         cycleN,
-                         idxLow,
-                         idxMid,
-                         idxHigh);
+//            vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u idxMid: %03u idxHigh: %03u\n",
+//                         (int) dbCount, (unsigned int) cycleN,
+//                         (unsigned int) idxLow, (unsigned int) idxMid, (unsigned int) idxHigh);
 
             /* send the slowest packets */
             for (depth = 0; depth < pSlot->highCat.depthOfTxEntries; depth++)
@@ -785,7 +809,7 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
                 /*    Get the current time    */
                 vos_getTime(&now);
 
-                for (depth = 0; depth < pSlot->noOfExtTxEntries; depth++)
+                for (depth = 0; (depth < pSlot->noOfExtTxEntries) && (pSlot->pExtTxTable[depth] != NULL); depth++)
                 {
                     if (!timercmp(&pSlot->pExtTxTable[depth]->timeToGo, &now, >))
                     {
@@ -812,6 +836,8 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
 /**********************************************************************************************************************/
 /** Create the receiver index tables
  *  Create the index tables from the subscriber elements currently in the receive queue
+ *      - ComId sorted:     indexed table to be used for finding a subscriber on receiption
+ *      - timeout sorted:   indexed table to find overdue PDs
  *
  *  @param[in]      appHandle         pointer to the packet element to send
  *
@@ -821,7 +847,89 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
 
 TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
 {
-    return TRDP_NO_ERR;
+    TRDP_ERR_T      err = TRDP_NO_ERR;
+    TRDP_HP_SLOTS_T *pSlot;
+
+    /* Check the parameters */
+
+    /* if not already done, allocate some work space: */
+    if (appHandle->pSlot == NULL)
+    {
+        appHandle->pSlot = (TRDP_HP_SLOTS_T *) vos_memAlloc(sizeof(TRDP_HP_SLOTS_T));
+        if (appHandle->pSlot == NULL)
+        {
+            return TRDP_MEM_ERR;
+        }
+    }
+
+    pSlot = appHandle->pSlot;
+
+    /* determine array size / get number of subscriptions */
+    {
+        UINT32      noOfSubs = 0, idx = 0;
+        PD_ELE_T    *iterPD = appHandle->pRcvQueue;
+        while (iterPD)
+        {
+            noOfSubs++;
+            iterPD = iterPD->pNext;
+        }
+        if (noOfSubs == 0)
+        {
+            return err;
+        }
+
+        /* get some memory */
+        vos_printLog(VOS_LOG_DBG, "Get %u Bytes for the receive table.\n", (unsigned int) (noOfSubs * sizeof(PD_ELE_T*)));
+        pSlot->pRcvTable = (PD_ELE_T**) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T*));
+        if (pSlot->pRcvTable == NULL)
+        {
+            return TRDP_MEM_ERR;
+        }
+
+        /* fill the array ... */
+        pSlot->noOfRxEntries = noOfSubs;
+        iterPD = appHandle->pRcvQueue;
+
+        /* ...by copying the PD element pointers first */
+        while ((iterPD != NULL) &&
+               (idx < noOfSubs))
+        {
+            pSlot->pRcvTable[idx++] = iterPD;
+            iterPD = iterPD->pNext;
+        }
+
+        /* sort the table on comIds */
+        vos_qsort(&pSlot->pRcvTable, noOfSubs, sizeof(PD_ELE_T*), compareComIds);
+    }
+    return err;
+}
+
+/**********************************************************************************************************************/
+/** Return the element (subscription) with same comId and IP addresses
+ *  This search is done for every received packet
+ *
+ *  @param[in]      appHandle       pointer to head of queue
+ *  @param[in]      pAddr           Pub/Sub handle (Address, ComID, srcIP & dest IP, serviceId) to search for
+ *
+ *  @retval         != NULL         pointer to PD element
+ *  @retval         NULL            No PD element found
+ */
+PD_ELE_T *trdp_indexedFindSubAddr (
+    TRDP_SESSION_PT     appHandle,
+    TRDP_ADDRESSES_T    *pAddr)
+{
+    PD_ELE_T    *pFirstMatchedPD = NULL;
+
+    if ((appHandle->pSlot == NULL) || (appHandle->pSlot->pRcvTable == NULL))
+    {
+        return NULL;
+    }
+
+    pFirstMatchedPD = vos_bsearch(&pAddr->comId, appHandle->pSlot->pRcvTable,
+                                  appHandle->pSlot->noOfRxEntries, sizeof(PD_ELE_T *), compareComIds);
+
+    /* the first match might not be the best! Look further, but stop on comId change */
+    return trdp_findSubAddr (pFirstMatchedPD, pAddr, pAddr->comId);
 }
 
 /*

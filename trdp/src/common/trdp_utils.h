@@ -82,6 +82,11 @@ PD_ELE_T        *trdp_queueFindComId (
     PD_ELE_T    *pHead,
     UINT32      comId);
 
+PD_ELE_T        *trdp_findSubAddr (
+    PD_ELE_T            *pHead,
+    TRDP_ADDRESSES_T    *pAddr,
+    UINT32              comId);
+
 PD_ELE_T        *trdp_queueFindSubAddr (
     PD_ELE_T            *pHead,
     TRDP_ADDRESSES_T    *pAddr);

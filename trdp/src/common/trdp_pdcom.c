@@ -77,6 +77,10 @@
 #include "vos_sock.h"
 #include "vos_mem.h"
 
+#ifdef HIGH_PERF_INDEXED
+#include "trdp_pdindex.h"
+#endif
+
 /*******************************************************************************
  * DEFINES
  */
@@ -399,6 +403,143 @@ TRDP_ERR_T trdp_pdGet (
 }
 
 /******************************************************************************/
+/** Send a due PD message
+ *
+ *  @param[in]      appHandle           session pointer
+ *
+ *  @retval         TRDP_NO_ERR         no error
+ *  @retval         TRDP_IO_ERR         socket I/O error
+ */
+TRDP_ERR_T  trdp_pdSendElement (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T    **ppElement)
+{
+    TRDP_ERR_T  err = TRDP_NO_ERR;
+    PD_ELE_T    *iterPD = *ppElement;
+
+    /* send only if there is valid data */
+    if (!(iterPD->privFlags & TRDP_INVALID_DATA))
+    {
+        if ((iterPD->privFlags & TRDP_REQ_2B_SENT) &&
+            (iterPD->pFrame->frameHead.msgType == vos_htons(TRDP_MSG_PD)))       /*  PULL packet?  */
+        {
+            iterPD->pFrame->frameHead.msgType = vos_htons(TRDP_MSG_PP);
+        }
+        /*  Update the sequence counter and re-compute CRC    */
+        trdp_pdUpdate(iterPD);
+
+        /* Publisher check from Table A.5:
+         Actual topography counter values <-> Locally stored with publish */
+        if ( !trdp_validTopoCounters( appHandle->etbTopoCnt,
+                                     appHandle->opTrnTopoCnt,
+                                     vos_ntohl(iterPD->pFrame->frameHead.etbTopoCnt),
+                                     vos_ntohl(iterPD->pFrame->frameHead.opTrnTopoCnt)))
+        {
+            err = TRDP_TOPO_ERR;
+            vos_printLogStr(VOS_LOG_INFO, "Sending PD: TopoCount is out of date!\n");
+        }
+        /*    In case we're sending on an uninitialized publisher; should never happen. */
+        else if (iterPD->socketIdx == TRDP_INVALID_SOCKET_INDEX)
+        {
+            vos_printLogStr(VOS_LOG_ERROR, "Sending PD: Socket invalid!\n");
+            /* Try to send the other packets */
+        }
+        /*    Send the packet if it is not redundant    */
+        else if (!(iterPD->privFlags & TRDP_REDUNDANT))
+        {
+            TRDP_ERR_T result;
+            if (iterPD->pfCbFunction != NULL)
+            {
+                TRDP_PD_INFO_T theMessage;
+                theMessage.comId        = iterPD->addr.comId;
+                theMessage.srcIpAddr    = iterPD->addr.srcIpAddr;
+                theMessage.destIpAddr   = iterPD->addr.destIpAddr;
+                theMessage.etbTopoCnt   = vos_ntohl(iterPD->pFrame->frameHead.etbTopoCnt);
+                theMessage.opTrnTopoCnt = vos_ntohl(iterPD->pFrame->frameHead.opTrnTopoCnt);
+                theMessage.msgType      = (TRDP_MSG_T) vos_ntohs(iterPD->pFrame->frameHead.msgType);
+                theMessage.seqCount     = iterPD->curSeqCnt;
+                theMessage.protVersion  = vos_ntohs(iterPD->pFrame->frameHead.protocolVersion);
+                theMessage.replyComId   = vos_ntohl(iterPD->pFrame->frameHead.replyComId);
+                theMessage.replyIpAddr  = vos_ntohl(iterPD->pFrame->frameHead.replyIpAddress);
+                theMessage.pUserRef     = iterPD->pUserRef; /* User reference given with the local subscribe? */
+                theMessage.resultCode   = err;
+
+                iterPD->pfCbFunction(appHandle->pdDefault.pRefCon,
+                                     appHandle,
+                                     &theMessage,
+                                     iterPD->pFrame->data,
+                                     vos_ntohl(iterPD->pFrame->frameHead.datasetLength));
+            }
+            /* We pass the error to the application, but we keep on going    */
+            result = trdp_pdSend(appHandle->ifacePD[iterPD->socketIdx].sock, iterPD, appHandle->pdDefault.port);
+            if (result == TRDP_NO_ERR)
+            {
+                appHandle->stats.pd.numSend++;
+                iterPD->numRxTx++;
+            }
+            else
+            {
+                err = result;   /* pass last error to application  */
+            }
+        }
+    }
+
+    if ((iterPD->privFlags & TRDP_REQ_2B_SENT) &&
+        (iterPD->pFrame->frameHead.msgType == vos_htons(TRDP_MSG_PP)))       /*  PULL packet?  */
+    {
+        /* Do not reset timer, but restore msgType */
+        iterPD->pFrame->frameHead.msgType = vos_htons(TRDP_MSG_PD);
+    }
+#ifndef HIGH_PERF_INDEXED
+    else if (timerisset(&iterPD->interval))
+    {
+        TRDP_TIME_T now;
+
+        /*    Get the current time    */
+        vos_getTime(&now);
+
+        /*  Set timer if interval was set.
+         In case of a requested cyclically PD packet, this will lead to one time jump (jitter) in the interval
+         */
+        vos_addTime(&iterPD->timeToGo, &iterPD->interval);
+
+        if (vos_cmpTime(&iterPD->timeToGo, &now) <= 0)
+        {
+            /* in case of a delay of more than one interval - avoid sending it in the next cycle again */
+            iterPD->timeToGo = now;
+            vos_addTime(&iterPD->timeToGo, &iterPD->interval);
+        }
+    }
+#endif
+    /* Reset "immediate" flag for request or requested packet */
+    iterPD->privFlags = (TRDP_PRIV_FLAGS_T) (iterPD->privFlags & ~(TRDP_PRIV_FLAGS_T)TRDP_REQ_2B_SENT);
+
+    /* remove one shot messages after they have been sent */
+    if (iterPD->pFrame->frameHead.msgType == vos_htons(TRDP_MSG_PR))    /* Ticket #172: remove element */
+    {
+        PD_ELE_T *pTemp;
+        /* Decrease the socket ref */
+        trdp_releaseSocket(appHandle->ifacePD, iterPD->socketIdx, 0u, FALSE, VOS_INADDR_ANY);
+        /* Save next element */
+        pTemp = iterPD->pNext;
+        /* Remove current element */
+        trdp_queueDelElement(&appHandle->pSndQueue, iterPD);
+        iterPD->magic = 0u;
+        if (iterPD->pSeqCntList != NULL)
+        {
+            vos_memFree(iterPD->pSeqCntList);
+        }
+        vos_memFree(iterPD->pFrame);
+        vos_memFree(iterPD);
+
+        /* pre-set next element */
+        *ppElement = pTemp;
+        //continue;
+    }
+    return err;
+}
+
+/******************************************************************************/
 /** Send all due PD messages
  *
  *  @param[in]      appHandle           session pointer
@@ -655,7 +796,12 @@ TRDP_ERR_T  trdp_pdReceive (
     }
 
     /*  Examine subscription queue, are we interested in this PD?   */
+#ifdef HIGH_PERF_INDEXED
+    pExistingElement = trdp_indexedFindSubAddr(appHandle, &subAddresses);
+ //    pExistingElement = trdp_queueFindSubAddr(appHandle->pRcvQueue, &subAddresses);
+#else
     pExistingElement = trdp_queueFindSubAddr(appHandle->pRcvQueue, &subAddresses);
+#endif
 
     if (pExistingElement == NULL)
     {
