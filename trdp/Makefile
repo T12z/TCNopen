@@ -9,7 +9,7 @@
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2018. All rights reserved.
 #//
-#//     SB 2019-08-09: Added new lib target including tti, marshalling, xml parsing etc. and added install option
+#//	SB 2019-08-09: Added new lib target including tti, marshalling, xml parsing etc. and added install option
 #//	BL 2019-06-18: V2 changes: dividing trdp_if.c into tlc_if.c, tlp_if.c and tlm_if.c
 #//	BL 2019-06-13: Helm's Deep 96Board configuration added
 #//	BL 2019-03-21: Prepared for TSN
@@ -18,7 +18,7 @@
 #//	BL 2018-02-02: Example renamed: cmdLineSelect -> echoCallback
 #//	BL 2017-05-30: 64 bit Linux X86 config added
 #//	BL 2017-05-08: 64 bit OSX config added
-#// BL 2016-02-11: Ticket #88 Cleanup makefiles, remove dependencies on external libraries
+#//	BL 2016-02-11: Ticket #88 Cleanup makefiles, remove dependencies on external libraries
 
 MAKEFLAGS += --quiet
 
@@ -63,11 +63,11 @@ VOS_OBJS += vos_utils.o \
 		vos_shared_mem.o
 
 TRDP_OBJS += trdp_pdcom.o \
-	    trdp_utils.o \
-	    tlp_if.o \
+		trdp_utils.o \
+		tlp_if.o \
 		tlc_if.o \
-	    trdp_stats.o \
-	    $(VOS_OBJS)
+		trdp_stats.o \
+		$(VOS_OBJS)
 
 # Optional objects for full blown TRDP usage
 TRDP_OPT_OBJS += trdp_xml.o \
@@ -80,18 +80,18 @@ TRDP_OPT_OBJS += trdp_xml.o \
 
 # Set LINT Objects
 LINT_OBJECTS = trdp_stats.lob\
-     	vos_utils.lob \
-	   	vos_sock.lob \
-	   	vos_mem.lob \
-	   	vos_thread.lob \
-	   	vos_shared_mem.lob \
-	   	trdp_pdcom.lob \
-	   	trdp_mdcom.lob \
-	   	trdp_utils.lob \
-	   	tlc_if.lob \
+		vos_utils.lob \
+		vos_sock.lob \
+		vos_mem.lob \
+		vos_thread.lob \
+		vos_shared_mem.lob \
+		trdp_pdcom.lob \
+		trdp_mdcom.lob \
+		trdp_utils.lob \
+		tlc_if.lob \
 		tlp_if.lob \
 		tlm_if.lob \
-	   	trdp_stats.lob
+		trdp_stats.lob
 
 # Set LDFLAGS
 LDFLAGS += -L $(OUTDIR)
@@ -301,7 +301,7 @@ $(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdp.a $(addpr
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^ \
 			$(CFLAGS) $(INCLUDES) -o $@ \
-			-ltrdp -lz \
+			-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
 
@@ -309,7 +309,7 @@ $(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a $(addprefix $
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
-			-ltrdp -lz \
+			-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
 
@@ -317,7 +317,7 @@ $(OUTDIR)/trdp-xmlpd-test-fast:  trdp-xmlpd-test-fast.c  $(OUTDIR)/libtrdp.a $(a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
-			-ltrdp -lz \
+			-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
 
@@ -499,7 +499,12 @@ doc/latex/refman.pdf: Doxyfile trdp_if_light.h trdp_types.h
 			$(DOXYPATH)doxygen Doxyfile
 			make -C doc/latex
 			cp doc/latex/refman.pdf "doc/TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf"
-          
+
+###############################################################################
+#
+# install complete library
+#
+###############################################################################        
 ifdef INSTALLDIR
 install:
 	@$(MD) ../$(INSTALLDIR)
