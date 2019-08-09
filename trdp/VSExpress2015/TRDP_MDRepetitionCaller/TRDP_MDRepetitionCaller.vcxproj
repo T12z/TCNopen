@@ -152,6 +152,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\resources\windows\getopt\getopt.c" />
     <ClCompile Include="..\..\test\mdpatterns\rep-testcaller.c" />
   </ItemGroup>
   <ItemGroup>
