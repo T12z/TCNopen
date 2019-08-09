@@ -806,12 +806,15 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
     TRDP_ERR_T ret = TRDP_NO_ERR;
 
 #ifdef HIGH_PERF_INDEXED
+
+/*#error "High performance extension is not ready yet!"*/
+    
     /*  Stop any ongoing communication by getting the mutexes */
     ret = trdp_getAccess(appHandle);
     if (ret == TRDP_NO_ERR)
     {
-        trdp_indexCreatePubTable(appHandle);
-        trdp_indexCreateSubTable(appHandle);
+        trdp_indexCreatePubTables(appHandle);
+        trdp_indexCreateSubTables(appHandle);
         trdp_releaseAccess(appHandle);
     }
 #else
