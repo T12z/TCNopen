@@ -33,6 +33,7 @@
 #include "trdp_utils.h"
 #include "trdp_pdcom.h"
 #include "vos_utils.h"
+#include "vos_sock.h"
 #include "trdp_pdindex.h"
 
 #ifdef HIGH_PERF_INDEXED
@@ -75,7 +76,9 @@ typedef struct hp_slot
 
 /* Definitions for the receiver optimisation */
 
-/** entry for the application session */
+typedef PD_ELE_T *(PD_ELE_ARRAY_T[]);
+
+    /** entry for the application session */
 typedef struct hp_slots
 {
     UINT32              processCycle;                   /**< system cycle time with which lowest array will be called */
@@ -86,7 +89,7 @@ typedef struct hp_slots
     TRDP_HP_CAT_SLOT_T  highCat;                        /**< array dim[slot][depth]          */
 
     UINT32              noOfRxEntries;                  /**< number of subscribed PDs to be handled             */
-    PD_ELE_T            **pRcvTable;                   /**< Pointer to sorted array of PDs to be handled       */
+    PD_ELE_T            **pRcvTable;                    /**< Pointer to sorted array of PDs to be handled       */
 
     UINT32              largeCycle;                     /**< overflow cycle to handle slow PDs and PD requests  */
     UINT8               noOfExtTxEntries;               /**< number of 'special' PDs to be handled              */
@@ -135,6 +138,39 @@ static inline void setElement (
     const PD_ELE_T      *pAssign)
 {
     *(pEntry->ppIdxCat + slot * pEntry->depthOfTxEntries + depth) = pAssign;
+}
+
+/**********************************************************************************************************************/
+/** Print an index table
+ *
+ *  @param[in]      pSlots              pointer to the array
+ *
+ *  @retval         none
+ */
+static void   print_rcv_table (
+    TRDP_HP_CAT_SLOTS_T *pSlots)
+{
+    UINT32 idx;
+    PD_ELE_T **pRcvTable = pSlots->pRcvTable;
+
+    vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
+    vos_printLog(VOS_LOG_INFO,
+                 "----- Table of ComId-sorted subscriptions (%u) -----\n",
+                 (unsigned int) pSlots->noOfRxEntries);
+    vos_printLogStr(VOS_LOG_INFO, "----- SlotNo: ComId (Tx-Interval) x depth   -----\n");
+    vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
+    for (idx = 0; idx < pSlots->noOfRxEntries; idx++)
+    {
+
+        vos_printLog(VOS_LOG_INFO, "%3u (%p): %u %s %u\n",
+                     (unsigned int)idx,
+                     pRcvTable[idx],
+                     (unsigned int)pRcvTable[idx]->addr.comId,
+                     vos_ipDotted(pRcvTable[idx]->addr.srcIpAddr),
+                     (unsigned int)pRcvTable[idx]->interval.tv_usec / 1000);
+    }
+    vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
+
 }
 
 /**********************************************************************************************************************/
@@ -408,18 +444,21 @@ static TRDP_ERR_T indexCreatePubTable (
 }
 
 /**********************************************************************************************************************/
-/** Sort by comId
+/** Sort/Find by comId
  *
  *  @param[in]      pPDElement1         pointer to first element
  *  @param[in]      pPDElement2         pointer to second element
  */
 static int compareComIds (const void *pPDElement1, const void *pPDElement2)
 {
-    if (((PD_ELE_T*)pPDElement1)->addr.comId > ((PD_ELE_T*)pPDElement2)->addr.comId)
+    const PD_ELE_T* p1 = *(const PD_ELE_T**)pPDElement1;
+    const PD_ELE_T* p2 = *(const PD_ELE_T**)pPDElement2;
+
+    if (p1->addr.comId > p2->addr.comId)
     {
         return 1;
     }
-    else if (((PD_ELE_T*)pPDElement1)->addr.comId < ((PD_ELE_T*)pPDElement2)->addr.comId)
+    else if (p1->addr.comId < p2->addr.comId)
     {
         return -1;
     }
@@ -881,7 +920,7 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
 
         /* get some memory */
         vos_printLog(VOS_LOG_DBG, "Get %u Bytes for the receive table.\n", (unsigned int) (noOfSubs * sizeof(PD_ELE_T*)));
-        pSlot->pRcvTable = (PD_ELE_T**) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T*));
+        pSlot->pRcvTable = (PD_ELE_T**) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T**));
         if (pSlot->pRcvTable == NULL)
         {
             return TRDP_MEM_ERR;
@@ -899,8 +938,14 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
             iterPD = iterPD->pNext;
         }
 
+        //print_rcv_table(pSlot);
+        vos_printLog(VOS_LOG_DBG, "Sorting array at %p.\n", (void*) pSlot->pRcvTable);
+
         /* sort the table on comIds */
-        vos_qsort(&pSlot->pRcvTable, noOfSubs, sizeof(PD_ELE_T*), compareComIds);
+        vos_qsort(pSlot->pRcvTable, noOfSubs, sizeof(PD_ELE_T*), compareComIds);
+#ifdef DEBUG
+        print_rcv_table(pSlot);
+#endif
     }
     return err;
 }
@@ -919,18 +964,25 @@ PD_ELE_T *trdp_indexedFindSubAddr (
     TRDP_SESSION_PT     appHandle,
     TRDP_ADDRESSES_T    *pAddr)
 {
-    PD_ELE_T    *pFirstMatchedPD = NULL;
+    PD_ELE_T    matchKey;
+    PD_ELE_T    **pFirstMatchedPD = (PD_ELE_T**) &matchKey;
+    matchKey.addr = *pAddr;
+    matchKey.magic = TRDP_MAGIC_SUB_HNDL_VALUE;
 
     if ((appHandle->pSlot == NULL) || (appHandle->pSlot->pRcvTable == NULL))
     {
         return NULL;
     }
 
-    pFirstMatchedPD = vos_bsearch(&pAddr->comId, appHandle->pSlot->pRcvTable,
+    pFirstMatchedPD = (PD_ELE_T**) vos_bsearch(&pFirstMatchedPD, appHandle->pSlot->pRcvTable,
                                   appHandle->pSlot->noOfRxEntries, sizeof(PD_ELE_T *), compareComIds);
 
-    /* the first match might not be the best! Look further, but stop on comId change */
-    return trdp_findSubAddr (pFirstMatchedPD, pAddr, pAddr->comId);
+    if (pFirstMatchedPD)
+    {
+        /* the first match might not be the best! Look further, but stop on comId change */
+        return trdp_findSubAddr (*pFirstMatchedPD, pAddr, pAddr->comId);
+    }
+    return NULL;
 }
 
 
