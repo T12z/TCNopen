@@ -13,10 +13,11 @@
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- *          Copyright NewTec GmbH, 2018.
+ *          Copyright NewTec GmbH, 2019.
  *
  * $Id$
  *
+ *      BL 2019-08-12: Ticket #274 Cyclic thread parameters must not use stack
  *      BL 2019-08-02: SCHEDULE_DEADLINE option: interval * 1000 (-> nanosec)
  *      BL 2019-06-11: Possible NULL pointer access
  *      BL 2019-04-05: QNX monotonic time for semaphore; unused code removed
@@ -258,6 +259,12 @@ static void vos_runCyclicThread (
     VOS_THREAD_FUNC_T   pFunction   = pParameters->pFunction;
     void *pArguments = pParameters->pArguments;
     VOS_TIMEVAL_T       startTime = pParameters->startTime;
+    CHAR8               name[16];
+
+    vos_strncpy(name, pParameters->pName, 16);      /* for logging */
+
+    vos_printLog(VOS_LOG_USR, "thread parameters freed: %p\n", (void*) pParameters);
+    vos_memFree(pParameters);
 
 #if defined(SCHED_DEADLINE) && defined (RT_THREADS)
 
@@ -595,7 +602,8 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     }
     if (interval > 0u)
     {
-	    VOS_THREAD_CYC_T *p_params = vos_memAlloc(sizeof(VOS_THREAD_CYC_T)); /* malloc not freed, improved implementation highly recommended !!!!*/
+        /* malloc freed in vos_runCyclicThread */
+	    VOS_THREAD_CYC_T *p_params = (VOS_THREAD_CYC_T *) vos_memAlloc(sizeof(VOS_THREAD_CYC_T));
 
 	    p_params->pName = pName;
 	    p_params->startTime.tv_sec = 0;
@@ -603,9 +611,8 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
 	    p_params->interval = interval; 
 	    p_params->pFunction = pFunction;
 	    p_params->pArguments = pArguments;
+        vos_printLog(VOS_LOG_USR, "thread parameters alloc: %p\n", (void*) p_params);
 
-		
-        //VOS_THREAD_CYC_T params = {pName, {0, 0}, interval, pFunction, pArguments};
         if (pStartTime != NULL)
         {
             p_params->startTime = *pStartTime;
