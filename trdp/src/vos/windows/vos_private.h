@@ -10,15 +10,15 @@
  *
  * @author          Bernd Loehr, NewTec GmbH
  *
- * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  */
- /*
- * $Id$
- *
- *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
- */
+/*
+* $Id$
+*
+*      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+*/
 
 #ifndef VOS_PRIVATE_H
 #define VOS_PRIVATE_H
@@ -44,19 +44,19 @@ extern "C" {
  * DEFINES
  */
 
-#define VOS_VERSION            2u
-#define VOS_RELEASE            0u
-#define VOS_UPDATE             0u
-#define VOS_EVOLUTION          0u
+#define VOS_VERSION     2u
+#define VOS_RELEASE     0u
+#define VOS_UPDATE      0u
+#define VOS_EVOLUTION   0u
 
 #if (defined (WIN32) || defined (WIN64))
 
-#define MAX_SEM_COUNT           10
+#define MAX_SEM_COUNT  10
 
 struct VOS_MUTEX
 {
-    UINT32      magicNo;
-    HANDLE		mutexId;
+    UINT32  magicNo;
+    HANDLE  mutexId;
 };
 
 struct VOS_SEMA
@@ -65,7 +65,7 @@ struct VOS_SEMA
 };
 
 #else
-    
+
 struct VOS_MUTEX
 {
     UINT32          magicNo;

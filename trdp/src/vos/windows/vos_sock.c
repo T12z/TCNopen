@@ -15,19 +15,19 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  */
- /*
- * $Id$*
- *
- *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
- *      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
- *      SB 2018-07-20: Ticket #209: vos_getInterfaces returning incorrect "name" and "linkState" on windows (requires
- *                                  at least windows vista now).
- *      BL 2018-07-13: Ticket #208: VOS socket options: QoS/ToS field priority handling needs update
- *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
- *      BL 2018-03-22: Ticket #192: Compiler warnings on Windows (minGW)
- *      BL 2018-03-06: 64Bit endian swap added
- *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
- */
+/*
+* $Id$*
+*
+*      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
+*      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
+*      SB 2018-07-20: Ticket #209: vos_getInterfaces returning incorrect "name" and "linkState" on windows (requires
+*                                  at least windows vista now).
+*      BL 2018-07-13: Ticket #208: VOS socket options: QoS/ToS field priority handling needs update
+*      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+*      BL 2018-03-22: Ticket #192: Compiler warnings on Windows (minGW)
+*      BL 2018-03-06: 64Bit endian swap added
+*      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
+*/
 
 #if (!defined (WIN32) && !defined (WIN64))
 #error \
@@ -135,7 +135,7 @@ INT32 recvmsg (SOCKET sock, struct msghdr *pMessage, int flags)
             vos_printLog(VOS_LOG_ERROR, "WSAIoctl() failed (Err: %d)\n", err);
             return -1;
         }
-        
+
     }
     else
     {
@@ -144,7 +144,7 @@ INT32 recvmsg (SOCKET sock, struct msghdr *pMessage, int flags)
         if (0 != res)
         {
             DWORD err = WSAGetLastError();
-            
+
             /* to avoid flooding with error messages */
             if (err != WSAEMSGSIZE)
             {
@@ -154,7 +154,7 @@ INT32 recvmsg (SOCKET sock, struct msghdr *pMessage, int flags)
                 }
                 return -1;
             }
-            
+
         }
     }
     return numBytes;
@@ -364,15 +364,15 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
     UINT32          *pAddrCnt,
     VOS_IF_REC_T    ifAddrs[])
 {
-    UINT8               *buf            = NULL;
-    UINT32              bufLen          = 0u;
-    PIP_ADAPTER_ADDRESSES    pAdapterList    = NULL;
-    PIP_ADAPTER_ADDRESSES   pAdapter        = NULL;
-    PIP_ADAPTER_UNICAST_ADDRESS pAddress = NULL;
-    UINT32              err         = 0u;
-    UINT32              addrCnt     = 0u;
-    VOS_ERR_T           retVal = VOS_NO_ERR;
-    UINT32              netMask     = 0u;
+    UINT8       *buf    = NULL;
+    UINT32      bufLen  = 0u;
+    PIP_ADAPTER_ADDRESSES pAdapterList      = NULL;
+    PIP_ADAPTER_ADDRESSES pAdapter          = NULL;
+    PIP_ADAPTER_UNICAST_ADDRESS pAddress    = NULL;
+    UINT32      err     = 0u;
+    UINT32      addrCnt = 0u;
+    VOS_ERR_T   retVal  = VOS_NO_ERR;
+    UINT32      netMask = 0u;
 
     if ((pAddrCnt == NULL)
         || (ifAddrs == NULL))
@@ -389,7 +389,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
     pAdapterList = (PIP_ADAPTER_ADDRESSES) buf;
 
     /* get the actual data we want */
-    err = GetAdaptersAddresses(AF_INET,0,NULL, pAdapterList, (PULONG)&bufLen);
+    err = GetAdaptersAddresses(AF_INET, 0, NULL, pAdapterList, (PULONG)&bufLen);
     if (err != NO_ERROR)
     {
         vos_printLog(VOS_LOG_ERROR, "GetAdaptersInfo failed (Err: %d)\n", err);
@@ -821,7 +821,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
         }
 
         {
-            u_long optValue = (pOptions->nonBlocking == TRUE)?TRUE:FALSE;
+            u_long optValue = (pOptions->nonBlocking == TRUE) ? TRUE : FALSE;
 
             if (ioctlsocket(sock, (long) FIONBIO, &optValue) == SOCKET_ERROR)
             {
@@ -841,15 +841,15 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
              a value called the "DSCP" (Differentiated Services Code Point).
              QoS as priority value is now mapped to DSCP values and the Explicit Congestion Notification (ECN)
              is set to 0
-             
+
              IEC61375-3-4 Chap 4.6.3 defines the binary representation of DSCP field as:
                 LLL000
              where
                 LLL: priority level (0-7) defined in Chap 4.6.2
-             
+
              */
-            
-            DWORD   sockOptValue = (DWORD) pOptions->qos << 5;    /* The lower 2 bits are the ECN field! */
+
+            DWORD sockOptValue = (DWORD) pOptions->qos << 5;      /* The lower 2 bits are the ECN field! */
             if (setsockopt(sock, IPPROTO_IP, IP_TOS, (const char *)&sockOptValue,
                            sizeof(sockOptValue)) == SOCKET_ERROR)
             {
@@ -1414,23 +1414,23 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
 
             switch (err)
             {
-               /*Accept return -1 and err = EWOULDBLOCK,
-               when there is no more connection requests.*/
-               case WSAEWOULDBLOCK:
-               {
-                   *pSock = connFd;
-                   return VOS_NO_ERR;
-               }
-               case WSAEINTR:         break;
-               case WSAECONNABORTED:  break;
+                /*Accept return -1 and err = EWOULDBLOCK,
+                when there is no more connection requests.*/
+                case WSAEWOULDBLOCK:
+                {
+                    *pSock = connFd;
+                    return VOS_NO_ERR;
+                }
+                case WSAEINTR:         break;
+                case WSAECONNABORTED:  break;
 #if defined (WSAEPROTO)
-               case WSAEPROTO:        break;
+                case WSAEPROTO:        break;
 #endif
-               default:
-               {
-                   vos_printLog(VOS_LOG_ERROR, "accept() failed (socket: %d, err: %d)", (int) *pSock, err);
-                   return VOS_UNKNOWN_ERR;
-               }
+                default:
+                {
+                    vos_printLog(VOS_LOG_ERROR, "accept() failed (socket: %d, err: %d)", (int) *pSock, err);
+                    return VOS_UNKNOWN_ERR;
+                }
             }
         }
         else
@@ -1488,10 +1488,9 @@ EXT_DECL VOS_ERR_T vos_sockConnect (
         }
         else if (err == WSAEISCONN)
         {
- //           return VOS_INUSE_ERR;
+            /*           return VOS_INUSE_ERR; */
         }
         else
-
         {
             vos_printLog(VOS_LOG_WARNING, "connect() failed (Err: %d)\n", err);
             return VOS_IO_ERR;
