@@ -105,7 +105,7 @@ static void ttiGetUUIDfromLabel (
 
 static TRDP_IP_ADDR_T ipFromURI (
     TRDP_APP_SESSION_T  appHandle,
-    TRDP_URI_HOST_T     uri)
+    const TRDP_URI_HOST_T uri)
 {
     TRDP_IP_ADDR_T ipAddr = VOS_INADDR_ANY;
 

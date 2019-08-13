@@ -84,7 +84,7 @@ TRDP_ERR_T trdp_pdGet (
     PD_ELE_T            *pPacket,
     TRDP_UNMARSHALL_T   unmarshall,
     void                *refCon,
-    const UINT8         *pData,
+    UINT8               *pData,
     UINT32              *pDataSize);
 
 TRDP_ERR_T  trdp_pdSendQueued (

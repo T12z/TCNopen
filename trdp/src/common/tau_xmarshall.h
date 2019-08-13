@@ -48,7 +48,7 @@ extern "C" {
 #define __cdecl
 #endif
 
-#define TAU_XMAX_DS_LEVEL  8
+#define TAU_XMAX_DS_LEVEL  5
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -114,7 +114,7 @@ EXT_DECL TRDP_ERR_T tau_xinitMarshall(
 EXT_DECL TRDP_ERR_T tau_xmarshall (
     void            *pRefCon,
     UINT32          comId,
-    UINT8           *pSrc,
+    const UINT8     *pSrc,
     UINT32          srcSize,
     UINT8           *pDest,
     UINT32          *pDestSize,

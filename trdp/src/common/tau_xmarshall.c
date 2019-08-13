@@ -27,7 +27,6 @@
  */
 
 #include "tau_xmarshall.h"
-
 #include <string.h>
 
 #include "trdp_if_light.h"
@@ -44,8 +43,8 @@
 /* same as in tau-version */
 typedef struct {
 	INT32 level; /**< track recursive level   */
-	UINT8 *pSrc; /**< source pointer          */
-	UINT8 *pSrcEnd; /**< last source             */
+	const UINT8 *pSrc; /**< source pointer          */
+	const UINT8 *pSrcEnd; /**< last source             */
 	UINT8 *pDst; /**< destination pointer     */
 	UINT8 *pDstEnd; /**< last destination        */
 } TAU_MARSHALL_INFO_T;
@@ -102,8 +101,8 @@ static int compareDataset (
 		const void  *pArg1,
 		const void  *pArg2)
 {
-	TRDP_DATASET_T  *p1 = *(TRDP_DATASET_T * *)pArg1;
-	TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * *)pArg2;
+	const TRDP_DATASET_T  *p1 = *(TRDP_DATASET_T * const *)pArg1;
+	const TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * const *)pArg2;
 
 	if (p1->id < p2->id)
 	{
@@ -130,8 +129,8 @@ static int compareDataset (
  *  @retval          1 if arg1 > arg2
  */
 static int compareDatasetDeref(const void *pArg1, const void *pArg2) {
-	TRDP_DATASET_T *p1 = (TRDP_DATASET_T *) pArg1;
-	TRDP_DATASET_T *p2 = *(TRDP_DATASET_T * *) pArg2;
+	const TRDP_DATASET_T *p1 = (const TRDP_DATASET_T *) pArg1;
+	const TRDP_DATASET_T *p2 = *(TRDP_DATASET_T * const *) pArg2;
 
 	if (p1->id < p2->id) {
 		return -1;
@@ -153,11 +152,11 @@ static int compareDatasetDeref(const void *pArg1, const void *pArg2) {
  *  @retval          1 if arg1 > arg2
  */
 static int compareComId(const void *pArg1, const void *pArg2) {
-	if ((((TRDP_COMID_DSID_MAP_T *) pArg1)->comId)
-			< (((TRDP_COMID_DSID_MAP_T *) pArg2)->comId)) {
+	if ((((const TRDP_COMID_DSID_MAP_T *) pArg1)->comId)
+			< (((const TRDP_COMID_DSID_MAP_T *) pArg2)->comId)) {
 		return -1;
-	} else if ((((TRDP_COMID_DSID_MAP_T *) pArg1)->comId)
-			> (((TRDP_COMID_DSID_MAP_T *) pArg2)->comId)) {
+	} else if ((((const TRDP_COMID_DSID_MAP_T *) pArg1)->comId)
+			> (((const TRDP_COMID_DSID_MAP_T *) pArg2)->comId)) {
 		return 1;
 	} else {
 		return 0;
@@ -255,7 +254,7 @@ static TRDP_ERR_T marshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pDatase
 	TRDP_ERR_T result;
 	UINT16 lIndex;
 	UINT32 var_size = 0u;
-	UINT8 *pSrc = pInfo->pSrc;
+	const UINT8 *pSrc = pInfo->pSrc;
 	UINT8 *pDst = pInfo->pDst;
 
 	/* Restrict recursion */
@@ -311,9 +310,9 @@ static TRDP_ERR_T marshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pDatase
 			/*    possible variable source size    */
 			if (noOfItems == 1 && (t<=TRDP_UINT32) ) {
 				switch (m) {
-				case 8:  var_size = *(UINT64 *)pSrc; break;
-				case 4:  var_size = *(UINT32 *)pSrc; break;
-				case 2:  var_size = *(UINT16 *)pSrc; break;
+				case 8:  var_size = *(const UINT64 *)pSrc; break;
+				case 4:  var_size = *(const UINT32 *)pSrc; break;
+				case 2:  var_size = *(const UINT16 *)pSrc; break;
 				case 1:  var_size =           *pSrc; break;
 				default: var_size = 0;
 				}
@@ -345,9 +344,9 @@ static TRDP_ERR_T marshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pDatase
 						pSrc = alignPtr(pSrc, cAlignOfBasicTypes[__TRDP_TIMEDATE64_US]);
 						tm_2 = 0;
 						switch (m) {
-						case 2: si = *(INT16 *)pSrc; break;
-						case 4: si = *(INT32 *)pSrc; break;
-						case 8: si = *(INT64 *)pSrc; break;
+						case 2: si = *(const INT16 *)pSrc; break;
+						case 4: si = *(const INT32 *)pSrc; break;
+						case 8: si = *(const INT64 *)pSrc; break;
 						}
 					} else {
 						m = cMemSizeOfBasicTypes[TRDP_TIMEDATE32];
@@ -360,16 +359,16 @@ static TRDP_ERR_T marshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pDatase
 				/* differentiate for signed types to get sign extension, when needed */
 				if (t >= TRDP_INT16 && t <= TRDP_INT64) {
 					switch (m) {
-					case 2: si = *(INT16 *)pSrc; break;
-					case 4: si = *(INT32 *)pSrc; break;
-					case 8: si = *(INT64 *)pSrc; break;
+					case 2: si = *(const INT16 *)pSrc; break;
+					case 4: si = *(const INT32 *)pSrc; break;
+					case 8: si = *(const INT64 *)pSrc; break;
 					}
 					ui = si;
 				} else {
 					switch (m) {
-					case 2: ui = *(UINT16 *)pSrc; break;
-					case 4: ui = *(UINT32 *)pSrc; break;
-					case 8: ui = *(UINT64 *)pSrc; break;
+					case 2: ui = *(const UINT16 *)pSrc; break;
+					case 4: ui = *(const UINT32 *)pSrc; break;
+					case 8: ui = *(const UINT64 *)pSrc; break;
 					}
 				}
 
@@ -471,7 +470,7 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
 			UINT32 t = pDataset->pElement[lIndex].type;
 			UINT32 m = cMemSizeOfBasicTypes[t];
 			UINT32 w = cWireSizeOfBasicTypes[t];
-			UINT8 *pSrc = pInfo->pSrc; /* just a short-hand */
+			const UINT8 *pSrc = pInfo->pSrc; /* just a short-hand */
 			UINT8 *pDst = alignPtr(pInfo->pDst, cAlignOfBasicTypes[t]);
 
 			if ((pSrc + noOfItems * w) > pInfo->pSrcEnd) {
@@ -495,10 +494,12 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
 						u = (u << 8) | *pSrc++;
 						u = (u << 8) | *pSrc++;
 						u = (u << 8) | *pSrc++;
+						__fallthrough;
 						//no break
 					case 4:
 						u = (u << 8) | *pSrc++;
 						u = (u << 8) | *pSrc++;
+						__fallthrough;
 						//no break
 					case 2:
 						u = (u << 8) | *pSrc++;
@@ -613,7 +614,7 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
  *
  */
 
-EXT_DECL TRDP_ERR_T tau_xinitMarshall ( void * *ppRefCon,
+EXT_DECL TRDP_ERR_T tau_xinitMarshall ( void * *ppRefCon __unused,
 		UINT32 numComId,   TRDP_COMID_DSID_MAP_T *pComIdDsIdMap,
 		UINT32 numDataSet, TRDP_DATASET_T        *pDataset[]     ) {
 
@@ -663,7 +664,7 @@ EXT_DECL TRDP_ERR_T tau_xinitMarshall ( void * *ppRefCon,
  *
  */
 
-EXT_DECL TRDP_ERR_T tau_xmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
+EXT_DECL TRDP_ERR_T tau_xmarshall(void *pRefCon __unused, UINT32 comId, const UINT8 *pSrc,
 		UINT32 srcSize, UINT8 *pDest, UINT32 *pDestSize,
 		TRDP_DATASET_T * *ppDSPointer) {
 
@@ -722,7 +723,7 @@ EXT_DECL TRDP_ERR_T tau_xmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
  *
  */
 
-EXT_DECL TRDP_ERR_T tau_xunmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
+EXT_DECL TRDP_ERR_T tau_xunmarshall(void *pRefCon __unused, UINT32 comId, UINT8 *pSrc,
 		UINT32 srcSize, UINT8 *pDest, UINT32 *pDestSize, TRDP_DATASET_T * *ppDSPointer) {
 	TRDP_ERR_T result;
 	TRDP_DATASET_T *pDataset;
@@ -776,7 +777,7 @@ EXT_DECL TRDP_ERR_T tau_xunmarshall(void *pRefCon, UINT32 comId, UINT8 *pSrc,
  *
  */
 
-EXT_DECL TRDP_ERR_T tau_xcalcDatasetSize(void *pRefCon, UINT32 dsId, UINT8 *pSrc,
+EXT_DECL TRDP_ERR_T tau_xcalcDatasetSize(void *pRefCon __unused, UINT32 dsId, UINT8 *pSrc,
 		UINT32 srcSize, UINT32 *pDestSize, TRDP_DATASET_T * *ppDSPointer) {
 	TRDP_ERR_T result;
 	TRDP_DATASET_T *pDataset;
@@ -832,7 +833,7 @@ EXT_DECL TRDP_ERR_T tau_xcalcDatasetSize(void *pRefCon, UINT32 dsId, UINT8 *pSrc
  *
  */
 
-EXT_DECL TRDP_ERR_T tau_xcalcDatasetSizeByComId(void *pRefCon, UINT32 comId, UINT8 *pSrc,
+EXT_DECL TRDP_ERR_T tau_xcalcDatasetSizeByComId(void *pRefCon __unused, UINT32 comId, UINT8 *pSrc,
 		UINT32 srcSize, UINT32 *pDestSize, TRDP_DATASET_T * *ppDSPointer) {
 	TRDP_ERR_T result;
 	TRDP_DATASET_T *pDataset;

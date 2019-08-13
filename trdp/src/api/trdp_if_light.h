@@ -303,7 +303,7 @@ EXT_DECL TRDP_IP_ADDR_T tlc_getOwnIpAddress (TRDP_APP_SESSION_T appHandle);
 EXT_DECL TRDP_ERR_T tlp_publish (
     TRDP_APP_SESSION_T      appHandle,
     TRDP_PUB_T              *pPubHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_PD_CALLBACK_T      pfCbFunction,
     UINT32                  comId,
     UINT32                  etbTopoCnt,
@@ -556,7 +556,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
 EXT_DECL TRDP_ERR_T tlp_subscribe (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_SUB_T          *pSubHandle,
-    const void          *pUserRef,
+    void                *pUserRef,
     TRDP_PD_CALLBACK_T  pfCbFunction,
     UINT32              comId,
     UINT32              etbTopoCnt,
@@ -710,7 +710,7 @@ EXT_DECL TRDP_ERR_T tlp_get (
  */
 EXT_DECL TRDP_ERR_T tlm_notify (
     TRDP_APP_SESSION_T      appHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
     UINT32                  comId,
     UINT32                  etbTopoCnt,
@@ -754,7 +754,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
  */
 EXT_DECL TRDP_ERR_T tlm_request (
     TRDP_APP_SESSION_T      appHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
     TRDP_UUID_T             *pSessionId,
     UINT32                  comId,
@@ -838,7 +838,7 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
 EXT_DECL TRDP_ERR_T tlm_addListener (
     TRDP_APP_SESSION_T      appHandle,
     TRDP_LIS_T              *pListenHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
     BOOL8                   comIdListener,
     UINT32                  comId,

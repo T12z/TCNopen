@@ -337,7 +337,7 @@ int main (int argc, char * *argv)
     {
         err = tlp_subscribe(appHandle,                  /*    our application identifier           */
                             &gSubPackets[i].subHandle,  /*    our subscription identifier          */
-                            (const void *) &i,           /*    user reference                       */
+                            &i,                         /*    user reference                       */
                             NULL,                       /*    callback function                    */
                             gSubPackets[i].comID,       /*    ComID                                */
                             0,                          /*    topocount: local consist only        */

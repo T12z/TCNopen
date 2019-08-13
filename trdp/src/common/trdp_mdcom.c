@@ -152,8 +152,8 @@ static void         trdp_mdDetailSenderPacket (const TRDP_MSG_T         msgType,
                                                const UINT32             dataSize,
                                                const BOOL8              newSession,
                                                TRDP_APP_SESSION_T       appHandle,
-                                               const TRDP_URI_USER_T    *srcURI,
-                                               const TRDP_URI_USER_T    *destURI,
+                                               const CHAR8              *srcURI, /* refers to TRDP_URI_USER_T */
+                                               const CHAR8              *destURI,
                                                MD_ELE_T                 *pSenderElement);
 
 static TRDP_ERR_T   trdp_mdSendME (TRDP_SESSION_PT  appHandle,
@@ -1891,8 +1891,8 @@ static TRDP_ERR_T trdp_mdSendME (TRDP_SESSION_PT appHandle, MD_HEADER_T *pH, INT
                                               0u,
                                               TRUE,
                                               appHandle,
-                                              (const TRDP_URI_USER_T *)mdElement->destURI, /*srcURI cross over*/
-                                              (const TRDP_URI_USER_T *)mdElement->srcURI, /*destURI cross over*/
+                                              mdElement->destURI, /*srcURI cross over*/
+                                              mdElement->srcURI, /*destURI cross over*/
                                               pSenderElement);
                     errv = TRDP_NO_ERR;
                 }
@@ -3126,8 +3126,8 @@ static void trdp_mdDetailSenderPacket (const TRDP_MSG_T         msgType,
                                        const UINT32             dataSize,
                                        const BOOL8              newSession,
                                        TRDP_APP_SESSION_T       appHandle,
-                                       const TRDP_URI_USER_T    *srcURI,
-                                       const TRDP_URI_USER_T    *destURI,
+                                       const CHAR8              *srcURI,
+                                       const CHAR8              *destURI,
                                        MD_ELE_T                 *pSenderElement)
 {
     /* Prepare header */
@@ -3155,24 +3155,22 @@ static void trdp_mdDetailSenderPacket (const TRDP_MSG_T         msgType,
 
     if ( srcURI != NULL )
     {
-        memset((CHAR8 *) pSenderElement->pPacket->frameHead.sourceURI, 0, TRDP_MAX_URI_USER_LEN);
-        memcpy((CHAR8 *) pSenderElement->pPacket->frameHead.sourceURI, srcURI, strlen((char *)srcURI));
+    	strncpy((CHAR8 *) pSenderElement->pPacket->frameHead.sourceURI, srcURI, TRDP_MAX_URI_USER_LEN);
     }
 
     if ( destURI != NULL )
     {
-        memset((CHAR8 *) pSenderElement->pPacket->frameHead.destinationURI, 0, TRDP_MAX_URI_USER_LEN);
-        memcpy((CHAR8 *) pSenderElement->pPacket->frameHead.destinationURI, destURI, strlen((char *)destURI));
+    	strncpy((CHAR8 *) pSenderElement->pPacket->frameHead.destinationURI, destURI, TRDP_MAX_URI_USER_LEN);
     }
     if ( pData != NULL )
     {
-        if (pSenderElement->pktFlags & TRDP_FLAGS_MARSHALL &&
+        if ((pSenderElement->pktFlags & TRDP_FLAGS_MARSHALL) &&
             appHandle->marshall.pfCbMarshall != NULL)
         {
             UINT32 destSize = dataSize;
             (void) appHandle->marshall.pfCbMarshall(appHandle->marshall.pRefCon,
                                                     pSenderElement->addr.comId,
-                                                    (UINT8 *) pData,
+                                                    pData,
                                                     dataSize,
                                                     pSenderElement->pPacket->data,
                                                     &destSize,
@@ -3233,8 +3231,8 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
 {
     TRDP_IP_ADDR_T  srcIpAddr;
     TRDP_IP_ADDR_T  destIpAddr;
-    TRDP_URI_USER_T *srcURI     = NULL;
-    TRDP_URI_USER_T *destURI    = NULL;
+    const CHAR8 *srcURI     = NULL;
+    const CHAR8 *destURI    = NULL;
     UINT32          sequenceCounter;
     TRDP_ERR_T      errv = TRDP_NOLIST_ERR;
     MD_ELE_T        *pSenderElement = NULL;
@@ -3267,8 +3265,8 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
             if ( NULL != pSenderElement->pPacket )
             {
                 /*get values for later use*/
-                destURI = (TRDP_URI_USER_T *)pSenderElement->srcURI;
-                srcURI  = (TRDP_URI_USER_T *)pSenderElement->destURI;
+                destURI = pSenderElement->srcURI;
+                srcURI  = pSenderElement->destURI;
                 /*perform cross over of IP adresses*/
                 destIpAddr  = pSenderElement->addr.srcIpAddr;
                 srcIpAddr   = pSenderElement->addr.destIpAddr;
@@ -3328,8 +3326,8 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
                                                   dataSize,
                                                   newSession,
                                                   appHandle,
-                                                  (const TRDP_URI_USER_T *)srcURI,
-                                                  (const TRDP_URI_USER_T *)destURI,
+                                                  srcURI,
+                                                  destURI,
                                                   pSenderElement);
                         errv = TRDP_NO_ERR;
                     }
@@ -3384,7 +3382,7 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
 TRDP_ERR_T trdp_mdCall (
     const TRDP_MSG_T        msgType,
     TRDP_APP_SESSION_T      appHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
     TRDP_UUID_T             *pSessionId,
     UINT32                  comId,
@@ -3544,8 +3542,8 @@ TRDP_ERR_T trdp_mdCall (
                                           dataSize,
                                           TRUE,
                                           appHandle,
-                                          (const TRDP_URI_USER_T *)srcURI,
-                                          (const TRDP_URI_USER_T *)destURI,
+                                          srcURI,
+                                          destURI,
                                           pSenderElement);
                 errv = TRDP_NO_ERR;
             }
@@ -3597,8 +3595,8 @@ TRDP_ERR_T trdp_mdConfirm (
     TRDP_IP_ADDR_T  srcIpAddr;
     TRDP_IP_ADDR_T  destIpAddr;
 
-    TRDP_URI_USER_T *srcURI     = NULL;
-    TRDP_URI_USER_T *destURI    = NULL;
+    const CHAR8 *srcURI     = NULL;
+    const CHAR8 *destURI    = NULL;
 
     TRDP_ERR_T      errv = TRDP_NO_ERR;
     MD_ELE_T        *pSenderElement = NULL;
@@ -3624,8 +3622,8 @@ TRDP_ERR_T trdp_mdConfirm (
             /*perform cross over of IP adresses and URIs*/
             destIpAddr  = pSenderElement->addr.srcIpAddr;
             srcIpAddr   = pSenderElement->addr.destIpAddr;
-            destURI     = (TRDP_URI_USER_T *)pSenderElement->srcURI;
-            srcURI      = (TRDP_URI_USER_T *)pSenderElement->destURI;
+            destURI     = pSenderElement->srcURI;
+            srcURI      = pSenderElement->destURI;
 
             pSenderElement->dataSize        = 0u;
             pSenderElement->grossSize       = trdp_packetSizeMD(0u);
@@ -3681,8 +3679,8 @@ TRDP_ERR_T trdp_mdConfirm (
                                               0u,    /* zero data */
                                               FALSE, /* no new session obviously */
                                               appHandle,
-                                              (const TRDP_URI_USER_T *)srcURI,
-                                              (const TRDP_URI_USER_T *)destURI,
+                                              srcURI,
+                                              destURI,
                                               pSenderElement);
                     errv = TRDP_NO_ERR;
                 }

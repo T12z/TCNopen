@@ -29,6 +29,7 @@
 #include "vos_utils.h"
 #include "trdp_xml.h"
 #include <string.h>
+#include <strings.h>
 
 #include "tau_xmarshall.h"
 

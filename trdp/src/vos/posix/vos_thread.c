@@ -127,14 +127,14 @@ struct sched_attr
     uint64_t    sched_period;
 };
 
-int sched_setattr (pid_t                    pid,
+static int sched_setattr (pid_t                    pid,
                    const struct sched_attr  *attr,
                    unsigned int             flags)
 {
     return syscall(__NR_sched_setattr, pid, attr, flags);
 }
 
-int sched_getattr (pid_t                pid,
+static int sched_getattr (pid_t                pid,
                    struct sched_attr    *attr,
                    unsigned int         size,
                    unsigned int         flags)
@@ -226,7 +226,7 @@ int sem_init (sem_t *pSema, int flags, unsigned int mode)
 /* are remaining to represent the seconds, which in turn give 0x10C5 seconds or in decimal 4293    */
 #define MAXSEC_FOR_USECPRESENTATION  4293
 
-typedef struct
+typedef struct VOS_THREAD_CYC
 {
     const CHAR8         *pName;
     VOS_TIMEVAL_T       startTime;
@@ -235,14 +235,14 @@ typedef struct
     void                *pArguments;
 } VOS_THREAD_CYC_T;
 
-static void vos_runCyclicThread (
-    VOS_THREAD_CYC_T *pParameters)
+static void *vos_runCyclicThread ( void *threadParam )
 {
     VOS_TIMEVAL_T       now;
     VOS_TIMEVAL_T       priorCall;
     VOS_TIMEVAL_T       afterCall;
     UINT32              execTime;
     UINT32              waitingTime;
+    VOS_THREAD_CYC_T   *pParameters = (VOS_THREAD_CYC_T *)threadParam;
     UINT32              interval    = pParameters->interval;
     VOS_THREAD_FUNC_T   pFunction   = pParameters->pFunction;
     void *pArguments = pParameters->pArguments;
@@ -271,7 +271,7 @@ static void vos_runCyclicThread (
                          pParameters->pName,
                          (int)rt_attribs.sched_policy,
                          (int)errno);
-            return VOS_THREAD_ERR;
+            return (void *)VOS_THREAD_ERR;
         }
     }
 #endif
@@ -332,6 +332,7 @@ static void vos_runCyclicThread (
         }
         pthread_testcancel();
     }
+    return NULL;
 }
 
 /**********************************************************************************************************************/
@@ -542,14 +543,14 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
             params.startTime = *pStartTime;
         }
         /* Create a cyclic thread */
-        retCode = pthread_create(&hThread, &threadAttrib, (void *(*)(void *))vos_runCyclicThread, &params);
+        retCode = pthread_create(&hThread, &threadAttrib, vos_runCyclicThread, &params);
         vos_threadDelay(10000u);
     }
     else
     {
 
         /* Create the thread */
-        retCode = pthread_create(&hThread, &threadAttrib, (void *(*)(void *))pFunction, pArguments);
+        retCode = pthread_create(&hThread, &threadAttrib, pFunction, pArguments);
     }
     if (retCode != 0)
     {

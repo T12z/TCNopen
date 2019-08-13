@@ -199,7 +199,7 @@ TRDP_ERR_T trdp_pdPut (
         {
             ret = marshall(refCon,
                            pPacket->addr.comId,
-                           (UINT8 *) pData,
+                           pData,
                            dataSize,
                            pPacket->pFrame->data,
                            &dataSize,
@@ -235,7 +235,7 @@ TRDP_ERR_T trdp_pdGet (
     PD_ELE_T            *pPacket,
     TRDP_UNMARSHALL_T   unmarshall,
     void                *refCon,
-    const UINT8         *pData,
+    UINT8               *pData,
     UINT32              *pDataSize)
 {
     if (pPacket == NULL)
@@ -263,7 +263,7 @@ TRDP_ERR_T trdp_pdGet (
             if (*pDataSize >= pPacket->dataSize)
             {
                 *pDataSize = pPacket->dataSize;
-                memcpy((void *)pData, pPacket->pFrame->data, *pDataSize);
+                memcpy(pData, pPacket->pFrame->data, *pDataSize);
                 return TRDP_NO_ERR;
             }
             else

@@ -206,13 +206,24 @@ TRDP_ERR_T tau_xsession_request  (TAU_XSESSION_T *our,               UINT32  sub
 TRDP_ERR_T tau_xsession_ComId2DatasetId(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *datasetId);
 
 /**
+ *  get a dataset description for a related Com-ID
+ *
+ *  @param our     xsession handle
+ *  @param ComID   the COM-ID to search for
+ *  @param[out] returning the element, untouched in case of error
+ *
+ *  @return  error
+ */
+TRDP_ERR_T tau_xsession_lookup_dataset(TAU_XSESSION_T *our, UINT32 datasetId, TRDP_DATASET_T **ds);
+
+/**
  *  get information on a dataset variable
  *
- *  @param our   xsession handle
- *  @param dsId  the dataset ID to search for
- *  @param name  name of the element to lookup, or NULL if the index is used instead
- *  @param index number of element in dataset, set to 0 if name is used, first element is == 1
- *  @param[out] returning the element, untouched in case of error
+ *  @param our     xsession handle
+ *  @param dsId    the dataset ID to search for
+ *  @param name    name of the element to lookup, or NULL if the index is used instead
+ *  @param index   number of element in dataset, set to 0 if name is used, first element is == 1
+ *  @param[out] ds returning the element, untouched in case of error
  *
  *  @return  error
  */

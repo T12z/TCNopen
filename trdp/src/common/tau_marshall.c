@@ -54,11 +54,11 @@
 /** Marshalling info, used to and from wire */
 typedef struct
 {
-    INT32   level;          /**< track recursive level   */
-    UINT8   *pSrc;          /**< source pointer          */
-    UINT8   *pSrcEnd;       /**< last source             */
-    UINT8   *pDst;          /**< destination pointer     */
-    UINT8   *pDstEnd;       /**< last destination        */
+    INT32       level;          /**< track recursive level   */
+    const UINT8 *pSrc;          /**< source pointer          */
+    const UINT8 *pSrcEnd;       /**< last source             */
+    UINT8       *pDst;          /**< destination pointer     */
+    UINT8       *pDstEnd;       /**< last destination        */
 } TAU_MARSHALL_INFO_T;
 
 /* structure type definitions for alignment calculation */
@@ -105,13 +105,18 @@ static const UINT8  cSizeOfBasicTypes[] = {1, 1, 1, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4
  *
  *  @retval         aligned pointer
  */
-static INLINE UINT8 *alignePtr (
+static INLINE UINT8 *alignPtr (
+    UINT8 *pSrc,
+    uintptr_t   alignment)
+{
+    return (UINT8 *)(((uintptr_t) pSrc + (alignment-1)) & ~(alignment-1));
+}
+
+static INLINE const UINT8 *alignConstPtr (
     const UINT8 *pSrc,
     uintptr_t   alignment)
 {
-    alignment--;
-
-    return (UINT8 *) (((uintptr_t) pSrc + alignment) & ~alignment);
+    return (const UINT8 *)(((uintptr_t) pSrc + (alignment-1)) & ~(alignment-1));
 }
 
 /**********************************************************************************************************************/
@@ -125,22 +130,22 @@ static INLINE UINT8 *alignePtr (
  *  @retval         none
  */
 static INLINE void unpackedCopy64 (
-    UINT8   * *ppSrc,
+    const UINT8 * *ppSrc,
     UINT8   * *ppDst,
     UINT32  noOfItems)
 
 #ifdef B_ENDIAN
 {
     UINT32  size    = noOfItems * sizeof(UINT64);
-    UINT8   *pDst8  = (UINT8 *) alignePtr(*ppDst, ALIGNOF(UINT64));
+    UINT8   *pDst8  = alignPtr(*ppDst, ALIGNOF(UINT64));
     memcpy(pDst8, *ppSrc, size);
-    *ppSrc  = (UINT8 *) *ppSrc + size;
-    *ppDst  = (UINT8 *) pDst8 + size;
+    *ppSrc  = *ppSrc + size;
+    *ppDst  =  pDst8 + size;
 }
 #else
 {
-    UINT8   *pDst8  = (UINT8 *) alignePtr(*ppDst, ALIGNOF(UINT64));
-    UINT8   *pSrc8  = *ppSrc;
+    UINT8       *pDst8  = alignPtr(*ppDst, ALIGNOF(UINT64));
+    const UINT8 *pSrc8  = *ppSrc;
     while (noOfItems--)
     {
         *pDst8++    = *(pSrc8 + 7u);
@@ -153,8 +158,8 @@ static INLINE void unpackedCopy64 (
         *pDst8++    = *pSrc8;
         pSrc8       += 8u;
     }
-    *ppSrc  = (UINT8 *) pSrc8;
-    *ppDst  = (UINT8 *) pDst8;
+    *ppSrc  = pSrc8;
+    *ppDst  = pDst8;
 }
 #endif
 
@@ -170,11 +175,11 @@ static INLINE void unpackedCopy64 (
  */
 
 static INLINE void packedCopy64 (
-    UINT8   * *ppSrc,
+    const UINT8 * *ppSrc,
     UINT8   * *ppDst,
     UINT32  noOfItems)
 {
-    UINT64 *pSrc64 = (UINT64 *) alignePtr(*ppSrc, ALIGNOF(UINT64));
+    const UINT64 *pSrc64 = (const UINT64 *) alignConstPtr(*ppSrc, ALIGNOF(UINT64));
     while (noOfItems--)
     {
         *(*ppDst)++ = (UINT8) (*pSrc64 >> 56u);
@@ -187,7 +192,7 @@ static INLINE void packedCopy64 (
         *(*ppDst)++ = (UINT8) (*pSrc64 & 0xFFu);
         pSrc64++;
     }
-    *ppSrc = (UINT8 *) pSrc64;
+    *ppSrc = (const UINT8 *) pSrc64;
 }
 
 /**********************************************************************************************************************/
@@ -204,8 +209,8 @@ static int compareDataset (
     const void  *pArg1,
     const void  *pArg2)
 {
-    TRDP_DATASET_T  *p1 = *(TRDP_DATASET_T * *)pArg1;
-    TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * *)pArg2;
+    const TRDP_DATASET_T  *p1 = *(TRDP_DATASET_T * const *)pArg1;
+    const TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * const *)pArg2;
 
     if (p1->id < p2->id)
     {
@@ -235,8 +240,8 @@ static int compareDatasetDeref (
     const void  *pArg1,
     const void  *pArg2)
 {
-    TRDP_DATASET_T  *p1 = (TRDP_DATASET_T *)pArg1;
-    TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * *)pArg2;
+    const TRDP_DATASET_T  *p1 = (const TRDP_DATASET_T *)pArg1;
+    const TRDP_DATASET_T  *p2 = *(TRDP_DATASET_T * const *)pArg2;
 
     if (p1->id < p2->id)
     {
@@ -266,11 +271,11 @@ static int compareComId (
     const void  *pArg1,
     const void  *pArg2)
 {
-    if ((((TRDP_COMID_DSID_MAP_T *)pArg1)->comId) < (((TRDP_COMID_DSID_MAP_T *)pArg2)->comId))
+    if ((((const TRDP_COMID_DSID_MAP_T *)pArg1)->comId) < (((const TRDP_COMID_DSID_MAP_T *)pArg2)->comId))
     {
         return -1;
     }
-    else if ((((TRDP_COMID_DSID_MAP_T *)pArg1)->comId) > (((TRDP_COMID_DSID_MAP_T *)pArg2)->comId))
+    else if ((((const TRDP_COMID_DSID_MAP_T *)pArg1)->comId) > (((const TRDP_COMID_DSID_MAP_T *)pArg2)->comId))
     {
         return 1;
     }
@@ -409,7 +414,7 @@ static TRDP_ERR_T marshallDs (
     TRDP_ERR_T  err;
     UINT16      lIndex;
     UINT32      var_size = 0u;
-    UINT8       *pSrc;
+    const UINT8 *pSrc;
     UINT8       *pDst = pInfo->pDst;
 
     /* Restrict recursion */
@@ -425,7 +430,7 @@ static TRDP_ERR_T marshallDs (
             "A struct is always aligned to the largest types alignment requirements"
         Only, at this point we do need to know the size of the largest member to follow! */
 
-    pSrc = alignePtr(pInfo->pSrc, maxSizeOfDSMember(pDataset));
+    pSrc = alignConstPtr(pInfo->pSrc, maxSizeOfDSMember(pDataset));
 
     /*    Loop over all datasets in the array    */
     for (lIndex = 0u; (lIndex < pDataset->numElement) && (pInfo->pSrcEnd > pInfo->pSrc); ++lIndex)
@@ -493,7 +498,7 @@ static TRDP_ERR_T marshallDs (
                case TRDP_INT16:
                case TRDP_UINT16:
                {
-                   UINT16 *pSrc16 = (UINT16 *) alignePtr(pSrc, ALIGNOF(UINT16));
+                   const UINT16 *pSrc16 = (const UINT16 *) alignConstPtr(pSrc, ALIGNOF(UINT16));
 
                    /*    possible variable source size    */
                    var_size = *pSrc16;
@@ -509,7 +514,7 @@ static TRDP_ERR_T marshallDs (
                        *pDst++  = (UINT8) (*pSrc16 & 0xFFu);
                        pSrc16++;
                    }
-                   pSrc = (UINT8 *) pSrc16;
+                   pSrc = (const UINT8 *) pSrc16;
                    break;
                }
                case TRDP_INT32:
@@ -517,7 +522,7 @@ static TRDP_ERR_T marshallDs (
                case TRDP_REAL32:
                case TRDP_TIMEDATE32:
                {
-                   UINT32 *pSrc32 = (UINT32 *) alignePtr(pSrc, ALIGNOF(UINT32));
+                   const UINT32 *pSrc32 = (const UINT32 *) alignConstPtr(pSrc, ALIGNOF(UINT32));
 
                    /*    possible variable source size    */
                    var_size = *pSrc32;
@@ -535,12 +540,12 @@ static TRDP_ERR_T marshallDs (
                        *pDst++  = (UINT8) (*pSrc32 & 0xFFu);
                        pSrc32++;
                    }
-                   pSrc = (UINT8 *) pSrc32;
+                   pSrc = (const UINT8 *) pSrc32;
                    break;
                }
                case TRDP_TIMEDATE64:
                {
-                   UINT32 *pSrc32 = (UINT32 *) alignePtr(pSrc, ALIGNOF(TIMEDATE64_STRUCT_T));
+                   const UINT32 *pSrc32 = (const UINT32 *) alignConstPtr(pSrc, ALIGNOF(TIMEDATE64_STRUCT_T));
 
                    if ((pDst + noOfItems * 8u) > pInfo->pDstEnd)
                    {
@@ -560,14 +565,14 @@ static TRDP_ERR_T marshallDs (
                        *pDst++  = (UINT8) (*pSrc32 & 0xFFu);
                        pSrc32++;
                    }
-                   pSrc = (UINT8 *) pSrc32;
+                   pSrc = (const UINT8 *) pSrc32;
                    break;
                }
                case TRDP_TIMEDATE48:
                {
                    /*    This is not a base type but a structure    */
-                   UINT32   *pSrc32;
-                   UINT16   *pSrc16;
+                   const UINT32   *pSrc32;
+                   const UINT16   *pSrc16;
 
                    if (pDst + noOfItems * 6u > pInfo->pDstEnd)
                    {
@@ -577,18 +582,18 @@ static TRDP_ERR_T marshallDs (
                    while (noOfItems-- > 0u)
                    {
                        pSrc32 =
-                           (UINT32 *) alignePtr(pSrc, ALIGNOF(TIMEDATE48_STRUCT_T));
+                           (const UINT32 *) alignConstPtr(pSrc, ALIGNOF(TIMEDATE48_STRUCT_T));
                        *pDst++  = (UINT8) (*pSrc32 >> 24u);
                        *pDst++  = (UINT8) (*pSrc32 >> 16u);
                        *pDst++  = (UINT8) (*pSrc32 >> 8u);
                        *pDst++  = (UINT8) (*pSrc32 & 0xFFu);
                        pSrc32++;
-                       pSrc16   = (UINT16 *) alignePtr((UINT8 *) pSrc32, ALIGNOF(UINT16));
+                       pSrc16   = (const UINT16 *) alignConstPtr((const UINT8 *) pSrc32, ALIGNOF(UINT16));
                        *pDst++  = (UINT8) (*pSrc16 >> 8u);
                        *pDst++  = (UINT8) (*pSrc16 & 0xFFu);
                        pSrc16++;
-                       pSrc16 = (UINT16 *)alignePtr((UINT8 *)pSrc16, ALIGNOF(TIMEDATE48_STRUCT_T));
-                       pSrc = (UINT8 *) pSrc16;
+                       pSrc16 = (const UINT16 *)alignConstPtr((const UINT8 *)pSrc16, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pSrc = (const UINT8 *) pSrc16;
                    }
                    break;
                }
@@ -643,7 +648,7 @@ static TRDP_ERR_T unmarshallDs (
     TRDP_ERR_T  err;
     UINT16      lIndex;
     UINT32      var_size    = 0u;
-    UINT8       *pSrc       = pInfo->pSrc;
+    const UINT8 *pSrc       = pInfo->pSrc;
     UINT8       *pDst       = pInfo->pDst;
 
     /* Restrict recursion */
@@ -653,7 +658,7 @@ static TRDP_ERR_T unmarshallDs (
         return TRDP_STATE_ERR;
     }
 
-    pDst = alignePtr(pInfo->pDst, maxSizeOfDSMember(pDataset));
+    pDst = alignPtr(pInfo->pDst, maxSizeOfDSMember(pDataset));
 
     /*    Loop over all datasets in the array    */
     for (lIndex = 0u; (lIndex < pDataset->numElement) && (pInfo->pSrcEnd > pInfo->pSrc); ++lIndex)
@@ -717,7 +722,7 @@ static TRDP_ERR_T unmarshallDs (
                case TRDP_INT16:
                case TRDP_UINT16:
                {
-                   UINT16 *pDst16 = (UINT16 *) alignePtr(pDst, ALIGNOF(UINT16));
+                   UINT16 *pDst16 = (UINT16 *) alignPtr(pDst, ALIGNOF(UINT16));
 
                    if ((pDst + noOfItems * 2u) > pInfo->pDstEnd)
                    {
@@ -740,7 +745,7 @@ static TRDP_ERR_T unmarshallDs (
                case TRDP_REAL32:
                case TRDP_TIMEDATE32:
                {
-                   UINT32 *pDst32 = (UINT32 *) alignePtr(pDst, ALIGNOF(UINT32));
+                   UINT32 *pDst32 = (UINT32 *) alignPtr(pDst, ALIGNOF(UINT32));
 
                    if ((pDst + noOfItems * 4u) > pInfo->pDstEnd)
                    {
@@ -772,17 +777,17 @@ static TRDP_ERR_T unmarshallDs (
 
                    while (noOfItems-- > 0)
                    {
-                       pDst32   = (UINT32 *) alignePtr(pDst, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pDst32   = (UINT32 *) alignPtr(pDst, ALIGNOF(TIMEDATE48_STRUCT_T));
                        *pDst32  = ((UINT32)(*pSrc++)) << 24u;
                        *pDst32  += ((UINT32)(*pSrc++)) << 16u;
                        *pDst32  += ((UINT32)(*pSrc++)) << 8u;
                        *pDst32  += *pSrc++;
                        pDst32++;
-                       pDst16   = (UINT16 *) alignePtr((UINT8 *)pDst32, ALIGNOF(UINT16));
+                       pDst16   = (UINT16 *) alignPtr((UINT8 *)pDst32, ALIGNOF(UINT16));
                        *pDst16  = (UINT16) (*pSrc++ << 8u);
                        *pDst16  += *pSrc++;
                        pDst16++;
-                       pDst = (UINT8 *) alignePtr((const UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pDst = (UINT8 *) alignPtr((UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
                    }
                    break;
                }
@@ -798,13 +803,13 @@ static TRDP_ERR_T unmarshallDs (
 
                    while (noOfItems-- > 0u)
                    {
-                       pDst32   = (UINT32 *) alignePtr(pDst, ALIGNOF(TIMEDATE64_STRUCT_T));
+                       pDst32   = (UINT32 *) alignPtr(pDst, ALIGNOF(TIMEDATE64_STRUCT_T));
                        *pDst32  = ((UINT32)(*pSrc++)) << 24u;
                        *pDst32  += ((UINT32)(*pSrc++)) << 16u;
                        *pDst32  += ((UINT32)(*pSrc++)) << 8u;
                        *pDst32  += *pSrc++;
                        pDst32++;
-                       pDst32   = (UINT32 *) alignePtr((UINT8 *)pDst32, ALIGNOF(UINT32));
+                       pDst32   = (UINT32 *) alignPtr((UINT8 *)pDst32, ALIGNOF(UINT32));
                        *pDst32  = ((UINT32)(*pSrc++)) << 24u;
                        *pDst32  += ((UINT32)(*pSrc++)) << 16u;
                        *pDst32  += ((UINT32)(*pSrc++)) << 8u;
@@ -823,7 +828,7 @@ static TRDP_ERR_T unmarshallDs (
                        return TRDP_PARAM_ERR;
                    }
 
-                   unpackedCopy64((UINT8 * *) &pSrc, &pDst, noOfItems);
+                   unpackedCopy64((const UINT8 * *) &pSrc, &pDst, noOfItems);
                    break;
                }
                default:
@@ -866,7 +871,7 @@ static TRDP_ERR_T size_unmarshall (
     TRDP_ERR_T  err;
     UINT16      lIndex;
     UINT32      var_size    = 0u;
-    UINT8       *pSrc       = pInfo->pSrc;
+    const UINT8 *pSrc       = pInfo->pSrc;
     UINT8       *pDst;
 
     /* Restrict recursion */
@@ -876,7 +881,7 @@ static TRDP_ERR_T size_unmarshall (
         return TRDP_STATE_ERR;
     }
 
-    pDst = alignePtr(pInfo->pDst, maxSizeOfDSMember(pDataset));
+    pDst = alignPtr(pInfo->pDst, maxSizeOfDSMember(pDataset));
 
     /*    Loop over all datasets in the array    */
     for (lIndex = 0u; (lIndex < pDataset->numElement) && (pInfo->pSrcEnd > pInfo->pSrc); ++lIndex)
@@ -939,10 +944,10 @@ static TRDP_ERR_T size_unmarshall (
                case TRDP_INT16:
                case TRDP_UINT16:
                {
-                   UINT16 *pDst16 = (UINT16 *) alignePtr(pDst, ALIGNOF(UINT16));
+                   UINT16 *pDst16 = (UINT16 *) alignPtr(pDst, ALIGNOF(UINT16));
 
                    /*    possible variable source size    */
-                   var_size = vos_ntohs(*(UINT16 *)pSrc);
+                   var_size = vos_ntohs(*(const UINT16 *)pSrc);
 
                    while (noOfItems-- > 0u)
                    {
@@ -957,10 +962,10 @@ static TRDP_ERR_T size_unmarshall (
                case TRDP_REAL32:
                case TRDP_TIMEDATE32:
                {
-                   UINT32 *pDst32 = (UINT32 *) alignePtr(pDst, ALIGNOF(UINT32));
+                   UINT32 *pDst32 = (UINT32 *) alignPtr(pDst, ALIGNOF(UINT32));
 
                    /*    possible variable source size    */
-                   var_size = vos_ntohl(*(UINT32 *)pSrc);
+                   var_size = vos_ntohl(*(const UINT32 *)pSrc);
 
                    while (noOfItems-- > 0u)
                    {
@@ -977,10 +982,10 @@ static TRDP_ERR_T size_unmarshall (
 
                    while (noOfItems-- > 0u)
                    {
-                       pDst16   = (UINT16 *) alignePtr(pDst, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pDst16   = (UINT16 *) alignPtr(pDst, ALIGNOF(TIMEDATE48_STRUCT_T));
                        pDst16   += 3u;
                        pSrc     += 6u;
-                       pDst     = (UINT8 *)alignePtr((const UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
+                       pDst     = (UINT8 *)alignPtr((UINT8*) pDst16, ALIGNOF(TIMEDATE48_STRUCT_T));
                    }
                    break;
                }
@@ -990,10 +995,10 @@ static TRDP_ERR_T size_unmarshall (
 
                    while (noOfItems-- > 0u)
                    {
-                       pDst32   = (UINT32 *) alignePtr(pDst, ALIGNOF(TIMEDATE64_STRUCT_T));
+                       pDst32   = (UINT32 *) alignPtr(pDst, ALIGNOF(TIMEDATE64_STRUCT_T));
                        pSrc     += 8u;
                        pDst32++;
-                       pDst32   = (UINT32 *) alignePtr((UINT8 *) pDst32, ALIGNOF(UINT32));
+                       pDst32   = (UINT32 *) alignPtr((UINT8 *) pDst32, ALIGNOF(UINT32));
                        pDst32++;
                        pDst     = (UINT8 *) pDst32;
                    }
@@ -1007,7 +1012,7 @@ static TRDP_ERR_T size_unmarshall (
 
                    while (noOfItems-- > 0u)
                    {
-                       pDst32   = (UINT32 *) alignePtr(pDst, ALIGNOF(UINT64));
+                       pDst32   = (UINT32 *) alignPtr(pDst, ALIGNOF(UINT64));
                        pSrc     += 8u;
                        pDst32   += 2u;
                        pDst     = (UINT8 *) pDst32;
@@ -1024,7 +1029,7 @@ static TRDP_ERR_T size_unmarshall (
         }
     }
 
-    pInfo->pDst = alignePtr(pDst, maxSizeOfDSMember(pDataset));
+    pInfo->pDst = alignPtr(pDst, maxSizeOfDSMember(pDataset));
 
     if (pInfo->pSrc > pInfo->pSrcEnd)
     {
@@ -1122,7 +1127,7 @@ EXT_DECL TRDP_ERR_T tau_initMarshall (
 EXT_DECL TRDP_ERR_T tau_marshall (
     void            *pRefCon,
     UINT32          comId,
-    UINT8           *pSrc,
+    const UINT8     *pSrc,
     UINT32          srcSize,
     UINT8           *pDest,
     UINT32          *pDestSize,
