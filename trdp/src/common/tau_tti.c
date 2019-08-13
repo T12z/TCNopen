@@ -195,6 +195,7 @@ static void ttiPDCallback (
         {
             TRDP_OP_TRAIN_DIR_STATUS_INFO_T *pTelegram = (TRDP_OP_TRAIN_DIR_STATUS_INFO_T *) pData;
             UINT32 crc;
+            TAU_DNR_ENTRY_T  *pDNRIp   = (TAU_DNR_ENTRY_T *) appHandle->pUser;
 
             /* check the crc:   */
             crc = vos_sc32(0xFFFFFFFFu, (const UINT8 *) &pTelegram->state, sizeof(TRDP_OP_TRAIN_DIR_STATE_T) - 4);
@@ -211,7 +212,6 @@ static void ttiPDCallback (
                Everytime a PD 100 is received, we store its source IP address in the appHandle->pUser.
                This will change the (server) IP to which the DNS requests will be sent. */
 
-            TAU_DNR_ENTRY_T  *pDNRIp   = (TAU_DNR_ENTRY_T *) appHandle->pUser;
             if ((pDNRIp != NULL) && (pMsg->srcIpAddr != VOS_INADDR_ANY))
             {
                 pDNRIp->ipAddr = pMsg->srcIpAddr;
