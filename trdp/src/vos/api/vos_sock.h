@@ -51,6 +51,11 @@
 #include <netinet/in.h>
 #elif defined(ESP32)
 #include "lwip/sockets.h"
+#elif defined(PIKEOS_POSIX) && defined(POSIX_LWIP)
+#include "lwipopts.h"
+#include "lwip/sockets.h"
+#include "lwip/inet.h"
+#include "lwip/netdb.h"
 #endif
 
 #ifdef __cplusplus
