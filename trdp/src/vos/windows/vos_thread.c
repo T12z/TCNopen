@@ -103,11 +103,13 @@ static void vos_runCyclicThread (
     UINT32              interval    = pParameters->interval;
     VOS_THREAD_FUNC_T   pFunction   = pParameters->pFunction;
     void                *pArguments = pParameters->pArguments;
-    vos_memFree(pParameters);
     VOS_TIMEVAL_T       priorCall;
     VOS_TIMEVAL_T       afterCall;
     UINT32              execTime;
     UINT32              waitingTime;
+
+    vos_memFree(pParameters);
+
     for (;; )
     {
         vos_getTime(&priorCall); /* get initial time */
