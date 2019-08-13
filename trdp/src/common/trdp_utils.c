@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-08-13: Ignore qos/ttl on receive sockets
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -944,8 +945,8 @@ TRDP_ERR_T  trdp_requestSocket (
                  && !((mcGroup != 0u) && (bindAddr != iface[lIndex].bindAddr))  /* do no use if multicast and different iface specified! */
                  && ((bindAddr == 0) || (iface[lIndex].bindAddr == bindAddr))
                  && (iface[lIndex].type == type)
-                 && (iface[lIndex].sendParam.qos == params->qos)
-                 && (iface[lIndex].sendParam.ttl == params->ttl)
+                 && ((rcvMostly) || (iface[lIndex].sendParam.qos == params->qos))
+                 && ((rcvMostly) || (iface[lIndex].sendParam.ttl == params->ttl))
                  && (iface[lIndex].sendParam.tsn == params->tsn)
                  && (iface[lIndex].sendParam.vlan == params->vlan)
                  && (iface[lIndex].rcvMostly == rcvMostly)
