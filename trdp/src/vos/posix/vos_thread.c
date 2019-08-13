@@ -263,13 +263,13 @@ static void vos_runCyclicThread (
 
     vos_strncpy(name, pParameters->pName, 16);      /* for logging */
 
-    vos_printLog(VOS_LOG_USR, "thread parameters freed: %p\n", (void*) pParameters);
+    vos_printLog(VOS_LOG_DBG, "thread parameters freed: %p\n", (void *) pParameters);
     vos_memFree(pParameters);
 
 #if defined(SCHED_DEADLINE) && defined (RT_THREADS)
 
-    UINT64              interval_ns = interval * NSECS_PER_USEC;
-    int retCode;
+    UINT64  interval_ns = interval * NSECS_PER_USEC;
+    int     retCode;
     /* Cyclic tasks are real-time tasks (RTLinux only) */
     {
         struct sched_attr rt_attribs;
@@ -603,15 +603,15 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     if (interval > 0u)
     {
         /* malloc freed in vos_runCyclicThread */
-	    VOS_THREAD_CYC_T *p_params = (VOS_THREAD_CYC_T *) vos_memAlloc(sizeof(VOS_THREAD_CYC_T));
+        VOS_THREAD_CYC_T *p_params = (VOS_THREAD_CYC_T *) vos_memAlloc(sizeof(VOS_THREAD_CYC_T));
 
-	    p_params->pName = pName;
-	    p_params->startTime.tv_sec = 0;
-	    p_params->startTime.tv_usec = 0;
-	    p_params->interval = interval; 
-	    p_params->pFunction = pFunction;
-	    p_params->pArguments = pArguments;
-        vos_printLog(VOS_LOG_USR, "thread parameters alloc: %p\n", (void*) p_params);
+        p_params->pName = pName;
+        p_params->startTime.tv_sec  = 0;
+        p_params->startTime.tv_usec = 0;
+        p_params->interval      = interval;
+        p_params->pFunction     = pFunction;
+        p_params->pArguments    = pArguments;
+        vos_printLog(VOS_LOG_DBG, "thread parameters alloc: %p\n", (void *) p_params);
 
         if (pStartTime != NULL)
         {
