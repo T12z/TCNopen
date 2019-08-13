@@ -18,6 +18,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-08-13: Ticket #274: Cyclic parameters are now freed in the called thread
  *     AHW 2018-09-13: replaced by code of vos_thread.c to use native code of VS 2015 instead of pthread
  *      BL 2018-08-06: CloseHandle succeeds with return value != 0
  *      SB 2018-07-25: vos_mutexLocalCreate mem allocation fixed
@@ -70,11 +71,11 @@ static BOOL8 vosThreadInitialised = FALSE;
 
 typedef struct
 {
-	const CHAR8         *pName;
-	VOS_TIMEVAL_T       startTime;
-	UINT32              interval;
-	VOS_THREAD_FUNC_T   pFunction;
-	void                *pArguments;
+    const CHAR8         *pName;
+    VOS_TIMEVAL_T       startTime;
+    UINT32              interval;
+    VOS_THREAD_FUNC_T   pFunction;
+    void                *pArguments;
 } VOS_THREAD_CYC_T;
 
 /***********************************************************************************************************************
@@ -95,27 +96,14 @@ typedef struct
 *
 *  @retval         none
 */
+
 static void vos_runCyclicThread(
-	VOS_THREAD_CYC_T *pParameters)
+    VOS_THREAD_CYC_T *pParameters)
 {
-	vos_cyclicThread(pParameters->interval, pParameters->pFunction, pParameters->pArguments /*pParameters->startTime*/);
-}
-
-/**********************************************************************************************************************/
-/** Cyclic thread functions.
-*  Wrapper for cyclic threads. The thread function will be called cyclically with interval.
-*
-*  @param[in]      interval        Interval for cyclic threads in us (incl. runtime)
-*  @param[in]      pFunction       Pointer to the thread function
-*  @param[in]      pArguments      Pointer to the thread function parameters
-*  @retval         void
-*/
-
-void vos_cyclicThread(
-   UINT32              interval,
-   VOS_THREAD_FUNC_T   pFunction,
-   void                *pArguments)
-{
+    UINT32 interval = pParameters->interval;
+    VOS_THREAD_FUNC_T   pFunction = pParameters->pFunction;
+    void *pArguments = pParameters->pArguments;
+    vos_memFree(pParameters);
    VOS_TIMEVAL_T   priorCall;
    VOS_TIMEVAL_T   afterCall;
    UINT32          execTime;
@@ -240,7 +228,7 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync(
 
    if (interval > 0)
    {
-	   VOS_THREAD_CYC_T *p_params = vos_memAlloc(sizeof(VOS_THREAD_CYC_T)); /* malloc not freed, improved implementation highly recommended !!!!*/
+	   VOS_THREAD_CYC_T *p_params = (VOS_THREAD_CYC_T*) vos_memAlloc(sizeof(VOS_THREAD_CYC_T)); 
 
 	   p_params->pName = pName;
 	   p_params->startTime.tv_sec = 0;
