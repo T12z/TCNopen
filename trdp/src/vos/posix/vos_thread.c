@@ -287,7 +287,7 @@ static void vos_runCyclicThread (
         {
             vos_printLog(VOS_LOG_ERROR,
                          "%s sched_setattr for policy %d failed (Err: %d)\n",
-                         pParameters->pName,
+                         name,
                          (int)rt_attribs.sched_policy,
                          (int)errno);
             return;
@@ -310,7 +310,7 @@ static void vos_runCyclicThread (
             {
                 vos_printLog(VOS_LOG_ERROR,
                              "cyclic thread %s sleep error.\n",
-                             pParameters->pName);
+                             name);
             }
         }
         pFunction(pArguments);
