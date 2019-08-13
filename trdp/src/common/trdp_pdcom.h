@@ -90,7 +90,7 @@ TRDP_ERR_T trdp_pdGet (
 
 TRDP_ERR_T  trdp_pdSendElement (
     TRDP_SESSION_PT appHandle,
-    PD_ELE_T    **ppElement);
+    PD_ELE_T        * *ppElement);
 
 TRDP_ERR_T  trdp_pdSendQueued (
     TRDP_SESSION_PT appHandle);
@@ -101,6 +101,7 @@ TRDP_ERR_T  trdp_pdSendImmediateTSN (
     PD_ELE_T        *pSendPD,
     VOS_TIMEVAL_T   *pTxTime);
 #endif
+
 TRDP_ERR_T  trdp_pdSendImmediate (
     TRDP_SESSION_PT appHandle,
     PD_ELE_T        *pSendPD);
@@ -122,8 +123,9 @@ TRDP_ERR_T  trdp_pdCheckListenSocks (
     TRDP_SESSION_PT appHandle,
     TRDP_FDS_T      *pRfds,
     INT32           *pCount);
-
+#ifndef HIGH_PERF_INDEXED
 TRDP_ERR_T trdp_pdDistribute (
     PD_ELE_T *pSndQueue);
+#endif
 
 #endif

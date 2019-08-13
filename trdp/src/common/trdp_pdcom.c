@@ -307,8 +307,8 @@ TRDP_ERR_T  trdp_pdSendImmediate (
     TRDP_SESSION_PT appHandle,
     PD_ELE_T        *pSendPD)
 {
-    TRDP_ERR_T      err;
-    PD_PACKET_T     *pFrame = (PD_PACKET_T *) pSendPD->pFrame;
+    TRDP_ERR_T  err;
+    PD_PACKET_T *pFrame = (PD_PACKET_T *) pSendPD->pFrame;
 
     /*  Update the sequence counter and re-compute CRC    */
     trdp_pdUpdate(pSendPD);
@@ -330,10 +330,10 @@ TRDP_ERR_T  trdp_pdSendImmediate (
         pSendPD->sendSize = pSendPD->grossSize;
 
         err = (TRDP_ERR_T) vos_sockSendUDP(appHandle->ifacePD[pSendPD->socketIdx].sock,
-                              (UINT8 *)&pFrame->frameHead,
-                              &pSendPD->sendSize,
-                              pSendPD->addr.destIpAddr,
-                              appHandle->pdDefault.port);
+                                           (UINT8 *)&pFrame->frameHead,
+                                           &pSendPD->sendSize,
+                                           pSendPD->addr.destIpAddr,
+                                           appHandle->pdDefault.port);
 
         if (err == TRDP_NO_ERR)
         {
@@ -412,9 +412,9 @@ TRDP_ERR_T trdp_pdGet (
  */
 TRDP_ERR_T  trdp_pdSendElement (
     TRDP_SESSION_PT appHandle,
-    PD_ELE_T    **ppElement)
+    PD_ELE_T        * *ppElement)
 {
-    TRDP_ERR_T  err = TRDP_NO_ERR;
+    TRDP_ERR_T  err     = TRDP_NO_ERR;
     PD_ELE_T    *iterPD = *ppElement;
 
     /* send only if there is valid data */
@@ -431,9 +431,9 @@ TRDP_ERR_T  trdp_pdSendElement (
         /* Publisher check from Table A.5:
          Actual topography counter values <-> Locally stored with publish */
         if ( !trdp_validTopoCounters( appHandle->etbTopoCnt,
-                                     appHandle->opTrnTopoCnt,
-                                     vos_ntohl(iterPD->pFrame->frameHead.etbTopoCnt),
-                                     vos_ntohl(iterPD->pFrame->frameHead.opTrnTopoCnt)))
+                                      appHandle->opTrnTopoCnt,
+                                      vos_ntohl(iterPD->pFrame->frameHead.etbTopoCnt),
+                                      vos_ntohl(iterPD->pFrame->frameHead.opTrnTopoCnt)))
         {
             err = TRDP_TOPO_ERR;
             vos_printLogStr(VOS_LOG_INFO, "Sending PD: TopoCount is out of date!\n");
@@ -534,7 +534,7 @@ TRDP_ERR_T  trdp_pdSendElement (
 
         /* pre-set next element */
         *ppElement = pTemp;
-        //continue;
+        /* continue; */
     }
     return err;
 }
@@ -727,7 +727,7 @@ TRDP_ERR_T  trdp_pdReceive (
     TRDP_ADDRESSES_T    subAddresses    = { 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
     TRDP_MSG_T          msgType;
 #ifdef TSN_SUPPORT
-    PD2_HEADER_T        *pTSNFrameHead      = (PD2_HEADER_T *) pNewFrameHead;
+    PD2_HEADER_T        *pTSNFrameHead = (PD2_HEADER_T *) pNewFrameHead;
 #endif
 
     /*  Get the packet from the wire:  */
@@ -797,8 +797,17 @@ TRDP_ERR_T  trdp_pdReceive (
 
     /*  Examine subscription queue, are we interested in this PD?   */
 #ifdef HIGH_PERF_INDEXED
-    pExistingElement = trdp_indexedFindSubAddr(appHandle, &subAddresses);
- //    pExistingElement = trdp_queueFindSubAddr(appHandle->pRcvQueue, &subAddresses);
+    if (appHandle->pSlot == NULL)
+    {
+        /*  If not set up until now, we issue a warning, but handle the data...   */
+        vos_printLogStr(VOS_LOG_WARNING, "Receiving PD while tlc_updateSession() not yet called.\n");
+        pExistingElement = trdp_queueFindSubAddr(appHandle->pRcvQueue, &subAddresses);
+    }
+    else
+    {
+        /*  This is the fast, indexed access to our subscriptions!   */
+        pExistingElement = trdp_indexedFindSubAddr(appHandle, &subAddresses);
+    }
 #else
     pExistingElement = trdp_queueFindSubAddr(appHandle->pRcvQueue, &subAddresses);
 #endif
@@ -1448,6 +1457,10 @@ TRDP_ERR_T  trdp_pdSend (
     return TRDP_NO_ERR;
 }
 
+#ifndef HIGH_PERF_INDEXED
+
+/* Note: This function is not necessary for the high performance version; see trdp_pdindex.c */
+
 /******************************************************************************/
 /** Distribute send time of PD packets over time
  *
@@ -1564,3 +1577,4 @@ TRDP_ERR_T  trdp_pdDistribute (
 
     return TRDP_NO_ERR;
 }
+#endif

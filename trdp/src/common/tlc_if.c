@@ -128,7 +128,8 @@ static BOOL8 sInited = FALSE;
 
 BOOL8       trdp_isValidSession (TRDP_APP_SESSION_T pSessionHandle);
 TRDP_APP_SESSION_T *trdp_sessionQueue (void);
-TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T pSessionHandle);
+TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T  pSessionHandle,
+                            int                 force);
 void        trdp_releaseAccess (TRDP_APP_SESSION_T pSessionHandle);
 
 /***********************************************************************************************************************
@@ -199,7 +200,7 @@ TRDP_APP_SESSION_T *trdp_sessionQueue (void)
  *  @retval         TRDP_INIT_ERR
  *  @retval         TRDP_MUTEX_ERR
  */
-TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T appHandle)
+TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T appHandle, int force)
 {
     TRDP_ERR_T ret = TRDP_INIT_ERR;
     if (appHandle != NULL)
@@ -208,10 +209,10 @@ TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T appHandle)
         if (ret == TRDP_NO_ERR)
         {
             /*  Wait for any ongoing communications by getting the other mutexes as well */
-            ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutexTxPD);
+            ret = (TRDP_ERR_T) vos_mutexTryLock(appHandle->mutexTxPD);
             if (ret == TRDP_NO_ERR)
             {
-                ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutexRxPD);
+                ret = (TRDP_ERR_T) vos_mutexTryLock(appHandle->mutexRxPD);
                 if (ret != TRDP_NO_ERR)
                 {
                     /* In case of error release the locks already taken. */
@@ -673,9 +674,9 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
 
     /* Set some statistic defaults here */
     {
-        pSession->stats.pd.defQos = pSession->pdDefault.sendParam.qos;
-        pSession->stats.pd.defTtl = pSession->pdDefault.sendParam.ttl;
-        pSession->stats.pd.defTimeout = pSession->pdDefault.timeout;
+        pSession->stats.pd.defQos       = pSession->pdDefault.sendParam.qos;
+        pSession->stats.pd.defTtl       = pSession->pdDefault.sendParam.ttl;
+        pSession->stats.pd.defTimeout   = pSession->pdDefault.timeout;
     }
 
 #if MD_SUPPORT
@@ -772,14 +773,14 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
 
     /* Set some statistic defaults here */
     {
-        pSession->stats.udpMd.defQos = pSession->mdDefault.sendParam.qos;
-        pSession->stats.tcpMd.defQos = pSession->mdDefault.sendParam.qos;
-        pSession->stats.udpMd.defTtl = pSession->mdDefault.sendParam.ttl;
-        pSession->stats.tcpMd.defTtl = pSession->mdDefault.sendParam.ttl;
+        pSession->stats.udpMd.defQos    = pSession->mdDefault.sendParam.qos;
+        pSession->stats.tcpMd.defQos    = pSession->mdDefault.sendParam.qos;
+        pSession->stats.udpMd.defTtl    = pSession->mdDefault.sendParam.ttl;
+        pSession->stats.tcpMd.defTtl    = pSession->mdDefault.sendParam.ttl;
         pSession->stats.udpMd.defConfirmTimeout = pSession->mdDefault.confirmTimeout;
         pSession->stats.tcpMd.defConfirmTimeout = pSession->mdDefault.confirmTimeout;
-        pSession->stats.udpMd.defReplyTimeout = pSession->mdDefault.replyTimeout;
-        pSession->stats.tcpMd.defReplyTimeout = pSession->mdDefault.replyTimeout;
+        pSession->stats.udpMd.defReplyTimeout   = pSession->mdDefault.replyTimeout;
+        pSession->stats.tcpMd.defReplyTimeout   = pSession->mdDefault.replyTimeout;
     }
 
 #endif
@@ -807,12 +808,17 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
 
 #ifdef HIGH_PERF_INDEXED
 
-//#error "High performance extension is not ready yet!"
-    
+/* #error "High performance extension is not ready yet!" */
+
     /*  Stop any ongoing communication by getting the mutexes */
-    ret = trdp_getAccess(appHandle);
+    ret = trdp_getAccess(appHandle, FALSE);
     if (ret == TRDP_NO_ERR)
     {
+        if (appHandle->pSlot != NULL)
+        {
+            /* we are called again! It seems there are additional subs/pubs? */
+            trdp_indexClearTables(appHandle);
+        }
         trdp_indexCreatePubTables(appHandle);
         trdp_indexCreateSubTables(appHandle);
         trdp_releaseAccess(appHandle);
@@ -890,8 +896,9 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
         {
             pSession = (TRDP_SESSION_PT) appHandle;
 
-            /*    Take the session mutex to prevent someone sitting on the branch while we cut it    */
-            ret = trdp_getAccess(pSession);
+            /*    Take the session mutex to prevent someone sitting on the branch while we cut it,
+                    in case we can force leaving... */
+            ret = trdp_getAccess(pSession, TRUE);
 
             if (ret != TRDP_NO_ERR)
             {
@@ -1157,6 +1164,12 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
     TRDP_TIME_T now;
     TRDP_ERR_T  ret = TRDP_NOINIT_ERR;
 
+#ifdef HIGH_PERF_INDEXED
+    vos_printLogStr(VOS_LOG_ERROR, "####   tlc_getInterval() is not supported when using HIGH_PERF_INDEXED!  ####\n");
+    vos_printLogStr(VOS_LOG_ERROR, "####           Use tlp_getInterval()/tlm_getInterval() instead!          ####\n");
+    return TRDP_NOINIT_ERR;
+#endif
+
     if (trdp_isValidSession(appHandle))
     {
         if ((pInterval == NULL)
@@ -1246,6 +1259,12 @@ EXT_DECL TRDP_ERR_T tlc_process (
     {
         return TRDP_NOINIT_ERR;
     }
+
+#ifdef HIGH_PERF_INDEXED
+    vos_printLogStr(VOS_LOG_ERROR, "####   tlc_process() is not supported when using HIGH_PERF_INDEXED!  ####\n");
+    vos_printLogStr(VOS_LOG_ERROR, "#### Use tlp_processSend/tlp_processReceive()/tlm_process() instead! ####\n");
+    return TRDP_NOINIT_ERR;
+#endif
 
     if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
     {

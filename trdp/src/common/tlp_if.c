@@ -235,6 +235,16 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
 
 #ifdef HIGH_PERF_INDEXED
         err = trdp_pdSendIndexed(appHandle);
+        if (err == TRDP_BLOCK_ERR)
+        {
+            static int count = 5000;
+            /* tlc_updateSession has not been called yet. Count the cycles and issue a warning after 5000 cycles */
+            if (count-- < 0)
+            {
+                vos_printLogStr(VOS_LOG_WARNING, "trdp_pdSendIndexed failed - call tlc_updateSession()!\n");
+                count = 5000;
+            }
+        }
 #else
         err = trdp_pdSendQueued(appHandle);
 #endif
@@ -652,10 +662,12 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                 {
                     ret = tlp_put(appHandle, *pPubHandle, pData, dataSize);
                 }
+#ifndef HIGH_PERF_INDEXED
                 if ((ret == TRDP_NO_ERR) && (appHandle->option & TRDP_OPTION_TRAFFIC_SHAPING))
                 {
                     ret = trdp_pdDistribute(appHandle->pSndQueue);
                 }
+#endif
             }
         }
 
@@ -786,11 +798,13 @@ TRDP_ERR_T  tlp_unpublish (
         vos_memFree(pElement->pFrame);
         vos_memFree(pElement);
 
+#ifndef HIGH_PERF_INDEXED
         /* Re-compute distribution times */
         if (appHandle->option & TRDP_OPTION_TRAFFIC_SHAPING)
         {
             ret = trdp_pdDistribute(appHandle->pSndQueue);
         }
+#endif
 
         if (vos_mutexUnlock(appHandle->mutexTxPD) != VOS_NO_ERR)
         {
