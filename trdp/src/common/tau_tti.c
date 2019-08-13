@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -203,6 +204,17 @@ static void ttiPDCallback (
                              crc, vos_ntohl(pTelegram->state.crc))
                     (void) tlc_setOpTrainTopoCount(appHandle, 0);
                 return;
+            }
+
+            /* This is an addition purely done for TRDP to handle DNS/ECSP Redundancy switchover.
+               PD 100 is always sent from the original IP address of switch and not the virtual one.
+               Everytime a PD 100 is received, we store its source IP address in the appHandle->pUser.
+               This will change the (server) IP to which the DNS requests will be sent. */
+
+            TAU_DNR_ENTRY_T  *pDNRIp   = (TAU_DNR_ENTRY_T *) appHandle->pUser;
+            if ((pDNRIp != NULL) && (pMsg->srcIpAddr != VOS_INADDR_ANY))
+            {
+                pDNRIp->ipAddr = pMsg->srcIpAddr;
             }
 
             /* Store the state locally */

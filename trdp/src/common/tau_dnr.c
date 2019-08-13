@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
  *      SB 2019-03-01: Ticket #237: tau_initDnr: Fixed comparison of readHostFile return value
  *      SB 2019-02-11: Ticket #237: tau_initDnr: Parameter waitForDnr to reduce wait times added
  *      BL 2018-08-07: Ticket #183 tau_getOwnIds declared but not defined
@@ -63,25 +64,6 @@
 /***********************************************************************************************************************
  * TYPEDEFS
  */
-
-typedef struct tau_dnr_cache
-{
-    CHAR8           uri[TRDP_MAX_URI_HOST_LEN];
-    TRDP_IP_ADDR_T  ipAddr;
-    UINT32          etbTopoCnt;
-    UINT32          opTrnTopoCnt;
-    BOOL8           fixedEntry;
-} TAU_DNR_ENTRY_T;
-
-typedef struct tau_dnr_data
-{
-    TRDP_IP_ADDR_T  dnsIpAddr;                      /**< IP address of the resolver                 */
-    UINT16          dnsPort;                        /**< 53 for standard DNS or 17225 for TCN-DNS   */
-    UINT8           timeout;                        /**< timeout for requests (in seconds)          */
-    TRDP_DNR_OPTS_T useTCN_DNS;                     /**< how to use TCN DNR                         */
-    UINT32          noOfCachedEntries;              /**< no of items currently in the cache         */
-    TAU_DNR_ENTRY_T cache[TAU_MAX_NO_CACHE_ENTRY];  /**< if != 0 use TCN DNS as resolver            */
-} TAU_DNR_DATA_T;
 
 typedef struct tau_dnr_query
 {

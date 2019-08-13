@@ -18,6 +18,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
  *      SB 2019-02-11: Ticket #237: tau_initDnr: Parameter waitForDnr to reduce wait times added
  *      BL 2018-08-07: Ticket #183 tau_getOwnIds moved here
  *      BL 2017-07-25: Ticket #125: tau_dnr: TCN DNS support missing
@@ -45,6 +46,7 @@ extern "C" {
 #define __cdecl
 #endif
 
+#define TAU_MAX_NO_CACHE_ENTRY      50u
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -63,6 +65,25 @@ typedef enum TRDP_DNR_OPTS {
     TRDP_DNR_OWN_THREAD     = 1, /**<For single threaded systems only! Internally call tlc_process() */
     TRDP_DNR_STANDARD_DNS   = 2
 } TRDP_DNR_OPTS_T;
+
+typedef struct tau_dnr_cache
+{
+    CHAR8           uri[TRDP_MAX_URI_HOST_LEN];
+    TRDP_IP_ADDR_T  ipAddr;
+    UINT32          etbTopoCnt;
+    UINT32          opTrnTopoCnt;
+    BOOL8           fixedEntry;
+} TAU_DNR_ENTRY_T;
+
+typedef struct tau_dnr_data
+{
+    TRDP_IP_ADDR_T  dnsIpAddr;                      /**< IP address of the resolver                 */
+    UINT16          dnsPort;                        /**< 53 for standard DNS or 17225 for TCN-DNS   */
+    UINT8           timeout;                        /**< timeout for requests (in seconds)          */
+    TRDP_DNR_OPTS_T useTCN_DNS;                     /**< how to use TCN DNR                         */
+    UINT32          noOfCachedEntries;              /**< no of items currently in the cache         */
+    TAU_DNR_ENTRY_T cache[TAU_MAX_NO_CACHE_ENTRY];  /**< if != 0 use TCN DNS as resolver            */
+} TAU_DNR_DATA_T;
     
 /***********************************************************************************************************************
  * PROTOTYPES
