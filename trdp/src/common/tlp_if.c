@@ -85,7 +85,6 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
     TRDP_FDS_T          *pFileDesc,
     INT32               *pNoDesc)
 {
-    TRDP_TIME_T now;
     TRDP_ERR_T  ret = TRDP_NOINIT_ERR;
 
     if (trdp_isValidSession(appHandle))
@@ -103,9 +102,18 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
             if (ret != TRDP_NO_ERR)
             {
                 vos_printLogStr(VOS_LOG_INFO, "vos_mutexLock() failed\n");
+                return ret;
             }
+#ifdef HIGH_PERF_INDEXED
+            else if (appHandle->pSlot != NULL)
+            {
+                trdp_indexCheckPending (appHandle, pInterval, pFileDesc, pNoDesc);
+            }
+#endif
             else
             {
+                TRDP_TIME_T now;
+
                 /*    Get the current time    */
                 vos_getTime(&now);
                 vos_clearTime(&appHandle->nextJob);
@@ -129,11 +137,10 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
                     pInterval->tv_sec   = 1u;                               /* 1000s if no timeout is set      */
                     pInterval->tv_usec  = 0;                                /* Application should limit this    */
                 }
-
-                if (vos_mutexUnlock(appHandle->mutexRxPD) != VOS_NO_ERR)
-                {
-                    vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
-                }
+            }
+            if (vos_mutexUnlock(appHandle->mutexRxPD) != VOS_NO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
             }
         }
     }
@@ -234,16 +241,20 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
          ******************************************************/
 
 #ifdef HIGH_PERF_INDEXED
-        err = trdp_pdSendIndexed(appHandle);
-        if (err == TRDP_BLOCK_ERR)
+        if (appHandle->pSlot == NULL)
         {
             static int count = 5000;
+            err = trdp_pdSendQueued(appHandle);
             /* tlc_updateSession has not been called yet. Count the cycles and issue a warning after 5000 cycles */
             if (count-- < 0)
             {
                 vos_printLogStr(VOS_LOG_WARNING, "trdp_pdSendIndexed failed - call tlc_updateSession()!\n");
                 count = 5000;
             }
+        }
+        else
+        {
+            err = trdp_pdSendIndexed(appHandle);
         }
 #else
         err = trdp_pdSendQueued(appHandle);
@@ -252,7 +263,6 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
         {
             /*  We do not break here, only report error */
             result = err;
-            /* vos_printLog(VOS_LOG_ERROR, "trdp_pdSendQueued failed (Err: %d)\n", err);*/
         }
 
         if (vos_mutexUnlock(appHandle->mutexTxPD) != VOS_NO_ERR)

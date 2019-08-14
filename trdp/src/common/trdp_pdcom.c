@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-08-14: Ticket #161 Change of internal handling of trdp_pdCheckListenSocks()
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -1200,10 +1201,7 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
     TRDP_FDS_T      *pRfds,
     INT32           *pCount)
 {
-    PD_ELE_T    *iterPD = NULL;
-    TRDP_ERR_T  err;
     TRDP_ERR_T  result      = TRDP_NO_ERR;
-    BOOL8       nonBlocking = !(appHandle->option & TRDP_OPTION_BLOCK);
 
     /*  Check the input params, in case we are in polling mode, the application
      is responsible to get any process data by calling tlp_get()    */
@@ -1213,26 +1211,35 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
     }
     else if ((pCount != NULL) && (*pCount > 0))
     {
-        /*    Check the sockets for received PD packets    */
-        for (iterPD = appHandle->pRcvQueue; iterPD != NULL; iterPD = iterPD->pNext)
+        /*
+            Check the sockets for received PD packets.
+            Note:   The formaer approach (iterating through all subscriptions) was less than effective, not only for
+                    many subscriptions. Looping through the much small socket list can do the same job.
+                    For version 2, we changed that not only for HIGH_PERF_INDEXED, but also for standard TRDP.
+         */
+        UINT32      idx;
+        TRDP_ERR_T  err;
+        BOOL8       nonBlocking = !(appHandle->option & TRDP_OPTION_BLOCK);
+
+        /*    Check and set the socket file descriptor by going thru the socket list    */
+        for (idx = 0; idx < (UINT32) trdp_getCurrentMaxSocketCnt(TRDP_SOCK_PD); idx++)
         {
-            if ((iterPD->socketIdx != -1) &&
-                (FD_ISSET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned
-                                                                                         division in macro */
+            if ((appHandle->ifacePD[idx].sock != -1) &&
+                (FD_ISSET(appHandle->ifacePD[idx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned division in macro */
             {
                 VOS_LOG_T logType = VOS_LOG_ERROR;
 
                 /*  PD frame received? */
                 /*  Compare the received data to the data in our receive queue
-                   Call user's callback if data changed    */
+                 Call user's callback if data changed    */
 
                 do
                 {
                     /* Read as long as data is available */
-                    err = trdp_pdReceive(appHandle, appHandle->ifacePD[iterPD->socketIdx].sock);
+                    err = trdp_pdReceive(appHandle, appHandle->ifacePD[idx].sock);
 
                 }
-                while (err == TRDP_NO_ERR && nonBlocking);
+                while ((err == TRDP_NO_ERR) && (nonBlocking == TRUE));
 
                 switch (err)
                 {
@@ -1250,8 +1257,8 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
                         break;
                 }
                 (*pCount)--;
-                FD_CLR(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pRfds); /*lint !e502 !e573 !e505
-                                                                                     signed/unsigned division in macro */
+                FD_CLR(appHandle->ifacePD[idx].sock, (fd_set *)pRfds); /*lint !e502 !e573 !e505
+                                                                                      signed/unsigned division in macro */
             }
         }
     }

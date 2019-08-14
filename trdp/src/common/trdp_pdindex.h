@@ -72,5 +72,9 @@ PD_ELE_T    *trdp_indexedFindSubAddr (TRDP_SESSION_PT   appHandle,
 void        trdp_indexClearTables (TRDP_SESSION_PT appHandle);
 TRDP_ERR_T  trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle);
 TRDP_ERR_T  trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle);
+void        trdp_indexCheckPending (TRDP_APP_SESSION_T  appHandle,
+                                    TRDP_TIME_T         *pInterval,
+                                    TRDP_FDS_T          *pFileDesc,
+                                    INT32               *pNoDesc);
 
 #endif /* TRDP_PDINDEX_H */

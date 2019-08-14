@@ -144,34 +144,36 @@ static inline void setElement (
 /**********************************************************************************************************************/
 /** Print an index table
  *
- *  @param[in]      pSlots              pointer to the array
+ *  @param[in]      pRcvTable           pointer to the array
+ *  @param[in]      noOfEntries         no of entries in the array
+ *  @param[in]      label               Table's id
  *
  *  @retval         none
  */
-static void   print_rcv_table (
-    TRDP_HP_CAT_SLOTS_T *pSlots)
+static void   print_rcv_tables (
+    PD_ELE_T **pRcvTable,
+    UINT32  noOfEntries,
+    const CHAR8   *label)
 {
     UINT32 idx;
-    PD_ELE_T **pRcvTable = pSlots->pRcvTableComId;
 
-    vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
-    vos_printLog(VOS_LOG_INFO,
-                 "----- Table of ComId-sorted subscriptions (%u) -----\n",
-                 (unsigned int) pSlots->noOfRxEntries);
-    vos_printLogStr(VOS_LOG_INFO, "----- SlotNo: ComId (Tx-Interval) x depth   -----\n");
-    vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
-    for (idx = 0; idx < pSlots->noOfRxEntries; idx++)
+    vos_printLogStr(VOS_LOG_INFO,   "-------------------------------------------------\n");
+    vos_printLog(VOS_LOG_INFO,      "--- Table of %s-sorted subscriptions (%u) --\n",
+                                    label, (unsigned int) noOfEntries);
+    vos_printLogStr(VOS_LOG_INFO,   "- Idx\t(addr):\t\t\t  comId SrcIP\tTimeout(s)\n");
+    vos_printLogStr(VOS_LOG_INFO,   "-------------------------------------------------\n");
+    for (idx = 0; idx < noOfEntries; idx++)
     {
 
-        vos_printLog(VOS_LOG_INFO, "%3u (%p): %u %s %u\n",
+        vos_printLog(VOS_LOG_INFO,  "%3u\t(%p): %8u %-16s %u.%03u\n",
                      (unsigned int)idx,
                      (void*)pRcvTable[idx],
                      (unsigned int)pRcvTable[idx]->addr.comId,
                      (char*)vos_ipDotted(pRcvTable[idx]->addr.srcIpAddr),
+                     (unsigned int)pRcvTable[idx]->interval.tv_sec,
                      (unsigned int)pRcvTable[idx]->interval.tv_usec / 1000);
     }
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
-
 }
 
 /**********************************************************************************************************************/
@@ -474,7 +476,9 @@ static int compareComIds (const void *pPDElement1, const void *pPDElement2)
  */
 static int compareTimeouts (const void *pPDElement1, const void *pPDElement2)
 {
-    return vos_cmpTime(&((PD_ELE_T*)pPDElement1)->interval, &((PD_ELE_T*)pPDElement2)->interval);
+    const PD_ELE_T* p1 = *(const PD_ELE_T**)pPDElement1;
+    const PD_ELE_T* p2 = *(const PD_ELE_T**)pPDElement2;
+    return vos_cmpTime(&p1->interval, &p2->interval);
 }
 
 /***********************************************************************************************************************
@@ -768,9 +772,6 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
 
         idxLow = (cycleN / pSlot->lowCat.slotCycle) % pSlot->lowCat.noOfTxEntries;
 
-//        vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u\n",
-//                     (int) dbCount, (unsigned int) cycleN, (unsigned int) idxLow);
-
         /* send the packets with the shortest intervals first */
         for (depth = 0u; depth < pSlot->lowCat.depthOfTxEntries; depth++)
         {
@@ -789,9 +790,6 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
         if ((idxLow % 10) == 0u)
         {
             idxMid = (cycleN / pSlot->midCat.slotCycle) % pSlot->midCat.noOfTxEntries;
-//            vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u idxMid: %03u\n",
-//                         (int) dbCount, (unsigned int) cycleN,
-//                         (unsigned int) idxLow, (unsigned int) idxMid);
 
             /* send the packets with medium intervals */
             for (depth = 0; depth < pSlot->midCat.depthOfTxEntries; depth++)
@@ -824,9 +822,6 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
         if (idxLow == 0u)       /* Every 100ms check the > 1s PDs   */
         {
             idxHigh = (cycleN / pSlot->highCat.slotCycle) % pSlot->highCat.noOfTxEntries;
-//            vos_printLog(VOS_LOG_DBG, "[%5d] cyc: %08u idxLow: %03u idxMid: %03u idxHigh: %03u\n",
-//                         (int) dbCount, (unsigned int) cycleN,
-//                         (unsigned int) idxLow, (unsigned int) idxMid, (unsigned int) idxHigh);
 
             /* send the slowest packets */
             for (depth = 0; depth < pSlot->highCat.depthOfTxEntries; depth++)
@@ -864,8 +859,7 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
         }
         /* We count the numbers of cycles, an overflow does not matter! */
         pSlot->currentCycle += TRDP_MIN_CYCLE;
-        if (pSlot->currentCycle >=
-            (pSlot->highCat.noOfTxEntries * pSlot->highCat.slotCycle))
+        if (pSlot->currentCycle >= (pSlot->highCat.noOfTxEntries * pSlot->highCat.slotCycle))
         {
             pSlot->currentCycle = 0u;
         }
@@ -922,14 +916,23 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
         pSlot->pRcvTableTimeOut = NULL;
 
         /* get some memory */
-        vos_printLog(VOS_LOG_DBG, "Get %u Bytes for the receive table.\n", (unsigned int) (noOfSubs * sizeof(PD_ELE_T*)));
+        vos_printLog(VOS_LOG_DBG, "Get %u Bytes for the receive table (ComId indexed).\n", (unsigned int) (noOfSubs * sizeof(PD_ELE_T*)));
         pSlot->pRcvTableComId = (PD_ELE_T**) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T**));
         if (pSlot->pRcvTableComId == NULL)
         {
             return TRDP_MEM_ERR;
         }
 
-        /* fill the array ... */
+        vos_printLog(VOS_LOG_DBG, "Get %u Bytes for the receive table (Timeout indexed).\n", (unsigned int) (noOfSubs * sizeof(PD_ELE_T*)));
+        pSlot->pRcvTableTimeOut = (PD_ELE_T**) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T**));
+        if (pSlot->pRcvTableTimeOut == NULL)
+        {
+            vos_memFree(pSlot->pRcvTableComId);
+            pSlot->pRcvTableComId = NULL;
+            return TRDP_MEM_ERR;
+        }
+
+        /* fill the arrays ... */
         pSlot->noOfRxEntries = noOfSubs;
         iterPD = appHandle->pRcvQueue;
 
@@ -937,7 +940,8 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
         while ((iterPD != NULL) &&
                (idx < noOfSubs))
         {
-            pSlot->pRcvTableComId[idx++] = iterPD;
+            pSlot->pRcvTableComId[idx] = iterPD;
+            pSlot->pRcvTableTimeOut[idx++] = iterPD;
             iterPD = iterPD->pNext;
         }
 
@@ -946,8 +950,14 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
         /* sort the table on comIds */
         vos_qsort(pSlot->pRcvTableComId, noOfSubs, sizeof(PD_ELE_T*), compareComIds);
 
+        vos_printLog(VOS_LOG_DBG, "Sorting array at %p.\n", (void*) pSlot->pRcvTableTimeOut);
+
+        /* sort the table on interval (aka timeout) */
+        vos_qsort(pSlot->pRcvTableTimeOut, noOfSubs, sizeof(PD_ELE_T*), compareTimeouts);
+
 #ifdef DEBUG
-        print_rcv_table(pSlot);
+        print_rcv_tables(pSlot->pRcvTableComId, pSlot->noOfRxEntries, "ComId");
+        print_rcv_tables(pSlot->pRcvTableTimeOut, pSlot->noOfRxEntries, "Timeout");
 #endif
     }
     return err;
@@ -1028,6 +1038,62 @@ PD_ELE_T *trdp_indexedFindSubAddr (
         return trdp_findSubAddr (*pFirstMatchedPD, pAddr, pAddr->comId);
     }
     return NULL;
+}
+
+/******************************************************************************/
+/** Check for pending packets, set FD if non blocking
+ *
+ *  @param[in]      appHandle           session pointer
+ *  @param[in,out]  pFileDesc           pointer to set of ready descriptors
+ *  @param[in,out]  pNoDesc             pointer to number of ready descriptors
+ */
+void trdp_indexCheckPending (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_TIME_T         *pInterval,
+    TRDP_FDS_T          *pFileDesc,
+    INT32               *pNoDesc)
+{
+    PD_ELE_T **iterPD;
+    UINT32      idx;
+    TRDP_TIME_T delay = {0u,10000};     /* This determines the max. delay to report a timeout, 10ms should be OK */
+
+    if ((appHandle->pSlot == NULL) || (appHandle->pSlot->pRcvTableTimeOut == NULL))
+    {
+        return;
+    }
+
+    iterPD = appHandle->pSlot->pRcvTableTimeOut;
+
+    /*    Find the first packet with a non-zero timeout value; we search the ordered list and
+            stop at the first non-zero PD Element (usually the first) */
+    for (idx = 0; idx < appHandle->pSlot->noOfRxEntries; idx++)
+    {
+        if (timerisset(&iterPD[idx]->interval))
+        {
+            delay = iterPD[idx]->interval;
+            break;
+        }
+    }
+    /*    Get the current time and add the found interval   */
+    vos_getTime(&appHandle->nextJob);
+    vos_addTime(&appHandle->nextJob, &delay);
+    *pInterval = delay;
+
+    /*    Check and set the socket file descriptor by going thru the socket list    */
+    for (idx = 0; idx < (UINT32) trdp_getCurrentMaxSocketCnt(TRDP_SOCK_PD); idx++)
+    {
+        if ((appHandle->ifacePD[idx].sock != -1) &&
+            (appHandle->ifacePD[idx].rcvMostly == TRUE))
+        {
+            FD_SET(appHandle->ifacePD[idx].sock, (fd_set *)pFileDesc);       /*lint !e573 !e505
+                                                                                signed/unsigned division in macro /
+                                                                                Redundant left argument to comma */
+            if (appHandle->ifacePD[idx].sock > *pNoDesc)
+            {
+                *pNoDesc = (INT32) appHandle->ifacePD[idx].sock;
+            }
+        }
+    }
 }
 
 

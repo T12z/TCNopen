@@ -135,7 +135,6 @@
 		08514BB822C6075D0046916F /* speedtest1.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 08E446BD22B27B65009C6D0E /* speedtest1.xml */; };
 		08514BB922C6075D0046916F /* speedtest2.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 08E446BE22B28B62009C6D0E /* speedtest2.xml */; };
 		0864C3DC2243A3CE00E091E1 /* sendTSN.c in Sources */ = {isa = PBXBuildFile; fileRef = 0864C3DA2243A3CE00E091E1 /* sendTSN.c */; };
-		086EEEAD22D4BF410061637D /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		086EEEB222D4BF720061637D /* api_test_2.c in Sources */ = {isa = PBXBuildFile; fileRef = 086EEEA822D4BE000061637D /* api_test_2.c */; };
 		086EEEB722D5D7EA0061637D /* trdp_pdindex.h in Headers */ = {isa = PBXBuildFile; fileRef = 086EEEB522D5D7EA0061637D /* trdp_pdindex.h */; };
 		086EEEB822D5D7EA0061637D /* trdp_pdindex.h in Headers */ = {isa = PBXBuildFile; fileRef = 086EEEB522D5D7EA0061637D /* trdp_pdindex.h */; };
@@ -182,6 +181,48 @@
 		08D51C42200FB810004319B6 /* trdp_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F39150777B00046E0AC /* trdp_utils.c */; };
 		08D51C44200FB810004319B6 /* trdp_xml.c in Sources */ = {isa = PBXBuildFile; fileRef = 730B42A81C650ECB00A92265 /* trdp_xml.c */; };
 		08EA9EDA1EE990EE00BC653A /* trdp_mdcom.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F30150777B00046E0AC /* trdp_mdcom.c */; };
+		08F4F52322FDAAED00304B34 /* trdp_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F2A150777B00046E0AC /* trdp_types.h */; };
+		08F4F52422FDAAED00304B34 /* trdp_if_light.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F29150777B00046E0AC /* trdp_if_light.h */; };
+		08F4F52522FDAAED00304B34 /* vos_mem.h in Headers */ = {isa = PBXBuildFile; fileRef = 73E05264151352CE0058D590 /* vos_mem.h */; };
+		08F4F52622FDAAED00304B34 /* vos_sock.h in Headers */ = {isa = PBXBuildFile; fileRef = 73E05265151352CE0058D590 /* vos_sock.h */; };
+		08F4F52722FDAAED00304B34 /* tau_ctrl_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 73A00E5C1913CCA20020A6EA /* tau_ctrl_types.h */; };
+		08F4F52822FDAAED00304B34 /* iec61375-2-3.h in Headers */ = {isa = PBXBuildFile; fileRef = 730F3B371BA2FEFE00737C74 /* iec61375-2-3.h */; };
+		08F4F52922FDAAED00304B34 /* vos_thread.h in Headers */ = {isa = PBXBuildFile; fileRef = 73E05266151352CE0058D590 /* vos_thread.h */; };
+		08F4F52A22FDAAED00304B34 /* vos_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 73E05267151352CE0058D590 /* vos_types.h */; };
+		08F4F52B22FDAAED00304B34 /* vos_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 73E0535F15136BF60058D590 /* vos_utils.h */; };
+		08F4F52C22FDAAED00304B34 /* trdp_pdindex.h in Headers */ = {isa = PBXBuildFile; fileRef = 086EEEB522D5D7EA0061637D /* trdp_pdindex.h */; };
+		08F4F52D22FDAAED00304B34 /* trdp_private.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F36150777B00046E0AC /* trdp_private.h */; };
+		08F4F52E22FDAAED00304B34 /* trdp_xml.h in Headers */ = {isa = PBXBuildFile; fileRef = 730B42A91C650ECB00A92265 /* trdp_xml.h */; };
+		08F4F52F22FDAAED00304B34 /* tau_tti_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 73A00E5E1913CCAF0020A6EA /* tau_tti_types.h */; };
+		08F4F53022FDAAED00304B34 /* trdp_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F3A150777B00046E0AC /* trdp_utils.h */; };
+		08F4F53122FDAAED00304B34 /* tau_dnr_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 08C44FE11F2231B300AB84EF /* tau_dnr_types.h */; };
+		08F4F53222FDAAED00304B34 /* trdp_serviceRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 0899477222B8C6A1009D0D6C /* trdp_serviceRegistry.h */; };
+		08F4F53322FDAAED00304B34 /* trdp_stats.h in Headers */ = {isa = PBXBuildFile; fileRef = 7387F505157795FE00DBAB73 /* trdp_stats.h */; };
+		08F4F53422FDAAED00304B34 /* trdp_pdcom.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F35150777B00046E0AC /* trdp_pdcom.h */; };
+		08F4F53522FDAAED00304B34 /* trdp_mdcom.h in Headers */ = {isa = PBXBuildFile; fileRef = 73821F31150777B00046E0AC /* trdp_mdcom.h */; };
+		08F4F53622FDAAED00304B34 /* tau_marshall.h in Headers */ = {isa = PBXBuildFile; fileRef = 73F457C9152DE1FE00D1C522 /* tau_marshall.h */; };
+		08F4F53722FDAAED00304B34 /* tlc_if.h in Headers */ = {isa = PBXBuildFile; fileRef = 0899478722BA83B9009D0D6C /* tlc_if.h */; };
+		08F4F53822FDAAED00304B34 /* vos_shared_mem.h in Headers */ = {isa = PBXBuildFile; fileRef = 73F5A53A16A41A2000335006 /* vos_shared_mem.h */; };
+		08F4F53922FDAAED00304B34 /* tau_ctrl.h in Headers */ = {isa = PBXBuildFile; fileRef = 73A00E601913CCC50020A6EA /* tau_ctrl.h */; };
+		08F4F53A22FDAAED00304B34 /* tau_dnr.h in Headers */ = {isa = PBXBuildFile; fileRef = 73A00E611913CCC50020A6EA /* tau_dnr.h */; };
+		08F4F53C22FDAAED00304B34 /* tlm_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899477A22B917F7009D0D6C /* tlm_if.c */; };
+		08F4F53D22FDAAED00304B34 /* tau_ctrl.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D71BB11917D5CF003F9A87 /* tau_ctrl.c */; };
+		08F4F53E22FDAAED00304B34 /* tau_dnr.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D71BB21917D5CF003F9A87 /* tau_dnr.c */; };
+		08F4F53F22FDAAED00304B34 /* tau_tti.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B281B70DFBD0066EA06 /* tau_tti.c */; };
+		08F4F54022FDAAED00304B34 /* trdp_pdindex.c in Sources */ = {isa = PBXBuildFile; fileRef = 086EEEB622D5D7EA0061637D /* trdp_pdindex.c */; };
+		08F4F54122FDAAED00304B34 /* tau_cstinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 7303DC7E1BAAB016004C92D9 /* tau_cstinfo.c */; };
+		08F4F54222FDAAED00304B34 /* tau_marshall.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D6657A15D3D88700A352D4 /* tau_marshall.c */; };
+		08F4F54322FDAAED00304B34 /* tlp_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899477622B91586009D0D6C /* tlp_if.c */; };
+		08F4F54422FDAAED00304B34 /* trdp_pdcom.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F34150777B00046E0AC /* trdp_pdcom.c */; };
+		08F4F54522FDAAED00304B34 /* trdp_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F39150777B00046E0AC /* trdp_utils.c */; };
+		08F4F54622FDAAED00304B34 /* trdp_stats.c in Sources */ = {isa = PBXBuildFile; fileRef = 7387F506157795FE00DBAB73 /* trdp_stats.c */; };
+		08F4F54722FDAAED00304B34 /* trdp_mdcom.c in Sources */ = {isa = PBXBuildFile; fileRef = 73821F30150777B00046E0AC /* trdp_mdcom.c */; };
+		08F4F54822FDAAED00304B34 /* tau_xml.c in Sources */ = {isa = PBXBuildFile; fileRef = 08594B291B70DFD20066EA06 /* tau_xml.c */; };
+		08F4F54922FDAAED00304B34 /* tlc_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899478322BA83AF009D0D6C /* tlc_if.c */; };
+		08F4F54A22FDAAED00304B34 /* trdp_xml.c in Sources */ = {isa = PBXBuildFile; fileRef = 730B42A81C650ECB00A92265 /* trdp_xml.c */; };
+		08F4F54B22FDAAED00304B34 /* tau_so_if.c in Sources */ = {isa = PBXBuildFile; fileRef = 0899477E22B92D55009D0D6C /* tau_so_if.c */; };
+		08F4F54D22FDAAED00304B34 /* libvosPosix.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 084A96B022CA4058004A6F04 /* libvosPosix.a */; };
+		08F4F55422FDAB9D00304B34 /* libtrdp64PosixHP.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 08F4F55122FDAAED00304B34 /* libtrdp64PosixHP.a */; };
 		08FA81B12176207900A4FF81 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		08FA81B6217620AF00A4FF81 /* trdp-xmlprint-test.c in Sources */ = {isa = PBXBuildFile; fileRef = 7366AC7416B68C920068A893 /* trdp-xmlprint-test.c */; };
 		73080FE517A91716003DAE84 /* tau_marshall.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D6657A15D3D88700A352D4 /* tau_marshall.c */; settings = {COMPILER_FLAGS = "-DL_ENDIAN"; }; };
@@ -316,13 +357,6 @@
 			remoteGlobalIDString = 73603CE7175CBE79004608BD;
 			remoteInfo = "md-test";
 		};
-		086EEEB322D4BF830061637D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 73591F6F1B986C7900B758F0;
-			remoteInfo = trdp64Posix;
-		};
 		0874F446228DC11400038D72 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -350,6 +384,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 73591F6F1B986C7900B758F0;
 			remoteInfo = trdp64Posix;
+		};
+		08F4F52122FDAAED00304B34 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 084A967D22CA4058004A6F04;
+			remoteInfo = vosPosix;
+		};
+		08F4F55222FDAB9300304B34 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 08F4F51F22FDAAED00304B34;
+			remoteInfo = trdp64PosixHP;
 		};
 		08FA81AD2176207900A4FF81 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -683,6 +731,7 @@
 		08D9D5D51EDDA32C00EE2FA0 /* TAUL_PD */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TAUL_PD; sourceTree = "<group>"; };
 		08E446BD22B27B65009C6D0E /* speedtest1.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = speedtest1.xml; sourceTree = "<group>"; };
 		08E446BE22B28B62009C6D0E /* speedtest2.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = speedtest2.xml; sourceTree = "<group>"; };
+		08F4F55122FDAAED00304B34 /* libtrdp64PosixHP.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtrdp64PosixHP.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		08FA81B52176207900A4FF81 /* trdp-xmlprint-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-xmlprint-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		08FA81C32177310000A4FF81 /* type_test.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; lineEnding = 2; name = type_test.xml; path = ../../../../../../Desktop/type_test.xml; sourceTree = "<group>"; };
 		7303DC7E1BAAB016004C92D9 /* tau_cstinfo.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = tau_cstinfo.c; sourceTree = "<group>"; tabWidth = 4; };
@@ -882,7 +931,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				086EEEAD22D4BF410061637D /* libtrdp64.a in Frameworks */,
+				08F4F55422FDAB9D00304B34 /* libtrdp64PosixHP.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -938,6 +987,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		08F4F54C22FDAAED00304B34 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08F4F54D22FDAAED00304B34 /* libvosPosix.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1278,6 +1335,7 @@
 				084A96E422CB5F72004A6F04 /* libtrdpTSN.a */,
 				084A96F522CB61BB004A6F04 /* receiveTSN */,
 				086EEEB122D4BF410061637D /* test_local_loop2 */,
+				08F4F55122FDAAED00304B34 /* libtrdp64PosixHP.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1642,6 +1700,37 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		08F4F52222FDAAED00304B34 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08F4F52322FDAAED00304B34 /* trdp_types.h in Headers */,
+				08F4F52422FDAAED00304B34 /* trdp_if_light.h in Headers */,
+				08F4F52522FDAAED00304B34 /* vos_mem.h in Headers */,
+				08F4F52622FDAAED00304B34 /* vos_sock.h in Headers */,
+				08F4F52722FDAAED00304B34 /* tau_ctrl_types.h in Headers */,
+				08F4F52822FDAAED00304B34 /* iec61375-2-3.h in Headers */,
+				08F4F52922FDAAED00304B34 /* vos_thread.h in Headers */,
+				08F4F52A22FDAAED00304B34 /* vos_types.h in Headers */,
+				08F4F52B22FDAAED00304B34 /* vos_utils.h in Headers */,
+				08F4F52C22FDAAED00304B34 /* trdp_pdindex.h in Headers */,
+				08F4F52D22FDAAED00304B34 /* trdp_private.h in Headers */,
+				08F4F52E22FDAAED00304B34 /* trdp_xml.h in Headers */,
+				08F4F52F22FDAAED00304B34 /* tau_tti_types.h in Headers */,
+				08F4F53022FDAAED00304B34 /* trdp_utils.h in Headers */,
+				08F4F53122FDAAED00304B34 /* tau_dnr_types.h in Headers */,
+				08F4F53222FDAAED00304B34 /* trdp_serviceRegistry.h in Headers */,
+				08F4F53322FDAAED00304B34 /* trdp_stats.h in Headers */,
+				08F4F53422FDAAED00304B34 /* trdp_pdcom.h in Headers */,
+				08F4F53522FDAAED00304B34 /* trdp_mdcom.h in Headers */,
+				08F4F53622FDAAED00304B34 /* tau_marshall.h in Headers */,
+				08F4F53722FDAAED00304B34 /* tlc_if.h in Headers */,
+				08F4F53822FDAAED00304B34 /* vos_shared_mem.h in Headers */,
+				08F4F53922FDAAED00304B34 /* tau_ctrl.h in Headers */,
+				08F4F53A22FDAAED00304B34 /* tau_dnr.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		73591F701B986C7900B758F0 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -1824,7 +1913,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				086EEEB422D4BF830061637D /* PBXTargetDependency */,
+				08F4F55322FDAB9300304B34 /* PBXTargetDependency */,
 			);
 			name = test_local_loop2;
 			productName = "crc-check";
@@ -1946,6 +2035,24 @@
 			name = "trdp iOS";
 			productName = trdpiOS;
 			productReference = 08D51C13200FB6F8004319B6 /* libtrdp64iOS.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		08F4F51F22FDAAED00304B34 /* trdp64PosixHP */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 08F4F54E22FDAAED00304B34 /* Build configuration list for PBXNativeTarget "trdp64PosixHP" */;
+			buildPhases = (
+				08F4F52222FDAAED00304B34 /* Headers */,
+				08F4F53B22FDAAED00304B34 /* Sources */,
+				08F4F54C22FDAAED00304B34 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				08F4F52022FDAAED00304B34 /* PBXTargetDependency */,
+			);
+			name = trdp64PosixHP;
+			productName = trdp;
+			productReference = 08F4F55122FDAAED00304B34 /* libtrdp64PosixHP.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 		08FA81AB2176207900A4FF81 /* trdp-xmlprint-test */ = {
@@ -2370,6 +2477,7 @@
 			targets = (
 				084A967D22CA4058004A6F04 /* vosPosix */,
 				73591F6F1B986C7900B758F0 /* trdp64Posix */,
+				08F4F51F22FDAAED00304B34 /* trdp64PosixHP */,
 				084A96B422CB5F72004A6F04 /* trdpTSN */,
 				08D51C12200FB6F8004319B6 /* trdp iOS */,
 				7382200B1508E9FA0046E0AC /* echoPolling */,
@@ -2610,6 +2718,29 @@
 				0899478122B92D55009D0D6C /* tau_so_if.c in Sources */,
 				08D51C42200FB810004319B6 /* trdp_utils.c in Sources */,
 				08D51C44200FB810004319B6 /* trdp_xml.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		08F4F53B22FDAAED00304B34 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08F4F53C22FDAAED00304B34 /* tlm_if.c in Sources */,
+				08F4F53D22FDAAED00304B34 /* tau_ctrl.c in Sources */,
+				08F4F53E22FDAAED00304B34 /* tau_dnr.c in Sources */,
+				08F4F53F22FDAAED00304B34 /* tau_tti.c in Sources */,
+				08F4F54022FDAAED00304B34 /* trdp_pdindex.c in Sources */,
+				08F4F54122FDAAED00304B34 /* tau_cstinfo.c in Sources */,
+				08F4F54222FDAAED00304B34 /* tau_marshall.c in Sources */,
+				08F4F54322FDAAED00304B34 /* tlp_if.c in Sources */,
+				08F4F54422FDAAED00304B34 /* trdp_pdcom.c in Sources */,
+				08F4F54522FDAAED00304B34 /* trdp_utils.c in Sources */,
+				08F4F54622FDAAED00304B34 /* trdp_stats.c in Sources */,
+				08F4F54722FDAAED00304B34 /* trdp_mdcom.c in Sources */,
+				08F4F54822FDAAED00304B34 /* tau_xml.c in Sources */,
+				08F4F54922FDAAED00304B34 /* tlc_if.c in Sources */,
+				08F4F54A22FDAAED00304B34 /* trdp_xml.c in Sources */,
+				08F4F54B22FDAAED00304B34 /* tau_so_if.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2860,11 +2991,6 @@
 			target = 73603CE7175CBE79004608BD /* trdp-md-test */;
 			targetProxy = 08594B411B70F2810066EA06 /* PBXContainerItemProxy */;
 		};
-		086EEEB422D4BF830061637D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 73591F6F1B986C7900B758F0 /* trdp64Posix */;
-			targetProxy = 086EEEB322D4BF830061637D /* PBXContainerItemProxy */;
-		};
 		0874F447228DC11400038D72 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 73591F6F1B986C7900B758F0 /* trdp64Posix */;
@@ -2884,6 +3010,16 @@
 			isa = PBXTargetDependency;
 			target = 73591F6F1B986C7900B758F0 /* trdp64Posix */;
 			targetProxy = 08C5E46322B146C8004D2028 /* PBXContainerItemProxy */;
+		};
+		08F4F52022FDAAED00304B34 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 084A967D22CA4058004A6F04 /* vosPosix */;
+			targetProxy = 08F4F52122FDAAED00304B34 /* PBXContainerItemProxy */;
+		};
+		08F4F55322FDAB9300304B34 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 08F4F51F22FDAAED00304B34 /* trdp64PosixHP */;
+			targetProxy = 08F4F55222FDAB9300304B34 /* PBXContainerItemProxy */;
 		};
 		08FA81AC2176207900A4FF81 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3740,6 +3876,79 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VALID_ARCHS = "armv7 armv7s arm64";
+			};
+			name = Release;
+		};
+		08F4F54F22FDAAED00304B34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				INSTALL_PATH = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				OTHER_CFLAGS = (
+					"-DMD_SUPPORT=1",
+					"-DPOSIX",
+					"-DL_ENDIAN",
+					"-DDEBUG",
+					"-D_DARWIN_C_SOURCE",
+					"-DHIGH_PERF_INDEXED",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "../src/api ../src/vos/api ../src/api ../src/vos/posix ../src/common";
+				VALID_ARCHS = x86_64;
+			};
+			name = Debug;
+		};
+		08F4F55022FDAAED00304B34 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				INSTALL_PATH = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-DMD_SUPPORT=1",
+					"-DPOSIX",
+					"-DL_ENDIAN",
+					"-D_DARWIN_C_SOURCE",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "../src/api ../src/vos/api ../src/api ../src/vos/posix ../src/common";
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
@@ -4904,6 +5113,15 @@
 			buildConfigurations = (
 				08D51C1A200FB6F9004319B6 /* Debug */,
 				08D51C1B200FB6F9004319B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		08F4F54E22FDAAED00304B34 /* Build configuration list for PBXNativeTarget "trdp64PosixHP" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				08F4F54F22FDAAED00304B34 /* Debug */,
+				08F4F55022FDAAED00304B34 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

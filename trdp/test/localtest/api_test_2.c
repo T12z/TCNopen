@@ -2085,7 +2085,7 @@ static int test14 ()
         vos_threadDelay(TEST14_WAIT);
         fprintf(gFp,
                 "%u max. expected, %u callbacks received\n",
-                (counter * TEST14_LOOP + TEST14_WAIT) / TEST14_INTERVAL,
+                (unsigned int)(counter * TEST14_LOOP + TEST14_WAIT) / TEST14_INTERVAL,
                 gTest14CBCounter);
     }
 
@@ -2676,8 +2676,9 @@ static void  test20CBFunction (
     switch (pMsg->resultCode)
     {
         case TRDP_NO_ERR:
-            vos_printLog(VOS_LOG_USR, "received comId: %u (seq: %u, size: %u, src: %s)\n",
-                         pMsg->comId, pMsg->seqCount, dataSize, vos_ipDotted(pMsg->srcIpAddr));
+            //fprintf(gFp, ".");
+            //vos_printLog(VOS_LOG_USR, "received comId: %u (seq: %u, size: %u, src: %s)\n",
+            //             pMsg->comId, pMsg->seqCount, dataSize, vos_ipDotted(pMsg->srcIpAddr));
             break;
 
         case TRDP_TIMEOUT_ERR:
@@ -3047,7 +3048,237 @@ static int test20 ()
     CLEANUP;
 }
 
+/**********************************************************************************************************************/
+/** test21
+ *
+ *  @retval         0        no error
+ *  @retval         1        some error
+ */
 
+static void  test21CBPubFunction (
+    void                    *pRefCon,
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_PD_INFO_T    *pMsg,
+    UINT8                   *pData,
+    UINT32                  dataSize)
+{
+    vos_printLog(VOS_LOG_USR, "Sending (ComId %d)\n", pMsg->comId);
+}
+
+static void  test21CBFunction (
+    void                    *pRefCon,
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_PD_INFO_T    *pMsg,
+    UINT8                   *pData,
+    UINT32                  dataSize)
+{
+
+    /*    Check why we have been called    */
+    switch (pMsg->resultCode)
+    {
+        case TRDP_NO_ERR:
+            //fprintf(gFp, ".");
+            vos_printLog(VOS_LOG_USR, "received comId: %u (seq: %u, size: %u, src: %s)\n",
+                         pMsg->comId, pMsg->seqCount, dataSize, vos_ipDotted(pMsg->srcIpAddr));
+            break;
+
+        case TRDP_TIMEOUT_ERR:
+            /* The application can decide here if old data shall be invalidated or kept    */
+            vos_printLog(VOS_LOG_USR, "Packet timed out (ComId %d)\n", pMsg->comId);
+            break;
+        default:
+            vos_printLog(VOS_LOG_USR, "Error on packet received (ComId %d), err = %d\n",
+                         pMsg->comId,
+                         pMsg->resultCode);
+            break;
+    }
+}
+
+static int test21 ()
+{
+    PREPARE("Send and receive telegrams, to check new indexed receive algorithm", "test");
+
+    /* ------------------------- test code starts here --------------------------- */
+
+#define TEST21_CYCLE_TIME           10000u          /* 5ms */
+
+#define TEST21_COMID_BASE           1000u
+
+#define TEST21_INTERVAL_BASE        100000u          /* x 100ms timeout */
+
+#define TEST21_DATA1                "Hello World!"
+#define TEST21_PACKET_SIZE1         16u
+#define TEST21_DATA2                "Hello Big World!Hello Big World!Hello Big World!Hello Big World!"
+#define TEST21_PACKET_SIZE2         64u
+#define TEST21_DATA3                "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!"
+#define TEST21_PACKET_SIZE3         128u
+#define TEST21_DATA4                "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!" \
+                                    "Hello Big World!Hello Big World!Hello Big World!Hello Big World!"
+#define TEST21_PACKET_SIZE4         1024u
+
+#define TEST21_SRC1                 0x0a000301
+#define TEST21_SRC2                 0x0a000302
+#define TEST21_SRC3                 0x0a000303
+#define TEST21_SRC4                 0x0a000304
+#define TEST21_DESTINATION          0xEF020202
+
+    {
+        struct telegram_array
+        {
+            UINT32 comId;               /* + index of loop */
+            UINT32 interval;            /* == timeout */
+            CHAR8 *pData;
+            UINT32 dataLen;
+            UINT32 srcIP1;              /* opt. filtering */
+            UINT32 srcIP2;              /* opt. filtering */
+            UINT32 dstIP;               /* MC group */
+        } lArray[] =
+        {
+            /* 16 packets */
+            {TEST21_COMID_BASE, 10 * TEST21_INTERVAL_BASE, TEST21_DATA1, TEST21_PACKET_SIZE1, TEST21_SRC1, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 10 * TEST21_INTERVAL_BASE, TEST21_DATA2, TEST21_PACKET_SIZE2, TEST21_SRC1, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 5 * TEST21_INTERVAL_BASE, TEST21_DATA3, TEST21_PACKET_SIZE3, TEST21_SRC1, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA4, TEST21_PACKET_SIZE4, TEST21_SRC1, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA1, TEST21_PACKET_SIZE1, TEST21_SRC2, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 5 * TEST21_INTERVAL_BASE, TEST21_DATA2, TEST21_PACKET_SIZE2, TEST21_SRC2, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 5 * TEST21_INTERVAL_BASE, TEST21_DATA3, TEST21_PACKET_SIZE3, TEST21_SRC2, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 2 * TEST21_INTERVAL_BASE, TEST21_DATA4, TEST21_PACKET_SIZE4, INADDR_ANY, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 3 * TEST21_INTERVAL_BASE, TEST19_DATA1, TEST21_PACKET_SIZE1, INADDR_ANY, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA2, TEST21_PACKET_SIZE2, INADDR_ANY, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 8 * TEST21_INTERVAL_BASE, TEST21_DATA3, TEST19_PACKET_SIZE3, INADDR_ANY, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA4, TEST21_PACKET_SIZE4, INADDR_ANY, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA1, TEST21_PACKET_SIZE1, TEST21_SRC2, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA2, TEST21_PACKET_SIZE2, TEST21_SRC2, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA3, TEST21_PACKET_SIZE3, TEST21_SRC2, INADDR_ANY,
+                INADDR_ANY},
+            {TEST21_COMID_BASE, 1 * TEST21_INTERVAL_BASE, TEST21_DATA4, TEST21_PACKET_SIZE4, INADDR_ANY, INADDR_ANY,
+                INADDR_ANY},
+            {0, 0, NULL, 0, INADDR_ANY, INADDR_ANY, INADDR_ANY}
+        };
+
+        UINT32 noOfTelegrams = sizeof(lArray) / sizeof(struct telegram_array) - 1;
+
+        TRDP_PUB_T pubHandle[noOfTelegrams];
+        TRDP_SUB_T subHandle[noOfTelegrams];
+
+        UINT32 i;
+
+        TRDP_PROCESS_CONFIG_T procConf  = {"TestHost", "me", TEST20_CYCLE_TIME, 0, TRDP_OPTION_NONE};
+        TRDP_PD_CONFIG_T pdConfig       =
+        {test21CBFunction, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB,
+            100000u, TRDP_TO_SET_TO_ZERO, 0};
+
+        gFullLog = TRUE;
+
+        /* Configure two sessions   */
+        err = tlc_configSession(gSession1.appHandle, NULL, NULL, NULL, &procConf);
+        IF_ERROR("tlc_configSession 1");
+
+        err = tlc_configSession(gSession2.appHandle, NULL, &pdConfig, NULL, &procConf);
+        IF_ERROR("tlc_configSession 2");
+
+        for (i = 0; i < noOfTelegrams; i++)
+        {
+            /*    Session1 Install all publishers    */
+
+            err = tlp_publish(gSession1.appHandle, &pubHandle[i], test21CBPubFunction, NULL, 0u,
+                              lArray[i].comId + i, 0u, 0u,
+                              0u,
+                              gSession2.ifaceIP,
+                              lArray[i].interval,
+                              0u, TRDP_FLAGS_DEFAULT, NULL, (UINT8 *) lArray[i].pData, lArray[i].dataLen);
+
+            IF_ERROR("tlp_publish");
+
+            err = tlp_subscribe(gSession2.appHandle, &subHandle[i], NULL, NULL,
+                                0u, /* service Id */
+                                lArray[i].comId + i, 0u, 0u,
+                                gSession1.ifaceIP, 0u, //lArray[i].srcIP1, lArray[i].srcIP2,
+                                0u,
+                                TRDP_FLAGS_DEFAULT, NULL,
+                                lArray[i].interval * 3, TRDP_TO_DEFAULT);
+
+            IF_ERROR("tlp_subscribe");
+
+        }
+
+        fprintf(gFp, "\nInitialized %u publishers!\n", i);
+
+        err = tlc_updateSession(gSession1.appHandle);
+
+        IF_ERROR("tlc_updateSession");
+
+        err = tlc_updateSession(gSession2.appHandle);
+
+        IF_ERROR("tlc_updateSession");
+        /*
+         Enter the main processing loop.
+         */
+        fprintf(gFp, "Transmission is going on...\n");
+        fprintf(gFp, "...changing some data...\n");
+        int counter = 0;
+        UINT8 buffer[2000];
+        UINT32 size = 2000;
+
+        while (counter++ < 10)         /* 1 * TEST9_NO_OF_TELEGRAMS seconds -> 200s */
+        {
+            /* TRDP_PD_INFO_T pdInfo; */
+
+            for (i = 0; i < noOfTelegrams; i++)
+            {
+                /* sprintf(lArray[i].pData, "ComId %08u", i); */
+                (void) tlp_put(gSession1.appHandle, pubHandle[i], (UINT8 *) lArray[i].pData, lArray[i].dataLen);
+
+            }
+
+            /*
+             for (i = 0; i < noOfTelegrams; i++)
+             {
+             TRDP_PD_INFO_T pdInfo;
+             //sprintf(lArray[i].pData, "ComId %08u", i);
+             (void) tlp_get(gSession2.appHandle, subHandle[i], &pdInfo, buffer, &size);
+             }
+             */
+        }
+
+        usleep(5000000);   /* Let it run for 5s */
+        fprintf(gFp, "\n...transmission is finished\n");
+        /* gFullLog = FALSE; */
+    }
+
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+}
 
 
 /**********************************************************************************************************************/
@@ -3076,6 +3307,7 @@ test_func_t *testArray[] =
     test18,  /* XML stream */
     test19,  /* Basic test of PD send performance enhancement */
     test20,  /* Basic test of PD receive performance enhancement */
+    test21,  /* Basic test of PD receive performance enhancement */
     NULL
 };
 
