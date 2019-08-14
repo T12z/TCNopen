@@ -1154,9 +1154,14 @@ static void processData()
         /*  call process function for all sessions  */
         for (i = 0; i < numIfConfig; i++)
         {
-            result = tlc_process(aSessionCfg[i].sessionhandle, NULL, NULL);
+            result = tlp_processSend(aSessionCfg[i].sessionhandle, NULL, NULL);
             if (result != TRDP_NO_ERR)
-                printf("tlc_process for interface %s failed: %s\n", 
+                printf("tlp_processSend for interface %s failed: %s\n",
+                    pIfConfig[i].ifName, getResultString(result));
+
+            result = tlp_processReceive(aSessionCfg[i].sessionhandle, NULL, NULL);
+            if (result != TRDP_NO_ERR)
+                printf("tlp_processReceive for interface %s failed: %s\n",
                     pIfConfig[i].ifName, getResultString(result));
         }
 
