@@ -606,7 +606,7 @@ static TRDP_APP_SESSION_T test_init (
                                             (VOS_THREAD_FUNC_T) senderThreadPD,
                                             pSession);
     }
-    if (err == VOS_NO_ERR)
+    if (err == TRDP_NO_ERR)
     {
         /* Receiver thread runs until cancel */
         printf("Creating MD Transceiver task ...\n");

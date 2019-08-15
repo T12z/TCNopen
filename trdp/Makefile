@@ -133,7 +133,7 @@ endif
 TARGETS = outdir libtrdp
 
 ifneq ($(TARGET_OS),VXWORKS)
-	TARGETS += example test pdtest mdtest xml highperf
+	TARGETS += example test pdtest mdtest xml highperf marshall
 else
 	TARGETS += vtests
 endif
@@ -182,6 +182,8 @@ vtests:		outdir $(OUTDIR)/vtest
 xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
 
 highperf:	outdir $(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2
+
+marshall:	$(OUTDIR)/test_marshalling
 
 %_config:
 	cp -f config/$@ config/config.mk
@@ -433,6 +435,14 @@ $(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdp.a $(addprefix 
 				-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
+			
+$(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdp \
+			$(LDFLAGS)
+			@$(STRIP) $@			
 
 $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MC joiner application $(@F)'

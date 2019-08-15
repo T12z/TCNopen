@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+*       SB 2019-08-15: Moved TAU_MAX_NO_CACHE_ENTRY to header file
  *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
  *      SB 2019-03-01: Ticket #237: tau_initDnr: Fixed comparison of readHostFile return value
  *      SB 2019-02-11: Ticket #237: tau_initDnr: Parameter waitForDnr to reduce wait times added
@@ -54,7 +55,6 @@
  */
 
 #define TAU_MAX_HOSTS_LINE_LENGTH   120u
-#define TAU_MAX_NO_CACHE_ENTRY      50u
 #define TAU_MAX_NO_IF               4u      /**< Default interface should be in the first 4 */
 #define TAU_MAX_DNS_BUFFER_SIZE     1500u   /* if this doesn't suffice, we need to allocate it */
 #define TAU_MAX_NAME_SIZE           256u    /* Allocated on stack */

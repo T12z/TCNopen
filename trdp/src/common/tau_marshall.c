@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-08-15: Compiler warning (pointer compared to integer)
  *      SB 2019-08-14: Ticket #265: Incorrect alignment in nested datasets
  *      SB 2019-05-24: Ticket #252 Bug in unmarshalling/marshalling of TIMEDATE48 and TIMEDATE64
  *      BL 2018-11-08: Use B_ENDIAN from vos_utils.h in unpackedCopy64()
@@ -1120,7 +1121,7 @@ EXT_DECL TRDP_ERR_T tau_initMarshall (
 
     ppRefCon = ppRefCon;
 
-    if ((pDataset == NULL) || (numDataSet == 0u) || (numComId == 0u) || (pComIdDsIdMap == 0u))
+    if ((pDataset == NULL) || (numDataSet == 0u) || (numComId == 0u) || (pComIdDsIdMap == NULL))
     {
         return TRDP_PARAM_ERR;
     }

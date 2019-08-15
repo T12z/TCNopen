@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
  *      BL 2019-06-17: Ticket #264 Provide service oriented interface
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2019-06-17: Ticket #161 Increase performance
@@ -196,6 +197,7 @@ typedef struct TRDP_SOCKETS
 {
     SOCKET              sock;                            /**< vos socket descriptor to use                */
     TRDP_IP_ADDR_T      bindAddr;                        /**< Defines the interface to use                */
+    TRDP_IP_ADDR_T      srcAddr;                         /**< Defines the source interface to use         */
     TRDP_SEND_PARAM_T   sendParam;                       /**< Send parameters                             */
     TRDP_SOCK_TYPE_T    type;                            /**< Usage of this socket                        */
     BOOL8               rcvMostly;                       /**< Used for receiving                          */

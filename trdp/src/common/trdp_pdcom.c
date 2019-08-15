@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2019-08-15: Taking service Id from header in trdp_pdReceive()
 *      BL 2019-08-14: Ticket #161 Change of internal handling of trdp_pdCheckListenSocks()
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -770,6 +771,7 @@ TRDP_ERR_T  trdp_pdReceive (
         subAddresses.comId          = vos_ntohl(pTSNFrameHead->comId);
         subAddresses.etbTopoCnt     = 0u;   /* they do not matter */
         subAddresses.opTrnTopoCnt   = 0u;
+        subAddresses.serviceId      = vos_ntohl(pTSNFrameHead->reserved);
         msgType = pTSNFrameHead->msgType;
     }
     else    /* no PULL on TSN */
@@ -791,6 +793,7 @@ TRDP_ERR_T  trdp_pdReceive (
         subAddresses.comId          = vos_ntohl(pNewFrameHead->comId);
         subAddresses.etbTopoCnt     = vos_ntohl(pNewFrameHead->etbTopoCnt);
         subAddresses.opTrnTopoCnt   = vos_ntohl(pNewFrameHead->opTrnTopoCnt);
+        subAddresses.serviceId      = vos_ntohl(pNewFrameHead->reserved);
         msgType = vos_ntohs(pNewFrameHead->msgType);
 
 
@@ -1016,6 +1019,7 @@ TRDP_ERR_T  trdp_pdReceive (
                 theMessage.replyComId   = 0u;
                 theMessage.replyIpAddr  = VOS_INADDR_ANY;
                 theMessage.protVersion  = pTSNFrameHead->protocolVersion;
+                theMessage.serviceId    = pTSNFrameHead->reserved;
                 pExistingElement->pfCbFunction(appHandle->pdDefault.pRefCon,
                                                appHandle,
                                                &theMessage,
@@ -1031,6 +1035,7 @@ TRDP_ERR_T  trdp_pdReceive (
                 theMessage.protVersion  = vos_ntohs(pExistingElement->pFrame->frameHead.protocolVersion);
                 theMessage.replyComId   = vos_ntohl(pExistingElement->pFrame->frameHead.replyComId);
                 theMessage.replyIpAddr  = vos_ntohl(pExistingElement->pFrame->frameHead.replyIpAddress);
+                theMessage.serviceId    = vos_ntohl(pExistingElement->pFrame->frameHead.reserved);
                 pExistingElement->pfCbFunction(appHandle->pdDefault.pRefCon,
                                                appHandle,
                                                &theMessage,

@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
 *      BL 2019-08-13: Ignore qos/ttl on receive sockets
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -1024,6 +1025,7 @@ TRDP_ERR_T  trdp_requestSocket (
 
         iface[lIndex].sock      = VOS_INVALID_SOCKET;
         iface[lIndex].bindAddr  = bindAddr /* was srcIP (ID #125) */;
+        iface[lIndex].srcAddr   = srcIP;
         iface[lIndex].type      = type;
         iface[lIndex].sendParam = *params;
         iface[lIndex].rcvMostly = rcvMostly;
@@ -1345,6 +1347,7 @@ void  trdp_releaseSocket (
                 iface[lIndex].sendParam.ttl = 0;
                 iface[lIndex].usage         = 0;
                 iface[lIndex].bindAddr      = 0;
+                iface[lIndex].srcAddr       = 0;
                 iface[lIndex].type      = TRDP_SOCK_INVAL;
                 iface[lIndex].rcvMostly = FALSE;
                 iface[lIndex].tcpParams.cornerIp = 0;
@@ -1396,7 +1399,7 @@ void  trdp_releaseSocket (
                 }
                 else    /* and unjoin MC group */
                 {
-                    if (vos_sockLeaveMC(iface[lIndex].sock, mcGroupUsed, iface[lIndex].bindAddr) != VOS_NO_ERR)
+                    if (vos_sockLeaveMC(iface[lIndex].sock, mcGroupUsed, iface[lIndex].srcAddr) != VOS_NO_ERR)
                     {
                         vos_printLogStr(VOS_LOG_WARNING, "trdp_sockLeaveMC() failed!\n");
                     }
