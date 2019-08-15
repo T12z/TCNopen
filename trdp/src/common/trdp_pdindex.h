@@ -45,17 +45,51 @@
 #define TRDP_MIN_CYCLE          1000u
 #define TRDP_MAX_CYCLE          5000u
 
-#define TRDP_LOW_CYCLE          1000                    /* 1...99ms */
-#define TRDP_MID_CYCLE          10000                   /* 100ms...990ms */
-#define TRDP_HIGH_CYCLE         100000                  /* >= 1000ms */
+#define TRDP_LOW_CYCLE          1000                    /* 1...99ms         */
+#define TRDP_MID_CYCLE          10000                   /* 100ms...990ms    */
+#define TRDP_HIGH_CYCLE         100000                  /* >= 1000ms        */
 
-#define TRDP_LOW_CYCLE_LIMIT    100000                 /* 0.5...100ms */
-#define TRDP_MID_CYCLE_LIMIT    1000000                /* 101ms...1000ms */
-#define TRDP_HIGH_CYCLE_LIMIT   10000000               /* > 1000ms */
+#define TRDP_LOW_CYCLE_LIMIT    100000                  /* 0.5...100ms      */
+#define TRDP_MID_CYCLE_LIMIT    1000000                 /* 101ms...1000ms   */
+#define TRDP_HIGH_CYCLE_LIMIT   10000000                /* > 1000ms         */
 
 /***********************************************************************************************************************
  * TYPEDEFS
  */
+
+/* Definitions for the transmitter optimisation */
+
+/** Low cycle-time slots */
+typedef struct hp_slot
+{
+    UINT32          slotCycle;                          /**< cycle time with which each slot will be called (us)    */
+    UINT8           noOfTxEntries;                      /**< no of slots == first array dimension                   */
+    UINT8           depthOfTxEntries;                   /**< depth of slots == second array dimension               */
+    const PD_ELE_T  * *ppIdxCat;                        /**< pointer to an array of PD_ELE_T* (dim[depth][slot])    */
+} TRDP_HP_CAT_SLOT_T;
+
+/* Definitions for the receiver optimisation */
+
+typedef PD_ELE_T *(PD_ELE_ARRAY_T[]);
+
+/** entry for the application session */
+typedef struct hp_slots
+{
+    UINT32              processCycle;                   /**< system cycle time with which lowest array will be called */
+    UINT32              currentCycle;                   /**< the current cycle of the send loop                       */
+
+    TRDP_HP_CAT_SLOT_T  lowCat;                         /**< array dim[slot][depth]          */
+    TRDP_HP_CAT_SLOT_T  midCat;                         /**< array dim[slot][depth]          */
+    TRDP_HP_CAT_SLOT_T  highCat;                        /**< array dim[slot][depth]          */
+
+    UINT32              noOfRxEntries;                  /**< number of subscribed PDs to be handled             */
+    PD_ELE_T            * *pRcvTableComId;              /**< Pointer to sorted array of PDs to be handled       */
+    PD_ELE_T            * *pRcvTableTimeOut;            /**< Pointer to sorted array of PDs to be handled       */
+
+    UINT32              largeCycle;                     /**< overflow cycle to handle slow PDs and PD requests  */
+    UINT8               noOfExtTxEntries;               /**< number of 'special' PDs to be handled              */
+    PD_ELE_T            * *pExtTxTable;                 /**< Pointer to array of PDs to be handled              */
+} TRDP_HP_CAT_SLOTS_T;
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS

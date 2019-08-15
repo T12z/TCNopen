@@ -18,6 +18,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-08-15: Default pre-allocated blocks for HIGH_PERF raised
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
  */
 
@@ -65,7 +66,7 @@ typedef enum
     /** Default pre-allocation of free memory blocks. To avoid problems with too many small blocks and no large one.
      Specify how many of each block size that should be pre-allocated (and freed!) to pre-segment the memory area. */
 
-#define VOS_MEM_PREALLOCATE  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 10u, 0u, 2u, 0u, 1u, 0u, 1u, 0u}
+#define VOS_MEM_PREALLOCATE  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 10u, 0u, 2u, 10u, 1u, 0u, 1u, 0u}
 
 #elif MD_SUPPORT
 /** We internally allocate memory always by these block sizes. The largest available block is 524288 Bytes, provided

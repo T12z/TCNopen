@@ -257,12 +257,19 @@ const CHAR8         *cErrStrings[NO_OF_ERROR_STRINGS] PROGMEM =
 
 #ifdef DEBUG
 static BOOL8 sIsBigEndian = FALSE;
+#ifndef HIGH_PERF_INDEXED
+#define HIGH_PERF_INDEXED
+#endif
 
 /***********************************************************************************************************************
  * LOCAL FUNCTIONS
  */
 
 #include "trdp_private.h"
+#ifdef HIGH_PERF_INDEXED
+#include "trdp_pdindex.h"
+#endif
+
 /**********************************************************************************************************************/
 /** Print sizes of used structs.
  *
@@ -280,6 +287,11 @@ static void vos_printStructSizes ()
 #if MD_SUPPORT
     vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%lu\n", "MD_ELE_T", sizeof(MD_ELE_T));
     vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%lu\n", "MD_LIS_ELE_T", sizeof(MD_LIS_ELE_T));
+#endif
+#ifdef HIGH_PERF_INDEXED
+    vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%lu\n", "TRDP_HP_SLOTS_T", sizeof(TRDP_HP_SLOTS_T));
+    vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%s\n", "plus 300 * no of pubs * var. depth * pointer size", " ~180 Bytes/publisher");
+    vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%s\n", "plus   2 * no of subs * pointer size             ", "   16 Bytes/subscription");
 #endif
 }
 #endif
