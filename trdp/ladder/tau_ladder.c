@@ -63,19 +63,23 @@ VOS_MUTEX_T pTrafficStoreMutex = NULL;                    /* Pointer to Mutex fo
 /* UINT32 mutexLockRetryTimeout = 1000;    */            /* Mutex Lock Retry Timeout : micro second */
 
 /* Traffic Store */
-CHAR8 TRAFFIC_STORE[] = "/ladder_ts";                    /* Traffic Store shared memory name */
-mode_t PERMISSION     = 0666;                                /* Traffic Store permission is rw-rw-rw- */
-UINT8 *pTrafficStoreAddr;                                /* pointer to pointer to Traffic Store Address */
+CHAR8       TRAFFIC_STORE[] = "/ladder_ts";              /* Traffic Store shared memory name */
+mode_t      PERMISSION      = 0666;                          /* Traffic Store permission is rw-rw-rw- */
+UINT8       *pTrafficStoreAddr;                          /* pointer to pointer to Traffic Store Address */
 VOS_SHRD_T  pTrafficStoreHandle;                        /* Pointer to Traffic Store Handle */
-UINT16 TRAFFIC_STORE_MUTEX_VALUE_AREA = 0xFF00;        /* Traffic Store mutex ID Area */
+UINT16      TRAFFIC_STORE_MUTEX_VALUE_AREA = 0xFF00;   /* Traffic Store mutex ID Area */
 
 /* PDComLadderThread */
-//CHAR8 pdComLadderThreadName[] ="PDComLadderThread";        /* Thread name is PDComLadder Thread. */
-//BOOL8 pdComLadderThreadActiveFlag = FALSE;                /* PDComLaader Thread active/noactive Flag :active=TRUE, nonActive=FALSE */
-BOOL8 pdComLadderThreadStartFlag = FALSE;                /* PDComLadder Thread instruction start up Flag :start=TRUE, stop=FALSE */
+/*
+   CHAR8 pdComLadderThreadName[] ="PDComLadderThread";        / * Thread name is PDComLadder Thread. * /
+   BOOL8 pdComLadderThreadActiveFlag = FALSE;                / * PDComLaader Thread active/noactive Flag :active=TRUE,
+   nonActive=FALSE * /
+ */
+BOOL8   pdComLadderThreadStartFlag = FALSE;              /* PDComLadder Thread instruction start up Flag :start=TRUE,
+                                                           stop=FALSE */
 
 /* Sub-net */
-UINT32 usingSubnetId;                                    /* Using SubnetId */
+UINT32  usingSubnetId;                                   /* Using SubnetId */
 
 /******************************************************************************/
 /** Initialize TRDP Ladder Support
@@ -89,25 +93,26 @@ UINT32 usingSubnetId;                                    /* Using SubnetId */
 TRDP_ERR_T tau_ladder_init (void)
 {
     /* Traffic Store */
-    extern CHAR8 TRAFFIC_STORE[];                    /* Traffic Store shared memory name */
-    extern VOS_SHRD_T  pTrafficStoreHandle;                /* Pointer to Traffic Store Handle */
-    extern UINT8 *pTrafficStoreAddr;                /* pointer to pointer to Traffic Store Address */
-    UINT32 trafficStoreSize = TRAFFIC_STORE_SIZE;    /* Traffic Store Size : 64KB */
+    extern CHAR8        TRAFFIC_STORE[];             /* Traffic Store shared memory name */
+    extern VOS_SHRD_T   pTrafficStoreHandle;               /* Pointer to Traffic Store Handle */
+    extern UINT8        *pTrafficStoreAddr;         /* pointer to pointer to Traffic Store Address */
+    UINT32              trafficStoreSize = TRAFFIC_STORE_SIZE; /* Traffic Store Size : 64KB */
 
 #if 0
     /* PDComLadderThread */
-    extern CHAR8 pdComLadderThreadName[];            /* Thread name is PDComLadder Thread. */
-    extern BOOL8 pdComLadderThreadActiveFlag;        /* PDComLaader Thread active/non-active Flag :active=TRUE, nonActive=FALSE */
-    VOS_THREAD_T pdComLadderThread = NULL;            /* Thread handle */
+    extern CHAR8        pdComLadderThreadName[];     /* Thread name is PDComLadder Thread. */
+    extern BOOL8        pdComLadderThreadActiveFlag; /* PDComLaader Thread active/non-active Flag :active=TRUE,
+                                                       nonActive=FALSE */
+    VOS_THREAD_T        pdComLadderThread = NULL;     /* Thread handle */
 #endif
 
     /* Traffic Store Mutex */
-    extern VOS_MUTEX_T pTrafficStoreMutex;            /* Pointer to Mutex for Traffic Store */
+    extern VOS_MUTEX_T  pTrafficStoreMutex;           /* Pointer to Mutex for Traffic Store */
 
     /* Traffic Store Create */
     /* Traffic Store Mutex Create */
-    TRDP_ERR_T ret = TRDP_MUTEX_ERR;
-    VOS_ERR_T vosErr = VOS_NO_ERR;
+    TRDP_ERR_T          ret     = TRDP_MUTEX_ERR;
+    VOS_ERR_T           vosErr  = VOS_NO_ERR;
 
 #if 0
     /*    PDComLadder Thread Active ? */
@@ -125,13 +130,13 @@ TRDP_ERR_T tau_ladder_init (void)
         {
             vos_threadInit();
             if (vos_threadCreate(&pdComLadderThread,
-                                    pdComLadderThreadName,
-                                    VOS_THREAD_POLICY_OTHER,
-                                    0,
-                                    0,
-                                    0,
-                                    (void *)PDComLadder,
-                                    NULL) == VOS_NO_ERR)
+                                 pdComLadderThreadName,
+                                 VOS_THREAD_POLICY_OTHER,
+                                 0,
+                                 0,
+                                 0,
+                                 (void *)PDComLadder,
+                                 NULL) == VOS_NO_ERR)
             {
                 pdComLadderThreadActiveFlag = TRUE;
                 return TRDP_NO_ERR;
@@ -178,8 +183,8 @@ TRDP_ERR_T tau_ladder_init (void)
 */
     /* Set Traffic Store Semaphore Value */
     memcpy((void *)((int)pTrafficStoreAddr + TRAFFIC_STORE_MUTEX_VALUE_AREA),
-            &pTrafficStoreMutex->mutexId,
-            sizeof(pTrafficStoreMutex->mutexId));
+           &pTrafficStoreMutex->mutexId,
+           sizeof(pTrafficStoreMutex->mutexId));
 
 #if 0
 /* Delete proc for TAUL */
@@ -188,13 +193,13 @@ TRDP_ERR_T tau_ladder_init (void)
     {
         vos_threadInit();
         if (vos_threadCreate(&pdComLadderThread,
-                                pdComLadderThreadName,
-                                VOS_THREAD_POLICY_OTHER,
-                                0,
-                                0,
-                                0,
-                                (void *)PDComLadder,
-                                NULL) == TRDP_NO_ERR)
+                             pdComLadderThreadName,
+                             VOS_THREAD_POLICY_OTHER,
+                             0,
+                             0,
+                             0,
+                             (void *)PDComLadder,
+                             NULL) == TRDP_NO_ERR)
         {
             pdComLadderThreadActiveFlag = TRUE;
             ret = TRDP_NO_ERR;
@@ -225,9 +230,9 @@ TRDP_ERR_T tau_ladder_init (void)
  */
 TRDP_ERR_T tau_ladder_terminate (void)
 {
-    extern UINT8 *pTrafficStoreAddr;                    /* pointer to pointer to Traffic Store Address */
-    extern VOS_MUTEX_T pTrafficStoreMutex;                /* Pointer to Mutex for Traffic Store */
-    TRDP_ERR_T err = TRDP_NO_ERR;
+    extern UINT8        *pTrafficStoreAddr;             /* pointer to pointer to Traffic Store Address */
+    extern VOS_MUTEX_T  pTrafficStoreMutex;               /* Pointer to Mutex for Traffic Store */
+    TRDP_ERR_T          err = TRDP_NO_ERR;
 
     /* Delete Traffic Store */
     tau_lockTrafficStore();
@@ -321,8 +326,8 @@ TRDP_ERR_T  tau_getNetworkContext (
 TRDP_ERR_T  tau_lockTrafficStore (
     void)
 {
-    extern VOS_MUTEX_T pTrafficStoreMutex;                    /* pointer to Mutex for Traffic Store */
-    VOS_ERR_T err = VOS_NO_ERR;
+    extern VOS_MUTEX_T  pTrafficStoreMutex;                   /* pointer to Mutex for Traffic Store */
+    VOS_ERR_T           err = VOS_NO_ERR;
 
     /* Lock Traffic Store by Mutex */
     err = vos_mutexLock(pTrafficStoreMutex);
@@ -354,7 +359,7 @@ TRDP_ERR_T  tau_unlockTrafficStore (
         return TRDP_MUTEX_ERR;
     }
 */
-        return TRDP_NO_ERR;
+    return TRDP_NO_ERR;
 }
 
 /**********************************************************************************************************************/
@@ -372,12 +377,12 @@ TRDP_ERR_T  tau_unlockTrafficStore (
 static int ifGetSocket = 0;
 
 TRDP_ERR_T  tau_checkLinkUpDown (
-    UINT32 checkSubnetId,
-    BOOL8 *pLinkUpDown)
+    UINT32  checkSubnetId,
+    BOOL8   *pLinkUpDown)
 {
-    struct ifreq ifRead;
-    CHAR8 SUBNETWORK_ID1_IF_NAME[] = "eth0";
-    CHAR8 SUBNETWORK_ID2_IF_NAME[] = "eth1";
+    struct ifreq    ifRead;
+    CHAR8           SUBNETWORK_ID1_IF_NAME[]    = "eth0";
+    CHAR8           SUBNETWORK_ID2_IF_NAME[]    = "eth1";
 
     /* Parameter Check */
     if (pLinkUpDown == NULL)
@@ -392,12 +397,12 @@ TRDP_ERR_T  tau_checkLinkUpDown (
     if (checkSubnetId == SUBNET1)
     {
         /* Set I/F subnet1 */
-        strncpy(ifRead.ifr_name, SUBNETWORK_ID1_IF_NAME, IFNAMSIZ-1);
+        strncpy(ifRead.ifr_name, SUBNETWORK_ID1_IF_NAME, IFNAMSIZ - 1);
     }
     else if (checkSubnetId == SUBNET2)
     {
         /* Set I/F subnet2 */
-        strncpy(ifRead.ifr_name, SUBNETWORK_ID2_IF_NAME, IFNAMSIZ-1);
+        strncpy(ifRead.ifr_name, SUBNETWORK_ID2_IF_NAME, IFNAMSIZ - 1);
     }
     else
     {
@@ -436,7 +441,7 @@ TRDP_ERR_T  tau_checkLinkUpDown (
         *pLinkUpDown = FALSE;
     }
 
-//    close(ifGetSocket);
+/*    close(ifGetSocket); */
 
     return TRDP_NO_ERR;
 }

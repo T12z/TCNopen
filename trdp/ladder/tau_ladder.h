@@ -36,33 +36,35 @@ extern "C" {
 /***********************************************************************************************************************
  * DEFINES
  */
-#define TRAFFIC_STORE_SIZE 65536			/* Traffic Store Size : 64KB */
-#define SUBNET1	0x00000000					/* Sub-network Id1 */
-#define SUBNET2	0x00002000					/* Sub-network Id2 */
-#define NUM_ED_INTERFACES	10				/* number of End Device Interfaces */
-#define SUBNET2_NETMASK								0x00002000			/* The netmask for Subnet2 */
+#define TRAFFIC_STORE_SIZE  65536           /* Traffic Store Size : 64KB */
+#define SUBNET1             0x00000000      /* Sub-network Id1 */
+#define SUBNET2             0x00002000      /* Sub-network Id2 */
+#define NUM_ED_INTERFACES   10              /* number of End Device Interfaces */
+#define SUBNET2_NETMASK     0x00002000                                  /* The netmask for Subnet2 */
 /* SubnetId Type */
-#define SUBNETID_TYPE1				1			/* SUBNETID Type1 */
-#define SUBNETID_TYPE2				2			/* SUBNETID Type2 */
+#define SUBNETID_TYPE1      1                   /* SUBNETID Type1 */
+#define SUBNETID_TYPE2      2                   /* SUBNETID Type2 */
 
 /***********************************************************************************************************************
  * GLOBAL VARIABLES
  */
 
 /* Traffic Store */
-extern CHAR8 TRAFFIC_STORE[];				/* Traffic Store shared memory name */
-extern mode_t PERMISSION	;					/* Traffic Store permission is rw-rw-rw- */
-extern UINT8 *pTrafficStoreAddr;			/* pointer to pointer to Traffic Store Address */
-extern VOS_SHRD_T  pTrafficStoreHandle;	/* Pointer to Traffic Store Handle */
-extern UINT16 TRAFFIC_STORE_MUTEX_VALUE_AREA;		/* Traffic Store mutex ID Area */
+extern CHAR8        TRAFFIC_STORE[];        /* Traffic Store shared memory name */
+extern mode_t       PERMISSION;                 /* Traffic Store permission is rw-rw-rw- */
+extern UINT8        *pTrafficStoreAddr;     /* pointer to pointer to Traffic Store Address */
+extern VOS_SHRD_T   pTrafficStoreHandle; /* Pointer to Traffic Store Handle */
+extern UINT16       TRAFFIC_STORE_MUTEX_VALUE_AREA; /* Traffic Store mutex ID Area */
 
 /* PDComLadderThread */
-extern CHAR8 pdComLadderThreadName[];		/* Thread name is PDComLadder Thread. */
-extern BOOL8 pdComLadderThreadActiveFlag;	/* PDComLaader Thread active/noactive Flag :active=TRUE, nonActive=FALSE */
-extern BOOL8 pdComLadderThreadStartFlag;	/* PDComLadder Thread instruction start up Flag :start=TRUE, stop=FALSE */
+extern CHAR8        pdComLadderThreadName[]; /* Thread name is PDComLadder Thread. */
+extern BOOL8        pdComLadderThreadActiveFlag; /* PDComLaader Thread active/noactive Flag :active=TRUE,
+                                                   nonActive=FALSE */
+extern BOOL8        pdComLadderThreadStartFlag; /* PDComLadder Thread instruction start up Flag :start=TRUE, stop=FALSE
+                                                  */
 
 /* Sub-net */
-extern UINT32 usingSubnetId;				/* Using SubnetId */
+extern UINT32       usingSubnetId;          /* Using SubnetId */
 
 /***********************************************************************************************************************
  * PROTOTYPES
@@ -77,7 +79,7 @@ extern UINT32 usingSubnetId;				/* Using SubnetId */
  *	@retval			TRDP_MUTEX_ERR
  */
 TRDP_ERR_T tau_ladder_init (
-	void);
+    void);
 
 /******************************************************************************/
 /** Finalize TRDP Ladder Support
@@ -89,7 +91,7 @@ TRDP_ERR_T tau_ladder_init (
  *	@retval			TRDP_MEM_ERR
  */
 TRDP_ERR_T tau_ladder_terminate (
-	void);
+    void);
 
 /**********************************************************************************************************************/
 /** Set pdComLadderThreadStartFlag.
@@ -98,7 +100,7 @@ TRDP_ERR_T tau_ladder_terminate (
  *
  *  @retval         TRDP_NO_ERR			no error
  */
-TRDP_ERR_T  tau_setPdComLadderThreadStartFlag (
+TRDP_ERR_T tau_setPdComLadderThreadStartFlag (
     BOOL8 startFlag);
 
 /**********************************************************************************************************************/
@@ -112,8 +114,8 @@ TRDP_ERR_T  tau_setPdComLadderThreadStartFlag (
  *  @retval         TRDP_NOINIT_ERR	handle invalid
  */
 
-TRDP_ERR_T  tau_setNetworkContext (
-    UINT32          subnetId);
+TRDP_ERR_T tau_setNetworkContext (
+    UINT32 subnetId);
 
 /**********************************************************************************************************************/
 /** Get SubNetwork Context.
@@ -126,8 +128,8 @@ TRDP_ERR_T  tau_setNetworkContext (
  *  @retval         TRDP_NOINIT_ERR	handle invalid
  */
 
-TRDP_ERR_T  tau_getNetworkContext (
-    UINT32          *pSubnetId);
+TRDP_ERR_T tau_getNetworkContext (
+    UINT32 *pSubnetId);
 
 /**********************************************************************************************************************/
 /** Get Traffic Store accessibility.
@@ -138,7 +140,7 @@ TRDP_ERR_T  tau_getNetworkContext (
  *  @retval         TRDP_NOINIT_ERR	handle invalid
  */
 
-TRDP_ERR_T  tau_lockTrafficStore (
+TRDP_ERR_T tau_lockTrafficStore (
     void);
 
 /**********************************************************************************************************************/
@@ -150,7 +152,7 @@ TRDP_ERR_T  tau_lockTrafficStore (
  *  @retval         TRDP_NOINIT_ERR	handle invalid
  */
 
-TRDP_ERR_T  tau_unlockTrafficStore (
+TRDP_ERR_T tau_unlockTrafficStore (
     void);
 
 /**********************************************************************************************************************/
@@ -165,9 +167,9 @@ TRDP_ERR_T  tau_unlockTrafficStore (
  *
  *
  */
-TRDP_ERR_T  tau_checkLinkUpDown (
-	UINT32 checkSubnetId,
-	BOOL8 *pLinkUpDown);
+TRDP_ERR_T tau_checkLinkUpDown (
+    UINT32  checkSubnetId,
+    BOOL8   *pLinkUpDown);
 
 /**********************************************************************************************************************/
 /** Close check Link up/down
@@ -176,11 +178,11 @@ TRDP_ERR_T  tau_checkLinkUpDown (
  *
  */
 
-TRDP_ERR_T  tau_closeCheckLinkUpDown (void);
+TRDP_ERR_T tau_closeCheckLinkUpDown (void);
 
 
 #ifdef __cplusplus
 }
 #endif
-#endif	/* TRDP_OPTION_LADDER */
+#endif  /* TRDP_OPTION_LADDER */
 #endif /* TAU_LADDER_H_ */

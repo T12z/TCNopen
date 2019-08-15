@@ -63,30 +63,34 @@ static void forceSocketClose (TRDP_APP_SESSION_T);
  */
 
 /* Telegram List Pointer */
-PUBLISH_TELEGRAM_T          *pHeadPublishTelegram = NULL;                       /* Top Address of Publish Telegram List */
-SUBSCRIBE_TELEGRAM_T            *pHeadSubscribeTelegram = NULL;                     /* Top Address of Subscribe Telegram List */
-PD_REQUEST_TELEGRAM_T       *pHeadPdRequestTelegram = NULL;                     /* Top Address of PD Request Telegram List */
+PUBLISH_TELEGRAM_T      *pHeadPublishTelegram   = NULL;                         /* Top Address of Publish Telegram List
+                                                                                  */
+SUBSCRIBE_TELEGRAM_T    *pHeadSubscribeTelegram = NULL;                             /* Top Address of Subscribe Telegram
+                                                                                      List */
+PD_REQUEST_TELEGRAM_T   *pHeadPdRequestTelegram = NULL;                         /* Top Address of PD Request Telegram
+                                                                                  List */
 /* Mutex */
-VOS_MUTEX_T pPublishTelegramMutex = NULL;                        /* pointer to Mutex for Publish Telegram */
+VOS_MUTEX_T pPublishTelegramMutex   = NULL;                      /* pointer to Mutex for Publish Telegram */
 VOS_MUTEX_T pSubscribeTelegramMutex = NULL;                    /* pointer to Mutex for Subscribe Telegram */
 VOS_MUTEX_T pPdRequestTelegramMutex = NULL;                    /* pointer to Mutex for PD Request Telegram */
 
 /*  Marshalling configuration initialized from datasets defined in xml  */
-TRDP_MARSHALL_CONFIG_T      marshallConfig = {&tau_marshall, &tau_unmarshall, NULL};    /** Marshaling/unMarshalling configuration  */
+TRDP_MARSHALL_CONFIG_T  marshallConfig = {&tau_marshall, &tau_unmarshall, NULL};        /** Marshaling/unMarshalling
+                                                                                          configuration  */
 
 /* I/F Address */
-TRDP_IP_ADDR_T subnetId1Address = 0;
-TRDP_IP_ADDR_T subnetId2Address = 0;
+TRDP_IP_ADDR_T          subnetId1Address    = 0;
+TRDP_IP_ADDR_T          subnetId2Address    = 0;
 
-INT32     rv = 0;
+INT32               rv = 0;
 
 /* TAULpdMainThread */
-VOS_THREAD_T taulPdMainThreadHandle = NULL;             /* Thread handle */
-CHAR8 taulPdMainThreadName[] = "TAULpdMainThread";       /* Thread name is TAUL PD Main Thread. */
-TRDP_URI_HOST_T         nothingUriHost = {""};          /* Nothing URI Host (IP Address) */
-TRDP_URI_HOST_T         IP_ADDRESS_ZERO = {"0.0.0.0"};  /* IP Address 0.0.0.0 */
-const TRDP_DEST_T       defaultDestination = {0};       /* Destination Parameter (id, SDT, URI) */
-static INT32 ts_buffer[2048/sizeof(INT32)];
+VOS_THREAD_T        taulPdMainThreadHandle  = NULL;     /* Thread handle */
+CHAR8               taulPdMainThreadName[]  = "TAULpdMainThread"; /* Thread name is TAUL PD Main Thread. */
+TRDP_URI_HOST_T     nothingUriHost          = {""};     /* Nothing URI Host (IP Address) */
+TRDP_URI_HOST_T     IP_ADDRESS_ZERO = {"0.0.0.0"};      /* IP Address 0.0.0.0 */
+const TRDP_DEST_T   defaultDestination = {0};           /* Destination Parameter (id, SDT, URI) */
+static INT32        ts_buffer[2048 / sizeof(INT32)];
 
 /**********************************************************************************************************************/
 /** TAUL Local Function */
@@ -100,12 +104,12 @@ static INT32 ts_buffer[2048/sizeof(INT32)];
  *  @retval         TRDP_PARAM_ERR      parameter   error
  */
 TRDP_ERR_T appendPublishTelegramList (
-        PUBLISH_TELEGRAM_T    * *ppHeadPublishTelegram,
-        PUBLISH_TELEGRAM_T    *pNewPublishTelegram)
+    PUBLISH_TELEGRAM_T  * *ppHeadPublishTelegram,
+    PUBLISH_TELEGRAM_T  *pNewPublishTelegram)
 {
-    PUBLISH_TELEGRAM_T *iterPublishTelegram;
-    extern VOS_MUTEX_T pPublishTelegramMutex;
-    VOS_ERR_T vosErr = VOS_NO_ERR;
+    PUBLISH_TELEGRAM_T  *iterPublishTelegram;
+    extern VOS_MUTEX_T  pPublishTelegramMutex;
+    VOS_ERR_T           vosErr = VOS_NO_ERR;
 
     /* Parameter Check */
     if (ppHeadPublishTelegram == NULL || pNewPublishTelegram == NULL)
@@ -163,8 +167,8 @@ TRDP_ERR_T appendPublishTelegramList (
     }
 
     for (iterPublishTelegram = *ppHeadPublishTelegram;
-            iterPublishTelegram->pNextPublishTelegram != NULL;
-            iterPublishTelegram = iterPublishTelegram->pNextPublishTelegram)
+         iterPublishTelegram->pNextPublishTelegram != NULL;
+         iterPublishTelegram = iterPublishTelegram->pNextPublishTelegram)
     {
         ;
     }
@@ -185,12 +189,12 @@ TRDP_ERR_T appendPublishTelegramList (
  *
  */
 TRDP_ERR_T deletePublishTelegramList (
-        PUBLISH_TELEGRAM_T    * *ppHeadPublishTelegram,
-        PUBLISH_TELEGRAM_T    *pDeletePublishTelegram)
+    PUBLISH_TELEGRAM_T  * *ppHeadPublishTelegram,
+    PUBLISH_TELEGRAM_T  *pDeletePublishTelegram)
 {
-    PUBLISH_TELEGRAM_T *iterPublishTelegram;
-    extern VOS_MUTEX_T pPublishTelegramMutex;
-    VOS_ERR_T vosErr = VOS_NO_ERR;
+    PUBLISH_TELEGRAM_T  *iterPublishTelegram;
+    extern VOS_MUTEX_T  pPublishTelegramMutex;
+    VOS_ERR_T           vosErr = VOS_NO_ERR;
 
     if (ppHeadPublishTelegram == NULL || *ppHeadPublishTelegram == NULL || pDeletePublishTelegram == NULL)
     {
@@ -226,8 +230,8 @@ TRDP_ERR_T deletePublishTelegramList (
     }
 
     for (iterPublishTelegram = *ppHeadPublishTelegram;
-            iterPublishTelegram != NULL;
-            iterPublishTelegram = iterPublishTelegram->pNextPublishTelegram)
+         iterPublishTelegram != NULL;
+         iterPublishTelegram = iterPublishTelegram->pNextPublishTelegram)
     {
         if (iterPublishTelegram->pNextPublishTelegram == pDeletePublishTelegram)
         {
@@ -254,14 +258,14 @@ TRDP_ERR_T deletePublishTelegramList (
  *  @retval         NULL                            No PublishTelegram found
  */
 PUBLISH_TELEGRAM_T *searchPublishTelegramList (
-        PUBLISH_TELEGRAM_T  *pHeadPublishTelegram,
-        UINT32                  comId,
-        TRDP_IP_ADDR_T      srcIpAddr,
-        TRDP_IP_ADDR_T      dstIpAddr)
+    PUBLISH_TELEGRAM_T  *pHeadPublishTelegram,
+    UINT32              comId,
+    TRDP_IP_ADDR_T      srcIpAddr,
+    TRDP_IP_ADDR_T      dstIpAddr)
 {
-    PUBLISH_TELEGRAM_T *iterPublishTelegram;
-    extern VOS_MUTEX_T pPublishTelegramMutex;
-    VOS_ERR_T vosErr = VOS_NO_ERR;
+    PUBLISH_TELEGRAM_T  *iterPublishTelegram;
+    extern VOS_MUTEX_T  pPublishTelegramMutex;
+    VOS_ERR_T           vosErr = VOS_NO_ERR;
 
     /* Check Parameter */
     if (pHeadPublishTelegram == NULL
@@ -290,8 +294,8 @@ PUBLISH_TELEGRAM_T *searchPublishTelegramList (
 
     /* Check PublishTelegram List Loop */
     for (iterPublishTelegram = pHeadPublishTelegram;
-            iterPublishTelegram != NULL;
-            iterPublishTelegram = iterPublishTelegram->pNextPublishTelegram)
+         iterPublishTelegram != NULL;
+         iterPublishTelegram = iterPublishTelegram->pNextPublishTelegram)
     {
         /* Publish Telegram: We match if src/dst address is zero or matches, and comId */
         if ((iterPublishTelegram->comId == comId)
@@ -322,11 +326,11 @@ PUBLISH_TELEGRAM_T *searchPublishTelegramList (
  *  @retval         TRDP_PARAM_ERR      parameter   error
  */
 TRDP_ERR_T appendSubscribeTelegramList (
-        SUBSCRIBE_TELEGRAM_T    * *ppHeadSubscribeTelegram,
-        SUBSCRIBE_TELEGRAM_T    *pNewSubscribeTelegram)
+    SUBSCRIBE_TELEGRAM_T    * *ppHeadSubscribeTelegram,
+    SUBSCRIBE_TELEGRAM_T    *pNewSubscribeTelegram)
 {
-    SUBSCRIBE_TELEGRAM_T *iterSubscribeTelegram;
-    extern VOS_MUTEX_T pSubscribeTelegramMutex;
+    SUBSCRIBE_TELEGRAM_T    *iterSubscribeTelegram;
+    extern VOS_MUTEX_T      pSubscribeTelegramMutex;
     VOS_ERR_T vosErr = VOS_NO_ERR;
 
     /* Parameter Check */
@@ -385,8 +389,8 @@ TRDP_ERR_T appendSubscribeTelegramList (
     }
 
     for (iterSubscribeTelegram = *ppHeadSubscribeTelegram;
-            iterSubscribeTelegram->pNextSubscribeTelegram != NULL;
-            iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
+         iterSubscribeTelegram->pNextSubscribeTelegram != NULL;
+         iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
     {
         ;
     }
@@ -407,11 +411,11 @@ TRDP_ERR_T appendSubscribeTelegramList (
  *
  */
 TRDP_ERR_T deleteSubscribeTelegramList (
-        SUBSCRIBE_TELEGRAM_T    * *ppHeadSubscribeTelegram,
-        SUBSCRIBE_TELEGRAM_T    *pDeleteSubscribeTelegram)
+    SUBSCRIBE_TELEGRAM_T    * *ppHeadSubscribeTelegram,
+    SUBSCRIBE_TELEGRAM_T    *pDeleteSubscribeTelegram)
 {
-    SUBSCRIBE_TELEGRAM_T *iterSubscribeTelegram;
-    extern VOS_MUTEX_T pSubscribeTelegramMutex;
+    SUBSCRIBE_TELEGRAM_T    *iterSubscribeTelegram;
+    extern VOS_MUTEX_T      pSubscribeTelegramMutex;
     VOS_ERR_T vosErr = VOS_NO_ERR;
 
     if (ppHeadSubscribeTelegram == NULL || *ppHeadSubscribeTelegram == NULL || pDeleteSubscribeTelegram == NULL)
@@ -448,8 +452,8 @@ TRDP_ERR_T deleteSubscribeTelegramList (
     }
 
     for (iterSubscribeTelegram = *ppHeadSubscribeTelegram;
-            iterSubscribeTelegram != NULL;
-            iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
+         iterSubscribeTelegram != NULL;
+         iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
     {
         if (iterSubscribeTelegram->pNextSubscribeTelegram == pDeleteSubscribeTelegram)
         {
@@ -476,13 +480,13 @@ TRDP_ERR_T deleteSubscribeTelegramList (
  *  @retval         NULL                            No Subscribe Telegram found
  */
 SUBSCRIBE_TELEGRAM_T *searchSubscribeTelegramList (
-        SUBSCRIBE_TELEGRAM_T        *pHeadSubscribeTelegram,
-        UINT32                      comId,
-        TRDP_IP_ADDR_T          srcIpAddr,
-        TRDP_IP_ADDR_T          dstIpAddr)
+    SUBSCRIBE_TELEGRAM_T    *pHeadSubscribeTelegram,
+    UINT32                  comId,
+    TRDP_IP_ADDR_T          srcIpAddr,
+    TRDP_IP_ADDR_T          dstIpAddr)
 {
-    SUBSCRIBE_TELEGRAM_T *iterSubscribeTelegram;
-    extern VOS_MUTEX_T pSubscribeTelegramMutex;
+    SUBSCRIBE_TELEGRAM_T    *iterSubscribeTelegram;
+    extern VOS_MUTEX_T      pSubscribeTelegramMutex;
     VOS_ERR_T vosErr = VOS_NO_ERR;
 
     /* Check Parameter */
@@ -510,8 +514,8 @@ SUBSCRIBE_TELEGRAM_T *searchSubscribeTelegramList (
     }
     /* Check Subscribe Telegram List Loop */
     for (iterSubscribeTelegram = pHeadSubscribeTelegram;
-            iterSubscribeTelegram != NULL;
-            iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
+         iterSubscribeTelegram != NULL;
+         iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
     {
         /* Subscribe Telegram: We match if src/dst address is zero or matches, and comId */
         if ((iterSubscribeTelegram->comId == comId)
@@ -540,8 +544,8 @@ SUBSCRIBE_TELEGRAM_T *searchSubscribeTelegramList (
  */
 SUBSCRIBE_TELEGRAM_T *getTailSubscribeTelegram ()
 {
-    SUBSCRIBE_TELEGRAM_T *iterSubscribeTelegram;
-    extern VOS_MUTEX_T pSubscribeTelegramMutex;
+    SUBSCRIBE_TELEGRAM_T    *iterSubscribeTelegram;
+    extern VOS_MUTEX_T      pSubscribeTelegramMutex;
     VOS_ERR_T vosErr = VOS_NO_ERR;
 
     /* Check Parameter */
@@ -567,8 +571,8 @@ SUBSCRIBE_TELEGRAM_T *getTailSubscribeTelegram ()
     }
     /* Check Subscribe Telegram List Loop */
     for (iterSubscribeTelegram = pHeadSubscribeTelegram;
-            iterSubscribeTelegram->pNextSubscribeTelegram != NULL;
-            iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
+         iterSubscribeTelegram->pNextSubscribeTelegram != NULL;
+         iterSubscribeTelegram = iterSubscribeTelegram->pNextSubscribeTelegram)
     {
         continue;
     }
@@ -587,11 +591,11 @@ SUBSCRIBE_TELEGRAM_T *getTailSubscribeTelegram ()
  *  @retval         TRDP_PARAM_ERR      parameter   error
  */
 TRDP_ERR_T appendPdRequestTelegramList (
-        PD_REQUEST_TELEGRAM_T    * *ppHeadPdRequestTelegram,
-        PD_REQUEST_TELEGRAM_T    *pNewPdRequestTelegram)
+    PD_REQUEST_TELEGRAM_T   * *ppHeadPdRequestTelegram,
+    PD_REQUEST_TELEGRAM_T   *pNewPdRequestTelegram)
 {
-    PD_REQUEST_TELEGRAM_T *iterPdRequestTelegram;
-    extern VOS_MUTEX_T pPdRequestTelegramMutex;
+    PD_REQUEST_TELEGRAM_T   *iterPdRequestTelegram;
+    extern VOS_MUTEX_T      pPdRequestTelegramMutex;
     VOS_ERR_T vosErr = VOS_NO_ERR;
 
     /* Parameter Check */
@@ -650,8 +654,8 @@ TRDP_ERR_T appendPdRequestTelegramList (
     }
 
     for (iterPdRequestTelegram = *ppHeadPdRequestTelegram;
-            iterPdRequestTelegram->pNextPdRequestTelegram != NULL;
-            iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
+         iterPdRequestTelegram->pNextPdRequestTelegram != NULL;
+         iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
     {
         ;
     }
@@ -672,11 +676,11 @@ TRDP_ERR_T appendPdRequestTelegramList (
  *
  */
 TRDP_ERR_T deletePdRequestTelegramList (
-        PD_REQUEST_TELEGRAM_T    * *ppHeadPdRequestTelegram,
-        PD_REQUEST_TELEGRAM_T    *pDeletePdRequestTelegram)
+    PD_REQUEST_TELEGRAM_T   * *ppHeadPdRequestTelegram,
+    PD_REQUEST_TELEGRAM_T   *pDeletePdRequestTelegram)
 {
-    PD_REQUEST_TELEGRAM_T *iterPdRequestTelegram;
-    extern VOS_MUTEX_T pPdRequestTelegramMutex;
+    PD_REQUEST_TELEGRAM_T   *iterPdRequestTelegram;
+    extern VOS_MUTEX_T      pPdRequestTelegramMutex;
     VOS_ERR_T vosErr = VOS_NO_ERR;
 
     if (ppHeadPdRequestTelegram == NULL || *ppHeadPdRequestTelegram == NULL || pDeletePdRequestTelegram == NULL)
@@ -713,8 +717,8 @@ TRDP_ERR_T deletePdRequestTelegramList (
     }
 
     for (iterPdRequestTelegram = *ppHeadPdRequestTelegram;
-            iterPdRequestTelegram != NULL;
-            iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
+         iterPdRequestTelegram != NULL;
+         iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
     {
         if (iterPdRequestTelegram->pNextPdRequestTelegram == pDeletePdRequestTelegram)
         {
@@ -743,15 +747,15 @@ TRDP_ERR_T deletePdRequestTelegramList (
  *  @retval         NULL                            No PD Requset Telegram found
  */
 PD_REQUEST_TELEGRAM_T *searchPdRequestTelegramList (
-        PD_REQUEST_TELEGRAM_T   *pHeadPdRequestTelegram,
-        UINT32                      comId,
-        UINT32                      replyComId,
-        TRDP_IP_ADDR_T          srcIpAddr,
-        TRDP_IP_ADDR_T          dstIpAddr,
-        TRDP_IP_ADDR_T          replyIpAddr)
+    PD_REQUEST_TELEGRAM_T   *pHeadPdRequestTelegram,
+    UINT32                  comId,
+    UINT32                  replyComId,
+    TRDP_IP_ADDR_T          srcIpAddr,
+    TRDP_IP_ADDR_T          dstIpAddr,
+    TRDP_IP_ADDR_T          replyIpAddr)
 {
-    PD_REQUEST_TELEGRAM_T *iterPdRequestTelegram;
-    extern VOS_MUTEX_T pPdRequestTelegramMutex;
+    PD_REQUEST_TELEGRAM_T   *iterPdRequestTelegram;
+    extern VOS_MUTEX_T      pPdRequestTelegramMutex;
     VOS_ERR_T vosErr = VOS_NO_ERR;
 
     /* Check Parameter */
@@ -779,8 +783,8 @@ PD_REQUEST_TELEGRAM_T *searchPdRequestTelegramList (
     }
     /* Check PD Request Telegram List Loop */
     for (iterPdRequestTelegram = pHeadPdRequestTelegram;
-            iterPdRequestTelegram != NULL;
-            iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
+         iterPdRequestTelegram != NULL;
+         iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
     {
         /* PD Request Telegram: We match if src/dst address is zero or matches, and comId */
         if ((iterPdRequestTelegram->comId == comId)
@@ -813,13 +817,13 @@ PD_REQUEST_TELEGRAM_T *searchPdRequestTelegramList (
 TRDP_ERR_T setConfigParameterFromInternalConfig (
     void)
 {
-    UINT32                  i = 0;                          /* Loop Counter */
-    UINT32                  datasetIndex = 0;               /* Loop Counter of Dataset Index */
-    UINT32                  elementIndex = 0;               /* Loop Counter of Dataset element Index */
-    UINT32                  interfaceNumberIndex = 0;   /* Loop Counter of Interface Number Index */
-    UINT32                  exchgParIndex = 0;          /* Loop Counter of Exchange Parameter Index */
-    pTRDP_DATASET_T     pDataset = NULL;                /* pointer to Dataset */
-    const TRDP_CHAR_IP_ADDR_T DOTTED_IP_ADDRESS__NOTHING     = "";      /* Dotted IP Address Nothing */
+    UINT32  i = 0;                                          /* Loop Counter */
+    UINT32  datasetIndex            = 0;                    /* Loop Counter of Dataset Index */
+    UINT32  elementIndex            = 0;                    /* Loop Counter of Dataset element Index */
+    UINT32  interfaceNumberIndex    = 0;                /* Loop Counter of Interface Number Index */
+    UINT32  exchgParIndex           = 0;                /* Loop Counter of Exchange Parameter Index */
+    pTRDP_DATASET_T pDataset        = NULL;             /* pointer to Dataset */
+    const TRDP_CHAR_IP_ADDR_T DOTTED_IP_ADDRESS__NOTHING = "";          /* Dotted IP Address Nothing */
 
     /* Set IF Config and Array of session configurations *****/
     /* Get Number of IF Config from pNumIfConfig */
@@ -828,7 +832,8 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
     pIfConfig = (TRDP_IF_CONFIG_T *)vos_memAlloc(sizeof(TRDP_IF_CONFIG_T) * numIfConfig);
     if (pIfConfig == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. Array IF Config vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR,
+                     "setConfigParameterFromInternalConfig() Failed. Array IF Config vos_memAlloc() Err\n");
         return TRDP_MEM_ERR;
     }
     else
@@ -840,7 +845,8 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
     arraySessionConfigTAUL = (sSESSION_CONFIG_T *)vos_memAlloc(sizeof(sSESSION_CONFIG_T) * numIfConfig);
     if (arraySessionConfigTAUL == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. Array Session Config vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR,
+                     "setConfigParameterFromInternalConfig() Failed. Array Session Config vos_memAlloc() Err\n");
         return TRDP_MEM_ERR;
     }
     else
@@ -858,15 +864,15 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
         pIfConfig[i].networkId = pArrayInternalIfConfig[i].networkId;
         /* Convert Host IP Address, and Set Host IP Address of Array IF Config */
         if (memcmp(pArrayInternalIfConfig[i].dottedHostIp,
-                    DOTTED_IP_ADDRESS__NOTHING,
-                    sizeof(TRDP_CHAR_IP_ADDR_T)) != 0)
+                   DOTTED_IP_ADDRESS__NOTHING,
+                   sizeof(TRDP_CHAR_IP_ADDR_T)) != 0)
         {
             pIfConfig[i].hostIp = vos_dottedIP(pArrayInternalIfConfig[i].dottedHostIp);
         }
         /* Convert Leader IP Address, and Set Leader IP Address of Array IF Config */
         if (memcmp(pArrayInternalIfConfig[i].dottedLeaderIp,
-                    DOTTED_IP_ADDRESS__NOTHING,
-                    sizeof(TRDP_CHAR_IP_ADDR_T)) != 0)
+                   DOTTED_IP_ADDRESS__NOTHING,
+                   sizeof(TRDP_CHAR_IP_ADDR_T)) != 0)
         {
             pIfConfig[i].leaderIp = vos_dottedIP(pArrayInternalIfConfig[i].dottedLeaderIp);
         }
@@ -890,7 +896,8 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
             if ((&arraySessionConfigTAUL[i].processConfig != NULL) && (&pArraySessionConfig[i].processConfig != NULL))
             {
                 /* Set Process Config of Array Session Config */
-                memcpy(&arraySessionConfigTAUL[i].processConfig, &pArraySessionConfig[i].processConfig, sizeof(TRDP_PROCESS_CONFIG_T));
+                memcpy(&arraySessionConfigTAUL[i].processConfig, &pArraySessionConfig[i].processConfig,
+                       sizeof(TRDP_PROCESS_CONFIG_T));
             }
         }
     }
@@ -910,7 +917,8 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
     apDataset = (apTRDP_DATASET_T)vos_memAlloc(sizeof(TRDP_DATASET_T *) * NUM_DATASET);
     if (apDataset == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. Array Dataset Config vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR,
+                     "setConfigParameterFromInternalConfig() Failed. Array Dataset Config vos_memAlloc() Err\n");
         return TRDP_MEM_ERR;
     }
     else
@@ -919,13 +927,16 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
         memset(apDataset, 0, (sizeof(TRDP_DATASET_T *) * NUM_DATASET));
     }
     /* Dataset Loop */
-    for(i = 0; i < numDataset; i++)
+    for (i = 0; i < numDataset; i++)
     {
         /* Get Dataset Config memory area */
-        pDataset = (TRDP_DATASET_T *)vos_memAlloc(sizeof(TRDP_DATASET_T) + (sizeof(TRDP_DATASET_ELEMENT_T) * arrayInternalDatasetConfig[i].numElement));
-        if (pDataset== NULL)
+        pDataset =
+            (TRDP_DATASET_T *)vos_memAlloc(sizeof(TRDP_DATASET_T) +
+                                           (sizeof(TRDP_DATASET_ELEMENT_T) * arrayInternalDatasetConfig[i].numElement));
+        if (pDataset == NULL)
         {
-            vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. Dataset Config vos_memAlloc() Err\n");
+            vos_printLog(VOS_LOG_ERROR,
+                         "setConfigParameterFromInternalConfig() Failed. Dataset Config vos_memAlloc() Err\n");
             return TRDP_MEM_ERR;
         }
         else
@@ -943,7 +954,8 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
     apDataset = (apTRDP_DATASET_T)vos_memAlloc(sizeof(TRDP_DATASET_T *) * numDataset);
     if (apDataset == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. Array Dataset Config vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR,
+                     "setConfigParameterFromInternalConfig() Failed. Array Dataset Config vos_memAlloc() Err\n");
         return TRDP_MEM_ERR;
     }
     else
@@ -952,19 +964,25 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
         memset(apDataset, 0, (sizeof(TRDP_DATASET_T *) * numDataset));
     }
     /* Dataset Loop */
-    for(datasetIndex = 0; datasetIndex < numDataset; datasetIndex++)
+    for (datasetIndex = 0; datasetIndex < numDataset; datasetIndex++)
     {
         /* Get Dataset Config memory area */
-        pDataset = (TRDP_DATASET_T *)vos_memAlloc(sizeof(TRDP_DATASET_T) + (sizeof(TRDP_DATASET_ELEMENT_T) * pArrayInternalDatasetConfig[datasetIndex].numElement));
-        if (pDataset== NULL)
+        pDataset =
+            (TRDP_DATASET_T *)vos_memAlloc(sizeof(TRDP_DATASET_T) +
+                                           (sizeof(TRDP_DATASET_ELEMENT_T) *
+                                            pArrayInternalDatasetConfig[datasetIndex].numElement));
+        if (pDataset == NULL)
         {
-            vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. Dataset Config vos_memAlloc() Err\n");
+            vos_printLog(VOS_LOG_ERROR,
+                         "setConfigParameterFromInternalConfig() Failed. Dataset Config vos_memAlloc() Err\n");
             return TRDP_MEM_ERR;
         }
         else
         {
             /* Initialize Dataset Config */
-            memset(pDataset, 0, (sizeof(TRDP_DATASET_T) + sizeof(TRDP_DATASET_ELEMENT_T) * pArrayInternalDatasetConfig[datasetIndex].numElement));
+            memset(pDataset, 0,
+                   (sizeof(TRDP_DATASET_T) + sizeof(TRDP_DATASET_ELEMENT_T) *
+                    pArrayInternalDatasetConfig[datasetIndex].numElement));
         }
         /* Set Dataset Address in Array Dataset Config */
         apDataset[datasetIndex] = pDataset;
@@ -976,14 +994,17 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
         pDataset->numElement = pArrayInternalDatasetConfig[datasetIndex].numElement;
         /* Set Pointer to Element of Array Dataset */
         /* Set Element Loop */
-        for(elementIndex = 0; elementIndex < pDataset->numElement; elementIndex++)
+        for (elementIndex = 0; elementIndex < pDataset->numElement; elementIndex++)
         {
             /* Set Element Type */
-            pDataset->pElement[elementIndex].type = pArrayInternalDatasetConfig[datasetIndex].pElement[elementIndex].type;
+            pDataset->pElement[elementIndex].type =
+                pArrayInternalDatasetConfig[datasetIndex].pElement[elementIndex].type;
             /* Set Element Size */
-            pDataset->pElement[elementIndex].size = pArrayInternalDatasetConfig[datasetIndex].pElement[elementIndex].size;
+            pDataset->pElement[elementIndex].size =
+                pArrayInternalDatasetConfig[datasetIndex].pElement[elementIndex].size;
             /* Set Element Pointer to Dataset cache */
-            pDataset->pElement[elementIndex].pCachedDS = pArrayInternalDatasetConfig[datasetIndex].pElement[elementIndex].pCachedDS;
+            pDataset->pElement[elementIndex].pCachedDS =
+                pArrayInternalDatasetConfig[datasetIndex].pElement[elementIndex].pCachedDS;
         }
     }
 
@@ -991,9 +1012,10 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
 #if 0
     /* Get Exchange Parameter Config memory area */
     *arrayExchgPar = (TRDP_EXCHG_PAR_T *)vos_memAlloc(numIfConfig * (sizeof(TRDP_EXCHG_PAR_T) * numExchgPar));
-    if (arrayExchgPar== NULL)
+    if (arrayExchgPar == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. IF Config Parameter vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR,
+                     "setConfigParameterFromInternalConfig() Failed. IF Config Parameter vos_memAlloc() Err\n");
         return TRDP_MEM_ERR;
     }
     else
@@ -1011,9 +1033,10 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
 
         /* Get Exchange Parameter Config memory area */
         arrayExchgPar[interfaceNumberIndex] = (TRDP_EXCHG_PAR_T *)vos_memAlloc((sizeof(TRDP_EXCHG_PAR_T) * numExchgPar));
-        if (arrayExchgPar[interfaceNumberIndex]== NULL)
+        if (arrayExchgPar[interfaceNumberIndex] == NULL)
         {
-            vos_printLog(VOS_LOG_ERROR,"setConfigParameterFromInternalConfig() Failed. IF Config Parameter vos_memAlloc() Err\n");
+            vos_printLog(VOS_LOG_ERROR,
+                         "setConfigParameterFromInternalConfig() Failed. IF Config Parameter vos_memAlloc() Err\n");
             return TRDP_MEM_ERR;
         }
         else
@@ -1026,28 +1049,37 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
         {
 
             /* Set comId of Array Exchange Parameter */
-            arrayExchgPar[interfaceNumberIndex][exchgParIndex].comId = pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].comId;
+            arrayExchgPar[interfaceNumberIndex][exchgParIndex].comId =
+                pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].comId;
             /* Set datasetId of Array Exchange Parameter */
-            arrayExchgPar[interfaceNumberIndex][exchgParIndex].datasetId = pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].datasetId;
+            arrayExchgPar[interfaceNumberIndex][exchgParIndex].datasetId =
+                pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].datasetId;
             /* Set communication parameter Id of Array Exchange Parameter */
-            arrayExchgPar[interfaceNumberIndex][exchgParIndex].comParId = pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].comParId;
+            arrayExchgPar[interfaceNumberIndex][exchgParIndex].comParId =
+                pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].comParId;
             /* Set Pointer to MD Parameter for this connection of Array Exchange Parameter */
-            arrayExchgPar[interfaceNumberIndex][exchgParIndex].pMdPar = pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].pMdPar;
+            arrayExchgPar[interfaceNumberIndex][exchgParIndex].pMdPar =
+                pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].pMdPar;
             /* Set Pointer to PD Parameter for this connection of Array Exchange Parameter */
-            arrayExchgPar[interfaceNumberIndex][exchgParIndex].pPdPar = pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].pPdPar;
+            arrayExchgPar[interfaceNumberIndex][exchgParIndex].pPdPar =
+                pArrayInternalConfigExchgPar[interfaceNumberIndex * numExchgPar + exchgParIndex].pPdPar;
             /* Set number of destinations of Array Exchange Parameter */
-            arrayExchgPar[interfaceNumberIndex][exchgParIndex].destCnt = pArrayInternalDestinationConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].destCnt;
+            arrayExchgPar[interfaceNumberIndex][exchgParIndex].destCnt =
+                pArrayInternalDestinationConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].destCnt;
             /* Set Pointer to array of destination descriptors of Array Exchange Parameter */
             if (pArrayInternalDestinationConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].pDest != NULL)
             {
-                arrayExchgPar[interfaceNumberIndex][exchgParIndex].pDest = pArrayInternalDestinationConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].pDest;
+                arrayExchgPar[interfaceNumberIndex][exchgParIndex].pDest =
+                    pArrayInternalDestinationConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].pDest;
             }
             /* Set number of sources of Array Exchange Parameter */
-            arrayExchgPar[interfaceNumberIndex][exchgParIndex].srcCnt = pArrayInternalSourceConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].srcCnt;
+            arrayExchgPar[interfaceNumberIndex][exchgParIndex].srcCnt =
+                pArrayInternalSourceConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].srcCnt;
             /* Set Pointer to array of source descriptors of Array Exchange Parameter */
             if (pArrayInternalSourceConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].pSrc != NULL)
             {
-                arrayExchgPar[interfaceNumberIndex][exchgParIndex].pSrc = pArrayInternalSourceConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].pSrc;
+                arrayExchgPar[interfaceNumberIndex][exchgParIndex].pSrc =
+                    pArrayInternalSourceConfig[interfaceNumberIndex * numExchgPar + exchgParIndex].pSrc;
             }
         }
     }
@@ -1070,11 +1102,11 @@ TRDP_ERR_T setConfigParameterFromInternalConfig (
  *  @retval         TRDP_MEM_ERR
  */
 TRDP_ERR_T configureTelegrams (
-        UINT32              ifIndex,
-        UINT32          numExchgPar,
-        TRDP_EXCHG_PAR_T    *pExchgPar)
+    UINT32              ifIndex,
+    UINT32              numExchgPar,
+    TRDP_EXCHG_PAR_T    *pExchgPar)
 {
-    UINT32  telegramIndex = 0;
+    UINT32      telegramIndex = 0;
     TRDP_ERR_T  err = TRDP_NO_ERR;
 
     /* Get Telegram */
@@ -1146,19 +1178,20 @@ TRDP_ERR_T configureTelegrams (
  *
  */
 TRDP_ERR_T sizeWriteDatasetInTrafficStore (
-        UINT32                  *pDatasetSize,
-        TRDP_DATASET_T      *pDataset)
+    UINT32          *pDatasetSize,
+    TRDP_DATASET_T  *pDataset)
 {
-    TRDP_ERR_T err = TRDP_NO_ERR;
-    UINT8 *pTempSrcDataset = NULL;
-    UINT8 *pTempDestDataset = NULL;
-    UINT32 datasetNetworkByteSize = 0;
+    TRDP_ERR_T  err = TRDP_NO_ERR;
+    UINT8       *pTempSrcDataset        = NULL;
+    UINT8       *pTempDestDataset       = NULL;
+    UINT32      datasetNetworkByteSize  = 0;
 
     /* Create Temporary Source Dataset */
     pTempSrcDataset = (UINT8 *)vos_memAlloc(TRDP_MAX_MD_DATA_SIZE);
     if (pTempSrcDataset == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"sizeWriteDatasetInTrafficStore() Failed. Temporary Source Dataset vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR,
+                     "sizeWriteDatasetInTrafficStore() Failed. Temporary Source Dataset vos_memAlloc() Err\n");
         /* Free Temporary Source Dataset */
         vos_memFree(pTempSrcDataset);
         return TRDP_MEM_ERR;
@@ -1172,7 +1205,8 @@ TRDP_ERR_T sizeWriteDatasetInTrafficStore (
     pTempDestDataset = (UINT8 *)vos_memAlloc(TRDP_MAX_MD_DATA_SIZE);
     if (pTempSrcDataset == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"sizeWriteDatasetInTrafficStore() Failed. Temporary Destination Dataset vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR,
+                     "sizeWriteDatasetInTrafficStore() Failed. Temporary Destination Dataset vos_memAlloc() Err\n");
         /* Free Temporary Source Dataset */
         vos_memFree(pTempDestDataset);
         return TRDP_MEM_ERR;
@@ -1192,7 +1226,10 @@ TRDP_ERR_T sizeWriteDatasetInTrafficStore (
             &pDataset);
     if (err != TRDP_NO_ERR)
     {
-        vos_printLog(VOS_LOG_ERROR, "sizeWriteDatasetInTrafficStore() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n", pDataset->id, err);
+        vos_printLog(VOS_LOG_ERROR,
+                     "sizeWriteDatasetInTrafficStore() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n",
+                     pDataset->id,
+                     err);
         /* Free Temporary Source Dataset */
         vos_memFree(pTempSrcDataset);
         return TRDP_PARAM_ERR;
@@ -1205,15 +1242,18 @@ TRDP_ERR_T sizeWriteDatasetInTrafficStore (
 
     /* Get Host Byte order of Dataset Size(size of unmarshall dataset) by tau_unmarshallDs() */
     err = tau_unmarshallDs(
-                &marshallConfig.pRefCon,            /* pointer to user context */
-                pDataset->id,                       /* datasetId */
-                pTempSrcDataset,                    /* source pointer to received original message */
-                pTempDestDataset,                   /* destination pointer to a buffer for the treated message */
-                pDatasetSize,                       /* destination Buffer Size */
-                &pDataset);                     /* pointer to pointer of cached dataset */
+            &marshallConfig.pRefCon,                /* pointer to user context */
+            pDataset->id,                           /* datasetId */
+            pTempSrcDataset,                        /* source pointer to received original message */
+            pTempDestDataset,                       /* destination pointer to a buffer for the treated message */
+            pDatasetSize,                           /* destination Buffer Size */
+            &pDataset);                         /* pointer to pointer of cached dataset */
     if (err != TRDP_NO_ERR)
     {
-        vos_printLog(VOS_LOG_ERROR, "sizeWriteDatasetInTrafficStore() Failed. tau_unmarshallDs DatasetId%d returns error %d\n", pDataset->id, err);
+        vos_printLog(VOS_LOG_ERROR,
+                     "sizeWriteDatasetInTrafficStore() Failed. tau_unmarshallDs DatasetId%d returns error %d\n",
+                     pDataset->id,
+                     err);
         /* Free Temporary Source Dataset */
         vos_memFree(pTempDestDataset);
         return err;
@@ -1234,20 +1274,20 @@ TRDP_ERR_T sizeWriteDatasetInTrafficStore (
  *  @retval         TRDP_MEM_ERR
  */
 TRDP_ERR_T publishTelegram (
-        UINT32              ifIndex,
-        TRDP_EXCHG_PAR_T    *pExchgPar)
+    UINT32              ifIndex,
+    TRDP_EXCHG_PAR_T    *pExchgPar)
 {
-    UINT32                  i = 0;
-    TRDP_IP_ADDR_T      networkByteIpAddr = 0;              /* for convert URI to IP Address */
-    PUBLISH_TELEGRAM_T  *pPublishTelegram = NULL;
-    UINT32                  *pPublishDataset = NULL;
-    TRDP_ERR_T              err = TRDP_NO_ERR;
+    UINT32              i = 0;
+    TRDP_IP_ADDR_T      networkByteIpAddr   = 0;            /* for convert URI to IP Address */
+    PUBLISH_TELEGRAM_T  *pPublishTelegram   = NULL;
+    UINT32              *pPublishDataset    = NULL;
+    TRDP_ERR_T          err = TRDP_NO_ERR;
 
     /* Get Publish Telegram memory area */
     pPublishTelegram = (PUBLISH_TELEGRAM_T *)vos_memAlloc(sizeof(PUBLISH_TELEGRAM_T));
     if (pPublishTelegram == NULL)
     {
-        vos_printLog(VOS_LOG_ERROR,"publishTelegram() Failed. Publish Telegram vos_memAlloc() Err\n");
+        vos_printLog(VOS_LOG_ERROR, "publishTelegram() Failed. Publish Telegram vos_memAlloc() Err\n");
         return TRDP_MEM_ERR;
     }
     else
@@ -1270,7 +1310,10 @@ TRDP_ERR_T publishTelegram (
     /* DataSetId effective ? */
     if (pPublishTelegram->pDatasetDescriptor == 0)
     {
-        vos_printLog(VOS_LOG_ERROR,"publishTelegram() Failed. Dataset Err. datasetId: %d, comId: %d\n", pExchgPar->datasetId, pExchgPar->comId);
+        vos_printLog(VOS_LOG_ERROR,
+                     "publishTelegram() Failed. Dataset Err. datasetId: %d, comId: %d\n",
+                     pExchgPar->datasetId,
+                     pExchgPar->comId);
         /* Free Publish Telegram */
         vos_memFree(pPublishTelegram);
         return TRDP_PARAM_ERR;
@@ -1279,7 +1322,7 @@ TRDP_ERR_T publishTelegram (
     /* Check dstCnt */
     if (pExchgPar->destCnt != 1)
     {
-        vos_printLog(VOS_LOG_ERROR,"publishTelegram() Failed. dstCnt Err. destCnt: %d\n", pExchgPar->destCnt);
+        vos_printLog(VOS_LOG_ERROR, "publishTelegram() Failed. dstCnt Err. destCnt: %d\n", pExchgPar->destCnt);
         /* Free Publish Telegram */
         vos_memFree(pPublishTelegram);
         return TRDP_PARAM_ERR;
@@ -1293,7 +1336,7 @@ TRDP_ERR_T publishTelegram (
             /* Set Application Handle: Subnet1 */
             pPublishTelegram->appHandle = arraySessionConfigTAUL[ifIndex].sessionHandle;
         }
-        else if(ifIndex == IF_INDEX_SUBNET2)
+        else if (ifIndex == IF_INDEX_SUBNET2)
         {
             /* Set Application Handle: Subnet2 */
             pPublishTelegram->appHandle = arraySessionConfigTAUL[ifIndex].sessionHandle;
@@ -1311,7 +1354,9 @@ TRDP_ERR_T publishTelegram (
         err = sizeWriteDatasetInTrafficStore(&pPublishTelegram->dataset.size, pPublishTelegram->pDatasetDescriptor);
         if (err != TRDP_NO_ERR)
         {
-            vos_printLog(VOS_LOG_ERROR, "publishTelegram() Failed. sizeWriteDatasetInTrafficStore() returns error = %d\n", err);
+            vos_printLog(VOS_LOG_ERROR,
+                         "publishTelegram() Failed. sizeWriteDatasetInTrafficStore() returns error = %d\n",
+                         err);
             /* Free Publish Telegram */
             vos_memFree(pPublishTelegram);
             return TRDP_PARAM_ERR;
@@ -1320,7 +1365,7 @@ TRDP_ERR_T publishTelegram (
         pPublishDataset = (UINT32 *)vos_memAlloc(pPublishTelegram->dataset.size);
         if (pPublishDataset == NULL)
         {
-            vos_printLog(VOS_LOG_ERROR,"publishTelegram() Failed. Publish Dataset vos_memAlloc() Err\n");
+            vos_printLog(VOS_LOG_ERROR, "publishTelegram() Failed. Publish Dataset vos_memAlloc() Err\n");
             /* Free Publish Telegram */
             vos_memFree(pPublishTelegram);
             return TRDP_MEM_ERR;
@@ -1346,7 +1391,10 @@ TRDP_ERR_T publishTelegram (
                     &pPublishTelegram->pDatasetDescriptor);
             if (err != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "publishTelegram() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n", pExchgPar->datasetId, err);
+                vos_printLog(VOS_LOG_ERROR,
+                             "publishTelegram() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n",
+                             pExchgPar->datasetId,
+                             err);
                 /* Free Publish Dataset */
                 vos_memFree(pPublishDataset);
                 /* Free Publish Telegram */
@@ -1374,7 +1422,7 @@ TRDP_ERR_T publishTelegram (
             /* Convert Source Host1 URI to IP Address */
             if (pExchgPar->pSrc[0].pUriHost1 != NULL)
             {
-                networkByteIpAddr = vos_dottedIP (*(pExchgPar->pSrc[0].pUriHost1));
+                networkByteIpAddr = vos_dottedIP(*(pExchgPar->pSrc[0].pUriHost1));
                 if ((networkByteIpAddr == 0)
                     || (networkByteIpAddr == BROADCAST_ADDRESS)
                     || (vos_isMulticast(networkByteIpAddr)))
@@ -1383,7 +1431,9 @@ TRDP_ERR_T publishTelegram (
                     vos_memFree(pPublishDataset);
                     /* Free Publish Telegram */
                     vos_memFree(pPublishTelegram);
-                    vos_printLog(VOS_LOG_ERROR,"publishTelegram() Failed. Source IP Address1 Err. Source URI Host1: %s\n", (char *)pExchgPar->pSrc[0].pUriHost1);
+                    vos_printLog(VOS_LOG_ERROR,
+                                 "publishTelegram() Failed. Source IP Address1 Err. Source URI Host1: %s\n",
+                                 (char *)pExchgPar->pSrc[0].pUriHost1);
                     return TRDP_PARAM_ERR;
                 }
                 else
@@ -1414,10 +1464,12 @@ TRDP_ERR_T publishTelegram (
             /* Convert Host URI to IP Address */
             if (pExchgPar->pDest[0].pUriHost != NULL)
             {
-                networkByteIpAddr = vos_dottedIP (*(pExchgPar->pDest[0].pUriHost));
+                networkByteIpAddr = vos_dottedIP(*(pExchgPar->pDest[0].pUriHost));
                 if (networkByteIpAddr == BROADCAST_ADDRESS)
                 {
-                    vos_printLog(VOS_LOG_ERROR,"publishTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n", (char *)pExchgPar->pDest[ifIndex].pUriHost);
+                    vos_printLog(VOS_LOG_ERROR,
+                                 "publishTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n",
+                                 (char *)pExchgPar->pDest[ifIndex].pUriHost);
                     /* Free Publish Dataset */
                     vos_memFree(pPublishDataset);
                     /* Free Publish Telegram */
@@ -1439,12 +1491,16 @@ TRDP_ERR_T publishTelegram (
                 pPublishTelegram->appHandle,                                    /* our application identifier */
                 &pPublishTelegram->pubHandle,                                   /* our publish identifier */
                 pPublishTelegram->comId,                                        /* ComID to send */
-                pPublishTelegram->etbTopoCount,                                 /* ETB topocount to use, 0 if consist local communication */
-                pPublishTelegram->opTrnTopoCount,                               /* operational topocount, != 0 for orientation/direction sensitive communication */
+                pPublishTelegram->etbTopoCount,                                 /* ETB topocount to use, 0 if consist
+                                                                                  local communication */
+                pPublishTelegram->opTrnTopoCount,                               /* operational topocount, != 0 for
+                                                                                  orientation/direction sensitive
+                                                                                  communication */
                 pPublishTelegram->srcIpAddr,                                    /* default source IP */
                 pPublishTelegram->dstIpAddr,                                    /* where to send to */
                 pPublishTelegram->pPdParameter->cycle,                          /* Cycle time in ms */
-                pPublishTelegram->pPdParameter->redundant,                      /* 0 - Non-redundant, > 0 valid redundancy group */
+                pPublishTelegram->pPdParameter->redundant,                      /* 0 - Non-redundant, > 0 valid
+                                                                                  redundancy group */
                 pPublishTelegram->pPdParameter->flags,                          /* flags */
                 pPublishTelegram->pSendParam,                                   /* send Paramter */
                 pPublishTelegram->dataset.pDatasetStartAddr,                    /* initial data */
@@ -1470,7 +1526,9 @@ TRDP_ERR_T publishTelegram (
                 vos_memFree(pPublishDataset);
                 /* Free Publish Telegram */
                 vos_memFree(pPublishTelegram);
-                vos_printLog(VOS_LOG_ERROR, "publishTelegram() Failed. Publish Telegram appendPublishTelegramList() Err:%d\n", err);
+                vos_printLog(VOS_LOG_ERROR,
+                             "publishTelegram() Failed. Publish Telegram appendPublishTelegramList() Err:%d\n",
+                             err);
                 return err;
             }
         }
@@ -1490,20 +1548,20 @@ TRDP_ERR_T publishTelegram (
  *  @retval         TRDP_MEM_ERR
  */
 TRDP_ERR_T subscribeTelegram (
-        UINT32              ifIndex,
-        TRDP_EXCHG_PAR_T    *pExchgPar)
+    UINT32              ifIndex,
+    TRDP_EXCHG_PAR_T    *pExchgPar)
 {
-    UINT32                      i = 0;
-    UINT32                      datasetIndex = 0;
-    TRDP_IP_ADDR_T          networkByteIpAddr = 0;              /* for convert URI to IP Address */
-    SUBSCRIBE_TELEGRAM_T        *pSubscribeTelegram = NULL;
-    UINT32                      *pSubscribeDataset = NULL;
-    TRDP_ERR_T                  err = TRDP_NO_ERR;
+    UINT32                  i = 0;
+    UINT32                  datasetIndex        = 0;
+    TRDP_IP_ADDR_T          networkByteIpAddr   = 0;            /* for convert URI to IP Address */
+    SUBSCRIBE_TELEGRAM_T    *pSubscribeTelegram = NULL;
+    UINT32                  *pSubscribeDataset  = NULL;
+    TRDP_ERR_T              err = TRDP_NO_ERR;
 
     /* Check srcCnt */
     if (pExchgPar->srcCnt == 0)
     {
-        vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. srcCnt Err. srcCnt: %d\n", pExchgPar->srcCnt);
+        vos_printLog(VOS_LOG_ERROR, "subscribeTelegram() Failed. srcCnt Err. srcCnt: %d\n", pExchgPar->srcCnt);
         return TRDP_PARAM_ERR;
     }
     else
@@ -1515,7 +1573,7 @@ TRDP_ERR_T subscribeTelegram (
             pSubscribeTelegram = (SUBSCRIBE_TELEGRAM_T *)vos_memAlloc(sizeof(SUBSCRIBE_TELEGRAM_T));
             if (pSubscribeTelegram == NULL)
             {
-                vos_printLog(VOS_LOG_ERROR,"SubscribeTelegram() Failed. Subscribe Telegram vos_memAlloc() Err\n");
+                vos_printLog(VOS_LOG_ERROR, "SubscribeTelegram() Failed. Subscribe Telegram vos_memAlloc() Err\n");
                 return TRDP_MEM_ERR;
             }
             else
@@ -1541,7 +1599,10 @@ TRDP_ERR_T subscribeTelegram (
                 /* DataSetId effective ? */
                 if (pSubscribeTelegram->pDatasetDescriptor == 0)
                 {
-                    vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. Dataset Err. datasetId: %d, comId: %d\n", pExchgPar->datasetId, pExchgPar->comId);
+                    vos_printLog(VOS_LOG_ERROR,
+                                 "subscribeTelegram() Failed. Dataset Err. datasetId: %d, comId: %d\n",
+                                 pExchgPar->datasetId,
+                                 pExchgPar->comId);
                     /* Free Subscribe Telegram */
                     vos_memFree(pSubscribeTelegram);
                     return TRDP_PARAM_ERR;
@@ -1550,7 +1611,9 @@ TRDP_ERR_T subscribeTelegram (
                 /* Check dstCnt */
                 if (pExchgPar->destCnt != 1)
                 {
-                    vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. destCnt Err. destCnt: %d\n", pExchgPar->destCnt);
+                    vos_printLog(VOS_LOG_ERROR,
+                                 "subscribeTelegram() Failed. destCnt Err. destCnt: %d\n",
+                                 pExchgPar->destCnt);
                     /* Free Subscribe Telegram */
                     vos_memFree(pSubscribeTelegram);
                     return TRDP_PARAM_ERR;
@@ -1564,7 +1627,7 @@ TRDP_ERR_T subscribeTelegram (
                         /* Convert Host URI to IP Address */
                         if (pExchgPar->pDest[0].pUriHost != NULL)
                         {
-                            networkByteIpAddr = vos_dottedIP (*(pExchgPar->pDest[0].pUriHost));
+                            networkByteIpAddr = vos_dottedIP(*(pExchgPar->pDest[0].pUriHost));
                             /* Is destination multicast ? */
                             if (vos_isMulticast(networkByteIpAddr))
                             {
@@ -1574,7 +1637,10 @@ TRDP_ERR_T subscribeTelegram (
                             /* destination Broadcast ? */
                             else if (networkByteIpAddr == BROADCAST_ADDRESS)
                             {
-                                vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n", (char *)pExchgPar->pDest[ifIndex].pUriHost);
+                                vos_printLog(
+                                    VOS_LOG_ERROR,
+                                    "subscribeTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n",
+                                    (char *)pExchgPar->pDest[ifIndex].pUriHost);
                                 /* Free Subscribe Telegram */
                                 vos_memFree(pSubscribeTelegram);
                                 return TRDP_PARAM_ERR;
@@ -1597,7 +1663,7 @@ TRDP_ERR_T subscribeTelegram (
                                         pSubscribeTelegram->dstIpAddr = pIfConfig[ifIndex].hostIp;
                                     }
                                 }
-                                else if(ifIndex == IF_INDEX_SUBNET2)
+                                else if (ifIndex == IF_INDEX_SUBNET2)
                                 {
                                     /* Set destination: Subnet2 I/F Address */
                                     if (pIfConfig[ifIndex].hostIp == IP_ADDRESS_NOTHING)
@@ -1613,7 +1679,10 @@ TRDP_ERR_T subscribeTelegram (
                                 }
                                 else
                                 {
-                                    vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n", (char *)pExchgPar->pDest[ifIndex].pUriHost);
+                                    vos_printLog(
+                                        VOS_LOG_ERROR,
+                                        "subscribeTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n",
+                                        (char *)pExchgPar->pDest[ifIndex].pUriHost);
                                     /* Free Subscribe Telegram */
                                     vos_memFree(pSubscribeTelegram);
                                     return TRDP_PARAM_ERR;
@@ -1637,7 +1706,7 @@ TRDP_ERR_T subscribeTelegram (
                 /* Set Application Handle: Subnet1 */
                 pSubscribeTelegram->appHandle = arraySessionConfigTAUL[ifIndex].sessionHandle;
             }
-            else if(ifIndex == IF_INDEX_SUBNET2)
+            else if (ifIndex == IF_INDEX_SUBNET2)
             {
                 /* Set Application Handle: Subnet2 */
                 pSubscribeTelegram->appHandle = arraySessionConfigTAUL[ifIndex].sessionHandle;
@@ -1652,10 +1721,13 @@ TRDP_ERR_T subscribeTelegram (
             }
             /* Set Dataset */
             /* Get Dataset Size */
-            err = sizeWriteDatasetInTrafficStore(&pSubscribeTelegram->dataset.size, pSubscribeTelegram->pDatasetDescriptor);
+            err = sizeWriteDatasetInTrafficStore(&pSubscribeTelegram->dataset.size,
+                                                 pSubscribeTelegram->pDatasetDescriptor);
             if (err != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "subscribeTelegram() Failed. sizeWriteDatasetInTrafficStore() returns error = %d\n", err);
+                vos_printLog(VOS_LOG_ERROR,
+                             "subscribeTelegram() Failed. sizeWriteDatasetInTrafficStore() returns error = %d\n",
+                             err);
                 /* Free Subscribe Telegram */
                 vos_memFree(pSubscribeTelegram);
                 return TRDP_PARAM_ERR;
@@ -1664,7 +1736,7 @@ TRDP_ERR_T subscribeTelegram (
             pSubscribeDataset = (UINT32 *)vos_memAlloc(pSubscribeTelegram->dataset.size);
             if (pSubscribeDataset == NULL)
             {
-                vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. Subscribe Dataset vos_memAlloc() Err\n");
+                vos_printLog(VOS_LOG_ERROR, "subscribeTelegram() Failed. Subscribe Dataset vos_memAlloc() Err\n");
                 /* Free Subscribe Telegram */
                 vos_memFree(pSubscribeTelegram);
                 return TRDP_MEM_ERR;
@@ -1688,7 +1760,10 @@ TRDP_ERR_T subscribeTelegram (
                         &pSubscribeTelegram->pDatasetDescriptor);
                 if (err != TRDP_NO_ERR)
                 {
-                    vos_printLog(VOS_LOG_ERROR, "subscribeTelegram() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n", pExchgPar->datasetId, err);
+                    vos_printLog(VOS_LOG_ERROR,
+                                 "subscribeTelegram() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n",
+                                 pExchgPar->datasetId,
+                                 err);
                     /* Free Subscribe Dataset */
                     vos_memFree(pSubscribeDataset);
                     /* Free Subscribe Telegram */
@@ -1717,7 +1792,7 @@ TRDP_ERR_T subscribeTelegram (
                 /* Convert Source Host1 URI to IP Address */
                 if (pExchgPar->pSrc[0].pUriHost1 != NULL)
                 {
-                    networkByteIpAddr = vos_dottedIP (*(pExchgPar->pSrc[0].pUriHost1));
+                    networkByteIpAddr = vos_dottedIP(*(pExchgPar->pSrc[0].pUriHost1));
                     if ((networkByteIpAddr == 0)
                         || (vos_isMulticast(networkByteIpAddr)))
                     {
@@ -1725,7 +1800,9 @@ TRDP_ERR_T subscribeTelegram (
                         vos_memFree(pSubscribeDataset);
                         /* Free Subscribe Telegram */
                         vos_memFree(pSubscribeTelegram);
-                        vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. Source IP Address1 Err. Source URI Host1: %s\n", (char *)pExchgPar->pSrc[0].pUriHost1);
+                        vos_printLog(VOS_LOG_ERROR,
+                                     "subscribeTelegram() Failed. Source IP Address1 Err. Source URI Host1: %s\n",
+                                     (char *)pExchgPar->pSrc[0].pUriHost1);
                         return TRDP_PARAM_ERR;
                     }
                     /* 255.255.255.255 mean Not Source IP Filter */
@@ -1750,10 +1827,14 @@ TRDP_ERR_T subscribeTelegram (
                     pSubscribeTelegram->pUserRef,                                   /* user reference value = offset */
                     NULL,                                                           /* callback function */
                     pSubscribeTelegram->comId,                                      /* ComID */
-                    pSubscribeTelegram->etbTopoCount,                               /* ETB topocount to use, 0 if consist local communication */
-                    pSubscribeTelegram->opTrnTopoCount,                             /* operational topocount, != 0 for orientation/direction sensitive communication */
+                    pSubscribeTelegram->etbTopoCount,                               /* ETB topocount to use, 0 if
+                                                                                      consist local communication */
+                    pSubscribeTelegram->opTrnTopoCount,                             /* operational topocount, != 0 for
+                                                                                      orientation/direction sensitive
+                                                                                      communication */
                     pSubscribeTelegram->srcIpAddr, 0,                               /* Source IP filter */
-                    pSubscribeTelegram->dstIpAddr,                                  /* Default destination  (or MC Group) */
+                    pSubscribeTelegram->dstIpAddr,                                  /* Default destination  (or MC
+                                                                                      Group) */
                     pSubscribeTelegram->pPdParameter->flags,                        /* Option */
                     NULL,                                                           /* default interface */
                     pSubscribeTelegram->pPdParameter->timeout,                      /* Time out in us   */
@@ -1764,7 +1845,9 @@ TRDP_ERR_T subscribeTelegram (
                 vos_memFree(pSubscribeDataset);
                 /* Free Subscribe Telegram */
                 vos_memFree(pSubscribeTelegram);
-                vos_printLog(VOS_LOG_ERROR, "subscribeTelegram() Failed. Subscribe Telegram tlp_subscribe() Err:%d\n", err);
+                vos_printLog(VOS_LOG_ERROR,
+                             "subscribeTelegram() Failed. Subscribe Telegram tlp_subscribe() Err:%d\n",
+                             err);
                 return err;
             }
             else
@@ -1777,7 +1860,10 @@ TRDP_ERR_T subscribeTelegram (
                     vos_memFree(pSubscribeDataset);
                     /* Free Subscribe Telegram */
                     vos_memFree(pSubscribeTelegram);
-                    vos_printLog(VOS_LOG_ERROR, "subscribeTelegram() Failed. Subscribe Telegram appendSubscribeTelegramList() Err:%d\n", err);
+                    vos_printLog(
+                        VOS_LOG_ERROR,
+                        "subscribeTelegram() Failed. Subscribe Telegram appendSubscribeTelegramList() Err:%d\n",
+                        err);
                     return err;
                 }
             }
@@ -1798,20 +1884,20 @@ TRDP_ERR_T subscribeTelegram (
  *  @retval         TRDP_MEM_ERR
  */
 TRDP_ERR_T pdRequestTelegram (
-        UINT32              ifIndex,
-        TRDP_EXCHG_PAR_T    *pExchgPar)
+    UINT32              ifIndex,
+    TRDP_EXCHG_PAR_T    *pExchgPar)
 {
-    UINT32                      i = 0;
-    TRDP_IP_ADDR_T          networkByteIpAddr = 0;              /* for convert URI to IP Address */
+    UINT32                  i = 0;
+    TRDP_IP_ADDR_T          networkByteIpAddr   = 0;            /* for convert URI to IP Address */
     PD_REQUEST_TELEGRAM_T   *pPdRequestTelegram = NULL;
-    UINT32                      *pPdRequestDataset = NULL;
-    TRDP_ERR_T                  err = TRDP_NO_ERR;
-    SUBSCRIBE_TELEGRAM_T        *pTailSubscribeTelegram = NULL;
+    UINT32                  *pPdRequestDataset  = NULL;
+    TRDP_ERR_T              err = TRDP_NO_ERR;
+    SUBSCRIBE_TELEGRAM_T    *pTailSubscribeTelegram = NULL;
 
     /* Check srcCnt */
     if (pExchgPar->srcCnt == 0)
     {
-        vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. srcCnt Err. srcCnt: %d\n", pExchgPar->srcCnt);
+        vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. srcCnt Err. srcCnt: %d\n", pExchgPar->srcCnt);
         return TRDP_PARAM_ERR;
     }
     else
@@ -1820,7 +1906,7 @@ TRDP_ERR_T pdRequestTelegram (
         pPdRequestTelegram = (PD_REQUEST_TELEGRAM_T *)vos_memAlloc(sizeof(PD_REQUEST_TELEGRAM_T));
         if (pPdRequestTelegram == NULL)
         {
-            vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. PD Request Telegram vos_memAlloc() Err\n");
+            vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. PD Request Telegram vos_memAlloc() Err\n");
             return TRDP_MEM_ERR;
         }
         else
@@ -1843,7 +1929,10 @@ TRDP_ERR_T pdRequestTelegram (
         /* DataSetId effective ? */
         if (pPdRequestTelegram->pDatasetDescriptor == 0)
         {
-            vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. Dataset Err. datasetId: %d, comId: %d\n", pExchgPar->datasetId, pExchgPar->comId);
+            vos_printLog(VOS_LOG_ERROR,
+                         "pdRequestTelegram() Failed. Dataset Err. datasetId: %d, comId: %d\n",
+                         pExchgPar->datasetId,
+                         pExchgPar->comId);
             /* Free PD Request Telegram */
             vos_memFree(pPdRequestTelegram);
             return TRDP_PARAM_ERR;
@@ -1856,7 +1945,7 @@ TRDP_ERR_T pdRequestTelegram (
             /* Convert Source Host1 URI to IP Address */
             if (pExchgPar->pSrc[0].pUriHost1 != NULL)
             {
-                networkByteIpAddr = vos_dottedIP (*(pExchgPar->pSrc[0].pUriHost1));
+                networkByteIpAddr = vos_dottedIP(*(pExchgPar->pSrc[0].pUriHost1));
                 if (networkByteIpAddr == 0)
                 {
                     /* Is I/F subnet1 ? */
@@ -1874,7 +1963,7 @@ TRDP_ERR_T pdRequestTelegram (
                             pPdRequestTelegram->srcIpAddr = pIfConfig[ifIndex].hostIp;
                         }
                     }
-                    else if(ifIndex == IF_INDEX_SUBNET2)
+                    else if (ifIndex == IF_INDEX_SUBNET2)
                     {
                         /* Set Source IP Address : Subnet2 I/F Address */
                         if (pIfConfig[ifIndex].hostIp == IP_ADDRESS_NOTHING)
@@ -1890,7 +1979,9 @@ TRDP_ERR_T pdRequestTelegram (
                     }
                     else
                     {
-                        vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. Source IP Address Err. Source URI Host: %s\n", (char *)pExchgPar->pSrc[0].pUriHost1);
+                        vos_printLog(VOS_LOG_ERROR,
+                                     "pdRequestTelegram() Failed. Source IP Address Err. Source URI Host: %s\n",
+                                     (char *)pExchgPar->pSrc[0].pUriHost1);
                         /* Free PD Request Telegram */
                         vos_memFree(pPdRequestTelegram);
                         return TRDP_PARAM_ERR;
@@ -1900,7 +1991,9 @@ TRDP_ERR_T pdRequestTelegram (
                 {
                     /* Free Subscribe Telegram */
                     vos_memFree(pPdRequestTelegram);
-                    vos_printLog(VOS_LOG_ERROR,"subscribeTelegram() Failed. Source IP Address1 Err. Source URI Host1: %s\n", (char *)pExchgPar->pSrc[0].pUriHost1);
+                    vos_printLog(VOS_LOG_ERROR,
+                                 "subscribeTelegram() Failed. Source IP Address1 Err. Source URI Host1: %s\n",
+                                 (char *)pExchgPar->pSrc[0].pUriHost1);
                     return TRDP_PARAM_ERR;
                 }
             }
@@ -1909,7 +2002,7 @@ TRDP_ERR_T pdRequestTelegram (
         /* Check dstCnt */
         if (pExchgPar->destCnt < 1)
         {
-            vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. destCnt Err. destCnt: %d\n", pExchgPar->destCnt);
+            vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. destCnt Err. destCnt: %d\n", pExchgPar->destCnt);
             /* Free PD Request Telegram */
             vos_memFree(pPdRequestTelegram);
             return TRDP_PARAM_ERR;
@@ -1923,7 +2016,7 @@ TRDP_ERR_T pdRequestTelegram (
                 /* Convert Host URI to IP Address */
                 if (pExchgPar->pDest[0].pUriHost != NULL)
                 {
-                    networkByteIpAddr = vos_dottedIP (*(pExchgPar->pDest[0].pUriHost));
+                    networkByteIpAddr = vos_dottedIP(*(pExchgPar->pDest[0].pUriHost));
                     /* Is destination multicast ? */
                     if (vos_isMulticast(networkByteIpAddr))
                     {
@@ -1932,9 +2025,12 @@ TRDP_ERR_T pdRequestTelegram (
                     }
                     /* destination Broadcast or 0 ? */
                     else if ((networkByteIpAddr == BROADCAST_ADDRESS)
-                        || (networkByteIpAddr == 0))
+                             || (networkByteIpAddr == 0))
                     {
-                        vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n", (char *)pExchgPar->pDest[ifIndex].pUriHost);
+                        vos_printLog(
+                            VOS_LOG_ERROR,
+                            "pdRequestTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n",
+                            (char *)pExchgPar->pDest[ifIndex].pUriHost);
                         /* Free PD Request Telegram */
                         vos_memFree(pPdRequestTelegram);
                         return TRDP_PARAM_ERR;
@@ -1965,7 +2061,7 @@ TRDP_ERR_T pdRequestTelegram (
                         /* Convert Host URI to IP Address */
                         if (pExchgPar->pDest[1].pUriHost != NULL)
                         {
-                            networkByteIpAddr = vos_dottedIP (*(pExchgPar->pDest[1].pUriHost));
+                            networkByteIpAddr = vos_dottedIP(*(pExchgPar->pDest[1].pUriHost));
                             /* Is destination multicast ? */
                             if (vos_isMulticast(networkByteIpAddr))
                             {
@@ -1974,9 +2070,12 @@ TRDP_ERR_T pdRequestTelegram (
                             }
                             /* destination Broadcast or 0 ? */
                             else if ((networkByteIpAddr == BROADCAST_ADDRESS)
-                                || (networkByteIpAddr == 0))
+                                     || (networkByteIpAddr == 0))
                             {
-                                vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n", (char *)pExchgPar->pDest[ifIndex].pUriHost);
+                                vos_printLog(
+                                    VOS_LOG_ERROR,
+                                    "pdRequestTelegram() Failed. Destination IP Address Err. Destination URI Host: %s\n",
+                                    (char *)pExchgPar->pDest[ifIndex].pUriHost);
                                 /* Free PD Request Telegram */
                                 vos_memFree(pPdRequestTelegram);
                                 return TRDP_PARAM_ERR;
@@ -1999,7 +2098,7 @@ TRDP_ERR_T pdRequestTelegram (
                 /* Set Application Handle: Subnet1 */
                 pPdRequestTelegram->appHandle = arraySessionConfigTAUL[ifIndex].sessionHandle;
             }
-            else if(ifIndex == IF_INDEX_SUBNET2)
+            else if (ifIndex == IF_INDEX_SUBNET2)
             {
                 /* Set Application Handle: Subnet2 */
                 pPdRequestTelegram->appHandle = arraySessionConfigTAUL[ifIndex].sessionHandle;
@@ -2014,10 +2113,13 @@ TRDP_ERR_T pdRequestTelegram (
             }
             /* Set Dataset */
             /* Get Dataset Size */
-            err = sizeWriteDatasetInTrafficStore(&pPdRequestTelegram->dataset.size, pPdRequestTelegram->pDatasetDescriptor);
+            err = sizeWriteDatasetInTrafficStore(&pPdRequestTelegram->dataset.size,
+                                                 pPdRequestTelegram->pDatasetDescriptor);
             if (err != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. sizeWriteDatasetInTrafficStore() returns error = %d\n", err);
+                vos_printLog(VOS_LOG_ERROR,
+                             "pdRequestTelegram() Failed. sizeWriteDatasetInTrafficStore() returns error = %d\n",
+                             err);
                 /* Free PD Request Telegram */
                 vos_memFree(pPdRequestTelegram);
                 return TRDP_PARAM_ERR;
@@ -2026,7 +2128,7 @@ TRDP_ERR_T pdRequestTelegram (
             pPdRequestDataset = (UINT32 *)vos_memAlloc(pPdRequestTelegram->dataset.size);
             if (pPdRequestDataset == NULL)
             {
-                vos_printLog(VOS_LOG_ERROR,"pdRequestTelegram() Failed. PD Request Dataset vos_memAlloc() Err\n");
+                vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. PD Request Dataset vos_memAlloc() Err\n");
                 /* Free PD Request Telegram */
                 vos_memFree(pPdRequestTelegram);
                 return TRDP_MEM_ERR;
@@ -2052,7 +2154,10 @@ TRDP_ERR_T pdRequestTelegram (
                         &pPdRequestTelegram->pDatasetDescriptor);
                 if (err != TRDP_NO_ERR)
                 {
-                    vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n", pExchgPar->datasetId, err);
+                    vos_printLog(VOS_LOG_ERROR,
+                                 "pdRequestTelegram() Failed. tau_calcDatasetSize datasetId: %d returns error = %d\n",
+                                 pExchgPar->datasetId,
+                                 err);
                     /* Free PD Request Dataset */
                     vos_memFree(pPdRequestDataset);
                     /* Free PD Request Telegram */
@@ -2099,11 +2204,15 @@ TRDP_ERR_T pdRequestTelegram (
                     pPdRequestTelegram->appHandle,                      /* our application identifier */
                     pPdRequestTelegram->subHandle,                      /* our subscribe identifier */
                     pPdRequestTelegram->comId,                          /* ComID to send */
-                    pPdRequestTelegram->etbTopoCount,                   /* ETB topocount to use, 0 if consist local communication */
-                    pPdRequestTelegram->opTrnTopoCount,                 /* operational topocount, != 0 for orientation/direction sensitive communication */
+                    pPdRequestTelegram->etbTopoCount,                   /* ETB topocount to use, 0 if consist local
+                                                                          communication */
+                    pPdRequestTelegram->opTrnTopoCount,                 /* operational topocount, != 0 for
+                                                                          orientation/direction sensitive communication
+                                                                          */
                     pPdRequestTelegram->srcIpAddr,                      /* default source IP */
                     pPdRequestTelegram->dstIpAddr,                      /* where to send to */
-                    pPdRequestTelegram->pPdParameter->redundant,        /* 0 - Non-redundant, > 0 valid redundancy group */
+                    pPdRequestTelegram->pPdParameter->redundant,        /* 0 - Non-redundant, > 0 valid redundancy group
+                                                                          */
                     pPdRequestTelegram->pPdParameter->flags,            /* flags */
                     pPdRequestTelegram->pSendParam,                     /* send Paramter */
                     pPdRequestTelegram->dataset.pDatasetStartAddr,      /* request data */
@@ -2116,7 +2225,9 @@ TRDP_ERR_T pdRequestTelegram (
                 vos_memFree(pPdRequestDataset);
                 /* Free Publish Telegram */
                 vos_memFree(pPdRequestTelegram);
-                vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. PD Request Telegram tlp_request() Err:%d\n", err);
+                vos_printLog(VOS_LOG_ERROR,
+                             "pdRequestTelegram() Failed. PD Request Telegram tlp_request() Err:%d\n",
+                             err);
                 return err;
             }
             else
@@ -2129,7 +2240,10 @@ TRDP_ERR_T pdRequestTelegram (
                     vos_memFree(pPdRequestDataset);
                     /* Free Publish Telegram */
                     vos_memFree(pPdRequestTelegram);
-                    vos_printLog(VOS_LOG_ERROR, "pdRequestTelegram() Failed. PD Request Telegram appendPdRequestTelegramList() Err:%d\n", err);
+                    vos_printLog(
+                        VOS_LOG_ERROR,
+                        "pdRequestTelegram() Failed. PD Request Telegram appendPdRequestTelegramList() Err:%d\n",
+                        err);
                     return err;
                 }
             }
@@ -2147,23 +2261,23 @@ TRDP_ERR_T pdRequestTelegram (
 TRDP_ERR_T tau_pd_main_proc_init (
     void)
 {
-    VOS_ERR_T vosErr = VOS_NO_ERR;
+    VOS_ERR_T           vosErr = VOS_NO_ERR;
     extern VOS_THREAD_T taulPdMainThreadHandle;         /* Thread handle */
 
     /* TAULpdMainThread */
-    extern CHAR8 taulPdMainThreadName[];                    /* Thread name is TAUL PD Main Thread. */
+    extern CHAR8        taulPdMainThreadName[];             /* Thread name is TAUL PD Main Thread. */
 
     /* Init Thread */
     vos_threadInit();
     /* Create TAULpdMainThread */
     vosErr = vos_threadCreate(&taulPdMainThreadHandle,
-                taulPdMainThreadName,
-                VOS_THREAD_POLICY_OTHER,
-                TAUL_PROCESS_PRIORITY,
-                0,
-                TAUL_PROCESS_THREAD_STACK_SIZE,
-                (void *)TAULpdMainThread,
-                NULL);
+                              taulPdMainThreadName,
+                              VOS_THREAD_POLICY_OTHER,
+                              TAUL_PROCESS_PRIORITY,
+                              0,
+                              TAUL_PROCESS_THREAD_STACK_SIZE,
+                              (void *)TAULpdMainThread,
+                              NULL);
     if (vosErr != VOS_NO_ERR)
     {
         vos_printLog(VOS_LOG_ERROR, "TRDP TAULpdMainThread Create failed. VOS Error: %d\n", vosErr);
@@ -2176,19 +2290,20 @@ TRDP_ERR_T tau_pd_main_proc_init (
 /** TAUL PD Main Process Thread
  *
  */
-static const TRDP_TIME_T  max_tv = {0, 10000};
+static const TRDP_TIME_T max_tv = {0, 10000};
 VOS_THREAD_FUNC_T TAULpdMainThread (
     void)
 {
-    PD_ELE_T                    *iterPD = NULL;
-    TRDP_TIME_T             nowTime = {0};
-    PD_REQUEST_TELEGRAM_T   *pUpdatePdRequestTelegram = NULL;
-    TRDP_ERR_T                  err = TRDP_NO_ERR;
-    UINT16                      msgTypePrNetworkByteOder = 0;
-    UINT32                      replyComIdHostByetOrder = 0;
-    UINT32                      replyIpAddrHostByteOrder = 0;
-    TRDP_TIME_T             tv_interval = {0};                              /* interval Time :timeval type */
-    TRDP_TIME_T             trdp_time_tv_interval = {0};                    /* interval Time :TRDP_TIME_T type for TRDP function */
+    PD_ELE_T    *iterPD = NULL;
+    TRDP_TIME_T nowTime = {0};
+    PD_REQUEST_TELEGRAM_T *pUpdatePdRequestTelegram = NULL;
+    TRDP_ERR_T  err = TRDP_NO_ERR;
+    UINT16      msgTypePrNetworkByteOder    = 0;
+    UINT32      replyComIdHostByetOrder     = 0;
+    UINT32      replyIpAddrHostByteOrder    = 0;
+    TRDP_TIME_T tv_interval = {0};                                          /* interval Time :timeval type */
+    TRDP_TIME_T trdp_time_tv_interval = {0};                                /* interval Time :TRDP_TIME_T type for TRDP
+                                                                              function */
 
     /* Check appHandle */
     while (1)
@@ -2220,14 +2335,14 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
     /* Enter the PD main processing loop. */
     while (1)
     {
-        fd_set  rfds;
-        INT32   noOfDesc = 0;
-        TRDP_TIME_T  tv = max_tv;
+        fd_set      rfds;
+        INT32       noOfDesc    = 0;
+        TRDP_TIME_T tv          = max_tv;
 
-        INT32   noOfDesc2 = 0;
-        TRDP_TIME_T  tv2 = max_tv;
-        BOOL8 linkUpDown = TRUE;                        /* Link Up Down information TRUE:Up FALSE:Down */
-        UINT32 writeSubnetId;                        /* Using Traffic Store Write Sub-network Id */
+        INT32       noOfDesc2   = 0;
+        TRDP_TIME_T tv2         = max_tv;
+        BOOL8       linkUpDown  = TRUE;                 /* Link Up Down information TRUE:Up FALSE:Down */
+        UINT32      writeSubnetId;                   /* Using Traffic Store Write Sub-network Id */
 
         /*
         Prepare the file descriptor set for the select call.
@@ -2261,9 +2376,9 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
         if (appHandle2 != (TRDP_APP_SESSION_T) LADDER_TOPOLOGY_DISABLE)
         {
             tlc_getInterval(appHandle2,
-                             (TRDP_TIME_T *) &tv2,
-                             (TRDP_FDS_T *) &rfds,
-                             &noOfDesc2);
+                            (TRDP_TIME_T *) &tv2,
+                            (TRDP_FDS_T *) &rfds,
+                            &noOfDesc2);
             if (vos_cmpTime((TRDP_TIME_T *) &tv2, (TRDP_TIME_T *) &max_tv) > 0)
             {
                 tv2 = max_tv;
@@ -2298,7 +2413,7 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
             /* Get Now Time */
             vos_getTime(&nowTime);
 
-             /* PD Request Telegram ? */
+            /* PD Request Telegram ? */
             if (iterPD->pFrame->frameHead.msgType == msgTypePrNetworkByteOder)
             {
                 /* Is Now Time send Timing ? */
@@ -2308,8 +2423,8 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                     if (iterPD->addr.comId != TRDP_GLOBAL_STATISTICS_COMID)
                     {
                         /* Change Byet Order */
-                        replyComIdHostByetOrder = vos_ntohl(iterPD->pFrame->frameHead.replyComId);
-                        replyIpAddrHostByteOrder = vos_ntohl(iterPD->pFrame->frameHead.replyIpAddress);
+                        replyComIdHostByetOrder     = vos_ntohl(iterPD->pFrame->frameHead.replyComId);
+                        replyIpAddrHostByteOrder    = vos_ntohl(iterPD->pFrame->frameHead.replyIpAddress);
                         /* Get PD Request Telegram */
                         pUpdatePdRequestTelegram = searchPdRequestTelegramList(
                                 pHeadPdRequestTelegram,
@@ -2331,15 +2446,16 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                                 /* Set now Time */
                                 vos_addTime(&pUpdatePdRequestTelegram->requestSendTime, &nowTime);
                                 /* Convert Request Send cycle time */
-                                tv_interval.tv_sec = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
+                                tv_interval.tv_sec  = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
                                 tv_interval.tv_usec = pUpdatePdRequestTelegram->pPdParameter->cycle % 1000000;
-                                trdp_time_tv_interval.tv_sec = tv_interval.tv_sec;
-                                trdp_time_tv_interval.tv_usec = tv_interval.tv_usec;
+                                trdp_time_tv_interval.tv_sec    = tv_interval.tv_sec;
+                                trdp_time_tv_interval.tv_usec   = tv_interval.tv_usec;
                                 /* Set Request Send Time */
                                 vos_addTime(&pUpdatePdRequestTelegram->requestSendTime, &trdp_time_tv_interval);
                             }
                             /* Is Now Time send Timing ? */
-                            if (vos_cmpTime((TRDP_TIME_T *)&pUpdatePdRequestTelegram->requestSendTime, (TRDP_TIME_T *)&nowTime) < 0)
+                            if (vos_cmpTime((TRDP_TIME_T *)&pUpdatePdRequestTelegram->requestSendTime,
+                                            (TRDP_TIME_T *)&nowTime) < 0)
                             {
                                 /* PD Request */
                                 err = tlp_request(
@@ -2353,22 +2469,25 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                                         pUpdatePdRequestTelegram->pPdParameter->redundant,
                                         pUpdatePdRequestTelegram->pPdParameter->flags,
                                         pUpdatePdRequestTelegram->pSendParam,
-                                        (UINT8 *)((INT32) pTrafficStoreAddr + (UINT16)pUpdatePdRequestTelegram->pPdParameter->offset),
+                                        (UINT8 *)((INT32) pTrafficStoreAddr +
+                                                  (UINT16)pUpdatePdRequestTelegram->pPdParameter->offset),
                                         pUpdatePdRequestTelegram->datasetNetworkByteSize,
                                         pUpdatePdRequestTelegram->replyComId,
                                         pUpdatePdRequestTelegram->replyIpAddr);
                                 if (err != TRDP_NO_ERR)
                                 {
-                                    vos_printLog(VOS_LOG_ERROR, "TAULpdMainThread() Failed. tlp_request() Err: %d\n", err);
+                                    vos_printLog(VOS_LOG_ERROR,
+                                                 "TAULpdMainThread() Failed. tlp_request() Err: %d\n",
+                                                 err);
                                 }
                                 vos_printLog(VOS_LOG_DBG, "Subnet1 tlp_request()\n");
                                 /* Get Now Time */
                                 vos_getTime(&pUpdatePdRequestTelegram->requestSendTime);
                                 /* Convert Request Send cycle time */
-                                tv_interval.tv_sec = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
+                                tv_interval.tv_sec  = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
                                 tv_interval.tv_usec = pUpdatePdRequestTelegram->pPdParameter->cycle % 1000000;
-                                trdp_time_tv_interval.tv_sec = tv_interval.tv_sec;
-                                trdp_time_tv_interval.tv_usec = tv_interval.tv_usec;
+                                trdp_time_tv_interval.tv_sec    = tv_interval.tv_sec;
+                                trdp_time_tv_interval.tv_usec   = tv_interval.tv_usec;
                                 /* Set Request Send Time */
                                 vos_addTime(&pUpdatePdRequestTelegram->requestSendTime, &trdp_time_tv_interval);
                             }
@@ -2388,8 +2507,8 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                         /* Update Publish Dataset */
                         tau_ldLockTrafficStore();
                         memcpy((void *)ts_buffer,
-                                 (UINT8 *)((INT32)pTrafficStoreAddr + *(UINT16*)(iterPD->pUserRef)),
-                                 2048);
+                               (UINT8 *)((INT32)pTrafficStoreAddr + *(UINT16 *)(iterPD->pUserRef)),
+                               2048);
                         tau_ldUnlockTrafficStore();
                         err = tlp_put(
                                 appHandle,
@@ -2410,7 +2529,7 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
         if (appHandle2 != (TRDP_APP_SESSION_T) LADDER_TOPOLOGY_DISABLE)
         {
             vos_mutexLock(appHandle2->mutex);
-            
+
             /* Check PD Send Queue of appHandle2 */
             for (iterPD = appHandle2->pSndQueue; iterPD != NULL; iterPD = iterPD->pNext)
             {
@@ -2423,8 +2542,8 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                     if (iterPD->addr.comId != TRDP_GLOBAL_STATISTICS_COMID)
                     {
                         /* Change Byet Order */
-                        replyComIdHostByetOrder = vos_ntohl(iterPD->pFrame->frameHead.replyComId);
-                        replyIpAddrHostByteOrder = vos_ntohl(iterPD->pFrame->frameHead.replyIpAddress);
+                        replyComIdHostByetOrder     = vos_ntohl(iterPD->pFrame->frameHead.replyComId);
+                        replyIpAddrHostByteOrder    = vos_ntohl(iterPD->pFrame->frameHead.replyIpAddress);
                         /* Get PD Request Telegram */
                         pUpdatePdRequestTelegram = searchPdRequestTelegramList(
                                 pHeadPdRequestTelegram,
@@ -2446,15 +2565,16 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                                 /* Set now Time */
                                 vos_addTime(&pUpdatePdRequestTelegram->requestSendTime, &nowTime);
                                 /* Convert Request Send cycle time */
-                                tv_interval.tv_sec = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
+                                tv_interval.tv_sec  = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
                                 tv_interval.tv_usec = pUpdatePdRequestTelegram->pPdParameter->cycle % 1000000;
-                                trdp_time_tv_interval.tv_sec = tv_interval.tv_sec;
-                                trdp_time_tv_interval.tv_usec = tv_interval.tv_usec;
+                                trdp_time_tv_interval.tv_sec    = tv_interval.tv_sec;
+                                trdp_time_tv_interval.tv_usec   = tv_interval.tv_usec;
                                 /* Set Request Send Time */
                                 vos_addTime(&pUpdatePdRequestTelegram->requestSendTime, &trdp_time_tv_interval);
                             }
                             /* Is Now Time send Timing ? */
-                            if (vos_cmpTime((TRDP_TIME_T *)&pUpdatePdRequestTelegram->requestSendTime, (TRDP_TIME_T *)&nowTime) < 0)
+                            if (vos_cmpTime((TRDP_TIME_T *)&pUpdatePdRequestTelegram->requestSendTime,
+                                            (TRDP_TIME_T *)&nowTime) < 0)
                             {
                                 /* PD Request */
                                 err = tlp_request(
@@ -2468,22 +2588,25 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                                         pUpdatePdRequestTelegram->pPdParameter->redundant,
                                         pUpdatePdRequestTelegram->pPdParameter->flags,
                                         pUpdatePdRequestTelegram->pSendParam,
-                                        (UINT8 *)((INT32) pTrafficStoreAddr + (UINT16)pUpdatePdRequestTelegram->pPdParameter->offset),
+                                        (UINT8 *)((INT32) pTrafficStoreAddr +
+                                                  (UINT16)pUpdatePdRequestTelegram->pPdParameter->offset),
                                         pUpdatePdRequestTelegram->datasetNetworkByteSize,
                                         pUpdatePdRequestTelegram->replyComId,
                                         pUpdatePdRequestTelegram->replyIpAddr);
                                 if (err != TRDP_NO_ERR)
                                 {
-                                    vos_printLog(VOS_LOG_ERROR, "TAULpdMainThread() Failed. tlp_request() Err: %d\n", err);
+                                    vos_printLog(VOS_LOG_ERROR,
+                                                 "TAULpdMainThread() Failed. tlp_request() Err: %d\n",
+                                                 err);
                                 }
                                 vos_printLog(VOS_LOG_DBG, "Subnet2 tlp_request()\n");
                                 /* Get Now Time */
                                 vos_getTime(&pUpdatePdRequestTelegram->requestSendTime);
                                 /* Convert Request Send cycle time */
-                                tv_interval.tv_sec = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
+                                tv_interval.tv_sec  = pUpdatePdRequestTelegram->pPdParameter->cycle / 1000000;
                                 tv_interval.tv_usec = pUpdatePdRequestTelegram->pPdParameter->cycle % 1000000;
-                                trdp_time_tv_interval.tv_sec = tv_interval.tv_sec;
-                                trdp_time_tv_interval.tv_usec = tv_interval.tv_usec;
+                                trdp_time_tv_interval.tv_sec    = tv_interval.tv_sec;
+                                trdp_time_tv_interval.tv_usec   = tv_interval.tv_usec;
                                 /* Set Request Send Time */
                                 vos_addTime(&pUpdatePdRequestTelegram->requestSendTime, &trdp_time_tv_interval);
                             }
@@ -2502,8 +2625,8 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
                             /* Update Publish Dataset */
                             tau_ldLockTrafficStore();
                             memcpy((void *)ts_buffer,
-                                     (UINT8 *)((INT32)pTrafficStoreAddr + *(UINT16*)(iterPD->pUserRef)),
-                                     2048);
+                                   (UINT8 *)((INT32)pTrafficStoreAddr + *(UINT16 *)(iterPD->pUserRef)),
+                                   2048);
                             tau_ldUnlockTrafficStore();
                             err = tlp_put(
                                     appHandle2,
@@ -2546,7 +2669,7 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
             if (linkUpDown == FALSE)
             {
                 /* Change Write Traffic Store Receive Subnet */
-                if( writeSubnetId == SUBNET1)
+                if ( writeSubnetId == SUBNET1)
                 {
                     vos_printLog(VOS_LOG_INFO, "Subnet1 Link Down. Change Receive Subnet\n");
                     /* Write Traffic Store Receive Subnet : Subnet2 */
@@ -2599,37 +2722,37 @@ VOS_THREAD_FUNC_T TAULpdMainThread (
  *  @retval         TRDP_MEM_ERR
  */
 TRDP_ERR_T tau_ldInit (
-    TRDP_PRINT_DBG_T            pPrintDebugString,
+    TRDP_PRINT_DBG_T        pPrintDebugString,
     const TAU_LD_CONFIG_T   *pLdConfig)
 {
-    TRDP_ERR_T err = TRDP_NO_ERR;                                           /* Result */
-    UINT32 ifIndex = 0;                                                     /* I/F get Loop Counter */
-    UINT32 index = 0;                                                           /* Loop Counter */
-    BOOL8                           marshallInitFirstTime = TRUE;
-    TRDP_MARSHALL_CONFIG_T      *pMarshallConfigPtr = NULL;
-    extern UINT32                   numExchgPar;
+    TRDP_ERR_T      err     = TRDP_NO_ERR;                                  /* Result */
+    UINT32          ifIndex = 0;                                            /* I/F get Loop Counter */
+    UINT32          index   = 0;                                                /* Loop Counter */
+    BOOL8           marshallInitFirstTime       = TRUE;
+    TRDP_MARSHALL_CONFIG_T *pMarshallConfigPtr  = NULL;
+    extern UINT32   numExchgPar;
     /* For Get IP Address */
-    UINT32 getNoOfIfaces = NUM_ED_INTERFACES;
-    VOS_IF_REC_T ifAddressTable[NUM_ED_INTERFACES];
-    TRDP_IP_ADDR_T ownIpAddress = 0;
+    UINT32          getNoOfIfaces = NUM_ED_INTERFACES;
+    VOS_IF_REC_T    ifAddressTable[NUM_ED_INTERFACES];
+    TRDP_IP_ADDR_T  ownIpAddress = 0;
 #ifdef __linux
-    CHAR8 SUBNETWORK_ID1_IF_NAME[] = "eth0";
-//#elif defined(__APPLE__)
+    CHAR8           SUBNETWORK_ID1_IF_NAME[] = "eth0";
+/* #elif defined(__APPLE__) */
 #else
-    CHAR8 SUBNETWORK_ID1_IF_NAME[] = "en0";
+    CHAR8           SUBNETWORK_ID1_IF_NAME[] = "en0";
 #endif
 
     /* Clear application handles */
-    appHandle = NULL;
-    appHandle2 = NULL;
+    appHandle   = NULL;
+    appHandle2  = NULL;
 
     /* Clear Telegram List Pointers */
-    pHeadPublishTelegram = NULL;
-    pHeadSubscribeTelegram = NULL;
-    pHeadPdRequestTelegram = NULL;
+    pHeadPublishTelegram    = NULL;
+    pHeadSubscribeTelegram  = NULL;
+    pHeadPdRequestTelegram  = NULL;
 
     /* Clear mutex pointers */
-    pPublishTelegramMutex = NULL;
+    pPublishTelegramMutex   = NULL;
     pSubscribeTelegramMutex = NULL;
     pPdRequestTelegramMutex = NULL;
 
@@ -2643,12 +2766,12 @@ TRDP_ERR_T tau_ldInit (
     }
     /* Get Config */
     err = tau_readXmlDeviceConfig(&xmlConfigHandle,
-                                        &memoryConfigTAUL,
-                                        &debugConfigTAUL,
-                                        &numComPar,
-                                        &pComPar,
-                                        &numIfConfig,
-                                        &pIfConfig);
+                                  &memoryConfigTAUL,
+                                  &debugConfigTAUL,
+                                  &numComPar,
+                                  &pComPar,
+                                  &numIfConfig,
+                                  &pIfConfig);
     if (err != TRDP_NO_ERR)
     {
         vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tau_readXmlDeviceConfig() error\n");
@@ -2666,17 +2789,17 @@ TRDP_ERR_T tau_ldInit (
 
     /*  Init the TRDP library  */
     err = tlc_init(pPrintDebugString,            /* debug print function */
-                        &memoryConfigTAUL);                /* Use application supplied memory */
+                   &memoryConfigTAUL);                     /* Use application supplied memory */
     if (err != TRDP_NO_ERR)
     {
-        vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tlc_init() error = %d\n",err);
+        vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tlc_init() error = %d\n", err);
         return err;
     }
     /* Get I/F address */
     if (vos_getInterfaces(&getNoOfIfaces, ifAddressTable) != VOS_NO_ERR)
     {
         vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. vos_getInterfaces() error.\n");
-       return TRDP_SOCK_ERR;
+        return TRDP_SOCK_ERR;
     }
 
     /* Get All I/F List */
@@ -2684,7 +2807,7 @@ TRDP_ERR_T tau_ldInit (
     {
         if (strncmp(ifAddressTable[index].name, SUBNETWORK_ID1_IF_NAME, sizeof(SUBNETWORK_ID1_IF_NAME)) == 0)
         {
-                /* Get Sub-net Id1 Address */
+            /* Get Sub-net Id1 Address */
             subnetId1Address = (TRDP_IP_ADDR_T)(ifAddressTable[index].ipAddr);
             break;
         }
@@ -2696,13 +2819,13 @@ TRDP_ERR_T tau_ldInit (
 #ifdef XML_CONFIG_ENABLE
     /* Get Dataset Config */
     err = tau_readXmlDatasetConfig(&xmlConfigHandle,
-                                        &numComId,
-                                        &pComIdDsIdMap,
-                                        &numDataset,
-                                        &apDataset);
+                                   &numComId,
+                                   &pComIdDsIdMap,
+                                   &numDataset,
+                                   &apDataset);
     if (err != TRDP_NO_ERR)
     {
-        vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tau_readXmlDatasetConfig() error = %d\n",err);
+        vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tau_readXmlDatasetConfig() error = %d\n", err);
         return err;
     }
 #endif /* ifdef XML_CONFIG_ENABLE */
@@ -2723,15 +2846,15 @@ TRDP_ERR_T tau_ldInit (
 #ifdef XML_CONFIG_ENABLE
         /* Get I/F Config Parameter */
         err = tau_readXmlInterfaceConfig(&xmlConfigHandle,
-                                            pIfConfig[ifIndex].ifName,
-                                            &arraySessionConfigTAUL[ifIndex].processConfig,
-                                            &arraySessionConfigTAUL[ifIndex].pdConfig,
-                                            &arraySessionConfigTAUL[ifIndex].mdConfig,
-                                            &numExchgPar,
-                                            &arrayExchgPar[ifIndex]);
+                                         pIfConfig[ifIndex].ifName,
+                                         &arraySessionConfigTAUL[ifIndex].processConfig,
+                                         &arraySessionConfigTAUL[ifIndex].pdConfig,
+                                         &arraySessionConfigTAUL[ifIndex].mdConfig,
+                                         &numExchgPar,
+                                         &arrayExchgPar[ifIndex]);
         if (err != TRDP_NO_ERR)
         {
-            vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tau_readXmlInterfaceConfig() error = %d\n",err);
+            vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tau_readXmlInterfaceConfig() error = %d\n", err);
             return err;
         }
 #endif /* ifdef XML_CONFIG_ENABLE */
@@ -2769,13 +2892,13 @@ TRDP_ERR_T tau_ldInit (
                 ownIpAddress = subnetId1Address;
             }
             /* Is I/F subnet2 ? */
-            else if(ifIndex == IF_INDEX_SUBNET2)
+            else if (ifIndex == IF_INDEX_SUBNET2)
             {
                 ownIpAddress = subnetId2Address;
             }
             else
             {
-                vos_printLog(VOS_LOG_ERROR,"tau_ldInit() Failed. I/F Own IP Address Err.\n");
+                vos_printLog(VOS_LOG_ERROR, "tau_ldInit() Failed. I/F Own IP Address Err.\n");
                 return TRDP_PARAM_ERR;
             }
         }
@@ -2790,16 +2913,17 @@ TRDP_ERR_T tau_ldInit (
 
         /*  Open session for the interface  */
         err = tlc_openSession(&arraySessionConfigTAUL[ifIndex].sessionHandle,   /* appHandle */
-                                ownIpAddress,                                       /* own IP   */
-                                pIfConfig[ifIndex].leaderIp,
-                                pMarshallConfigPtr,                             /* Marshalling or no Marshalling        */
-                                &arraySessionConfigTAUL[ifIndex].pdConfig,          /* PD Config */
-                                &arraySessionConfigTAUL[ifIndex].mdConfig,          /* MD Config */
-                                &arraySessionConfigTAUL[ifIndex].processConfig);    /* Process Config */
+                              ownIpAddress,                                         /* own IP   */
+                              pIfConfig[ifIndex].leaderIp,
+                              pMarshallConfigPtr,                               /* Marshalling or no Marshalling
+                                                                                         */
+                              &arraySessionConfigTAUL[ifIndex].pdConfig,            /* PD Config */
+                              &arraySessionConfigTAUL[ifIndex].mdConfig,            /* MD Config */
+                              &arraySessionConfigTAUL[ifIndex].processConfig);      /* Process Config */
         if (err != TRDP_NO_ERR)
         {
             vos_printLog(VOS_LOG_ERROR, "tau_ldInit() failed. tlc_openSession() error: %d interface: %s\n",
-                            err, pIfConfig[ifIndex].ifName);
+                         err, pIfConfig[ifIndex].ifName);
             return err;
         }
     }
@@ -2856,8 +2980,8 @@ TRDP_ERR_T tau_ldInit (
 TRDP_ERR_T tau_ldReInit (
     UINT32 subnetId)
 {
-    UINT32                      subnetIndex = SUBNET_NO_1;      /* Subnet Index Number */
-    TRDP_ERR_T                  err = TRDP_NO_ERR;
+    UINT32      subnetIndex = SUBNET_NO_1;                      /* Subnet Index Number */
+    TRDP_ERR_T  err         = TRDP_NO_ERR;
 
     /* Check Parameter */
     if (subnetId == SUBNET1)
@@ -2918,13 +3042,13 @@ TRDP_ERR_T tau_ldReInit (
 TRDP_ERR_T tau_ldTerminate (
     void)
 {
-    TRDP_ERR_T                  err = TRDP_NO_ERR;
-    TRDP_ERR_T                  returnErrValue = TRDP_NO_ERR;
-    VOS_ERR_T                   vosErr = VOS_NO_ERR;
-    extern VOS_THREAD_T         taulPdMainThreadHandle;         /* Thread handle */
-    PUBLISH_TELEGRAM_T      *iterPublishTelegram = NULL;
-    SUBSCRIBE_TELEGRAM_T        *iterSubscribeTelegram = NULL;
-    PD_REQUEST_TELEGRAM_T   *iterPdRequestTelegram = NULL;
+    TRDP_ERR_T  err = TRDP_NO_ERR;
+    TRDP_ERR_T  returnErrValue  = TRDP_NO_ERR;
+    VOS_ERR_T   vosErr          = VOS_NO_ERR;
+    extern VOS_THREAD_T     taulPdMainThreadHandle;             /* Thread handle */
+    PUBLISH_TELEGRAM_T      *iterPublishTelegram    = NULL;
+    SUBSCRIBE_TELEGRAM_T    *iterSubscribeTelegram  = NULL;
+    PD_REQUEST_TELEGRAM_T   *iterPdRequestTelegram  = NULL;
     UINT32 i;
 
     /* TAUL MAIN Thread Terminate */
@@ -2936,7 +3060,7 @@ TRDP_ERR_T tau_ldTerminate (
     }
 
     /* Waiting ran out for TAUL */
-    for (;;)
+    for (;; )
     {
         vosErr = vos_threadIsActive(taulPdMainThreadHandle);
         if (vosErr != TRDP_NO_ERR)
@@ -2947,9 +3071,9 @@ TRDP_ERR_T tau_ldTerminate (
         vos_threadDelay(1000);
     }
 
-//#ifdef XML_CONFIG_ENABLE
+/* #ifdef XML_CONFIG_ENABLE */
     /*  Free allocated memory - parsed telegram configuration */
-    for (i=0; i < LADDER_IF_NUMBER ; i++)
+    for (i = 0; i < LADDER_IF_NUMBER; i++)
     {
         tau_freeTelegrams(numExchgPar, arrayExchgPar[i]);
     }
@@ -2957,37 +3081,37 @@ TRDP_ERR_T tau_ldTerminate (
     /* Free Communication Parameter */
     if (pComPar)
     {
-        pComPar = NULL;
-        numComPar = 0;
+        pComPar     = NULL;
+        numComPar   = 0;
     }
     /* Free I/F Config */
     if (pIfConfig)
     {
         vos_memFree(pIfConfig);
-        pIfConfig = NULL;
+        pIfConfig   = NULL;
         numIfConfig = 0;
     }
     /* Free ComId-DatasetId Map */
     if (pComIdDsIdMap)
     {
-        pComIdDsIdMap = NULL;
-        numComId = 0;
+        pComIdDsIdMap   = NULL;
+        numComId        = 0;
     }
     /* Free Dataset */
     if (apDataset)
     {
         /* Free dataset structures */
         pTRDP_DATASET_T pDataset;
-        UINT32 i;
-        for (i = numDataset-1; i > 0; i--)
+        UINT32          i;
+        for (i = numDataset - 1; i > 0; i--)
         {
             pDataset = apDataset[i];
             vos_memFree(pDataset);
         }
         /*  Free array of pointers to dataset structures    */
         vos_memFree(apDataset);
-        apDataset = NULL;
-        numDataset = 0;
+        apDataset   = NULL;
+        numDataset  = 0;
     }
     /*  Free parsed xml document    */
     tau_freeXmlDoc(&xmlConfigHandle);
@@ -3019,15 +3143,17 @@ TRDP_ERR_T tau_ldTerminate (
         {
             /* unPublish */
             err = tlp_unpublish(iterPublishTelegram->appHandle, iterPublishTelegram->pubHandle);
-            if(err != TRDP_NO_ERR)
+            if (err != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unpublish() error = %d\n",err);
+                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unpublish() error = %d\n", err);
                 returnErrValue = err;
             }
             else
             {
                 /* Display TimeStamp when unPublish time */
-                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unPublish.\n", vos_getTimeStamp(), iterPublishTelegram->pubHandle->addr.comId, iterPublishTelegram->pubHandle->addr.destIpAddr);
+                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unPublish.\n",
+                             vos_getTimeStamp(), iterPublishTelegram->pubHandle->addr.comId,
+                             iterPublishTelegram->pubHandle->addr.destIpAddr);
             }
         }
         /* Free Publish Dataset */
@@ -3036,7 +3162,8 @@ TRDP_ERR_T tau_ldTerminate (
         iterPublishTelegram->dataset.size = 0;
         /* Free Publish Telegram */
         vos_memFree(iterPublishTelegram);
-    } while(iterPublishTelegram->pNextPublishTelegram != NULL);
+    }
+    while (iterPublishTelegram->pNextPublishTelegram != NULL);
     /* Display TimeStamp when close Session time */
     vos_printLog(VOS_LOG_INFO, "%s All unPublish.\n", vos_getTimeStamp());
 
@@ -3067,15 +3194,17 @@ TRDP_ERR_T tau_ldTerminate (
         {
             /* unSubscribe */
             err = tlp_unsubscribe(iterSubscribeTelegram->appHandle, iterSubscribeTelegram->subHandle);
-            if(err != TRDP_NO_ERR)
+            if (err != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unsubscribe() error = %d\n",err);
+                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unsubscribe() error = %d\n", err);
                 returnErrValue = err;
             }
             else
             {
                 /* Display TimeStamp when unSubscribe time */
-                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unSubscribe.\n", vos_getTimeStamp(), iterSubscribeTelegram->subHandle->addr.comId, iterSubscribeTelegram->subHandle->addr.destIpAddr);
+                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unSubscribe.\n",
+                             vos_getTimeStamp(), iterSubscribeTelegram->subHandle->addr.comId,
+                             iterSubscribeTelegram->subHandle->addr.destIpAddr);
             }
         }
         /* Free Subscribe Dataset */
@@ -3084,7 +3213,8 @@ TRDP_ERR_T tau_ldTerminate (
         iterSubscribeTelegram->dataset.size = 0;
         /* Free Subscribe Telegram */
         vos_memFree(iterSubscribeTelegram);
-    } while(iterSubscribeTelegram->pNextSubscribeTelegram != NULL);
+    }
+    while (iterSubscribeTelegram->pNextSubscribeTelegram != NULL);
     /* Display TimeStamp when close Session time */
     vos_printLog(VOS_LOG_INFO, "%s All unSubscribe.\n", vos_getTimeStamp());
 
@@ -3093,8 +3223,8 @@ TRDP_ERR_T tau_ldTerminate (
     {
         /* Delete PD Request Telegram Loop */
         for (iterPdRequestTelegram = pHeadPdRequestTelegram;
-              iterPdRequestTelegram != NULL;
-              iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
+             iterPdRequestTelegram != NULL;
+             iterPdRequestTelegram = iterPdRequestTelegram->pNextPdRequestTelegram)
         {
             /* Free PD Request Dataset */
             vos_memFree(iterPdRequestTelegram->dataset.pDatasetStartAddr);
@@ -3110,10 +3240,10 @@ TRDP_ERR_T tau_ldTerminate (
     }
 
     /* Ladder Terminate */
-    err =   tau_ladder_terminate();
-    if(err != TRDP_NO_ERR)
+    err = tau_ladder_terminate();
+    if (err != TRDP_NO_ERR)
     {
-        vos_printLog(VOS_LOG_ERROR, "tau_ldTerminate failed. tau_ladder_terminate() error = %d\n",err);
+        vos_printLog(VOS_LOG_ERROR, "tau_ldTerminate failed. tau_ladder_terminate() error = %d\n", err);
         returnErrValue = err;
     }
     else
@@ -3123,9 +3253,9 @@ TRDP_ERR_T tau_ldTerminate (
     }
 
 
-   /* Close linkUpDown check socket */
+    /* Close linkUpDown check socket */
     tau_closeCheckLinkUpDown();
- 
+
     /* Force close sockets to appHandle */
     forceSocketClose(appHandle);
     forceSocketClose(appHandle2);
@@ -3136,7 +3266,7 @@ TRDP_ERR_T tau_ldTerminate (
         err = tlc_closeSession(appHandle);
         if (err != TRDP_NO_ERR)
         {
-            vos_printLog(VOS_LOG_ERROR, "Subnet1 tlc_closeSession() error = %d\n",err);
+            vos_printLog(VOS_LOG_ERROR, "Subnet1 tlc_closeSession() error = %d\n", err);
             returnErrValue = err;
         }
         else
@@ -3152,7 +3282,7 @@ TRDP_ERR_T tau_ldTerminate (
         err = tlc_closeSession(appHandle2);
         if (err != TRDP_NO_ERR)
         {
-            vos_printLog(VOS_LOG_ERROR, "Subnet2 tlc_closeSession() error = %d\n",err);
+            vos_printLog(VOS_LOG_ERROR, "Subnet2 tlc_closeSession() error = %d\n", err);
             returnErrValue = err;
         }
         else
@@ -3165,19 +3295,25 @@ TRDP_ERR_T tau_ldTerminate (
 
     /* Delete mutexes */
     if (pPublishTelegramMutex)
+    {
         vos_mutexDelete(pPublishTelegramMutex);
+    }
     if (pSubscribeTelegramMutex)
+    {
         vos_mutexDelete(pSubscribeTelegramMutex);
+    }
     if (pPdRequestTelegramMutex)
+    {
         vos_mutexDelete(pPdRequestTelegramMutex);
+    }
 
     /* TRDP Terminate */
     if (appHandle != NULL)
     {
         err = tlc_terminate();
-        if(err != TRDP_NO_ERR)
+        if (err != TRDP_NO_ERR)
         {
-            vos_printLog(VOS_LOG_ERROR, "tlc_terminate() error = %d\n",err);
+            vos_printLog(VOS_LOG_ERROR, "tlc_terminate() error = %d\n", err);
             returnErrValue = err;
         }
         else
@@ -3205,10 +3341,10 @@ TRDP_ERR_T tau_ldTerminate (
  *  @retval         TRDP_IO_ERR         link down error
  */
 TRDP_ERR_T  tau_ldSetNetworkContext (
-    UINT32          subnetId)
+    UINT32 subnetId)
 {
-    TRDP_ERR_T err = TRDP_NO_ERR;
-    BOOL8 linkUpDown = TRUE;                        /* Link Up Down information TRUE:Up FALSE:Down */
+    TRDP_ERR_T  err         = TRDP_NO_ERR;
+    BOOL8       linkUpDown  = TRUE;                 /* Link Up Down information TRUE:Up FALSE:Down */
 
     /* Check SubnetId Type */
     switch (subnetId)
@@ -3254,9 +3390,9 @@ TRDP_ERR_T  tau_ldSetNetworkContext (
                 {
                     err = tau_setNetworkContext(SUBNET1);
                     vos_printLog(VOS_LOG_DBG, "tau_ldSetNetworkContext() set subnet%d\n", SUBNET_NO_1 + 1);
-               }
+                }
             }
-        break;
+            break;
         case SUBNET1:
             /* Set network context: Subnet1 */
             err = tau_setNetworkContext(SUBNET1);
@@ -3267,9 +3403,9 @@ TRDP_ERR_T  tau_ldSetNetworkContext (
             }
             else
             {
-                vos_printLog(VOS_LOG_DBG, "tau_ldSetNetworkContext() set subnet%d\n", SUBNET_NO_1 +1 );
+                vos_printLog(VOS_LOG_DBG, "tau_ldSetNetworkContext() set subnet%d\n", SUBNET_NO_1 + 1 );
             }
-        break;
+            break;
         case SUBNET2:
             /* Set network context: Subnet2 */
             err = tau_setNetworkContext(SUBNET2);
@@ -3280,13 +3416,13 @@ TRDP_ERR_T  tau_ldSetNetworkContext (
             }
             else
             {
-                vos_printLog(VOS_LOG_DBG, "tau_ldSetNetworkContext() set subnet%d\n", SUBNET_NO_2 +1);
+                vos_printLog(VOS_LOG_DBG, "tau_ldSetNetworkContext() set subnet%d\n", SUBNET_NO_2 + 1);
             }
-        break;
+            break;
         default:
             vos_printLog(VOS_LOG_ERROR, "tau_ldSetNetworkContext() failed. SubnetId error\n");
             err = TRDP_PARAM_ERR;
-        break;
+            break;
     }
     return err;
 }
@@ -3302,7 +3438,7 @@ TRDP_ERR_T  tau_ldSetNetworkContext (
  *  @retval         TRDP_UNKNOWN_ERR    tau_getNetworkContext() error
  */
 TRDP_ERR_T  tau_ldGetNetworkContext (
-    UINT32          *pSubnetId)
+    UINT32 *pSubnetId)
 {
     TRDP_ERR_T err = TRDP_NO_ERR;
 
@@ -3357,7 +3493,7 @@ TRDP_ERR_T  tau_ldLockTrafficStore (
 TRDP_ERR_T  tau_ldUnlockTrafficStore (
     void)
 {
-    TRDP_ERR_T                   err = TRDP_NO_ERR;
+    TRDP_ERR_T err = TRDP_NO_ERR;
 
     err = tau_unlockTrafficStore();
     if (err != TRDP_NO_ERR)
@@ -3379,27 +3515,27 @@ TRDP_ERR_T  tau_ldUnlockTrafficStore (
  *
  */
 void tau_ldRecvPdDs (
-    void *pRefCon,
-    TRDP_APP_SESSION_T argAppHandle,
-    const TRDP_PD_INFO_T *pPDInfo,
-    UINT8 *pData,
-    UINT32 dataSize)
+    void                    *pRefCon,
+    TRDP_APP_SESSION_T      argAppHandle,
+    const TRDP_PD_INFO_T    *pPDInfo,
+    UINT8                   *pData,
+    UINT32                  dataSize)
 {
-    UINT32 subnetId;                            /* Using Sub-network Id */
-    UINT32 displaySubnetId;                /* Using Sub-network Id for Display log */
-    UINT16 offset;                                        /* Traffic Store Offset Address */
-    extern UINT8 *pTrafficStoreAddr;            /* pointer to pointer to Traffic Store Address */
+    UINT32          subnetId;                   /* Using Sub-network Id */
+    UINT32          displaySubnetId;       /* Using Sub-network Id for Display log */
+    UINT16          offset;                               /* Traffic Store Offset Address */
+    extern UINT8    *pTrafficStoreAddr;         /* pointer to pointer to Traffic Store Address */
 
     SUBSCRIBE_TELEGRAM_T *pSubscribeTelegram;
-    TRDP_ERR_T err;
+    TRDP_ERR_T      err;
 
     /* check parameter */
     /* ( Receive Data Noting OR Receive Data Size: 0 OR Offset Address not registered ) */
     /* AND result: other then Timeout */
-    if (((pData == NULL)    || (dataSize == 0) || (pPDInfo->pUserRef == 0))
-        &&  (pPDInfo->resultCode != TRDP_TIMEOUT_ERR))
+    if (((pData == NULL) || (dataSize == 0) || (pPDInfo->pUserRef == 0))
+        && (pPDInfo->resultCode != TRDP_TIMEOUT_ERR))
     {
-       vos_printLog(VOS_LOG_ERROR, "There is no data which save at Traffic Store\n");
+        vos_printLog(VOS_LOG_ERROR, "There is no data which save at Traffic Store\n");
         return;
     }
 
@@ -3412,7 +3548,8 @@ void tau_ldRecvPdDs (
         /* Continue Write Traffic Store process */
         ;
     }
-    else if ((subnetId == SUBNET2) && (argAppHandle == appHandle2) && ((pPDInfo->srcIpAddr & SUBNET2_NETMASK) == subnetId))
+    else if ((subnetId == SUBNET2) && (argAppHandle == appHandle2) &&
+             ((pPDInfo->srcIpAddr & SUBNET2_NETMASK) == subnetId))
     {
         /* Continue Write Traffic Sotore process */
         ;
@@ -3448,7 +3585,7 @@ void tau_ldRecvPdDs (
             tau_ldUnlockTrafficStore();
 
             /* Set sunbetId for display log */
-            if( subnetId == SUBNET1)
+            if ( subnetId == SUBNET1)
             {
                 /* Set Subnet1 */
                 displaySubnetId = SUBNETID_TYPE1;
@@ -3458,7 +3595,10 @@ void tau_ldRecvPdDs (
                 /* Set Subnet2 */
                 displaySubnetId = SUBNETID_TYPE2;
             }
-            vos_printLog(VOS_LOG_ERROR, "SubnetId:%d comId:%d Timeout. Traffic Store Clear.\n", displaySubnetId, pPDInfo->comId);
+            vos_printLog(VOS_LOG_ERROR,
+                         "SubnetId:%d comId:%d Timeout. Traffic Store Clear.\n",
+                         displaySubnetId,
+                         pPDInfo->comId);
         }
     }
     else
@@ -3471,12 +3611,16 @@ void tau_ldRecvPdDs (
             /* unmarshalling */
             tau_ldLockTrafficStore();
             err = tau_unmarshall(
-                        &marshallConfig.pRefCon,                                        /* pointer to user context*/
-                        pPDInfo->comId,                                                 /* comId */
-                        pData,                                                          /* source pointer to received original message */
-                        (UINT8 *)((INT32)pTrafficStoreAddr + (INT32)offset),            /* destination pointer to a buffer for the treated message */
-                        &pSubscribeTelegram->dataset.size,                              /* destination Buffer Size */
-                        &pSubscribeTelegram->pDatasetDescriptor);                       /* pointer to pointer of cached dataset */
+                    &marshallConfig.pRefCon,                                            /* pointer to user context*/
+                    pPDInfo->comId,                                                     /* comId */
+                    pData,                                                              /* source pointer to received
+                                                                                          original message */
+                    (UINT8 *)((INT32)pTrafficStoreAddr + (INT32)offset),                /* destination pointer to a
+                                                                                          buffer for the treated message
+                                                                                          */
+                    &pSubscribeTelegram->dataset.size,                                  /* destination Buffer Size */
+                    &pSubscribeTelegram->pDatasetDescriptor);                           /* pointer to pointer of cached
+                                                                                          dataset */
             tau_ldUnlockTrafficStore();
             if (err != TRDP_NO_ERR)
             {
@@ -3500,13 +3644,13 @@ void tau_ldRecvPdDs (
  *  @retval         TRDP_NO_ERR
  *
  */
-TRDP_ERR_T tau_ldAllUnPublish(
+TRDP_ERR_T tau_ldAllUnPublish (
     void)
 {
-    TRDP_ERR_T                  err = TRDP_NO_ERR;
-    TRDP_ERR_T                  returnErrValue = TRDP_NO_ERR;
-    extern VOS_THREAD_T         taulPdMainThreadHandle;         /* Thread handle */
-    PUBLISH_TELEGRAM_T          *iterPublishTelegram = NULL;
+    TRDP_ERR_T  err = TRDP_NO_ERR;
+    TRDP_ERR_T  returnErrValue = TRDP_NO_ERR;
+    extern VOS_THREAD_T taulPdMainThreadHandle;                 /* Thread handle */
+    PUBLISH_TELEGRAM_T  *iterPublishTelegram = NULL;
 
     /* UnPublish Loop */
     do
@@ -3535,15 +3679,17 @@ TRDP_ERR_T tau_ldAllUnPublish(
         {
             /* unPublish */
             err = tlp_unpublish(iterPublishTelegram->appHandle, iterPublishTelegram->pubHandle);
-            if(err != TRDP_NO_ERR)
+            if (err != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unpublish() error = %d\n",err);
+                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unpublish() error = %d\n", err);
                 returnErrValue = err;
             }
             else
             {
                 /* Display TimeStamp when unPublish time */
-                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unPublish.\n", vos_getTimeStamp(), iterPublishTelegram->pubHandle->addr.comId, iterPublishTelegram->pubHandle->addr.destIpAddr);
+                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unPublish.\n",
+                             vos_getTimeStamp(), iterPublishTelegram->pubHandle->addr.comId,
+                             iterPublishTelegram->pubHandle->addr.destIpAddr);
             }
         }
         /* Free Publish Dataset */
@@ -3552,7 +3698,8 @@ TRDP_ERR_T tau_ldAllUnPublish(
         iterPublishTelegram->dataset.size = 0;
         /* Free Publish Telegram */
         vos_memFree(iterPublishTelegram);
-    } while(iterPublishTelegram->pNextPublishTelegram != NULL);
+    }
+    while (iterPublishTelegram->pNextPublishTelegram != NULL);
     /* Display TimeStamp when close Session time */
     vos_printLog(VOS_LOG_INFO, "%s All unPublish.\n", vos_getTimeStamp());
 
@@ -3565,13 +3712,13 @@ TRDP_ERR_T tau_ldAllUnPublish(
  *  @retval         TRDP_NO_ERR
  *
  */
-TRDP_ERR_T tau_ldAllUnSubscribe(
+TRDP_ERR_T tau_ldAllUnSubscribe (
     void)
 {
-    TRDP_ERR_T                  err = TRDP_NO_ERR;
-    TRDP_ERR_T                  returnErrValue = TRDP_NO_ERR;
-    extern VOS_THREAD_T         taulPdMainThreadHandle;         /* Thread handle */
-    SUBSCRIBE_TELEGRAM_T        *iterSubscribeTelegram = NULL;
+    TRDP_ERR_T  err = TRDP_NO_ERR;
+    TRDP_ERR_T  returnErrValue = TRDP_NO_ERR;
+    extern VOS_THREAD_T     taulPdMainThreadHandle;             /* Thread handle */
+    SUBSCRIBE_TELEGRAM_T    *iterSubscribeTelegram = NULL;
 
     /* UnSubscribe Loop */
     do
@@ -3600,15 +3747,17 @@ TRDP_ERR_T tau_ldAllUnSubscribe(
         {
             /* unSubscribe */
             err = tlp_unsubscribe(iterSubscribeTelegram->appHandle, iterSubscribeTelegram->subHandle);
-            if(err != TRDP_NO_ERR)
+            if (err != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unsubscribe() error = %d\n",err);
+                vos_printLog(VOS_LOG_ERROR, "tau_ldterminate() failed. tlp_unsubscribe() error = %d\n", err);
                 returnErrValue = err;
             }
             else
             {
                 /* Display TimeStamp when unSubscribe time */
-                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unSubscribe.\n", vos_getTimeStamp(), iterSubscribeTelegram->subHandle->addr.comId, iterSubscribeTelegram->subHandle->addr.destIpAddr);
+                vos_printLog(VOS_LOG_DBG, "%s ComId:%d Destination IP Address:%d unSubscribe.\n",
+                             vos_getTimeStamp(), iterSubscribeTelegram->subHandle->addr.comId,
+                             iterSubscribeTelegram->subHandle->addr.destIpAddr);
             }
         }
         /* Free Subscribe Dataset */
@@ -3617,7 +3766,8 @@ TRDP_ERR_T tau_ldAllUnSubscribe(
         iterSubscribeTelegram->dataset.size = 0;
         /* Free Subscribe Telegram */
         vos_memFree(iterSubscribeTelegram);
-    } while(iterSubscribeTelegram->pNextSubscribeTelegram != NULL);
+    }
+    while (iterSubscribeTelegram->pNextSubscribeTelegram != NULL);
     /* Display TimeStamp when close Session time */
     vos_printLog(VOS_LOG_INFO, "%s All unSubscribe.\n", vos_getTimeStamp());
 
@@ -3631,10 +3781,10 @@ TRDP_ERR_T tau_ldAllUnSubscribe(
  *
  */
 static void forceSocketClose (
-    TRDP_APP_SESSION_T  appHandle)
+    TRDP_APP_SESSION_T appHandle)
 {
     TRDP_ERR_T  err;
-    INT32 i;
+    INT32       i;
 
     for (i = 0; i < VOS_MAX_SOCKET_CNT; i++)
     {
@@ -3655,4 +3805,3 @@ static void forceSocketClose (
 }
 
 #endif /* TRDP_OPTION_LADDER */
-
