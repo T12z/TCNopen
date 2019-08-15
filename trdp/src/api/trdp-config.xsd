@@ -6,7 +6,7 @@
 #=====================================================================================================
 #         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
 #         If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#         Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved..  
+#         Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved..
 #=====================================================================================================
 #
 #  PRODUCT       : TRDP
@@ -15,7 +15,7 @@
 #
 #  ABSTRACT      : XML Schema for TRDP configuration configuration
 #
-#  VERSION       : 1.12.0.0
+#  VERSION       : 1.13.0.0
 #
 #  SVN           : $Id$
 #
@@ -747,8 +747,8 @@
       <xs:attribute name="validity-behavior" default="zero" use="optional">
         <xs:annotation>
           <xs:documentation>Behavior when received process data is invalid.
-zero = zero values
-keep = keep the last value</xs:documentation>
+                zero = zero values
+                keep = keep the last value</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -790,8 +790,8 @@ keep = keep the last value</xs:documentation>
       <xs:attribute name="validity-behavior" default="zero" use="optional">
         <xs:annotation>
           <xs:documentation>Behavior when received process data is invalid.
-0 = zero values
-1 = keep values as is</xs:documentation>
+                0 = zero values
+                1 = keep values as is</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -885,24 +885,24 @@ keep = keep the last value</xs:documentation>
         <xs:annotation>
           <xs:documentation>Either the name of a type like "INT8" or "UINT32" or a numerical data-set ID for nested data types.
           The following datatypes are predefined:
-            BITSET8            1    =UINT8, 8 bit relevant
+            BITSET8             1    =UINT8, 8 bit relevant
             BOOL8               1    =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true)
-            ANTIVALENT8   1     =UINT8, 2 bit relevant ('01'B -> false, '10'B -> true)
+            ANTIVALENT8         1    =UINT8, 2 bit relevant ('01'B -> false, '10'B -> true)
             CHAR8               2    char, can be used also as UTF8 
-            UTF16                3    Unicode UTF-16 character
-            INT8                    4    Signed integer, 8 bit
-            INT16                  5    Signed integer, 16 bit
-            INT32                  6    Signed integer, 32 bit
-            INT64                  7    Signed integer, 64 bit
-            UINT8                 8    Unsigned integer, 8 bit
-            UINT16               9    Unsigned integer, 16 bit
+            UTF16               3    Unicode UTF-16 character
+            INT8                4    Signed integer, 8 bit
+            INT16               5    Signed integer, 16 bit
+            INT32               6    Signed integer, 32 bit
+            INT64               7    Signed integer, 64 bit
+            UINT8               8    Unsigned integer, 8 bit
+            UINT16              9    Unsigned integer, 16 bit
             UINT32             10    Unsigned integer, 32 bit
             UINT64             11   Unsigned integer, 64 bit
-            REAL32            12   Floating point real, 32 bit
-            REAL64            13   Floating point real, 64 bit
-            TIMEDATE32   14   32 bit UNIX time
-            TIMEDATE48   15   48 bit TCN time (32 bit seconds and 16 bit ticks)
-            TIMEDATE64   16   32 bit seconds and 32 bit microseconds
+            REAL32             12   Floating point real, 32 bit
+            REAL64             13   Floating point real, 64 bit
+            TIMEDATE32         14   32 bit UNIX time
+            TIMEDATE48         15   48 bit TCN time (32 bit seconds and 16 bit ticks)
+            TIMEDATE64         16   32 bit seconds and 32 bit microseconds
           </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
@@ -911,8 +911,7 @@ keep = keep the last value</xs:documentation>
       </xs:attribute>
       <xs:attribute name="array-size" default="1" type="uint32" use="optional">
         <xs:annotation>
-          <xs:documentation>0 = Array with dynamic size
- 1= single value &gt;1 Number of elements in array</xs:documentation>
+          <xs:documentation>0 = Array with dynamic size 1 = single value &gt;1 Number of elements in array</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="unit" type="xs:string" use="optional">
@@ -922,12 +921,12 @@ keep = keep the last value</xs:documentation>
       </xs:attribute>
       <xs:attribute name="scale" type="xs:float" use="optional">
         <xs:annotation>
-          <xs:documentation>Factor for visualisation purposes (val = scale*x+ offset).</xs:documentation>
+          <xs:documentation>Factor for visualisation purposes (val = scale * x + offset).</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="offset" type="int32" use="optional">
         <xs:annotation>
-          <xs:documentation>Offset for visualisation purposes (val = scale*x+ offset).</xs:documentation>
+          <xs:documentation>Offset for visualisation purposes (val = scale * x + offset).</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
