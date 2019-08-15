@@ -46,7 +46,7 @@ extern "C" {
 #define VOS_VERSION            2u
 #define VOS_RELEASE            0u
 #define VOS_UPDATE             0u
-#define VOS_EVOLUTION          0u
+#define VOS_EVOLUTION          1u
 #endif
 
 /* Defines for Linux TSN ready sockets */

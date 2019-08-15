@@ -3516,6 +3516,7 @@
 					"-DPOSIX",
 					"-DL_ENDIAN",
 					"-D__APPLE__",
+					"-DHIGH_PERF_INDEXED",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3533,6 +3534,10 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
+				OTHER_CFLAGS = (
+					"-DPOSIX",
+					"-DHIGH_PERF_INDEXED",
+				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "i386 x86_64";
