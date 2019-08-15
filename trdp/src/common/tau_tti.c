@@ -810,7 +810,7 @@ static void ttiRequestTTDBdata (
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_OP_DIR_INFO_REQ_COMID, appHandle->etbTopoCnt,
                                appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_OP_DIR_INFO_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_OP_DIR_INFO_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_OP_DIR_INFO_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
             /* Make sure the request is sent: */
         }
         break;
@@ -820,7 +820,7 @@ static void ttiRequestTTDBdata (
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_TRN_DIR_REQ_COMID, appHandle->etbTopoCnt,
                                appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_TRN_DIR_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_TRN_DIR_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_TRN_DIR_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
         }
         break;
         case TTDB_NET_DIR_REQ_COMID:
@@ -829,7 +829,7 @@ static void ttiRequestTTDBdata (
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_NET_DIR_REQ_COMID, appHandle->etbTopoCnt,
                                appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_NET_DIR_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_NET_DIR_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_NET_DIR_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
         }
         break;
         case TTDB_READ_CMPLT_REQ_COMID:
@@ -838,7 +838,7 @@ static void ttiRequestTTDBdata (
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_READ_CMPLT_REQ_COMID, appHandle->etbTopoCnt,
                                appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_READ_CMPLT_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_READ_CMPLT_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_READ_CMPLT_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
         }
         break;
         case TTDB_STAT_CST_REQ_COMID:
@@ -846,7 +846,7 @@ static void ttiRequestTTDBdata (
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_STAT_CST_REQ_COMID, appHandle->etbTopoCnt,
                                appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_STAT_CST_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_STAT_CST_REQ_TO, NULL, cstUUID, sizeof(TRDP_UUID_T), NULL, NULL);
+                               TTDB_STAT_CST_REQ_TO_US, NULL, cstUUID, sizeof(TRDP_UUID_T), NULL, NULL);
         }
         break;
 
@@ -907,7 +907,7 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
                       vos_dottedIP(TTDB_STATUS_DEST_IP),
                       (TRDP_FLAGS_T) (TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB),
                       NULL,                      /*    default interface                    */
-                      TTDB_STATUS_TO * 1000u,
+                      TTDB_STATUS_TO_US,
                       TRDP_TO_SET_TO_ZERO) != TRDP_NO_ERR)
     {
         vos_memFree(appHandle->pTTDB);
@@ -924,7 +924,7 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
                       vos_dottedIP(TTDB_STATUS_DEST_IP_ETB0),
                       (TRDP_FLAGS_T) (TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB),
                       NULL,                      /*    default interface                    */
-                      TTDB_STATUS_TO * 1000u,
+                      TTDB_STATUS_TO_US,
                       TRDP_TO_SET_TO_ZERO) != TRDP_NO_ERR)
     {
         (void) tlp_unsubscribe(appHandle, appHandle->pTTDB->pd100SubHandle1);

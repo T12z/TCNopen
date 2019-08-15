@@ -16,6 +16,7 @@
 /*
 * $Id$
 *
+*      BL 2019-08-15: Ticket #273 Units for certain standard timeout values inconsistent
 */
 
 #ifndef TRDP_SERVICE_REGISTRY_H
@@ -70,7 +71,7 @@ extern "C" {
 
 #define SRM_SERVICE_READ_REQ_COMID      112u
 #define SRM_SERVICE_READ_REQ_URI        "devECSP.anyVeh.lCst"
-#define SRM_SERVICE_READ_REQ_TO         3000u                                       /**< [ms] 3s timeout            */
+#define SRM_SERVICE_READ_REQ_TO         3000000u                                       /**< [us] 3s timeout            */
 
 #define SRM_SERVICE_READ_REP_COMID      SRM_SERVICE_COMID                           /**< MD reply                   */
 #define SRM_SERVICE_READ_REP_DS         "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
@@ -79,25 +80,25 @@ extern "C" {
 
 #define SRM_SERVICE_ADD_REQ_COMID       113u
 #define SRM_SERVICE_ADD_REQ_URI         "devECSP.anyVeh.lCst"
-#define SRM_SERVICE_ADD_REQ_TO          3000u                                       /**< [ms] 3s timeout            */
+#define SRM_SERVICE_ADD_REQ_TO          3000000u                                       /**< [us] 3s timeout            */
 #define SRM_SERVICE_ADD_REQ_DS          "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
 #define SRM_SERVICE_ADD_REQ_DSID        SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
 
 #define SRM_SERVICE_ADD_REP_COMID       SRM_SERVICE_COMID                           /**< Reply returns instanceId   */
 #define SRM_SERVICE_ADD_REP_DSID        SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
 
-/** SRM manager telegram MD: Update service instance(s) to the Service Registry                                                 */
+/** SRM manager telegram MD: Update service instance(s) to the Service Registry                                     */
 #define SRM_SERVICE_UPD_NOTIFY_COMID    SRM_SERVICE_COMID
 #define SRM_SERVICE_UPD_NOTIFY_URI      "devECSP.anyVeh.lCst"
-#define SRM_SERVICE_UPD_NOTIFY_TTL      3000u                                       /**< [ms] default time-to-live  */
+#define SRM_SERVICE_UPD_NOTIFY_TTL      3000000u                                    /**< [us] default time-to-live  */
 #define SRM_SERVICE_UPD_NOTIFY_DS       "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
 #define SRM_SERVICE_UPD_NOTIFY_DSID     SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
 
-/** SRM manager telegram MD: Remove Service instance(s) from the Service Registry                                              */
+/** SRM manager telegram MD: Remove Service instance(s) from the Service Registry                                   */
 
 #define SRM_SERVICE_DEL_REQ_COMID       114u
 #define SRM_SERVICE_DEL_REQ_URI         "devECSP.anyVeh.lCst"
-#define SRM_SERVICE_DEL_REQ_TO          3000u                                       /**< [ms] 3s timeout            */
+#define SRM_SERVICE_DEL_REQ_TO          3000000u                                    /**< [us] 3s timeout            */
 #define SRM_SERVICE_DEL_REQ_DS          "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
 #define SRM_SERVICE_DEL_REQ_DSID        SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
 
