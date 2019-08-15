@@ -1,6 +1,6 @@
 /**********************************************************************************************************************/
 /**
- * @file            trdp-xmlpd-test.c
+ * @file            trdp-xmlpd-test-fast.c
  *
  * @brief           Test application for TRDP XMLPD
  *
