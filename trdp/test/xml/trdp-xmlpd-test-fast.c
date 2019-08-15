@@ -1151,19 +1151,14 @@ static void processData()
             globCounter += 1;
         }
 
-        /*  call process function for all sessions  */
-        for (i = 0; i < numIfConfig; i++)
-        {
-            result = tlp_processSend(aSessionCfg[i].sessionhandle);
-            if (result != TRDP_NO_ERR)
-                printf("tlp_processSend for interface %s failed: %s\n",
-                    pIfConfig[i].ifName, getResultString(result));
-
-            result = tlp_processReceive(aSessionCfg[i].sessionhandle, NULL, NULL);
-            if (result != TRDP_NO_ERR)
-                printf("tlp_processReceive for interface %s failed: %s\n",
-                    pIfConfig[i].ifName, getResultString(result));
-        }
+        ///*  call process function for all sessions  */
+        //for (i = 0; i < numIfConfig; i++)
+        //{
+        //    result = tlc_process(aSessionCfg[i].sessionhandle, NULL, NULL);
+        //    if (result != TRDP_NO_ERR)
+        //        printf("tlp_process for interface %s failed: %s\n",
+        //            pIfConfig[i].ifName, getResultString(result));
+        //}
 
         /*  call tlp_get for all subscribed telegrams   */
         for (i = 0; i < numSubTelegrams; i++)
