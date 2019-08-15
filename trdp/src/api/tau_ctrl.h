@@ -44,7 +44,6 @@ extern "C" {
 #define __cdecl
 #endif
 
-#define ECSP_CTRL_CYCLE         1000000             /* in us (1000000 = 1 sec) acc. 61375-2-3                  */
 #define ECSP_CTRL_TIMEOUT       5000000             /* in us (5000000 = 5 sec) acc. 61375-2-3                  */
 #define ECSP_STAT_TIMEOUT       5000000             /* in us (5000000 = 5 sec) acc. 61375-2-3                  */
 #define ECSP_CONF_REPLY_TIMEOUT 3000000             /* in us (3000000 = 3 sec) acc. 61375-2-3                  */
