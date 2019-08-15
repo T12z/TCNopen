@@ -148,7 +148,7 @@
     <ClCompile Include="..\..\test\xml\trdp-xmlpd-test-fast.c" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\Debug\x64\TRDP.lib" />
+    <Library Include="..\Debug\x64\TRDP_HighPerformance.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
