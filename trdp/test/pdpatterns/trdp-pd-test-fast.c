@@ -663,8 +663,9 @@ void _sleep_msec(int msec)
  */
 static void *senderThread (void * pArg)
 {
-    TRDP_APP_SESSION_T  *apphandle = (TRDP_APP_SESSION_T*) pArg;
-    TRDP_ERR_T result = tlp_processSend(&apphandle);
+    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T) pArg;
+
+    TRDP_ERR_T result = tlp_processSend(apphandle);
     if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
     {
         printf("tlp_processSend failed: %d\n", result);
@@ -802,8 +803,8 @@ static void process_data()
  */
 static void *receiverThread (void * pArg)
 {
-    //TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T ) pArg;
-    TRDP_APP_SESSION_T  *apphandle = (TRDP_APP_SESSION_T*) pArg;
+    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T) pArg;
+  
     TRDP_ERR_T      result;
     TRDP_TIME_T     interval = {0,0};
     TRDP_FDS_T      fileDesc;
@@ -812,13 +813,13 @@ static void *receiverThread (void * pArg)
     while (vos_threadDelay(0u) == VOS_NO_ERR)   /* this is a cancelation point! */
     {
         FD_ZERO(&fileDesc);
-        result = tlp_getInterval(&apphandle, &interval, &fileDesc, &noDesc);
+        result = tlp_getInterval(apphandle, &interval, &fileDesc, &noDesc);
         if (result != TRDP_NO_ERR)
         {
             printf("tlp_getInterval failed: %d\n", result);
         }
         noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
-        result = tlp_processReceive(&apphandle
+        result = tlp_processReceive(apphandle
             , &fileDesc, &noDesc);
         if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
         {
@@ -952,7 +953,7 @@ int main(int argc, char * argv[])
         0u,
         0u,
         (VOS_THREAD_FUNC_T)receiverThread,
-        &apph);
+        (void*)apph);
 
 
     /* Send thread is a cyclic thread, runs until cancel */
@@ -963,7 +964,9 @@ int main(int argc, char * argv[])
         proccfg.cycleTime,
         0u,
         (VOS_THREAD_FUNC_T)senderThread,
-        &apph);
+        (void*)apph);
+
+    tlc_updateSession(apph);
 
     while (1)
     {   /* drive TRDP communications */
