@@ -990,6 +990,8 @@ static TRDP_ERR_T configureSessions(TRDP_XML_DOC_HANDLE_T *pDocHnd)
         if (result != TRDP_NO_ERR)
             return result;
 
+        tlc_updateSession(&aSessionCfg[i].sessionhandle);
+
         /*  Free allocated memory - parsed telegram configuration */
         tau_freeTelegrams(numExchgPar, pExchgPar);
     }
@@ -1273,6 +1275,8 @@ int main(int argc, char * argv[])
     /*  Initialize TRDP sessions    */
     if (configureSessions(&docHnd) != TRDP_NO_ERR)
         return 1;
+
+
 
     /*  Send and receive data   */
     processData();
