@@ -901,6 +901,8 @@ int main(int argc, char * argv[])
     memset(&memcfg, 0, sizeof(memcfg));
     memset(&proccfg, 0, sizeof(proccfg));
 
+    proccfg.cycleTime = 5000u;
+
     if (argc >= 5)
     {
         pLogFile = fopen(argv[4], "w+");
