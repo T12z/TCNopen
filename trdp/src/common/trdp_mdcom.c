@@ -15,11 +15,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
  */
  /*
  * $Id$
  *
+ *      BL 2019-08-16: Ticket #267 Incorrect values for fields WireError, CRCError and Topo...
  *      BL 2019-06-11: Possible NULL pointer access
  *      SB 2019-03-20: Ticket #235 TRDP MD Listener: Additional filter rule for multicast destIpAddr added
  *      SB 2018-03-01: Ticket #241 MDCallback: MsgType and reply status not set correctly
@@ -1468,10 +1469,10 @@ static TRDP_ERR_T  trdp_mdRecvPacket (
         err = trdp_mdRecvTCPPacket(appHandle, mdSock, pElement);
         if (err != TRDP_NO_ERR)
         {
-            /* fatal communication issue, exit function */
-            return err;
+            /* fatal communication issue, exit function, but collect error stats (Ticket #267)  */
+            /* return err; */
         }
-        /* use the TCP statistic structure for storing */
+        /* use the TCP statistic structure for storing  */
         /* the trdp_mdCheck result                      */
         pElementStatistics = &appHandle->stats.tcpMd;
     }
@@ -1481,8 +1482,8 @@ static TRDP_ERR_T  trdp_mdRecvPacket (
         err = trdp_mdRecvUDPPacket(appHandle, mdSock, pElement);
         if (err != TRDP_NO_ERR)
         {
-            /* fatal communication issue, exit function */
-            return err;
+            /* fatal communication issue, exit function, but collect error stats (Ticket #267) */
+            /* return err; */
         }
         /* use the UDP statisctic structure for storing */
         /* the trdp_mdCheck result                      */
@@ -1490,7 +1491,10 @@ static TRDP_ERR_T  trdp_mdRecvPacket (
     }
     /* Step 2: Check the received buffer for data con-   */
     /* sistency and TRDP protocol coherency              */
-    err = trdp_mdCheck(appHandle, &pElement->pPacket->frameHead, pElement->grossSize, CHECK_DATA_TOO);
+    if (err == TRDP_NO_ERR) /* Don't do it twice */
+    {
+        err = trdp_mdCheck(appHandle, &pElement->pPacket->frameHead, pElement->grossSize, CHECK_DATA_TOO);
+    }
     /* Step 3: Update the statistics structure counters  */
     /* according the trdp_mdCheck result                 */
     switch (err)
