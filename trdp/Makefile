@@ -173,7 +173,7 @@ tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
 
 test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
 
-pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_md_responder $(OUTDIR)/testSub
+pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_md_responder $(OUTDIR)/testSub 
 
 mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
 
@@ -181,7 +181,7 @@ vtests:		outdir $(OUTDIR)/vtest
 
 xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
 
-highperf:	outdir $(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2
+highperf:	outdir $(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2 $(OUTDIR)/trdp-pd-test-fast
 
 marshall:	$(OUTDIR)/test_marshalling
 
@@ -199,7 +199,7 @@ $(OUTDIR)/libtrdp.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
 $(OUTDIR)/libtrdpap.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS))) $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building the lib $(@F)'
 			@$(RM) $@
-			$(AR) cq $@ $^			
+			$(AR) cq $@ $^
 
 
 ###############################################################################
@@ -239,7 +239,7 @@ $(OUTDIR)/receiveHello: receiveHello.c  $(OUTDIR)/libtrdp.a
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
-						   
+
 $(OUTDIR)/sendHello:   sendHello.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) example/sendHello.c \
@@ -356,6 +356,14 @@ $(OUTDIR)/trdp-pd-test: $(OUTDIR)/libtrdp.a
 			    -o $@
 			@$(STRIP) $@
 
+$(OUTDIR)/trdp-pd-test-fast: $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building PD test application $(@F)'
+			$(CC) test/pdpatterns/trdp-pd-test-fast.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@
+
 $(OUTDIR)/trdp-md-test: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD test application $(@F)'
 			$(CC) test/mdpatterns/trdp-md-test.c \
@@ -411,7 +419,7 @@ $(OUTDIR)/testSub: $(OUTDIR)/libtrdp.a subTest.c
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
-			
+
 $(OUTDIR)/pdPull: $(OUTDIR)/libtrdp.a pdPull.c
 			@$(ECHO) ' ### Building PD pull test application $(@F)'
 			$(CC) test/diverse/pdPull.c \
@@ -419,7 +427,7 @@ $(OUTDIR)/pdPull: $(OUTDIR)/libtrdp.a pdPull.c
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
-			
+
 $(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
@@ -435,14 +443,14 @@ $(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdp.a $(addprefix 
 				-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
-			
+
 $(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
 				-ltrdp \
 			$(LDFLAGS)
-			@$(STRIP) $@			
+			@$(STRIP) $@
 
 $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MC joiner application $(@F)'
@@ -459,12 +467,12 @@ $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 ###############################################################################
 clean:
 	rm -f -r bld/*
-	rm -f -r doc/latex/*   
+	rm -f -r doc/latex/*
 
 unconfig:
 	-$(RM) config/config.mk
-	
-distclean:	clean unconfig	 		
+
+distclean:	clean unconfig
 
 ###############################################################################
 #                                                                      	
@@ -480,22 +488,22 @@ LINTFLAGS = +v -i$(LINT_RULE_DIR) $(LINT_RULE_DIR)co-gcc.lnt -i ./src/api -i ./s
 	-DMD_SUPPORT=1 -w3 -e655 -summary -u
 
 # VxWorks will be the single non POSIX OS right now, MS Win uses proprietary build
-# framework, so this condition will most likely fit also BSD/Unix targets     
+# framework, so this condition will most likely fit also BSD/Unix targets
 ifneq ($(TARGET_OS),VXWORKS)
 LINTFLAGS += -DPOSIX
 endif
-	
-	
+
+
 $(LINT_OUTDIR)/final.lint: $(addprefix $(LINT_OUTDIR)/,$(notdir $(LINT_OBJECTS)))
 	@$(ECHO) '### Lint Final'
 	@$(ECHO) '### Final Lint Stage - Verifying inter module / system wide stuff' > $@
-	$(FLINT) $(LINTFLAGS) $(SILENCE_LINT) -zero  $^ 1>>$@ 2>>$@  
+	$(FLINT) $(LINTFLAGS) $(SILENCE_LINT) -zero  $^ 1>>$@ 2>>$@
 
 # Partial lint for single C files
 $(LINT_OUTDIR)/%.lob : %.c
 	@$(ECHO) ' --- Lint $(^F)'
 	@$(ECHO) '### Lint file: $(^F)'  > $(LINT_OUTDIR)/$(^F).lint
-	$(FLINT) $(LINTFLAGS) -u -oo\($@\)  -zero $< 1>>$(LINT_OUTDIR)/$(^F).lint 2>>$(LINT_OUTDIR)/$(^F).lint	
+	$(FLINT) $(LINTFLAGS) -u -oo\($@\)  -zero $< 1>>$(LINT_OUTDIR)/$(^F).lint 2>>$(LINT_OUTDIR)/$(^F).lint
 
 ###############################################################################
 #
@@ -514,7 +522,7 @@ doc/latex/refman.pdf: Doxyfile trdp_if_light.h trdp_types.h
 #
 # install complete library
 #
-###############################################################################        
+###############################################################################
 ifdef INSTALLDIR
 install:
 	@$(MD) ../$(INSTALLDIR)
@@ -578,5 +586,4 @@ help:
 	@$(ECHO) "  * make doc       - build the documentation (refman.pdf)" >&2
 	@$(ECHO) "                   - (needs doxygen installed in executable path)" >&2
 	@$(ECHO) " " >&2
-
 
