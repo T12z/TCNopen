@@ -2991,7 +2991,7 @@ static int test20 ()
             err = tlp_subscribe(gSession2.appHandle, &subHandle[i], NULL, NULL,
                                 0u, /* service Id */
                                 lArray[i].comId + i, 0u, 0u,
-                                lArray[i].srcIP1, lArray[i].srcIP2,
+                                0u, 0u,
                                 0u, /* TEST20_DESTINATION,                              / * MC Destination * / */
                                 TRDP_FLAGS_DEFAULT, NULL,
                                 lArray[i].interval * 3, TRDP_TO_DEFAULT);

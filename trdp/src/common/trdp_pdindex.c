@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      BL 2019-08-16: Better distribution of packets; starting table index = interval time, was starting at 0.
  *      SB 2019-08-16: Ticket #275 Multiple Subscribers with same comId not always found (HIGH_PERF_INDEXED)
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2019-06-17: Ticket #161 Increase performance
@@ -229,126 +230,232 @@ static PERF_TABLE_TYPE_T   perf_table_category (
     }
 }
 
-/**********************************************************************************************************************/
-/** Evenly distribute the PD over the array
- *
- *  @param[in,out]  pCat            pointer to the array to fill
- *  @param[in]      pElement        pointer to the packet element to be handled
- *
- *  @retval         TRDP_NO_ERR         no error
- *                  TRDP_PARAM_ERR      incompatible table size
- *                  TRDP_MEM_ERR        table too small (depth)
- */
-static TRDP_ERR_T distribute (
-    TRDP_HP_CAT_SLOT_T  *pCat,
-    const PD_ELE_T      *pElement)
-{
-    TRDP_ERR_T  err = TRDP_NO_ERR;
-    UINT32      startIdx;
-    UINT32      depthIdx;
-    UINT32      maxStartIdx;
-    UINT32      count;
-    int         found = FALSE;
-
-    /* This is the interval we need to distribute */
-    UINT32      pdInterval = (UINT32) pElement->interval.tv_usec + (UINT32) pElement->interval.tv_sec * 1000000u;
-
-    if ((pdInterval == 0u) || (pCat->slotCycle == 0u))
+    /**********************************************************************************************************************/
+    /** Evenly distribute the PD over the array
+     *
+     *  @param[in,out]  pCat            pointer to the array to fill
+     *  @param[in]      pElement        pointer to the packet element to be handled
+     *
+     *  @retval         TRDP_NO_ERR         no error
+     *                  TRDP_PARAM_ERR      incompatible table size
+     *                  TRDP_MEM_ERR        table too small (depth)
+     */
+#if 1
+    static TRDP_ERR_T distribute (
+                                  TRDP_HP_CAT_SLOT_T  *pCat,
+                                  const PD_ELE_T      *pElement)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "Cannot distribute a zero-interval PD telegram\n");
-        return TRDP_PARAM_ERR;
-    }
+        TRDP_ERR_T  err = TRDP_NO_ERR;
+        INT32       startIdx;
+        UINT32      depthIdx;
+        UINT32      maxStartIdx;
+        UINT32      count;
+        int         found = FALSE;
 
-    /* We must not place the PD later than this in the array, or we will not be able to send without a gap! */
-    maxStartIdx = pdInterval / pCat->slotCycle;
+        /* This is the interval we need to distribute */
+        UINT32      pdInterval = (UINT32) pElement->interval.tv_usec + (UINT32) pElement->interval.tv_sec * 1000000u;
 
-    /* How many times do we need to enter this PD? */
-    count = pCat->noOfTxEntries * pCat->slotCycle / pdInterval;
-
-    /* Control: */
-    if ((maxStartIdx * count) > pCat->noOfTxEntries)
-    {
-        vos_printLog(VOS_LOG_ERROR, "Config problem: PD references for interval %ums (startIdx %u, count %u)",
-                     pdInterval / 1000, maxStartIdx, count);
-        return TRDP_PARAM_ERR;
-    }
-    /* Find a first empty slot */
-    for (depthIdx = 0u; depthIdx < pCat->depthOfTxEntries; depthIdx++)
-    {
-        for (startIdx = 0u; (startIdx < pCat->noOfTxEntries); startIdx++)
+        if ((pdInterval == 0u) || (pCat->slotCycle == 0u))
         {
-            if (startIdx > maxStartIdx)
-            {
-                break;
-            }
-            if (getElement(pCat, startIdx, depthIdx) == NULL)
-            {
-                found = TRUE;
-                break;
-            }
+            vos_printLogStr(VOS_LOG_ERROR, "Cannot distribute a zero-interval PD telegram\n");
+            return TRDP_PARAM_ERR;
         }
-        if (found)
+
+        /* We must not place the PD later than this in the array, or we will not be able to send without a gap! */
+        maxStartIdx = pdInterval / pCat->slotCycle;
+
+        /* How many times do we need to enter this PD? */
+        count = pCat->noOfTxEntries * pCat->slotCycle / pdInterval;
+
+        /* Control: */
+        if ((maxStartIdx * count) > pCat->noOfTxEntries)
         {
-            break;
+            vos_printLog(VOS_LOG_ERROR, "Config problem: PD references for interval %ums (startIdx %u, count %u)",
+                         (unsigned int) (pdInterval / 1000u), (unsigned int) maxStartIdx, (unsigned int) count);
+            return TRDP_PARAM_ERR;
         }
-    }
-
-    if ((startIdx >= pCat->noOfTxEntries) ||
-        (depthIdx >= pCat->depthOfTxEntries))
-    {
-        vos_printLogStr(VOS_LOG_ERROR, "No room for PD in index table!\n");
-        err = TRDP_MEM_ERR;
-    }
-    else if ((startIdx >= maxStartIdx))
-    {
-        vos_printLogStr(VOS_LOG_ERROR, "No room for initial PD entry in index table! Enlarge array depth...\n");
-        err = TRDP_MEM_ERR;
-    }
-    else
-    {
-        /* Iterate over the array, outer loop is slot, inner loop is depth */
-        for (UINT32 idx = startIdx; (idx < pCat->noOfTxEntries) && (count); )
+        /* Find a first empty slot */
+        for (depthIdx = 0u; depthIdx < pCat->depthOfTxEntries; depthIdx++)
         {
-            UINT32  depth;
-            int     done = FALSE;
-
-            for (depth = depthIdx; depth < pCat->depthOfTxEntries; depth++)
+            //for (startIdx = 0u; (startIdx < pCat->noOfTxEntries); startIdx++)
+            for (startIdx = (INT32) maxStartIdx - 1; startIdx >= 0; startIdx--)
             {
-                if (getElement(pCat, idx, depth) == NULL)
+                if (getElement(pCat, (UINT32) startIdx, depthIdx) == NULL)
                 {
-                    /* Entry fits */
-                    setElement(pCat, idx, depth, pElement);
-                    /* set depth back to zero */
-                    depthIdx = 0u;
-                    /* we entered one pointer */
-                    count--;
-                    done = TRUE;
-                    break; /* Out of inner loop */
+                    found = TRUE;
+                    break;
                 }
             }
-            if (done == TRUE)   /* jump to the next slot */
+            if (found)
             {
-                idx += (UINT32) (pElement->interval.tv_usec + pElement->interval.tv_sec * 1000000u) / pCat->slotCycle;
-            }
-            else
-            {
-                /* We need another slot (and will introduce some jitter!)
-                    This can be avoided by
-                        - increasing the depth-headroom or
-                        - by introducing a measurement to find the peaks before hand or
-                        - to re-run with larger depth values until it fits best
-                 */
-                idx++;
-                vos_printLog(VOS_LOG_WARNING,
-                             "Max. depth exceeded - comId %u with %ums interval will have additional jitter (%ums)\n",
-                             pElement->addr.comId,
-                             (int) (pElement->interval.tv_usec / 1000 + pElement->interval.tv_sec * 1000),
-                             pCat->slotCycle / 1000);
+                break;
             }
         }
+
+        if ((startIdx >= pCat->noOfTxEntries) ||
+            (startIdx < 0) ||
+            (depthIdx >= pCat->depthOfTxEntries))
+        {
+            vos_printLogStr(VOS_LOG_ERROR, "No room for PD in index table!\n");
+            err = TRDP_MEM_ERR;
+        }
+        else
+        {
+            /* Iterate over the array, outer loop is slot, inner loop is depth */
+            for (UINT32 idx = (UINT32) startIdx; (idx < pCat->noOfTxEntries) && (count); )
+            {
+                UINT32  depth;
+                int     done = FALSE;
+
+                for (depth = depthIdx; depth < pCat->depthOfTxEntries; depth++)
+                {
+                    if (getElement(pCat, idx, depth) == NULL)
+                    {
+                        /* Entry fits */
+                        setElement(pCat, idx, depth, pElement);
+                        /* set depth back to zero */
+                        depthIdx = 0u;
+                        /* we entered one pointer */
+                        count--;
+                        done = TRUE;
+                        break; /* Out of inner loop */
+                    }
+                }
+                if (done == TRUE)   /* jump to the next slot */
+                {
+                    idx += (UINT32) (pElement->interval.tv_usec + pElement->interval.tv_sec * 1000000u) / pCat->slotCycle;
+                }
+                else
+                {
+                    /* We need another slot (and will introduce some jitter!)
+                     This can be avoided by
+                     - increasing the depth-headroom or
+                     - by introducing a measurement to find the peaks before hand or
+                     - to re-run with larger depth values until it fits best
+                     */
+                    idx++;
+                    vos_printLog(VOS_LOG_WARNING,
+                                 "Max. depth exceeded - comId %u with %ums interval will have additional jitter (%ums)\n",
+                                 (unsigned int) pElement->addr.comId,
+                                 (int) (pElement->interval.tv_usec / 1000 + pElement->interval.tv_sec * 1000u),
+                                 (unsigned int) pCat->slotCycle / 1000u);
+                }
+            }
+        }
+        return err;
     }
-    return err;
-}
+#else
+    static TRDP_ERR_T distribute (
+                                  TRDP_HP_CAT_SLOT_T  *pCat,
+                                  const PD_ELE_T      *pElement)
+    {
+        TRDP_ERR_T  err = TRDP_NO_ERR;
+        UINT32      startIdx;
+        UINT32      depthIdx;
+        UINT32      maxStartIdx;
+        UINT32      count;
+        int         found = FALSE;
+
+        /* This is the interval we need to distribute */
+        UINT32      pdInterval = (UINT32) pElement->interval.tv_usec + (UINT32) pElement->interval.tv_sec * 1000000u;
+
+        if ((pdInterval == 0u) || (pCat->slotCycle == 0u))
+        {
+            vos_printLogStr(VOS_LOG_ERROR, "Cannot distribute a zero-interval PD telegram\n");
+            return TRDP_PARAM_ERR;
+        }
+
+        /* We must not place the PD later than this in the array, or we will not be able to send without a gap! */
+        maxStartIdx = pdInterval / pCat->slotCycle;
+
+        /* How many times do we need to enter this PD? */
+        count = pCat->noOfTxEntries * pCat->slotCycle / pdInterval;
+
+        /* Control: */
+        if ((maxStartIdx * count) > pCat->noOfTxEntries)
+        {
+            vos_printLog(VOS_LOG_ERROR, "Config problem: PD references for interval %ums (startIdx %u, count %u)",
+                         pdInterval / 1000, maxStartIdx, count);
+            return TRDP_PARAM_ERR;
+        }
+        /* Find a first empty slot */
+        for (depthIdx = 0u; depthIdx < pCat->depthOfTxEntries; depthIdx++)
+        {
+            for (startIdx = 0u; (startIdx < pCat->noOfTxEntries); startIdx++)
+            {
+                if (startIdx > maxStartIdx)
+                {
+                    break;
+                }
+                if (getElement(pCat, startIdx, depthIdx) == NULL)
+                {
+                    found = TRUE;
+                    break;
+                }
+            }
+            if (found)
+            {
+                break;
+            }
+        }
+
+        if ((startIdx >= pCat->noOfTxEntries) ||
+            (depthIdx >= pCat->depthOfTxEntries))
+        {
+            vos_printLogStr(VOS_LOG_ERROR, "No room for PD in index table!\n");
+            err = TRDP_MEM_ERR;
+        }
+        else if ((startIdx >= maxStartIdx))
+        {
+            vos_printLogStr(VOS_LOG_ERROR, "No room for initial PD entry in index table! Enlarge array depth...\n");
+            err = TRDP_MEM_ERR;
+        }
+        else
+        {
+            /* Iterate over the array, outer loop is slot, inner loop is depth */
+            for (UINT32 idx = startIdx; (idx < pCat->noOfTxEntries) && (count); )
+            {
+                UINT32  depth;
+                int     done = FALSE;
+
+                for (depth = depthIdx; depth < pCat->depthOfTxEntries; depth++)
+                {
+                    if (getElement(pCat, idx, depth) == NULL)
+                    {
+                        /* Entry fits */
+                        setElement(pCat, idx, depth, pElement);
+                        /* set depth back to zero */
+                        depthIdx = 0u;
+                        /* we entered one pointer */
+                        count--;
+                        done = TRUE;
+                        break; /* Out of inner loop */
+                    }
+                }
+                if (done == TRUE)   /* jump to the next slot */
+                {
+                    idx += (UINT32) (pElement->interval.tv_usec + pElement->interval.tv_sec * 1000000u) / pCat->slotCycle;
+                }
+                else
+                {
+                    /* We need another slot (and will introduce some jitter!)
+                     This can be avoided by
+                     - increasing the depth-headroom or
+                     - by introducing a measurement to find the peaks before hand or
+                     - to re-run with larger depth values until it fits best
+                     */
+                    idx++;
+                    vos_printLog(VOS_LOG_WARNING,
+                                 "Max. depth exceeded - comId %u with %ums interval will have additional jitter (%ums)\n",
+                                 pElement->addr.comId,
+                                 (int) (pElement->interval.tv_usec / 1000 + pElement->interval.tv_sec * 1000),
+                                 pCat->slotCycle / 1000);
+                }
+            }
+        }
+        return err;
+    }
+#endif
 
 /**********************************************************************************************************************/
 /** Create an index table
