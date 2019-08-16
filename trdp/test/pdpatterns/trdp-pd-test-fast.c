@@ -661,9 +661,9 @@ void _sleep_msec(int msec)
 /*********************************************************************************************************************/
 /** Call tlp_processSend synchronously
  */
-static void *senderThread (void * arg)
+static void *senderThread (void * pArg)
 {
-    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T) arg;
+    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T ) pArg;
     TRDP_ERR_T result = tlp_processSend(apphandle);
     if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
     {
@@ -800,9 +800,9 @@ static void process_data()
 /*********************************************************************************************************************/
 /** Call tlp_processReceive asynchronously
  */
-static void *receiverThread (void * arg)
+static void *receiverThread (void * pArg)
 {
-    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T) arg;
+    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T ) pArg;
     TRDP_ERR_T      result;
     TRDP_TIME_T     interval = {0,0};
     TRDP_FDS_T      fileDesc;
@@ -817,7 +817,8 @@ static void *receiverThread (void * arg)
             printf("tlp_getInterval failed: %d\n", result);
         }
         noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
-        result = tlp_processReceive(apphandle, &fileDesc, &noDesc);
+        result = tlp_processReceive(apphandle
+            , &fileDesc, &noDesc);
         if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
         {
             printf("tlp_processReceive failed: %d\n", result);
@@ -950,7 +951,7 @@ int main(int argc, char * argv[])
         0u,
         0u,
         (VOS_THREAD_FUNC_T)receiverThread,
-        NULL);
+        &apph);
 
 
     /* Send thread is a cyclic thread, runs until cancel */
@@ -961,7 +962,7 @@ int main(int argc, char * argv[])
         proccfg.cycleTime,
         0u,
         (VOS_THREAD_FUNC_T)senderThread,
-        NULL);
+        &apph);
 
     while (1)
     {   /* drive TRDP communications */
