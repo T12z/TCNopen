@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      SB 2019-08-16: Ticket #275 Multiple Subscribers with same comId not always found (HIGH_PERF_INDEXED)
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2019-06-17: Ticket #161 Increase performance
  *      V 2.0.0 --------- ^^^ -----------
@@ -1000,6 +1001,11 @@ PD_ELE_T *trdp_indexedFindSubAddr (
 
     if (pFirstMatchedPD)
     {
+        while ((pFirstMatchedPD != (PD_ELE_T**)*(appHandle->pSlot->pRcvTableComId)) &&
+               ((*(pFirstMatchedPD - 1))->addr.comId == pAddr->comId))
+        {
+            pFirstMatchedPD--;
+        }
         /* the first match might not be the best! Look further, but stop on comId change */
         return trdp_findSubAddr(*pFirstMatchedPD, pAddr, pAddr->comId);
     }
