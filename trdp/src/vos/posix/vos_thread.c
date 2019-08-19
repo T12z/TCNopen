@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      BL 2019-08-19: LINT warnings
  *      BL 2019-08-12: Ticket #274 Cyclic thread parameters must not use stack
  *      BL 2019-08-02: SCHEDULE_DEADLINE option: interval * 1000 (-> nanosec)
  *      BL 2019-06-11: Possible NULL pointer access
@@ -373,9 +374,7 @@ static void vos_runCyclicThread (
                 ((UINT32) ((UINT32)afterCall.tv_sec * MSECS_PER_SEC * USECS_PER_MSEC) + (UINT32)afterCall.tv_usec);
             if (execTime > interval)
             {
-                /*severe error: cyclic task time violated*/
-                waitingTime = 0U;
-                /* Log the runtime violation */
+                /*  Log the runtime violation */
                 vos_printLog(VOS_LOG_WARNING,
                              "cyclic thread with interval %u usec was running  %u usec\n",
                              (unsigned int)interval, (unsigned int)execTime);
@@ -619,7 +618,7 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
         }
         /* Create a cyclic thread */
         retCode = pthread_create(&hThread, &threadAttrib, (void *(*)(void *))vos_runCyclicThread, p_params);
-        vos_threadDelay(10000u);
+        (void) vos_threadDelay(10000u);
     }
     else
     {
