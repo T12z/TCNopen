@@ -821,8 +821,11 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
             /* we are called again! It seems there are additional subs/pubs? */
             trdp_indexClearTables(appHandle);
         }
-        trdp_indexCreatePubTables(appHandle);
-        trdp_indexCreateSubTables(appHandle);
+        ret = trdp_indexCreatePubTables(appHandle);
+        if (ret == TRDP_NO_ERR)
+        {
+            ret = trdp_indexCreateSubTables(appHandle);
+        }
         trdp_releaseAccess(appHandle);
     }
 

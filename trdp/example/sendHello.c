@@ -69,12 +69,13 @@ void    myPDcallBack (void *,
 /**********************************************************************************************************************/
 /** callback routine for TRDP logging/error output
  *
- *  @param[in]      pRefCon            user supplied context pointer
- *  @param[in]        category        Log category (Error, Warning, Info etc.)
- *  @param[in]        pTime            pointer to NULL-terminated string of time stamp
- *  @param[in]        pFile            pointer to NULL-terminated string of source module
- *  @param[in]        LineNumber        line
- *  @param[in]        pMsgStr         pointer to NULL-terminated string
+ *  @param[in]      pRefCon             user supplied context pointer
+ *  @param[in]      category            Log category (Error, Warning, Info etc.)
+ *  @param[in]      pTime               pointer to NULL-terminated string of time stamp
+ *  @param[in]      pFile               pointer to NULL-terminated string of source module
+ *  @param[in]      LineNumber          line
+ *  @param[in]      pMsgStr             pointer to NULL-terminated string
+ *
  *  @retval         none
  */
 void dbgOut (
@@ -124,15 +125,15 @@ int main (int argc, char *argv[])
     INT32                   hugeCounter = 0;
     TRDP_APP_SESSION_T      appHandle; /*    Our identifier to the library instance    */
     TRDP_PUB_T              pubHandle; /*    Our identifier to the publication         */
-    UINT32                  comId       = PD_COMID;
-    UINT32                  cycleTime   = PD_COMID_CYCLE;
+    UINT32                  comId           = PD_COMID;
+    UINT32                  interval        = PD_COMID_CYCLE;
     TRDP_ERR_T              err;
     TRDP_PD_CONFIG_T        pdConfiguration =
     {NULL, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_NONE, 1000000u, TRDP_TO_SET_TO_ZERO, 0};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_BLOCK};
     UINT32                  ownIP           = 0u;
-    int rv = 0;
+    int                     rv = 0;
     UINT32                  destIP = 0u;
 
     /*    Generate some data, that we want to send, when nothing was specified. */
@@ -179,7 +180,7 @@ int main (int argc, char *argv[])
            case 's':
            {    /*  read cycle time    */
                if (sscanf(optarg, "%u",
-                          &cycleTime) < 1)
+                          &interval) < 1)
                {
                    usage(argv[0]);
                    exit(1);
@@ -271,12 +272,12 @@ int main (int argc, char *argv[])
                         NULL, NULL,
                         0u,
                         comId,                      /*    ComID to send                 */
-                        0u,                          /*    etbTopoCnt = 0 for local consist only     */
-                        0u,                          /*    opTopoCnt = 0 for non-directinal data     */
+                        0u,                         /*    etbTopoCnt = 0 for local consist only     */
+                        0u,                         /*    opTopoCnt = 0 for non-directinal data     */
                         ownIP,                      /*    default source IP             */
                         destIP,                     /*    where to send to              */
-                        cycleTime,                  /*    Cycle time in us              */
-                        0u,                          /*    not redundant                 */
+                        interval,                   /*    Cycle time in us              */
+                        0u,                         /*    not redundant                 */
                         TRDP_FLAGS_NONE,            /*    Use callback for errors       */
                         NULL,                       /*    default qos and ttl           */
                         (UINT8 *)outputBuffer,      /*    initial data                  */
@@ -286,7 +287,23 @@ int main (int argc, char *argv[])
 
     if (err != TRDP_NO_ERR)
     {
-        vos_printLogStr(VOS_LOG_USR, "prep pd error\n");
+        vos_printLog(VOS_LOG_USR, "tlp_publish error (%s)\n", vos_getErrorString((VOS_ERR_T)err));
+        tlc_terminate();
+        return 1;
+    }
+
+    /*
+     Finish the setup.
+     On non-high-performance targets, this is a no-op.
+     This call is necessary if HIGH_PERF_INDEXED is defined. It will create the internal index tables for faster access.
+     It should be called after the last publisher and subscriber has been added.
+     Maybe tlc_activateSession would be a better name.If HIGH_PERF_INDEXED is set, this call will create the internal index tables for fast telegram access
+     */
+
+    err = tlc_updateSession(appHandle);
+    if (err != TRDP_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_USR, "tlc_updateSession error (%s)\n", vos_getErrorString((VOS_ERR_T)err));
         tlc_terminate();
         return 1;
     }
@@ -300,7 +317,7 @@ int main (int argc, char *argv[])
         INT32               noDesc;
         TRDP_TIME_T         tv;
         const TRDP_TIME_T   max_tv  = {0, 1000000};
-        const TRDP_TIME_T   min_tv  = {0, 10000};
+        const TRDP_TIME_T   min_tv  = {0, TRDP_PROCESS_DEFAULT_CYCLE_TIME};
 
         /*
            Prepare the file descriptor set for the select call.

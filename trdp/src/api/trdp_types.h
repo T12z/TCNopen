@@ -210,7 +210,7 @@ typedef enum
 #define TRDP_FLAGS_TSN_SDT          0x40u /**< SDT PD                                                     */
 #define TRDP_FLAGS_TSN_MSDT         0x80u /**< Multi SDT PD                                               */
 
-#define TRDP_INFINITE_TIMEOUT       0xffffffffu /**< Infinite reply timeout                                   */
+#define TRDP_INFINITE_TIMEOUT       0xffffffffu /**< Infinite reply timeout                               */
 #define TRDP_DEFAULT_PD_TIMEOUT     100000u /**< Default PD timeout 100ms from 61375-2-3 Table C.7        */
 
 typedef UINT8 TRDP_FLAGS_T;

@@ -276,7 +276,7 @@ int main (int argc, char * *argv)
                                                 0u, 0u, 0u, 0u, 0u, 0u, 0u};
 
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_BLOCK};
     int                     rv = 0;
     unsigned int            ip[4];
     UINT32                  destIP = 0;
@@ -384,7 +384,6 @@ int main (int argc, char * *argv)
     /*  Create and install threads for the new separate PD/MD process functions */
     {
         VOS_THREAD_T    rcvThread, sndThread, mdThread;
-        UINT32          cycleTime = 10000u;
 
         /* Create new PD receiver thread */
         /* Receiver thread runs until cancel */
@@ -397,13 +396,13 @@ int main (int argc, char * *argv)
                           (VOS_THREAD_FUNC_T) receiverThread,
                           appHandle);
 
-        vos_printLog(VOS_LOG_USR, "Sender task cycle:\t%uµs\n", cycleTime);
+        vos_printLog(VOS_LOG_USR, "Sender task cycle:\t%uµs\n", processConfig.cycleTime);
         /* Send thread is a cyclic thread, runs until cancel */
         vos_threadCreate (&sndThread,
                           "PD Sender Task",
                           VOS_THREAD_POLICY_OTHER,
                           VOS_THREAD_PRIORITY_HIGHEST,
-                          cycleTime,        /* 10ms process cycle time */
+                          processConfig.cycleTime,        /* 10ms process cycle time */
                           0u,
                           (VOS_THREAD_FUNC_T) senderThread,
                           appHandle);
@@ -472,11 +471,22 @@ int main (int argc, char * *argv)
         return 1;
     }
 
-    /* This call is necessary if HIGH_PERF_INDEXED is defined. It will create the internal index tables for faster access.
-        It should be called after the last publisher and subscriber has been added.
-        Maybe tlc_activeSession would be a better name. */
+    /*
+     Finish the setup.
+     On non-high-performance targets, this is a no-op.
+     This call is necessary if HIGH_PERF_INDEXED is defined. It will create the internal index tables for faster access.
+     It should be called after the last publisher and subscriber has been added.
+     Maybe tlc_activateSession would be a better name.If HIGH_PERF_INDEXED is set, this call will create the internal index tables for fast telegram access
+     */
 
-    tlc_updateSession (appHandle);
+    err = tlc_updateSession(appHandle);
+    if (err != TRDP_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_USR, "tlc_updateSession error (%s)\n", vos_getErrorString((VOS_ERR_T)err));
+        tlc_terminate();
+        return 1;
+    }
+
 
     /*
         Enter the main processing loop.
