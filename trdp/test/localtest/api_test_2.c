@@ -73,7 +73,7 @@ TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000265u, 1, 0, 0, 0};
 
 /* Data buffers to play with (Content is borrowed from Douglas Adams, "The Hitchhiker's Guide to the Galaxy") */
 
-static uint8_t          dataBuffer1[64 * 1024] =
+static uint8_t          dataBuffer1[(64 * 1024) -1] =
 {
     "Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
     "This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
@@ -222,7 +222,7 @@ static uint8_t          dataBuffer1[64 * 1024] =
 };
 
 
-static uint8_t          dataBuffer2[64 * 1024] =
+static uint8_t          dataBuffer2[(64 * 1024) - 1] =
 {
     "But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
     "It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
@@ -871,7 +871,7 @@ static int test2 ()
             err = tlp_put(gSession1.appHandle, pubHandle, (UINT8 *) data1, (UINT32) strlen(data1));
             IF_ERROR("tap_put");
 
-            usleep(TEST2_INTERVAL);
+            vos_threadDelay(TEST2_INTERVAL);
         }
 
     }
@@ -928,7 +928,7 @@ static int test3 ()
             UINT32  dataSize2 = sizeof(data2);
             TRDP_PD_INFO_T pdInfo;
 
-            usleep(TEST3_INTERVAL);
+            vos_threadDelay(TEST3_INTERVAL);
 
             err = tlp_get(gSession2.appHandle, subHandle, &pdInfo, (UINT8 *) data2, &dataSize2);
             if (err == TRDP_NODATA_ERR)
@@ -1035,7 +1035,7 @@ static int test4 ()
                 UINT32  dataSize2 = sizeof(data2);
                 TRDP_PD_INFO_T pdInfo;
 
-                usleep(100000u);
+                vos_threadDelay(100000u);
 
                 err = tlp_get(gSession2.appHandle, subHandle, &pdInfo, (UINT8 *) data2, &dataSize2);
                 if (err == TRDP_NODATA_ERR)
@@ -1384,7 +1384,7 @@ static int test8 ()
             UINT32 dataSize2 = sizeof(data2);
             TRDP_PD_INFO_T pdInfo;
 
-            usleep(100000u);
+            vos_threadDelay(100000u);
 
             err = tlp_get(gSession2.appHandle, subHandle, &pdInfo, (UINT8 *) data2, &dataSize2);
             if (err == TRDP_NODATA_ERR)
@@ -1497,7 +1497,7 @@ static int test9 ()
                 (void) tlp_put(gSession1.appHandle, pubHandle[i], (UINT8 *) data2, TEST9_DATA_LEN);
 
                 /*    Wait for answer   */
-                usleep(100000u);
+                vos_threadDelay(100000u);
 
                 err = tlp_get(gSession2.appHandle, subHandle[i], &pdInfo, (UINT8 *) data2, &dataSize2);
                 if (err == TRDP_NODATA_ERR)
@@ -2594,9 +2594,9 @@ static int test19 ()
             {0, 0, NULL, 0}
         };
 
-        UINT32 noOfTelegrams = sizeof(lArray) / sizeof(struct telegram_array);
+        const UINT32 noOfTelegrams = sizeof(lArray) / sizeof(struct telegram_array);
 
-        TRDP_PUB_T pubHandle[noOfTelegrams];
+        TRDP_PUB_T pubHandle[sizeof(lArray) / sizeof(struct telegram_array)];
         UINT32 i;
 
         TRDP_PROCESS_CONFIG_T procConf = {"TestHost", "me", TEST19_CYCLE_TIME, 0, TRDP_OPTION_NONE};
@@ -2647,7 +2647,7 @@ static int test19 ()
             }
         }
 
-        usleep(10000000);   /* Let it run for 10s */
+        vos_threadDelay(10000000);   /* Let it run for 10s */
         fprintf(gFp, "\n...transmission is finished\n");
         gFullLog = FALSE;
     }
@@ -2955,8 +2955,8 @@ static int test20 ()
 
         UINT32 noOfTelegrams = sizeof(lArray) / sizeof(struct telegram_array) - 1;
 
-        TRDP_PUB_T pubHandle[noOfTelegrams];
-        TRDP_SUB_T subHandle[noOfTelegrams];
+        TRDP_PUB_T pubHandle[sizeof(lArray) / sizeof(struct telegram_array) - 1];
+        TRDP_SUB_T subHandle[sizeof(lArray) / sizeof(struct telegram_array) - 1];
 
         UINT32 i;
 
@@ -3039,7 +3039,7 @@ static int test20 ()
  */
         }
 
-        usleep(10000000);   /* Let it run for 100s */
+        vos_threadDelay(10000000);   /* Let it run for 100s */
         fprintf(gFp, "\n...transmission is finished\n");
         /* gFullLog = FALSE; */
     }
@@ -3188,8 +3188,8 @@ static int test21 ()
 
         UINT32 noOfTelegrams = sizeof(lArray) / sizeof(struct telegram_array) - 1;
 
-        TRDP_PUB_T pubHandle[noOfTelegrams];
-        TRDP_SUB_T subHandle[noOfTelegrams];
+        TRDP_PUB_T pubHandle[sizeof(lArray) / sizeof(struct telegram_array) - 1];
+        TRDP_SUB_T subHandle[sizeof(lArray) / sizeof(struct telegram_array) - 1];
 
         UINT32 i;
 
@@ -3271,7 +3271,7 @@ static int test21 ()
              */
         }
 
-        usleep(5000000);   /* Let it run for 5s */
+        vos_threadDelay(5000000); /* Let it run for 5s */  
         fprintf(gFp, "\n...transmission is finished\n");
         /* gFullLog = FALSE; */
     }

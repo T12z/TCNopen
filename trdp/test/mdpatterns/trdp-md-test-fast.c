@@ -517,49 +517,36 @@ void dequeue ()
     --queue.num;
 }
 
-
 /*********************************************************************************************************************/
-/** Call tlp_processReceive asynchronously
+/** Call tlm_process
 */
-static void *receiverThread(void * pArg)
+static void *transceiverThreadMD(void *pArg)
 {
-    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T)pArg;
+    TRDP_ERR_T  result;
+    TRDP_TIME_T interval = { 0, 0 };
+    TRDP_FDS_T  fileDesc;
+    INT32       noDesc = 0;
 
-    TRDP_ERR_T      result;
-    TRDP_TIME_T     interval = { 0,0 };
-    TRDP_FDS_T      fileDesc;
-    INT32           noDesc = 0;
-
-    while (vos_threadDelay(0u) == VOS_NO_ERR)   /* this is a cancelation point! */
+    TRDP_APP_SESSION_T *appHandle = (TRDP_APP_SESSION_T *)pArg;
+    /*
+    Enter the main processing loop.
+    */
+    while (1/*pSession->threadRun &&
+            pSession->threadIdMD &&
+            (vos_threadDelay(0u) == VOS_NO_ERR)*/)   /* this is a cancelation point! */
     {
         FD_ZERO(&fileDesc);
-        result = tlp_getInterval(apphandle, &interval, &fileDesc, &noDesc);
+        result = tlm_getInterval(appHandle, &interval, &fileDesc, &noDesc);
         if (result != TRDP_NO_ERR)
         {
-            printf("tlp_getInterval failed: %d\n", result);
+            printf("tlm_getInterval failed: %s\n", get_result_string((VOS_ERR_T)result));
         }
         noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
-        result = tlp_processReceive(apphandle
-            , &fileDesc, &noDesc);
+        result = tlm_process(appHandle, &fileDesc, &noDesc);
         if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
         {
-            printf("tlp_processReceive failed: %d\n", result);
+            printf("tlm_process failed: %s\n", get_result_string((VOS_ERR_T)result));
         }
-    }
-    return NULL;
-}
-
-/*********************************************************************************************************************/
-/** Call tlp_processSend synchronously
-*/
-static void *senderThread(void * pArg)
-{
-    TRDP_APP_SESSION_T  apphandle = (TRDP_APP_SESSION_T)pArg;
-
-    TRDP_ERR_T result = tlp_processSend(apphandle);
-    if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
-    {
-        printf("tlp_processSend failed: %d\n", result);
     }
     return NULL;
 }
@@ -839,25 +826,14 @@ int main (int argc, char *argv[])
            break;
     }
 
-    /* Receiver thread runs until cancel */
+    /* Transceiver thread runs until cancel */
     vos_threadCreate(&rcvThread,
-        "Receiver Task",
+        "Transceiver Task",
         VOS_THREAD_POLICY_OTHER,
         (VOS_THREAD_PRIORITY_T)proccfg.priority,
         0u,
         0u,
-        (VOS_THREAD_FUNC_T)receiverThread,
-        (void*)apph);
-
-
-    /* Send thread is a cyclic thread, runs until cancel */
-    vos_threadCreate(&sndThread,
-        "Sender Task",
-        VOS_THREAD_POLICY_OTHER,
-        (VOS_THREAD_PRIORITY_T)proccfg.priority,
-        proccfg.cycleTime,
-        0u,
-        (VOS_THREAD_FUNC_T)senderThread,
+        (VOS_THREAD_FUNC_T)transceiverThreadMD,
         (void*)apph);
 
     tlc_updateSession(apph);
