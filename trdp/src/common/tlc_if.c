@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2018-08-20: Fixed lint errors and warnings
 *      BL 2019-07-15: Ticket #272 Missing initialization of values in Global Statistics
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -446,10 +447,10 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
     }
 
     ret = (TRDP_ERR_T) vos_mutexCreate(&pSession->mutex);
-    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexTxPD);
-    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexRxPD);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexTxPD); /*lint !e656 Only checking for error code TRDP_NO_ERR, which is 0 */
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexRxPD); /*lint !e656 Only checking for error code TRDP_NO_ERR, which is 0 */
 #if MD_SUPPORT
-    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexMD);
+    ret += (TRDP_ERR_T) vos_mutexCreate(&pSession->mutexMD); /*lint !e656 Only checking for error code TRDP_NO_ERR, which is 0 */
 #endif
 
     if (ret != TRDP_NO_ERR)
@@ -831,12 +832,13 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
 
 #else
 
-    appHandle = appHandle;
+    appHandle = appHandle;  /* lint !e550 return value not used */
 
 #endif
 
     return ret;
-}
+} /* lint !w438 return value not used */
+
 
 /**********************************************************************************************************************/
 /** Close a session.
@@ -1167,14 +1169,13 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
     TRDP_FDS_T          *pFileDesc,
     INT32               *pNoDesc)
 {
-    TRDP_TIME_T now;
-    TRDP_ERR_T  ret = TRDP_NOINIT_ERR;
-
 #ifdef HIGH_PERF_INDEXED
     vos_printLogStr(VOS_LOG_ERROR, "####   tlc_getInterval() is not supported when using HIGH_PERF_INDEXED!  ####\n");
     vos_printLogStr(VOS_LOG_ERROR, "####           Use tlp_getInterval()/tlm_getInterval() instead!          ####\n");
-    return TRDP_NOINIT_ERR;
-#endif
+    return TRDP_NOINIT_ERR; 
+#else
+    TRDP_TIME_T now;
+    TRDP_ERR_T  ret = TRDP_NOINIT_ERR;
 
     if (trdp_isValidSession(appHandle))
     {
@@ -1230,6 +1231,7 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
         }
     }
     return ret;
+#endif
 }
 
 /**********************************************************************************************************************/
@@ -1258,6 +1260,11 @@ EXT_DECL TRDP_ERR_T tlc_process (
     TRDP_FDS_T          *pRfds,
     INT32               *pCount)
 {
+#ifdef HIGH_PERF_INDEXED
+    vos_printLogStr(VOS_LOG_ERROR, "####   tlc_process() is not supported when using HIGH_PERF_INDEXED!  ####\n");
+    vos_printLogStr(VOS_LOG_ERROR, "#### Use tlp_processSend/tlp_processReceive()/tlm_process() instead! ####\n");
+    return TRDP_NOINIT_ERR;
+#else
     TRDP_ERR_T  result = TRDP_NO_ERR;
     TRDP_ERR_T  err;
 
@@ -1265,12 +1272,6 @@ EXT_DECL TRDP_ERR_T tlc_process (
     {
         return TRDP_NOINIT_ERR;
     }
-
-#ifdef HIGH_PERF_INDEXED
-    vos_printLogStr(VOS_LOG_ERROR, "####   tlc_process() is not supported when using HIGH_PERF_INDEXED!  ####\n");
-    vos_printLogStr(VOS_LOG_ERROR, "#### Use tlp_processSend/tlp_processReceive()/tlm_process() instead! ####\n");
-    return TRDP_NOINIT_ERR;
-#endif
 
     if (vos_mutexLock(appHandle->mutex) != VOS_NO_ERR)
     {
@@ -1342,6 +1343,7 @@ EXT_DECL TRDP_ERR_T tlc_process (
     }
 
     return result;
+#endif
 }
 
 /**********************************************************************************************************************/

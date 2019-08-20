@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2018-08-20: Fixed lint errors and warnings
  *      SB 2018-07-10: Ticket #264: Added parsing of service definitions for service oriented interface
  *      BL 2019-06-12: Ticket #262 XML Parsing Bug Fixes for Debug Output Print Level and SDTv2 Parameters
  *      BL 2019-06-12: Ticket #246 Incorrect reading of "user" part of source uri and destination
@@ -1512,7 +1513,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                                 /* Find the slot to store the value in  */
                                 if ((sizeValue >= mem_list[0]) && (sizeValue <= mem_list[VOS_MEM_NBLOCKSIZES - 1]))
                                 {
-                                    for (i = 0; sizeValue > mem_list[i]; i++)
+                                    for (i = 0; sizeValue > mem_list[i]; i++) /*lint !e440 mem_list is the tested variable*/
                                     {
                                         ;
                                     }
@@ -1824,6 +1825,12 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                     /* Read the interface params */
                     for (i = 0u; i < count && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "service") == 0; i++)
                     {
+                        UINT32 eventCount;
+                        UINT32 fieldCount;
+                        UINT32 methodCount;
+                        UINT32 deviceCount;
+                        UINT32 telegramRefCount;
+
                         while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt,
                                                     value) == TOK_ATTRIBUTE)
                         {
@@ -1836,12 +1843,6 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                 (*ppServiceDefs)[i].serviceId = (UINT32) valueInt;
                             }
                         }
-
-                        UINT32 eventCount;
-                        UINT32 fieldCount;
-                        UINT32 methodCount;
-                        UINT32 deviceCount;
-                        UINT32 telegramRefCount;
 
                         trdp_XMLEnter(pDocHnd->pXmlDocument);
 
@@ -1857,24 +1858,82 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                         telegramRefCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "telegramRef");
                         (*ppServiceDefs)[i].pTelegramRef = NULL;
 
+                        /* allocate event definitions */
+                        if (eventCount > 0u)
+                        {
+                            (*ppServiceDefs)[i].pEvent = (TRDP_EVENT_T *)vos_memAlloc(eventCount * sizeof(TRDP_EVENT_T));
+
+                            if ((*ppServiceDefs)[i].pEvent == NULL)
+                            {
+                                vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML event definitions!\n",
+                                    (unsigned long)(eventCount * sizeof(TRDP_EVENT_T)));
+                                return TRDP_MEM_ERR;
+                            }
+                            (*ppServiceDefs)[i].eventCnt = eventCount;
+                            pEvent = (*ppServiceDefs)[i].pEvent;
+                        }
+                        /* allocate field definitions */
+                        if (fieldCount > 0u)
+                        {
+                            (*ppServiceDefs)[i].pField = (TRDP_FIELD_T *)vos_memAlloc(fieldCount * sizeof(TRDP_FIELD_T));
+
+                            if ((*ppServiceDefs)[i].pField == NULL)
+                            {
+                                vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML field definitions!\n",
+                                    (unsigned long)(fieldCount * sizeof(TRDP_FIELD_T)));
+                                return TRDP_MEM_ERR;
+                            }
+                            (*ppServiceDefs)[i].fieldCnt = fieldCount;
+                            pField = (*ppServiceDefs)[i].pField;
+                        }
+                        /* allocate method definitions */
+                        if (methodCount > 0u)
+                        {
+                            (*ppServiceDefs)[i].pMethod = (TRDP_METHOD_T *)vos_memAlloc(methodCount * sizeof(TRDP_METHOD_T));
+
+                            if ((*ppServiceDefs)[i].pMethod == NULL)
+                            {
+                                vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML method definitions!\n",
+                                    (unsigned long)(methodCount * sizeof(TRDP_METHOD_T)));
+                                return TRDP_MEM_ERR;
+                            }
+                            (*ppServiceDefs)[i].methodCnt = methodCount;
+                            pMethod = (*ppServiceDefs)[i].pMethod;
+                        }
+                        /* allocate device definitions */
+                        if (deviceCount > 0u)
+                        {
+                            (*ppServiceDefs)[i].pDevice = (TRDP_SERVICE_DEVICE_T *)vos_memAlloc(deviceCount * sizeof(TRDP_SERVICE_DEVICE_T));
+
+                            if ((*ppServiceDefs)[i].pDevice == NULL)
+                            {
+                                vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML instance definitions!\n",
+                                    (unsigned long)(deviceCount * sizeof(TRDP_SERVICE_DEVICE_T)));
+                                return TRDP_MEM_ERR;
+                            }
+                            (*ppServiceDefs)[i].deviceCnt = deviceCount;
+                            pServiceDevice = (*ppServiceDefs)[i].pDevice;
+                        }
+                        /* allocate telegram reference definitions */
+                        if (telegramRefCount > 0u)
+                        {
+                            (*ppServiceDefs)[i].pTelegramRef = (TRDP_TELEGRAM_REF_T *)vos_memAlloc(telegramRefCount * sizeof(TRDP_TELEGRAM_REF_T));
+
+                            if ((*ppServiceDefs)[i].pTelegramRef == NULL)
+                            {
+                                vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML telegramDef definitions!\n",
+                                    (unsigned long)(telegramRefCount * sizeof(TRDP_TELEGRAM_REF_T)));
+                                return TRDP_MEM_ERR;
+                            }
+                            (*ppServiceDefs)[i].telegramRefCnt = telegramRefCount;
+                            pTelegramRef = (*ppServiceDefs)[i].pTelegramRef;
+                        }
+
                         while (trdp_XMLSeekStartTagAny(pDocHnd->pXmlDocument, tag, MAX_TAG_LEN) == 0)
                         {
-                            if (vos_strnicmp(tag, "event", MAX_TAG_LEN) == 0)
+                            if (vos_strnicmp(tag, "event", MAX_TAG_LEN) == 0 && pEvent != NULL)
                             {
-                                if (eventCount > 0u)
-                                {
-                                    (*ppServiceDefs)[i].pEvent = (TRDP_EVENT_T *)vos_memAlloc(eventCount * sizeof(TRDP_EVENT_T));
 
-                                    if ((*ppServiceDefs)[i].pEvent == NULL)
-                                    {
-                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML event definitions!\n",
-                                                     (unsigned long) (eventCount * sizeof(TRDP_EVENT_T)));
-                                        return TRDP_MEM_ERR;
-                                    }
-                                    (*ppServiceDefs)[i].eventCnt = eventCount;
-                                    eventCount    = 0u;
-                                    pEvent        = (*ppServiceDefs)[i].pEvent;
-                                }
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
                                     if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
@@ -1886,28 +1945,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                         pEvent->comId = (UINT16) valueInt;
                                     }
                                 }
-                                if (pEvent != NULL)
-                                {
-                                    pEvent++;
-                                }
-
+                                pEvent++;
                             }
-                            else if (vos_strnicmp(tag, "field", MAX_TAG_LEN) == 0)
+                            else if (vos_strnicmp(tag, "field", MAX_TAG_LEN) == 0 && pField != NULL)
                             {
-                                if (fieldCount > 0u)
-                                {
-                                    (*ppServiceDefs)[i].pField = (TRDP_FIELD_T *)vos_memAlloc(fieldCount * sizeof(TRDP_FIELD_T));
-
-                                    if ((*ppServiceDefs)[i].pField == NULL)
-                                    {
-                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML field definitions!\n",
-                                                     (unsigned long) (fieldCount * sizeof(TRDP_FIELD_T)));
-                                        return TRDP_MEM_ERR;
-                                    }
-                                    (*ppServiceDefs)[i].fieldCnt = fieldCount;
-                                    fieldCount    = 0u;
-                                    pField        = (*ppServiceDefs)[i].pField;
-                                }
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
                                     if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
@@ -1919,27 +1960,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                         pField->comId = (UINT16) valueInt;
                                     }
                                 }
-                                if (pField != NULL)
-                                {
-                                    pField++;
-                                }
+                                pField++;                               
                             }
-                            else if (vos_strnicmp(tag, "method", MAX_TAG_LEN) == 0)
+                            else if (vos_strnicmp(tag, "method", MAX_TAG_LEN) == 0 && pMethod != NULL)
                             {
-                                if (methodCount > 0u)
-                                {
-                                    (*ppServiceDefs)[i].pMethod = (TRDP_METHOD_T *)vos_memAlloc(methodCount * sizeof(TRDP_METHOD_T));
-
-                                    if ((*ppServiceDefs)[i].pMethod == NULL)
-                                    {
-                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML method definitions!\n",
-                                                     (unsigned long) (methodCount * sizeof(TRDP_METHOD_T)));
-                                        return TRDP_MEM_ERR;
-                                    }
-                                    (*ppServiceDefs)[i].methodCnt = methodCount;
-                                    methodCount    = 0u;
-                                    pMethod        = (*ppServiceDefs)[i].pMethod;
-                                }
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
                                     if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
@@ -1962,29 +1986,15 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                         }
                                     }
                                 }
-                                if (pMethod != NULL)
-                                {
-                                    pMethod++;
-                                }
+                                pMethod++;
                             }
-                            else if (vos_strnicmp(tag, "service-device", MAX_TAG_LEN) == 0)
+                            else if (vos_strnicmp(tag, "service-device", MAX_TAG_LEN) == 0 && pServiceDevice != NULL )
                             {
-                                if (deviceCount > 0u)
-                                {
-                                    (*ppServiceDefs)[i].pDevice = (TRDP_SERVICE_DEVICE_T *)vos_memAlloc(deviceCount * sizeof(TRDP_SERVICE_DEVICE_T));
-
-                                    if ((*ppServiceDefs)[i].pDevice == NULL)
-                                    {
-                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML instance definitions!\n",
-                                                     (unsigned long) (deviceCount * sizeof(TRDP_SERVICE_DEVICE_T)));
-                                        return TRDP_MEM_ERR;
-                                    }
-                                    (*ppServiceDefs)[i].deviceCnt = deviceCount;
-                                    deviceCount    = 0u;
-                                    pServiceDevice = (*ppServiceDefs)[i].pDevice;
-                                }
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
+                                    UINT32 instanceCount;
+                                    UINT32 j;
+
                                     if (vos_strnicmp(attribute, "src-uri", MAX_TOK_LEN) == 0)
                                     {
                                         vos_strncpy(pServiceDevice->hostUri, value, TRDP_MAX_URI_HOST_LEN);
@@ -1994,9 +2004,6 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                         vos_strncpy(pServiceDevice->dstUri, value, TRDP_MAX_URI_HOST_LEN);
                                     }
                                     trdp_XMLEnter(pDocHnd->pXmlDocument);
-
-                                    UINT32 instanceCount;
-                                    UINT32 j;
 
                                     instanceCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "instance");
 
@@ -2035,27 +2042,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
 
                                     trdp_XMLLeave(pDocHnd->pXmlDocument);
                                 }
-                                if (pServiceDevice != NULL)
-                                {
-                                    pServiceDevice++;
-                                }
+                                pServiceDevice++;
                             }
-                            else if (vos_strnicmp(tag, "telegramRef", MAX_TAG_LEN) == 0)
+                            else if (vos_strnicmp(tag, "telegramRef", MAX_TAG_LEN) == 0 && pTelegramRef != NULL )
                             {
-                                if (telegramRefCount > 0u)
-                                {
-                                    (*ppServiceDefs)[i].pTelegramRef = (TRDP_TELEGRAM_REF_T *)vos_memAlloc(telegramRefCount * sizeof(TRDP_TELEGRAM_REF_T));
-
-                                    if ((*ppServiceDefs)[i].pTelegramRef == NULL)
-                                    {
-                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML telegramDef definitions!\n",
-                                                     (unsigned long) (telegramRefCount * sizeof(TRDP_TELEGRAM_REF_T)));
-                                        return TRDP_MEM_ERR;
-                                    }
-                                    (*ppServiceDefs)[i].telegramRefCnt = telegramRefCount;
-                                    telegramRefCount    = 0u;
-                                    pTelegramRef        = (*ppServiceDefs)[i].pTelegramRef;
-                                }
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
                                     if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
@@ -2075,10 +2065,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                         pTelegramRef->dstId = (UINT32) valueInt;
                                     }
                                 }
-                                if (pTelegramRef != NULL)
-                                {
-                                    pTelegramRef++;
-                                }
+                                pTelegramRef++;
                             }
 
                         }

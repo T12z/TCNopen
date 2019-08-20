@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2018-08-20: Fixed lint errors and warnings
 *      BL 2019-07-09: Ticket #270 Bug in handling of PD telegrams with new topocounters
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -946,7 +947,7 @@ TRDP_ERR_T tlp_putImmediate (
                 vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
             }
         }
-        return err;
+        return err; /*lint !e438 pTxTime only used with TSN */
     }
 }
 

@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2018-08-20: Fixed lint errors and warnings
 *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
 *      BL 2019-08-13: Ignore qos/ttl on receive sockets
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -459,7 +460,7 @@ PD_ELE_T *trdp_queueFindPubAddr (
             && ((iterPD->addr.srcIpAddr == 0) || (iterPD->addr.srcIpAddr == addr->srcIpAddr))
             && ((iterPD->addr.destIpAddr == 0) || (iterPD->addr.destIpAddr == addr->destIpAddr))
             && ((iterPD->addr.mcGroup == 0) || (iterPD->addr.mcGroup == addr->mcGroup))
-            && SOA_SAME_SERVICEID_OR0(iterPD->addr.serviceId, addr->serviceId))
+            && SOA_SAME_SERVICEID_OR0(iterPD->addr.serviceId, addr->serviceId)) /*lint !e506 meant to be true, if service support is off */
         {
             return iterPD;
         }
@@ -517,7 +518,7 @@ PD_ELE_T *trdp_findSubAddr (
         /*  We match if src/dst/mc address is zero or matches */
        // if ((iterPD->addr.comId == addr->comId)
        //     && SOA_SAME_SERVICEID_OR0(addr->serviceId, iterPD->addr.serviceId))
-        if (SAME_SERVICE_COM_ID(iterPD->addr, *addr))
+        if (SAME_SERVICE_COM_ID(iterPD->addr, *addr)) /*lint !e506 meant to be true, if service support is off */
         {
             /* if srcIP filter matches AND destIP matches THEN this is a direct hit */
             if ((iterPD->addr.srcIpAddr == addr->srcIpAddr) &&
@@ -574,7 +575,7 @@ PD_ELE_T *trdp_queueFindExistingSub (
     {
         /*  We match if src/dst/mc address is zero or matches */
         if ((iterPD->addr.comId == addr->comId)
-            && SOA_SAME_SERVICEID(iterPD->addr.serviceId, addr->serviceId))
+            && SOA_SAME_SERVICEID(iterPD->addr.serviceId, addr->serviceId)) /*lint !e506 meant to be true, if service support is off */
         {
             if ((iterPD->addr.srcIpAddr == addr->srcIpAddr)
                 && (iterPD->addr.destIpAddr == addr->destIpAddr))
@@ -914,6 +915,7 @@ TRDP_ERR_T  trdp_requestSocket (
     VOS_SOCK_OPT_T  sock_options;
     INT32           lIndex;
     INT32           emptySockIdx = -1;    /* was emptySock, renamed to avoid confusion */
+    INT32           sockMax;
     TRDP_ERR_T      err         = TRDP_NO_ERR;
     TRDP_IP_ADDR_T  bindAddr    = vos_determineBindAddr(srcIP, mcGroup, rcvMostly);
 
@@ -1011,7 +1013,20 @@ TRDP_ERR_T  trdp_requestSocket (
     }
 
     /* Not found, create a new socket entry */
-    if (lIndex < VOS_MAX_SOCKET_CNT)
+    switch (type) /* because of lint*/
+    {
+    case  TRDP_SOCK_PD:
+    case  TRDP_SOCK_PD_TSN:
+        sockMax = TRDP_MAX_PD_SOCKET_CNT;
+        break;
+    case  TRDP_SOCK_MD_TCP:
+    case  TRDP_SOCK_MD_UDP:
+        sockMax = TRDP_MAX_MD_SOCKET_CNT;
+        break;
+    default:
+        sockMax = 0;
+    }
+    if (lIndex < sockMax)
     {
         if ((emptySockIdx != -1)
             && (lIndex != emptySockIdx))

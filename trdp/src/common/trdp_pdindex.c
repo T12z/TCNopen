@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      SB 2018-08-20: Fixed lint errors and warnings
  *      BL 2019-08-16: Better distribution of packets; starting table index = interval time, was starting at 0.
  *      SB 2019-08-16: Ticket #275 Multiple Subscribers with same comId not always found (HIGH_PERF_INDEXED)
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -80,7 +81,7 @@ typedef enum
  *
  *  @retval         telegram pointer to the element of the entry [slot][depth]
  */
-static inline PD_ELE_T *getElement (
+static INLINE PD_ELE_T *getElement (
     TRDP_HP_CAT_SLOT_T  *pEntry,
     UINT32              slot,
     UINT32              depth)
@@ -98,7 +99,7 @@ static inline PD_ELE_T *getElement (
  *
  *  @retval         none
  */
-static inline void setElement (
+static INLINE void setElement (
     TRDP_HP_CAT_SLOT_T  *pEntry,
     UINT32              slot,
     UINT32              depth,
@@ -107,6 +108,7 @@ static inline void setElement (
     *(pEntry->ppIdxCat + slot * pEntry->depthOfTxEntries + depth) = pAssign;
 }
 
+#ifdef DEBUG
 /**********************************************************************************************************************/
 /** Print an index table
  *
@@ -185,6 +187,7 @@ static void   print_table (
     }
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
 }
+#endif
 
 /**********************************************************************************************************************/
 /** Return the category for the index tables
@@ -250,6 +253,7 @@ static PERF_TABLE_TYPE_T   perf_table_category (
         UINT32      depthIdx;
         UINT32      maxStartIdx;
         UINT32      count;
+        UINT32      idx;
         int         found = FALSE;
 
         /* This is the interval we need to distribute */
@@ -302,7 +306,7 @@ static PERF_TABLE_TYPE_T   perf_table_category (
         else
         {
             /* Iterate over the array, outer loop is slot, inner loop is depth */
-            for (UINT32 idx = (UINT32) startIdx; (idx < pCat->noOfTxEntries) && (count); )
+            for (idx = (UINT32) startIdx; (idx < pCat->noOfTxEntries) && (count); )
             {
                 UINT32  depth;
                 int     done = FALSE;
@@ -473,6 +477,14 @@ static TRDP_ERR_T indexCreatePubTable (
     /* First dimension / number of slots is rangeMax (e.g. 100ms) / processCycle */
     UINT32 slots = rangeMax / pCat->slotCycle;
 
+
+    /* we allocate an array with dimensions [slots][appHandle->pSlot->noOfTxEntriesLow/slots]
+    This is a quite rough estimate with lots of head room. If memory is tight, the estimatation could be
+    optimised by determining the exact max. depth needed for any category, either by pre-computation or by
+    iterating (e.g. using a trial & error scheme, starting with lower depth values) */
+
+    UINT32 depth = cat_noOfTxEntries * 10u / slots + 5u;
+
     if ((rangeMax % pCat->slotCycle) > 0)
     {
         vos_printLog(VOS_LOG_WARNING,
@@ -481,13 +493,6 @@ static TRDP_ERR_T indexCreatePubTable (
         vos_printLogStr(VOS_LOG_WARNING,
                         "Current cycle time will introduce larger jitter, optimal values are e.g.: 1, 2, 4, 5, 10ms\n");
     }
-
-    /* we allocate an array with dimensions [slots][appHandle->pSlot->noOfTxEntriesLow/slots]
-        This is a quite rough estimate with lots of head room. If memory is tight, the estimatation could be
-        optimised by determining the exact max. depth needed for any category, either by pre-computation or by
-        iterating (e.g. using a trial & error scheme, starting with lower depth values) */
-
-    UINT32 depth = cat_noOfTxEntries * 10u / slots + 5u;
 
     /* depth must be at least 1 ! */
     if (depth > 255u)
@@ -823,18 +828,18 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
 {
     TRDP_ERR_T err, result = TRDP_NO_ERR;
 
-    if (appHandle->pSlot == NULL)
-    {
-        return TRDP_BLOCK_ERR;
-    }
-
     /* Compute the indexes from the current cycle */
     UINT32 idxLow, idxMid, idxHigh;
     UINT32 depth;
     TRDP_HP_SLOTS_T *pSlot = appHandle->pSlot;
     PD_ELE_T        *pCurElement;
     UINT32          i;
-    static int      dbCount = 0;
+
+    if (appHandle->pSlot == NULL)
+    {
+        return TRDP_BLOCK_ERR;
+    }
+
 
     /* In case we are called less often than 1ms, we'll loop over the index table */
     for (i = 0u; i < pSlot->processCycle; i += TRDP_MIN_CYCLE)
@@ -924,7 +929,7 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
                         /*  Set timer if interval was set.                     */
                         vos_addTime(&pSlot->pExtTxTable[depth]->timeToGo,
                                     &pSlot->pExtTxTable[depth]->interval);
-                        trdp_pdSendElement(appHandle, &pSlot->pExtTxTable[depth]);
+                        (void) trdp_pdSendElement(appHandle, &pSlot->pExtTxTable[depth]);
                     }
                 }
             }
@@ -935,7 +940,6 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
         {
             pSlot->currentCycle = 0u;
         }
-        dbCount++;
     }
     return result;
 }
