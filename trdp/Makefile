@@ -175,7 +175,7 @@ test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR
 
 pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_md_responder $(OUTDIR)/testSub 
 
-mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
+mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-test-fast $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
 
 vtests:		outdir $(OUTDIR)/vtest
 
@@ -367,6 +367,14 @@ $(OUTDIR)/trdp-pd-test-fast: $(OUTDIR)/libtrdp.a
 $(OUTDIR)/trdp-md-test: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD test application $(@F)'
 			$(CC) test/mdpatterns/trdp-md-test.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/trdp-md-test-fast: $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building MD test application $(@F)'
+			$(CC) test/mdpatterns/trdp-md-test-fast.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@

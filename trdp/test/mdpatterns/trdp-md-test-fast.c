@@ -331,7 +331,7 @@ void print_log (void *pRefCon, VOS_LOG_T category, const CHAR8 *pTime,
     }
     else
     {
-        fprintf(pLogFile, "%s File: %s Line: %d %s\n", cat[category], pFile, (int) line, pMsgStr);
+        fprintf(pLogFile, "%s File: %s Line: %d %s", cat[category], pFile, (int) line, pMsgStr);
         fflush(pLogFile);
     }
 #else
@@ -517,40 +517,6 @@ void dequeue ()
     --queue.num;
 }
 
-/*********************************************************************************************************************/
-/** Call tlm_process
-*/
-static void *transceiverThreadMD(void *pArg)
-{
-    TRDP_ERR_T  result;
-    TRDP_TIME_T interval = { 0, 0 };
-    TRDP_FDS_T  fileDesc;
-    INT32       noDesc = 0;
-
-    TRDP_APP_SESSION_T *appHandle = (TRDP_APP_SESSION_T *)pArg;
-    /*
-    Enter the main processing loop.
-    */
-    while (1/*pSession->threadRun &&
-            pSession->threadIdMD &&
-            (vos_threadDelay(0u) == VOS_NO_ERR)*/)   /* this is a cancelation point! */
-    {
-        FD_ZERO(&fileDesc);
-        result = tlm_getInterval(appHandle, &interval, &fileDesc, &noDesc);
-        if (result != TRDP_NO_ERR)
-        {
-            printf("tlm_getInterval failed: %s\n", get_result_string((VOS_ERR_T)result));
-        }
-        noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
-        result = tlm_process(appHandle, &fileDesc, &noDesc);
-        if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
-        {
-            printf("tlm_process failed: %s\n", get_result_string((VOS_ERR_T)result));
-        }
-    }
-    return NULL;
-}
-
 /* --- data processing --------------------------------------------------------- */
 
 int process_data ()
@@ -716,6 +682,7 @@ int main (int argc, char *argv[])
         printf("  <remoteip> .. remote peer IP address (ie. 10.2.24.2)\n");
         printf("  <mcast>    .. multicast group address (ie. 239.2.24.1)\n");
         printf("  <logfile>  .. file name for logging (ie. test.txt)\n");
+        printf("  <messagesize>  .. size of the MD data in bytes (default: 65336)\n");
 
         return 1;
     }
@@ -752,6 +719,11 @@ int main (int argc, char *argv[])
     {
         printf("invalid input arguments\n");
         return 1;
+    }
+
+    if (argc >= 7)
+    {
+        opts.msgsz = (unsigned) strtoul(argv[6], NULL, 10);
     }
 
     if (argc >= 6)
@@ -826,16 +798,6 @@ int main (int argc, char *argv[])
            break;
     }
 
-    /* Transceiver thread runs until cancel */
-    vos_threadCreate(&rcvThread,
-        "Transceiver Task",
-        VOS_THREAD_POLICY_OTHER,
-        (VOS_THREAD_PRIORITY_T)proccfg.priority,
-        0u,
-        0u,
-        (VOS_THREAD_FUNC_T)transceiverThreadMD,
-        (void*)apph);
-
     tlc_updateSession(apph);
 
     /* main test loop */
@@ -843,7 +805,7 @@ int main (int argc, char *argv[])
     {
         FD_ZERO(&rfds);
         noOfDesc = 0;
-        tlc_getInterval(apph, &tv, &rfds, &noOfDesc);
+        tlm_getInterval(apph, &tv, &rfds, &noOfDesc);
         rv = vos_select(noOfDesc + 1, &rfds, NULL, NULL, &tv_null);
         tlm_process(apph, &rfds, &rv);
         /* wait a while */
