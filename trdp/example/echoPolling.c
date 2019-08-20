@@ -232,7 +232,7 @@ int main (int argc, char * *argv)
                 Just put us to sleep.
                 We can use VOS (Virtual Operating System) functions as well. It will make our code more portable...
              */
-            vos_threadDelay((UINT32) tv.tv_usec / 1000);
+            (void) vos_threadDelay((UINT32) tv.tv_usec / 1000);
         }
 
         /*

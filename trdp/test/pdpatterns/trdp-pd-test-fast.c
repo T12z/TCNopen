@@ -569,6 +569,10 @@ static int _get_term_size(int * w, int * h)
     int ret = ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
     if (ret)
         return ret;
+    if (ws.ws_col == 0)
+        ws.ws_col = 120;
+    if (ws.ws_row == 0)
+        ws.ws_row = 40;
     if (w)
         *w = ws.ws_col;
     if (h)
@@ -875,7 +879,7 @@ int main(int argc, char * argv[])
     TRDP_ERR_T err;
     unsigned tick = 0;
 
-    printf("TRDP process data test program, version r178\n");
+    printf("TRDP process data test program, version SVN $Rev:$\n");
 
     if (argc < 4)
     {

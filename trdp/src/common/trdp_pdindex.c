@@ -889,10 +889,16 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
                    (appHandle->pSndQueue->pFrame != NULL) &&
                    (appHandle->pSndQueue->pFrame->frameHead.msgType == vos_htons(TRDP_MSG_PR)))
             {
+                /* Defensive programming: Prohibit endless loop! */
+                PD_ELE_T    *pBefore = appHandle->pSndQueue;
                 err = trdp_pdSendElement(appHandle, &appHandle->pSndQueue);
                 if (err != TRDP_NO_ERR)
                 {
                     result = err;   /* return first error, only. Keep on sending... */
+                }
+                if (appHandle->pSndQueue == pBefore)
+                {
+                    break;  /* In case the request wasn't removed */
                 }
             }
         }

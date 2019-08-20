@@ -222,7 +222,7 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
     TRDP_APP_SESSION_T appHandle)
 {
     TRDP_ERR_T  result = TRDP_NO_ERR;
-    TRDP_ERR_T  err;
+    TRDP_ERR_T  err = TRDP_NO_ERR;
 
     if (!trdp_isValidSession(appHandle))
     {

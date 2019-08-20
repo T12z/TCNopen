@@ -479,7 +479,7 @@ int main (int argc, char *argv[])
     while (sComThreadRunning)
     {
         /* Just idle... */
-        vos_threadDelay(1000000u);
+        (void) vos_threadDelay(1000000u);
     }
 
     /*

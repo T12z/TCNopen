@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-08-20: Ticket #276 Bug with PD requests and replies in high performance
 *      SB 2019-08-15: Taking service Id from header in trdp_pdReceive()
 *      BL 2019-08-14: Ticket #161 Change of internal handling of trdp_pdCheckListenSocks()
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -973,7 +974,7 @@ TRDP_ERR_T  trdp_pdReceive (
                     /* trigger immediate sending of PD  */
                     pPulledElement->privFlags |= TRDP_REQ_2B_SENT;
 
-                    if (trdp_pdSendQueued(appHandle) != TRDP_NO_ERR)
+                    if (trdp_pdSendElement(appHandle, &pPulledElement) != TRDP_NO_ERR)
                     {
                         /*  We do not break here, only report error */
                         vos_printLogStr(VOS_LOG_WARNING, "Error sending one or more PD packets\n");

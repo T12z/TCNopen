@@ -495,7 +495,7 @@ int main (int argc, char * *argv)
     {
         /* sleep a while, then produce some data ... */
 
-        vos_threadDelay(100000u);
+        (void) vos_threadDelay(100000u);
 
         /* Update the information, that is sent */
         sprintf((char *)gBuffer, "Ping for the %dth. time.", hugeCounter++);

@@ -154,7 +154,7 @@ int main(int argc, char * *argv)
      */
     while (gKeepOnRunning)
     {
-       vos_threadDelay(1000000);
+       (void) vos_threadDelay(1000000);
 
     }
     vos_sockTerm();
