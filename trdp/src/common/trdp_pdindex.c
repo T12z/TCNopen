@@ -1112,7 +1112,7 @@ PD_ELE_T *trdp_indexedFindSubAddr (
 
     if (pFirstMatchedPD)
     {
-        while ((pFirstMatchedPD != (PD_ELE_T**)*(appHandle->pSlot->pRcvTableComId)) &&
+        while ((pFirstMatchedPD != appHandle->pSlot->pRcvTableComId) &&
                ((*(pFirstMatchedPD - 1))->addr.comId == pAddr->comId))
         {
             pFirstMatchedPD--;
