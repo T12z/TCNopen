@@ -81,7 +81,7 @@
 #   define TRDP_MAX_PD_SOCKET_CNT       VOS_MAX_SOCKET_CNT          /**< all available sockets for PD                 */
 #endif
 
-#if (TRDP_MAX_PD_SOCKET_CNT <= 0)
+#if (TRDP_MAX_PD_SOCKET_CNT < 3)
 #error "**** Not enough sockets available!"
 #endif
 
