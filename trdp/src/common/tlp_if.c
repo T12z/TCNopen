@@ -17,7 +17,8 @@
 /*
 * $Id$
 *
-*      SB 2018-08-20: Fixed lint errors and warnings
+*      SB 2019-08-21: Ticket #276: Bug with PD requests and replies in high performance mode 
+*      SB 2019-08-20: Fixed lint errors and warnings
 *      BL 2019-07-09: Ticket #270 Bug in handling of PD telegrams with new topocounters
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -1111,8 +1112,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
                     /*  Find a possible redundant entry in one of the other sessions and sync
                         the sequence counter! curSeqCnt holds the last sent sequence counter,
                         therefore set the value initially to -1, it will be incremented when sending... */
-                    pReqElement->curSeqCnt = trdp_getSeqCnt(pReqElement->addr.comId,
-                                                            TRDP_MSG_PR, pReqElement->addr.srcIpAddr) - 1;
+                    pReqElement->curSeqCnt = 0xFFFFFFFF;
                     /*    Enter this request into the send queue.    */
                     trdp_queueInsFirst(&appHandle->pSndQueue, pReqElement);
                 }
