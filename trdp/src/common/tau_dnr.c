@@ -214,11 +214,11 @@ static CHAR8 *readName (UINT8 *pReader, UINT8 *pBuffer, UINT32 *pCount, CHAR8 *p
  */
 static void changetoDnsNameFormat (UINT8 *pDns, CHAR8 *pHost)
 {
-    int lock = 0, i;
+    UINT8 lock = 0, i;
 
     vos_strncat(pHost, TRDP_MAX_URI_HOST_LEN, ".");
 
-    for (i = 0; i < (int)strlen((char *)pHost); i++)
+    for (i = 0; i < (UINT8)strlen((char *)pHost); i++)
     {
         if (pHost[i] == '.')
         {

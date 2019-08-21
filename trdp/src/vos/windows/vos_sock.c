@@ -1613,7 +1613,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
         if (rcvSize > 0)
         {
             bufferSize  -= rcvSize;
-            pBuffer     += rcvSize;
+            pBuffer     += rcvSize; /*lint !e662 pointer should only be out of bounds, when loop ends */
             *pSize      += rcvSize;
         }
 
