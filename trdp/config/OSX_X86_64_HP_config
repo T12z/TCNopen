@@ -1,5 +1,5 @@
 #//
-#// $Id$
+#// $Id: OSX_X86_64_config 1935 2019-07-10 10:01:25Z bloehr $
 #//
 #// DESCRIPTION    Config file to make TRDP for OSX_X86_64 target
 #//
@@ -25,3 +25,4 @@ INCPATH += -I /usr/include/uuid
 # Additional sources for TSN support
 
 SOA_SUPPORT = 1
+HIGH_PERF_INDEXED = 1

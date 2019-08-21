@@ -133,7 +133,7 @@ endif
 TARGETS = outdir libtrdp
 
 ifneq ($(TARGET_OS),VXWORKS)
-	TARGETS += example test pdtest mdtest xml highperf marshall
+	TARGETS += example test pdtest mdtest xml marshall
 else
 	TARGETS += vtests
 endif
@@ -153,6 +153,7 @@ ifeq ($(TSN_SUPPORT),1)
 endif
 
 ifeq ($(HIGH_PERF_INDEXED),1)
+	TARGETS += highperf
 	TRDP_OBJS += trdp_pdindex.o
 	CFLAGS += -DHIGH_PERF_INDEXED -DPD_SPEED
 #	Option: Building high performance stack
@@ -556,6 +557,7 @@ help:
 	@$(ECHO) "  * LINUX_TSN_config             - (experimental) Native build for RTLinux with basic TSN support" >&2
 	@$(ECHO) "  * OSX_X86_config               - Native (X86) build for OS X 32Bit" >&2
 	@$(ECHO) "  * OSX_X86_64_config            - Native (X86) build for OS X 64Bit" >&2
+	@$(ECHO) "  * OSX_X86_64_HP_config         - Native (X86) build for OS X 64Bit as high performance library" >&2
 	@$(ECHO) "  * POSIX_X86_config             - Native build for POSIX compliant systems" >&2
 	@$(ECHO) "  * QNX_X86_config               - (experimental) Native (X86) build for QNX" >&2
 	@$(ECHO) "  * VXWORKS_KMODE_PPC_config     - (experimental) Building for VXWORKS kernel mode for PowerPC" >&2
