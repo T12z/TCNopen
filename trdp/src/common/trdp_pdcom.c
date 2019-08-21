@@ -17,7 +17,7 @@
 /*
 * $Id$
 *
-*      BL 2019-08-20: Ticket #276 Bug with PD requests and replies in high performance
+*      BL 2019-08-21: Ticket #276 Bug with PD requests and replies in high performance
 *      SB 2019-08-15: Taking service Id from header in trdp_pdReceive()
 *      BL 2019-08-14: Ticket #161 Change of internal handling of trdp_pdCheckListenSocks()
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -515,7 +515,10 @@ TRDP_ERR_T  trdp_pdSendElement (
     }
 #endif
     /* Reset "immediate" flag for request or requested packet */
-    iterPD->privFlags = (TRDP_PRIV_FLAGS_T) (iterPD->privFlags & ~(TRDP_PRIV_FLAGS_T)TRDP_REQ_2B_SENT);
+    if (iterPD->privFlags & TRDP_REQ_2B_SENT)
+    {
+        iterPD->privFlags = (TRDP_PRIV_FLAGS_T) (iterPD->privFlags & ~(TRDP_PRIV_FLAGS_T)TRDP_REQ_2B_SENT);
+    }
 
     /* remove one shot messages after they have been sent */
     if (iterPD->pFrame->frameHead.msgType == vos_htons(TRDP_MSG_PR))    /* Ticket #172: remove element */
