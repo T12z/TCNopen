@@ -78,7 +78,8 @@ void trdp_initStats (
         return;
     }
 
-    memset(&appHandle->stats, 0, sizeof(TRDP_STATISTICS_T));
+    /* memset(&appHandle->stats, 0, sizeof(TRDP_STATISTICS_T)); #272: we should not do this, it is cleared already and
+                                                                    has the some configuration properties already! */  
 
     pVersion = tlc_getVersion();
     appHandle->stats.version = (UINT32) pVersion->ver << 24 | (UINT32) pVersion->rel << 16 |
