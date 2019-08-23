@@ -15,6 +15,7 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2019. All rights reserved.
  */
 /*
+ *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
  *      BL 2019-06-17: Ticket #264 Provide service oriented interface
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2019-06-17: Ticket #161 Increase performance
@@ -719,6 +720,8 @@ typedef struct
                                                   Default: Don't wait                                       */
 #define TRDP_OPTION_NO_PD_STATS         0x40u   /**< Suppress PD statistics \
                                                   Default: Don't suppress                                   */
+#define TRDP_OPTION_DEFAULT_CONFIG      0x80u   /**< no XML process config, defaults were used              */
+
 typedef UINT8 TRDP_OPTION_T;
 
 /**********************************************************************************************************************/

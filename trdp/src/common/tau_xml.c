@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
  *      SB 2018-08-20: Fixed lint errors and warnings
  *      SB 2018-07-10: Ticket #264: Added parsing of service definitions for service oriented interface
  *      BL 2019-06-12: Ticket #262 XML Parsing Bug Fixes for Debug Output Print Level and SDTv2 Parameters
@@ -171,7 +172,7 @@ static void setDefaultInterfaceValues (
         memset(pProcessConfig->hostName, 0, sizeof(TRDP_LABEL_T));
         memset(pProcessConfig->leaderName, 0, sizeof(TRDP_LABEL_T));
         pProcessConfig->cycleTime   = TRDP_PROCESS_DEFAULT_CYCLE_TIME;
-        pProcessConfig->options     = TRDP_PROCESS_DEFAULT_OPTIONS;
+        pProcessConfig->options     = TRDP_PROCESS_DEFAULT_OPTIONS | TRDP_OPTION_DEFAULT_CONFIG;
         pProcessConfig->priority    = TRDP_PROCESS_DEFAULT_PRIORITY;
     }
 
@@ -1311,6 +1312,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlInterfaceConfig (
                                 else if (vos_strnicmp(attribute, "cycle-time", MAX_TOK_LEN) == 0)
                                 {
                                     pProcessConfig->cycleTime = valueInt;
+                                    pProcessConfig->options &= ~TRDP_OPTION_DEFAULT_CONFIG;
                                 }
                             }
                         }
