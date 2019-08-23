@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-08-23: Ticket #162 Mutex handling in tlc_process corrected
 *      SB 2018-08-20: Fixed lint errors and warnings
 *      BL 2019-07-15: Ticket #272 Missing initialization of values in Global Statistics
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -1285,55 +1286,74 @@ EXT_DECL TRDP_ERR_T tlc_process (
          Find and send the packets which have to be sent next:
          ******************************************************/
 
-        err = trdp_pdSendQueued(appHandle);
-
-        if (err != TRDP_NO_ERR)
+        if (vos_mutexTryLock(appHandle->mutexTxPD) == VOS_NO_ERR)
         {
-            /*  We do not break here, only report error */
-            result = err;
-            /* vos_printLog(VOS_LOG_ERROR, "trdp_pdSendQueued failed (Err: %d)\n", err);*/
-        }
+            err = trdp_pdSendQueued(appHandle);
 
-        /******************************************************
-         Find packets which are pending/overdue
-         ******************************************************/
-        trdp_pdHandleTimeOuts(appHandle);
-
-#if MD_SUPPORT
-
-        err = trdp_mdSend(appHandle);
-        if (err != TRDP_NO_ERR)
-        {
-            if (err == TRDP_IO_ERR)
+            if (err != TRDP_NO_ERR)
             {
-                vos_printLogStr(VOS_LOG_INFO, "trdp_mdSend() incomplete \n");
-
-            }
-            else
-            {
+                /*  We do not break here, only report error */
                 result = err;
-                vos_printLog(VOS_LOG_ERROR, "trdp_mdSend() failed (Err: %d)\n", err);
+                /* vos_printLog(VOS_LOG_ERROR, "trdp_pdSendQueued failed (Err: %d)\n", err);*/
+            }
+
+            if (vos_mutexUnlock(appHandle->mutexTxPD) != VOS_NO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
             }
         }
 
-#endif
-
-        /******************************************************
-         Find packets which are to be received
-         ******************************************************/
-        err = trdp_pdCheckListenSocks(appHandle, pRfds, pCount);
-        if (err != TRDP_NO_ERR)
+        if (vos_mutexLock(appHandle->mutexRxPD) == VOS_NO_ERR)
         {
-            /*  We do not break here */
-            result = err;
+            /******************************************************
+             Find packets which are pending/overdue
+             ******************************************************/
+            trdp_pdHandleTimeOuts(appHandle);
+
+            /******************************************************
+             Find packets which are to be received
+             ******************************************************/
+            err = trdp_pdCheckListenSocks(appHandle, pRfds, pCount);
+            if (err != TRDP_NO_ERR)
+            {
+                /*  We do not break here */
+                result = err;
+            }
+
+            if (vos_mutexUnlock(appHandle->mutexRxPD) != VOS_NO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+            }
         }
 
 #if MD_SUPPORT
 
-        trdp_mdCheckListenSocks(appHandle, pRfds, pCount);
+        if (vos_mutexLock(appHandle->mutexMD) == VOS_NO_ERR)
+        {
+            err = trdp_mdSend(appHandle);
+            if (err != TRDP_NO_ERR)
+            {
+                if (err == TRDP_IO_ERR)
+                {
+                    vos_printLogStr(VOS_LOG_INFO, "trdp_mdSend() incomplete \n");
 
-        trdp_mdCheckTimeouts(appHandle);
+                }
+                else
+                {
+                    result = err;
+                    vos_printLog(VOS_LOG_ERROR, "trdp_mdSend() failed (Err: %d)\n", err);
+                }
+            }
 
+            trdp_mdCheckListenSocks(appHandle, pRfds, pCount);
+
+            trdp_mdCheckTimeouts(appHandle);
+
+            if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
+            {
+                vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+            }
+        }
 #endif
 
         if (vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR)

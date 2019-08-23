@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      BL 2019-08-23: Possible crash on unsubscribing or unpublishing in High Performance mode
  *      SB 2019-08-21: Removed compiler warning and redundand code
  *      SB 2019-08-20: Fixed lint errors and warnings
  *      BL 2019-08-16: Better distribution of packets; starting table index = interval time, was starting at 0.
@@ -189,6 +190,38 @@ static void   print_table (
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
 }
 #endif
+
+/******************************************************************************/
+/** Remove publisher from one index table
+ *
+ *  @param[in]      pSlot               pointer to table entry
+ *  @param[in]      pElement            pointer of the publisher element to be removed
+ *
+ *  @retval         != 0                count of removed elements
+ */
+static int removePub (
+    TRDP_HP_CAT_SLOT_T *pSlot,
+    PD_ELE_T  *pElement)
+{
+    UINT32  depth;
+    UINT32  idx;
+    int     found = 0;
+
+    /* Find the packet in the short list */
+    for (idx = 0u; idx < pSlot->noOfTxEntries; idx++)
+    {
+        for (depth = 0u; depth < pSlot->depthOfTxEntries; depth++)
+        {
+            if (getElement(pSlot, idx, depth) == pElement)    /* hit? */
+            {
+                /* remove it */
+                setElement(pSlot, idx, depth, NULL);
+                found++;
+            }
+        }
+    }
+    return found;
+}
 
 /**********************************************************************************************************************/
 /** Return the category for the index tables
@@ -752,7 +785,7 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
             }
         }
 
-        if ((idxLow % 10) == 0u)
+        if ((idxLow % 10) == 5u)
         {
             idxMid = (cycleN / pSlot->midCat.slotCycle) % pSlot->midCat.noOfTxEntries;
 
@@ -1073,6 +1106,94 @@ void trdp_indexCheckPending (
     }
 }
 
+/******************************************************************************/
+/** Remove publisher from the index tables
+ *
+ *  @param[in]      appHandle           session pointer
+ *  @param[in]      pElement            pointer of the publisher element to be removed
+ *
+ */
+void    trdp_indexRemovePub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement)
+{
+    UINT32  idx;
+    TRDP_HP_CAT_SLOTS_T *pSlot = appHandle->pSlot;
+
+    if (pSlot == NULL)
+    {
+        return;
+    }
+
+    vos_printLogStr(VOS_LOG_WARNING, "Unpublishing in High Performance Mode is NOT recommended!\n");
+
+    /* Find the packet in the short list */
+    if (removePub(&appHandle->pSlot->lowCat, pElement) != 0)
+    {
+        /* it can only be in one of these */
+        return;
+    }
+    /* Find the packet in the short list */
+    if (removePub(&appHandle->pSlot->midCat, pElement) != 0)
+    {
+        /* it can only be in one of these */
+        return;
+    }
+    /* Find the packet in the short list */
+    if (removePub(&appHandle->pSlot->highCat, pElement) != 0)
+    {
+        /* it can only be in one of these */
+        return;
+    }
+
+    /* Must be an extended interval entry */
+    if (pSlot->noOfExtTxEntries != 0)
+    {
+        for (idx = 0; idx < pSlot->noOfExtTxEntries; idx++)
+        {
+            if (pSlot->pExtTxTable[idx] == pElement)
+            {
+                pSlot->pExtTxTable[idx] = NULL;
+            }
+        }
+    }
+}
+
+/******************************************************************************/
+/** Remove subscriber from the index tables
+ *
+ *  @param[in]      appHandle           session pointer
+ *  @param[in]      pElement            pointer of the subscriber to be removed
+ *
+ */
+void    trdp_indexRemoveSub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement)
+{
+    TRDP_ERR_T  err = TRDP_NO_ERR;
+
+    if (appHandle->pSlot == NULL)
+    {
+        return;
+    }
+
+    vos_printLogStr(VOS_LOG_WARNING, "Unsubscribing in High Performance Mode is NOT recommended!\n");
+
+    /* we must re-create these index tables!
+      So, delete them first: */
+    if (appHandle->pSlot->pRcvTableComId != NULL)
+    {
+        vos_memFree(appHandle->pSlot->pRcvTableComId);
+    }
+    if (appHandle->pSlot->pRcvTableTimeOut != NULL)
+    {
+        vos_memFree(appHandle->pSlot->pRcvTableTimeOut);
+    }
+    appHandle->pSlot->noOfRxEntries = 0;
+
+    err = trdp_indexCreateSubTables(appHandle);
+
+    if (err != TRDP_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_ERROR, "Critical error while unsubscribing in High Performance Mode! (%d)\n", err);
+    }
+}
 
 #ifdef __cplusplus
 }

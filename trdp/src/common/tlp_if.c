@@ -17,7 +17,8 @@
 /*
 * $Id$
 *
-*      SB 2019-08-21: Ticket #276: Bug with PD requests and replies in high performance mode 
+*      BL 2019-08-23: Possible crash on unsubscribing or unpublishing in High Performance mode
+*      SB 2019-08-21: Ticket #276: Bug with PD requests and replies in high performance mode
 *      SB 2019-08-20: Fixed lint errors and warnings
 *      BL 2019-07-09: Ticket #270 Bug in handling of PD telegrams with new topocounters
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -816,6 +817,9 @@ TRDP_ERR_T  tlp_unpublish (
         {
             ret = trdp_pdDistribute(appHandle->pSndQueue);
         }
+#else
+        /* We must check if this publisher is listed in our indexed arrays */
+        trdp_indexRemovePub (appHandle, pElement);
 #endif
 
         if (vos_mutexUnlock(appHandle->mutexTxPD) != VOS_NO_ERR)
@@ -1429,6 +1433,12 @@ EXT_DECL TRDP_ERR_T tlp_unsubscribe (
             vos_memFree(pElement->pSeqCntList);
         }
         vos_memFree(pElement);
+
+#ifdef HIGH_PERF_INDEXED
+        /* We must check if this publisher is listed in our indexed arrays */
+        trdp_indexRemoveSub (appHandle, pElement);
+#endif
+
         ret = TRDP_NO_ERR;
         if (vos_mutexUnlock(appHandle->mutexRxPD) != VOS_NO_ERR)
         {

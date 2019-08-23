@@ -18,6 +18,7 @@
  *
  * $Id$
  *
+ *      BL 2019-08-23: Init macro changed for High Performance mode, cycle time is 3rd parm
  *      BL 2019-07-09: Ticket #161/162 Tests for Version 2 features
  */
 
@@ -302,6 +303,30 @@ static char xmlBuffer[] =
 /**********************************************************************************************************************/
 /*  Macro to initialize the library and open two sessions                                                             */
 /**********************************************************************************************************************/
+#define PREPARE2(a, b, c)                                                           \
+    gFailed = 0;                                                                \
+    TRDP_ERR_T err = TRDP_NO_ERR;                                               \
+    TRDP_APP_SESSION_T appHandle1 = NULL, appHandle2 = NULL;                    \
+    {                                                                           \
+        gFullLog = FALSE;                                                       \
+        fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
+        appHandle1 = test_init(dbgOut, &gSession1, (b), (c));                   \
+        if (appHandle1 == NULL)                                                 \
+        {                                                                       \
+            gFailed = 1;                                                        \
+            goto end;                                                           \
+        }                                                                       \
+        appHandle2 = test_init(NULL, &gSession2, (b), (c));                     \
+        if (appHandle2 == NULL)                                                 \
+        {                                                                       \
+            gFailed = 1;                                                        \
+            goto end;                                                           \
+        }                                                                       \
+    }
+
+/**********************************************************************************************************************/
+/*  Macro to initialize the library and open two sessions                                                             */
+/**********************************************************************************************************************/
 #define PREPARE(a, b)                                                           \
     gFailed = 0;                                                                \
     TRDP_ERR_T err = TRDP_NO_ERR;                                               \
@@ -309,13 +334,13 @@ static char xmlBuffer[] =
     {                                                                           \
         gFullLog = FALSE;                                                       \
         fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
-        appHandle1 = test_init(dbgOut, &gSession1, (b));                        \
+        appHandle1 = test_init(dbgOut, &gSession1, (b), 10000u);                        \
         if (appHandle1 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
             goto end;                                                           \
         }                                                                       \
-        appHandle2 = test_init(NULL, &gSession2, (b));                          \
+        appHandle2 = test_init(NULL, &gSession2, (b), 10000u);                          \
         if (appHandle2 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
@@ -333,7 +358,7 @@ static char xmlBuffer[] =
     {                                                                           \
         gFullLog = FALSE;                                                       \
         fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
-        appHandle1 = test_init(dbgOut, &gSession1, "");                         \
+        appHandle1 = test_init(dbgOut, &gSession1, "", 10000u);                 \
         if (appHandle1 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
@@ -558,15 +583,15 @@ static void usage (const char *appName)
 static TRDP_APP_SESSION_T test_init (
     TRDP_PRINT_DBG_T        dbgout,
     TRDP_THREAD_SESSION_T   *pSession,
-    const char              *name)
+    const char              *name,
+    UINT32                  cycleTime)
 {
     TRDP_ERR_T err = TRDP_NO_ERR;
     pSession->appHandle     = NULL;
     pSession->threadIdRxPD  = 0;
     pSession->threadIdTxPD  = 0;
     pSession->threadIdMD    = 0;
-    TRDP_PROCESS_CONFIG_T procConf = {"Test", "me", 1000u, 0, TRDP_OPTION_NONE};
-
+    TRDP_PROCESS_CONFIG_T procConf = {"Test", "me", cycleTime, 0, TRDP_OPTION_NONE};
 
     /* Initialise only once! */
     if (dbgout != NULL)
@@ -595,13 +620,13 @@ static TRDP_APP_SESSION_T test_init (
     }
     if (err == TRDP_NO_ERR)
     {
-        printf("Creating PD Sender task with cycle time:\t%uµs\n", 1000u);
+        printf("Creating PD Sender task with cycle time:\t%uµs\n", procConf.cycleTime);
         /* Send thread is a cyclic thread, runs until cancel */
         err = (TRDP_ERR_T) vos_threadCreate(&pSession->threadIdTxPD,
                                             "Sender Task",
                                             VOS_THREAD_POLICY_OTHER,
                                             (VOS_THREAD_PRIORITY_T) VOS_THREAD_PRIORITY_HIGHEST,
-                                            1000u,
+                                            procConf.cycleTime,
                                             0u,
                                             (VOS_THREAD_FUNC_T) senderThreadPD,
                                             pSession);
@@ -2068,11 +2093,11 @@ static int test14 ()
         /*
          Enter the main processing loop.
          */
-        int counter = 0;
-        while (counter < 5)         /* 0.5 seconds */
+        unsigned int counter = 0;
+        while (counter < 5u)         /* 0.5 seconds */
         {
 
-            sprintf(data1, "Just a Counter: %08d", counter++);
+            sprintf(data1, "Just a Counter: %08u", counter++);
 
             err = tlp_put(gSession1.appHandle, pubHandle, (UINT8 *) data1, (UINT32) strlen(data1));
             IF_ERROR("tap_put");
@@ -2361,18 +2386,20 @@ static int test17 ()
 
         {
             UINT8 str[] = "123456789";
-            UINT32 result, seed, len = strlen((char *) str);
+            UINT32 result, seed;
+            size_t len = strlen((char *) str);
             /* CRC of the string "123456789" is 0x1697d06a ??? */
             seed    = 0;
-            result  = vos_sc32(seed, str, len);
+            result  = vos_sc32(seed, str, (UINT32)len);
             fprintf(gFp, "sc32 of '%s' (seed = %0x) is 0x%08x\n", str, seed, result);
         }
         {
             UINT8 str[] = "123456789";
-            UINT32 result, seed, len = strlen((char *) str);
+            UINT32 result, seed;
+            size_t len = strlen((char *) str);
             /* CRC of the string "123456789" is 0x1697d06a ??? */
             seed    = 0xFFFFFFFF;
-            result  = vos_sc32(seed, str, len);
+            result  = vos_sc32(seed, str, (UINT32)len);
             fprintf(gFp, "sc32 of '%s' (seed = %0x) is 0x%08x\n", str, seed, result);
         }
 
@@ -2407,7 +2434,7 @@ static int test18 ()
         TRDP_COM_PAR_T *pComPar;
         UINT32 numIfConfig;
         TRDP_IF_CONFIG_T *pIfConfig;
-        int i;
+        unsigned int i;
 
         err = tau_prepareXmlMem(xmlBuffer, strlen(xmlBuffer), &docHnd);
         IF_ERROR("tau_prepareXmlMem");
@@ -2415,7 +2442,7 @@ static int test18 ()
         err = tau_readXmlDeviceConfig(&docHnd, &memConfig, &dbgConfig, &numComPar, &pComPar, &numIfConfig, &pIfConfig);
         IF_ERROR("tau_readXmlDeviceConfig");
 
-        for (i = 0; i < numIfConfig; i++)
+        for (i = 0u; i < numIfConfig; i++)
         {
             fprintf(gFp, "interface label: %s\n", pIfConfig[i].ifName);             /**< interface name   */
             fprintf(gFp, "network ID     : %u\n", pIfConfig[i].networkId);          /**< used network on the device
@@ -2433,19 +2460,20 @@ static int test18 ()
 }
 
 /**********************************************************************************************************************/
-/** test19
+/** Verification/debugging tests for Tickets #161/162 (High Performance)
  *
  *  @retval         0        no error
  *  @retval         1        some error
  */
 static int test19 ()
 {
-    PREPARE("Send many telegrams, to check new indexed algorithm", "test");     /* allocates appHandle1,
+#define TEST19_CYCLE_TIME           1000u          /* 1ms */
+
+    PREPARE2("Send many telegrams, to check new indexed algorithm", "test", TEST19_CYCLE_TIME);     /* allocates appHandle1,
                                                                                       appHandle2, failed = 0, err */
 
     /* ------------------------- test code starts here --------------------------- */
 
-#define TEST19_CYCLE_TIME           1000u          /* 1ms */
 
 #define TEST19_COMID_BASE           1000u
 #define TEST19_COMID_BASE1          2000u
@@ -2696,12 +2724,13 @@ static void  test20CBFunction (
 
 static int test20 ()
 {
-    PREPARE("Send and receive many telegrams, to check new indexed algorithm", "test");     /* allocates appHandle1,
-                                                                                 appHandle2, failed = 0, err */
+#define TEST20_CYCLE_TIME           5000u          /* 5ms */
+
+    PREPARE2("Send and receive many telegrams, to check new indexed algorithm", "test", TEST20_CYCLE_TIME);
+    /* allocates appHandle1, appHandle2, failed = 0, err */
 
     /* ------------------------- test code starts here --------------------------- */
 
-#define TEST20_CYCLE_TIME           5000u          /* 5ms */
 
 #define TEST20_COMID_BASE           1000u
 #define TEST20_COMID_BASE1          2000u
@@ -3050,7 +3079,7 @@ static int test20 ()
 }
 
 /**********************************************************************************************************************/
-/** test21
+/** Verification/debugging tests for Tickets #161/162 (High Performance)
  *
  *  @retval         0        no error
  *  @retval         1        some error
@@ -3097,11 +3126,12 @@ static void  test21CBFunction (
 
 static int test21 ()
 {
-    PREPARE("Send and receive telegrams, to check new indexed receive algorithm", "test");
+#define TEST21_CYCLE_TIME           10000u          /* 10ms */
+
+    PREPARE2("Send and receive telegrams, to check new indexed receive algorithm", "test", TEST21_CYCLE_TIME);
 
     /* ------------------------- test code starts here --------------------------- */
 
-#define TEST21_CYCLE_TIME           10000u          /* 5ms */
 
 #define TEST21_COMID_BASE           1000u
 
@@ -3193,7 +3223,7 @@ static int test21 ()
 
         UINT32 i;
 
-        TRDP_PROCESS_CONFIG_T procConf  = {"TestHost", "me", TEST20_CYCLE_TIME, 0, TRDP_OPTION_NONE};
+        TRDP_PROCESS_CONFIG_T procConf  = {"TestHost", "me", TEST21_CYCLE_TIME, 0, TRDP_OPTION_NONE};
         TRDP_PD_CONFIG_T pdConfig       =
         {test21CBFunction, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB,
             100000u, TRDP_TO_SET_TO_ZERO, 0};
@@ -3258,17 +3288,24 @@ static int test21 ()
             {
                 /* sprintf(lArray[i].pData, "ComId %08u", i); */
                 (void) tlp_put(gSession1.appHandle, pubHandle[i], (UINT8 *) lArray[i].pData, lArray[i].dataLen);
-
             }
 
-            /*
-             for (i = 0; i < noOfTelegrams; i++)
-             {
-             TRDP_PD_INFO_T pdInfo;
-             //sprintf(lArray[i].pData, "ComId %08u", i);
-             (void) tlp_get(gSession2.appHandle, subHandle[i], &pdInfo, buffer, &size);
-             }
-             */
+            if (counter == 5)
+            {
+                for (i = 0; i < noOfTelegrams/2; i++)
+                {
+                    /*    Unpublish some publishers    */
+
+                    err = tlp_unpublish(gSession1.appHandle, pubHandle[i]);
+
+                    IF_ERROR("tlp_unpublish");
+
+                    /*    Unsubscribe some subscribers    */
+                    err = tlp_unsubscribe(gSession2.appHandle, subHandle[i]);
+
+                    IF_ERROR("tlp_unsubscribe");
+                }
+            }
         }
 
         vos_threadDelay(5000000); /* Let it run for 5s */  
@@ -3308,7 +3345,7 @@ test_func_t *testArray[] =
     test18,  /* XML stream */
     test19,  /* Basic test of PD send performance enhancement */
     test20,  /* Basic test of PD receive performance enhancement */
-    test21,  /* Basic test of PD receive performance enhancement */
+    test21,  /* Basic test of PD send/receive performance enhancement, unpublish/unsubscribe while operating */
     NULL
 };
 

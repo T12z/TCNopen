@@ -741,6 +741,7 @@
 		08BFF28D20247203005E2AB8 /* sourceFiltering */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sourceFiltering; sourceTree = BUILT_PRODUCTS_DIR; };
 		08BFF29A2024759D005E2AB8 /* NTT_CommonHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTT_CommonHeader.h; sourceTree = "<group>"; };
 		08BFF29B2024759D005E2AB8 /* sourceFiltering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sourceFiltering.c; sourceTree = "<group>"; };
+		08C14636230D482F00508AC6 /* trdp-md-test-fast.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "trdp-md-test-fast.c"; sourceTree = "<group>"; };
 		08C44FE11F2231B300AB84EF /* tau_dnr_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tau_dnr_types.h; sourceTree = "<group>"; };
 		08C5E46B22B146C8004D2028 /* trdp-xmlpd-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-xmlpd-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		08CE2171164A6E130038151B /* trdp_reserved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = trdp_reserved.h; path = marshalling/trdp_reserved.h; sourceTree = "<group>"; };
@@ -1456,6 +1457,7 @@
 				73134A341BCBDC7900E3BF88 /* rep-testreplier.c */,
 				73134A351BCBDC7900E3BF88 /* trdp-md-test.xml */,
 				7367955D17202EBE003C68ED /* trdp-md-test.c */,
+				08C14636230D482F00508AC6 /* trdp-md-test-fast.c */,
 			);
 			path = mdpatterns;
 			sourceTree = "<group>";
@@ -3614,6 +3616,7 @@
 					"-DL_ENDIAN",
 					"-D__APPLE__",
 					"-DHIGH_PERF_INDEXED",
+					"-pthread",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3691,6 +3694,7 @@
 					"-DPOSIX",
 					"-DL_ENDIAN",
 					"-D__APPLE__",
+					"-pthread",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4011,6 +4015,7 @@
 					"-DDEBUG",
 					"-D_DARWIN_C_SOURCE",
 					"-DHIGH_PERF_INDEXED",
+					"-pthread",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -4616,6 +4621,7 @@
 					"-DL_ENDIAN",
 					"-DDEBUG",
 					"-D_DARWIN_C_SOURCE",
+					"-pthread",
 				);
 				PRODUCT_NAME = trdp64;
 				SDKROOT = macosx;

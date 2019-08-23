@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-08-23: Use legacy reception if no index table
 *      BL 2019-08-21: Ticket #276 Bug with PD requests and replies in high performance
 *      SB 2019-08-15: Taking service Id from header in trdp_pdReceive()
 *      BL 2019-08-14: Ticket #161 Change of internal handling of trdp_pdCheckListenSocks()
@@ -805,10 +806,11 @@ TRDP_ERR_T  trdp_pdReceive (
 
     /*  Examine subscription queue, are we interested in this PD?   */
 #ifdef HIGH_PERF_INDEXED
-    if (appHandle->pSlot == NULL)
+    if ((appHandle->pSlot == NULL) ||
+        (appHandle->pSlot->noOfRxEntries == 0))
     {
         /*  If not set up until now, we issue a warning, but handle the data...   */
-        vos_printLogStr(VOS_LOG_WARNING, "Receiving PD while tlc_updateSession() not yet called.\n");
+        vos_printLogStr(VOS_LOG_WARNING, "Receiving PD while tlc_updateSession() not yet called or rcvIdx empty.\n");
         pExistingElement = trdp_queueFindSubAddr(appHandle->pRcvQueue, &subAddresses);
     }
     else

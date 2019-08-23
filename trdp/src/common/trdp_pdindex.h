@@ -43,7 +43,7 @@
 /** Supported and recomended cycle times for the tlp_processTransmit loop   */
 #define TRDP_DEFAULT_CYCLE      1000u
 #define TRDP_MIN_CYCLE          1000u
-#define TRDP_MAX_CYCLE          5000u
+#define TRDP_MAX_CYCLE          10000u
 
 #define TRDP_LOW_CYCLE          1000                    /* 1...99ms         */
 #define TRDP_MID_CYCLE          10000                   /* 100ms...990ms    */
@@ -86,7 +86,6 @@ typedef struct hp_slots
     PD_ELE_T            * *pRcvTableComId;              /**< Pointer to sorted array of PDs to be handled       */
     PD_ELE_T            * *pRcvTableTimeOut;            /**< Pointer to sorted array of PDs to be handled       */
 
-    UINT32              largeCycle;                     /**< overflow cycle to handle slow PDs and PD requests  */
     UINT8               noOfExtTxEntries;               /**< number of 'special' PDs to be handled              */
     PD_ELE_T            * *pExtTxTable;                 /**< Pointer to array of PDs to be handled              */
 } TRDP_HP_CAT_SLOTS_T;
@@ -110,5 +109,7 @@ void        trdp_indexCheckPending (TRDP_APP_SESSION_T  appHandle,
                                     TRDP_TIME_T         *pInterval,
                                     TRDP_FDS_T          *pFileDesc,
                                     INT32               *pNoDesc);
+void        trdp_indexRemovePub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement);
+void        trdp_indexRemoveSub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement);
 
 #endif /* TRDP_PDINDEX_H */
