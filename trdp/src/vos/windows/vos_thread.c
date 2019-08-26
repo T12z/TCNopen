@@ -18,6 +18,7 @@
 /*
 * $Id$
 *
+*      SB 2019-08-26: Added sub millisecond precision to vos_runCyclicThread
 *      SB 2019-08-13: Ticket #274: Cyclic parameters are now freed in the called thread
 *     AHW 2018-09-13: replaced by code of vos_thread.c to use native code of VS 2015 instead of pthread
 *      BL 2018-08-06: CloseHandle succeeds with return value != 0
@@ -103,26 +104,32 @@ static void vos_runCyclicThread (
     UINT32              interval    = pParameters->interval;
     VOS_THREAD_FUNC_T   pFunction   = pParameters->pFunction;
     void                *pArguments = pParameters->pArguments;
-    VOS_TIMEVAL_T       priorCall;
-    VOS_TIMEVAL_T       afterCall;
+    LARGE_INTEGER       priorCall;
+    LARGE_INTEGER       afterCall;
+    LARGE_INTEGER       difference;
+    LARGE_INTEGER       frequency;
     UINT32              execTime;
     UINT32              waitingTime;
 
     vos_memFree(pParameters);
+    (void) QueryPerformanceFrequency(&frequency);
 
     for (;; )
     {
-        vos_getTime(&priorCall); /* get initial time */
+        (void) QueryPerformanceCounter(&priorCall); /* get initial time */
         pFunction(pArguments);  /* perform thread function */
-        vos_getTime(&afterCall); /* get time after function ghas returned */
+        (void) QueryPerformanceCounter(&afterCall); /* get time after function has returned */
         /* subtract in the pattern after - prior to get the runtime of function() */
-        vos_subTime(&afterCall, &priorCall);
+        difference.QuadPart = afterCall.QuadPart - priorCall.QuadPart;
+        /* multiplying with usecs per sec, because frequency is in counts per sec */
+        difference.QuadPart = difference.QuadPart * (MSECS_PER_SEC * USECS_PER_MSEC); 
+        difference.QuadPart = difference.QuadPart / frequency.QuadPart;
         /* afterCall holds now the time difference within a structure not compatible with interval */
         /* check if UINT32 fits to hold the waiting time value */
-        if (afterCall.tv_sec <= MAXSEC_FOR_USECPRESENTATION)
+        if (difference.HighPart == 0)
         {
             /*           sec to usec conversion value normalized from 0 .. 999999*/
-            execTime = ((afterCall.tv_sec * MSECS_PER_SEC * USECS_PER_MSEC) + (UINT32)afterCall.tv_usec);
+            execTime = difference.LowPart;
             if (execTime > interval)
             {
                 /*severe error: cyclic task time violated*/
@@ -145,9 +152,20 @@ static void vos_runCyclicThread (
             /* Have this value range violation logged */
             vos_printLog(VOS_LOG_ERROR,
                          "cyclic thread with interval %d usec exceeded time out by running %d sec\n",
-                         interval, afterCall.tv_sec);
+                         interval, (afterCall.QuadPart / (MSECS_PER_SEC * USECS_PER_MSEC)));
         }
-        (void)vos_threadDelay(waitingTime);
+        /* sleep, if waitingTime is at least 1 ms */
+        if (waitingTime > USECS_PER_MSEC)
+        {
+            (void)vos_threadDelay(waitingTime);
+        }
+        while (difference.QuadPart < interval)
+        {
+            (void) QueryPerformanceCounter(&afterCall);
+            difference.QuadPart = afterCall.QuadPart - priorCall.QuadPart;
+            difference.QuadPart = difference.QuadPart * (MSECS_PER_SEC * USECS_PER_MSEC);
+            difference.QuadPart = difference.QuadPart / frequency.QuadPart;
+        }
     }
 }
 
