@@ -18,6 +18,7 @@
  *
  * $Id$
  *
+ *      BL 2019-08-27: Interval timing in test 9 changed
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  */
 
@@ -1320,7 +1321,7 @@ static int test9 ()
     {
 #define TEST9_NO_OF_TELEGRAMS   200u
 #define TEST9_COMID             10000u
-#define TEST9_INTERVAL          100000u
+#define TEST9_INTERVAL          20000u
 #define TEST9_TIMEOUT           (TEST9_INTERVAL * 3)
 #define TEST9_DATA              "Hello World!"
 #define TEST9_DATA_LEN          16u
@@ -1373,7 +1374,7 @@ static int test9 ()
                 (void) tlp_put(gSession1.appHandle, pubHandle[i], (UINT8 *) data2, TEST9_DATA_LEN);
 
                 /*    Wait for answer   */
-                usleep(100000u);
+                vos_threadDelay(TEST9_INTERVAL * 2);
 
                 err = tlp_get(gSession2.appHandle, subHandle[i], &pdInfo, (UINT8 *) data2, &dataSize2);
                 if (err == TRDP_NODATA_ERR)
