@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-08-27: Changed send failure from ERROR to WARNING
 *      BL 2019-08-23: Use legacy reception if no index table
 *      BL 2019-08-21: Ticket #276 Bug with PD requests and replies in high performance
 *      SB 2019-08-15: Taking service Id from header in trdp_pdReceive()
@@ -1462,7 +1463,7 @@ TRDP_ERR_T  trdp_pdSend (
 
     if (err != VOS_NO_ERR)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "trdp_pdSend failed\n");
+        vos_printLogStr(VOS_LOG_WARNING, "trdp_pdSend failed\n");
         return TRDP_IO_ERR;
     }
 

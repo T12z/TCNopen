@@ -17,7 +17,8 @@
 /*
 * $Id$
 *
-*      SB 2019-07-11: Added includes linux/if_vlan.h and linux/sockios.h 
+*      BL 2019-08-27: Changed send failure from ERROR to WARNING
+*      SB 2019-07-11: Added includes linux/if_vlan.h and linux/sockios.h
 *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
 *      V 2.0.0 --------- ^^^ -----------
 *      V 1.4.2 --------- vvv -----------
@@ -1164,7 +1165,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "sendto() to %s:%u failed (Err: %s)\n",
+        vos_printLog(VOS_LOG_WARNING, "sendto() to %s:%u failed (Err: %s)\n",
                      inet_ntoa(destAddr.sin_addr), (unsigned int)port, buff);
         return VOS_IO_ERR;
     }

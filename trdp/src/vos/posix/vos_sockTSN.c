@@ -646,7 +646,7 @@ EXT_DECL VOS_ERR_T vos_sockSendTSN (
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "sendmsg() to %s:%u failed (Err: %s)\n",
+        vos_printLog(VOS_LOG_WARNING, "sendmsg() to %s:%u failed (Err: %s)\n",
                      inet_ntoa(destAddr.sin_addr), (unsigned int)port, buff);
         return VOS_IO_ERR;
     }

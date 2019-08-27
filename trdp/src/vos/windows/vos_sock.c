@@ -18,6 +18,7 @@
 /*
 * $Id$*
 *
+*      BL 2019-08-27: Changed send failure from ERROR to WARNING
 *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
 *      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
 *      SB 2018-07-20: Ticket #209: vos_getInterfaces returning incorrect "name" and "linkState" on windows (requires
@@ -1143,7 +1144,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
 
     if (sendSize == SOCKET_ERROR)
     {
-        vos_printLog(VOS_LOG_ERROR, "sendto() to %s:%u failed (Err: %d)\n",
+        vos_printLog(VOS_LOG_WARNING, "sendto() to %s:%u failed (Err: %d)\n",
                      inet_ntoa(destAddr.sin_addr), port, err);
         return VOS_IO_ERR;
     }

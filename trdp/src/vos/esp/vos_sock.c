@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-08-27: Changed send failure from ERROR to WARNING
  *      BL 2019-02-22: lwip patch: recvfrom to return destIP
  *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
  *      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
@@ -850,7 +851,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "sendto() to %s:%u failed (Err: %s)\n",
+        vos_printLog(VOS_LOG_WARNING, "sendto() to %s:%u failed (Err: %s)\n",
                      inet_ntoa(destAddr.sin_addr), port, buff);
         return VOS_IO_ERR;
     }

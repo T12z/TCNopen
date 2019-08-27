@@ -17,6 +17,7 @@
  /*
  * $Id$*
  *
+ *      BL 2019-08-27: Changed send failure from ERROR to WARNING
  *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
  *      SB 2019-02-18: Ticket #227: vos_sockGetMAC() not name dependant anymore
  *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
@@ -1013,7 +1014,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "sendto() to %s:%u failed (Err: %s)\n",
+        vos_printLog(VOS_LOG_WARNING, "sendto() to %s:%u failed (Err: %s)\n",
                      inet_ntoa(destAddr.sin_addr), port, buff);
         return VOS_IO_ERR;
     }
