@@ -47,7 +47,7 @@ extern "C" {
 #define VOS_VERSION     2u
 #define VOS_RELEASE     0u
 #define VOS_UPDATE      0u
-#define VOS_EVOLUTION   1u
+#define VOS_EVOLUTION   2u
 
 #if (defined (WIN32) || defined (WIN64))
 
