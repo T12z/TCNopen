@@ -401,7 +401,7 @@ typedef struct
     UINT32  numFreeErr;                                 /**< free errors */
     UINT32  blockSize[VOS_MEM_NBLOCKSIZES];             /**< preallocated memory blocks */
     UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];         /**< used memory blocks */
-} GNU_PACKED TRDP_MEM_STATISTICS_T;
+} TRDP_MEM_STATISTICS_T;
 
 
 /** Structure containing all general PD statistics information. */
@@ -421,7 +421,7 @@ typedef struct
     UINT32  numTimeout;       /**< number of PD timeouts */
     UINT32  numSend;          /**< number of sent PD  packets */
     UINT32  numMissed;        /**< number of packets skipped */
-} GNU_PACKED TRDP_PD_STATISTICS_T;
+} TRDP_PD_STATISTICS_T;
 
 
 /** Structure containing all general MD statistics information. */
@@ -440,7 +440,7 @@ typedef struct
     UINT32  numReplyTimeout;       /**< number of reply timeouts */
     UINT32  numConfirmTimeout;     /**< number of confirm timeouts */
     UINT32  numSend;               /**< number of sent MD packets */
-} GNU_PACKED TRDP_MD_STATISTICS_T;
+} TRDP_MD_STATISTICS_T;
 
 
 /** Structure containing all general memory, PD and MD statistics information. */
