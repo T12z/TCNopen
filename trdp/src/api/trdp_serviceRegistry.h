@@ -6,7 +6,7 @@
  *                  The definitions herein are preliminary and may change with the next major release
  *                  of the IEC 61375-2-3 standard.
  *
- * @note            Project: CTA2 WP3
+ * @note            Project: CTA2 WP3 / TCNOpen TRDP
  *
  * @author          Bernd Loehr, NewTec GmbH, 2019-04-08
  *
@@ -67,28 +67,30 @@ extern "C" {
 /**                          Transport: MD over TCP preferred for reliability                                         */
 /**********************************************************************************************************************/
 
-/** SRM manager telegram MD: Read Services from the TTDB                                                            */
+/** SRM manager telegram MD: Read Services from the Consist-local Service Registry                                  */
 
 #define SRM_SERVICE_READ_REQ_COMID      112u
 #define SRM_SERVICE_READ_REQ_URI        "devECSP.anyVeh.lCst"
-#define SRM_SERVICE_READ_REQ_TO         3000000u                                       /**< [us] 3s timeout            */
+#define SRM_SERVICE_READ_REQ_TO         3000000u                                    /**< [us] 3s timeout            */
 
-#define SRM_SERVICE_READ_REP_COMID      SRM_SERVICE_COMID                           /**< MD reply                   */
+#define SRM_SERVICE_READ_REP_COMID      113u                                        /**< MD reply                   */
 #define SRM_SERVICE_READ_REP_DS         "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
 #define SRM_SERVICE_READ_REP_DSID       SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
-/** SRM manager telegram MD: Add service instance(s) to the Service Registry                                                   */
 
-#define SRM_SERVICE_ADD_REQ_COMID       113u
+/** SRM manager telegram MD: Add service instance(s) to the Service Registry                                        */
+
+#define SRM_SERVICE_ADD_REQ_COMID       114u
 #define SRM_SERVICE_ADD_REQ_URI         "devECSP.anyVeh.lCst"
-#define SRM_SERVICE_ADD_REQ_TO          3000000u                                       /**< [us] 3s timeout            */
+#define SRM_SERVICE_ADD_REQ_TO          3000000u                                    /**< [us] 3s timeout            */
 #define SRM_SERVICE_ADD_REQ_DS          "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
 #define SRM_SERVICE_ADD_REQ_DSID        SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
 
-#define SRM_SERVICE_ADD_REP_COMID       SRM_SERVICE_COMID                           /**< Reply returns instanceId   */
+#define SRM_SERVICE_ADD_REP_COMID       115u                                        /**< Reply returns instanceId   */
 #define SRM_SERVICE_ADD_REP_DSID        SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
 
 /** SRM manager telegram MD: Update service instance(s) to the Service Registry                                     */
-#define SRM_SERVICE_UPD_NOTIFY_COMID    SRM_SERVICE_COMID
+
+#define SRM_SERVICE_UPD_NOTIFY_COMID    116u
 #define SRM_SERVICE_UPD_NOTIFY_URI      "devECSP.anyVeh.lCst"
 #define SRM_SERVICE_UPD_NOTIFY_TTL      3000000u                                    /**< [us] default time-to-live  */
 #define SRM_SERVICE_UPD_NOTIFY_DS       "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
@@ -96,13 +98,13 @@ extern "C" {
 
 /** SRM manager telegram MD: Remove Service instance(s) from the Service Registry                                   */
 
-#define SRM_SERVICE_DEL_REQ_COMID       114u
+#define SRM_SERVICE_DEL_REQ_COMID       117u
 #define SRM_SERVICE_DEL_REQ_URI         "devECSP.anyVeh.lCst"
 #define SRM_SERVICE_DEL_REQ_TO          3000000u                                    /**< [us] 3s timeout            */
 #define SRM_SERVICE_DEL_REQ_DS          "SRM_SERVICE_ARRAY_T"                       /**< SRM_SERVICE_ARRAY_T        */
 #define SRM_SERVICE_DEL_REQ_DSID        SRM_SERVICE_DSID                            /**< SRM_SERVICE_ARRAY_T        */
 
-#define SRM_SERVICE_DEL_REP_COMID       0u                                          /**< MD reply OK or not         */
+#define SRM_SERVICE_DEL_REP_COMID       118u                                        /**< MD reply OK or not         */
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -112,7 +114,6 @@ extern "C" {
 #pragma pack(push, 1)
 #endif
 
-typedef UINT32  TRDP_SDTv2_T[4];            /**< placeholder for SDT trailer                                */
 typedef UINT8   UINT24[3];
 
 /** Preliminary definition of a service info entry */
@@ -207,7 +208,6 @@ typedef struct
     TRDP_SHORT_VERSION_T        version;        /**< 1.0 telegram version           */
     UINT16                      noOfEntries;    /**< number of entries in array     */
     SRM_SERVICE_REGISTRY_ENTRY  serviceEntry[1];/**< var. number of entries         */
-    TRDP_SDTv2_T                safetyTrail;    /**< opt. SDT trailer               */
 } GNU_PACKED SRM_SERVICE_ARRAY_T;
 
 /* The serviceID as transmitted in the reserved field of a PD telegram header is:

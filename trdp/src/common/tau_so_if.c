@@ -45,10 +45,18 @@
 
 typedef struct mdData
 {
-    VOS_SEMA_T              waitForResponse;    /**< semaphore to be released       */
-    SRM_SERVICE_ARRAY_T    *pServiceEntry;     /**< pointer to request/reply data  */
-    TRDP_ERR_T              returnVal;          /**< error return                   */
+    VOS_SEMA_T              waitForResponse;    /**< semaphore to be released               */
+    SRM_SERVICE_ARRAY_T     *pServiceEntry;     /**< pointer to request/reply data          */
+    UINT32                  bufferSize;         /**< buffer size if provided by application */
+    TRDP_ERR_T              returnVal;          /**< error return                           */
 } TAU_CB_BLOCK_T;
+
+typedef enum
+{
+    SRM_ADD,
+    SRM_DEL,
+    SRM_UPD
+} SRM_REQ_SELECTOR_T;
 
 /***********************************************************************************************************************
  *   Locals
@@ -56,8 +64,6 @@ typedef struct mdData
 
 /**********************************************************************************************************************/
 /**    Marshall/Unmarshall service telegram
- *
- *  Depending on the source SDT trailer, either (un)marshall or just copy the payload
  *
  *  @param[in]      pDest           Destination buffer
  *  @param[in]      pSource         Source buffer
@@ -72,46 +78,34 @@ static void netcpy (
     const SRM_SERVICE_ARRAY_T  *pSource,
     UINT32                      srcSize)
 {
-    TRDP_SDTv2_T    *pSafetyTrail;
-    UINT32          noOfServices;
+    UINT32  noOfServices;
+    UINT32  i;
 
-    /* first: copy all */
+    /* first: copy everything */
     memcpy(pDest, pSource, srcSize);
 
-    /* if the SDT trailer is not set, and we are on little endian, we should marshall */
 
-    pSafetyTrail = (TRDP_SDTv2_T *) ((UINT8 *)pDest                 /* start of telegram                        */
-                                     + srcSize                      /* end of telegram                          */
-                                     - sizeof(TRDP_SDTv2_T));       /* start of safety trailer                  */
-
-    /* check if the last 16 bytes (safety trailer) are zero: */
-
-    if (!(*pSafetyTrail[0] | *pSafetyTrail[1] | *pSafetyTrail[2] | *pSafetyTrail[3]) && !vos_hostIsBigEndian())
+    /* Determine number of entries */
+    noOfServices = (srcSize - (sizeof(SRM_SERVICE_ARRAY_T) - sizeof(SRM_SERVICE_REGISTRY_ENTRY))) /
+                        sizeof(SRM_SERVICE_REGISTRY_ENTRY);
+    pDest->noOfEntries = vos_htons(pDest->noOfEntries);
+    for (i = 0; i < noOfServices; i++)
     {
-        UINT32 i;
-
-        /* Determine number of entries */
-        noOfServices = (srcSize - (sizeof(SRM_SERVICE_ARRAY_T) - sizeof(SRM_SERVICE_REGISTRY_ENTRY))) /
-            sizeof(SRM_SERVICE_REGISTRY_ENTRY);
-        pDest->noOfEntries = vos_htons(pDest->noOfEntries);
-        for (i = 0; i < noOfServices; i++)
-        {
-            pDest->serviceEntry[i].serviceTypeId        = vos_htonl(pDest->serviceEntry[i].serviceTypeId);
-            pDest->serviceEntry[i].destMCIP             = vos_htonl(pDest->serviceEntry[i].destMCIP);
-            pDest->serviceEntry[i].machineIP            = vos_htonl(pDest->serviceEntry[i].machineIP);
-            pDest->serviceEntry[i].timeToLive.tv_sec    = vos_htonl(pDest->serviceEntry[i].timeToLive.tv_sec);
-            pDest->serviceEntry[i].timeToLive.tv_usec   = (INT32) vos_htonl(
-                    (UINT32) pDest->serviceEntry[i].timeToLive.tv_usec);
-            pDest->serviceEntry[i].lastUpdated.tv_sec   = vos_htonl(pDest->serviceEntry[i].lastUpdated.tv_sec);
-            pDest->serviceEntry[i].lastUpdated.tv_usec  = (INT32) vos_htonl(
-                    (UINT32) pDest->serviceEntry[i].lastUpdated.tv_usec);
-            pDest->serviceEntry[i].timeSlot.tv_sec  = vos_htonl(pDest->serviceEntry[i].timeSlot.tv_sec);
-            pDest->serviceEntry[i].timeSlot.tv_usec = (INT32) vos_htonl(
-                    (UINT32) pDest->serviceEntry[i].timeSlot.tv_usec);
-        }
-    }
-
+        pDest->serviceEntry[i].serviceTypeId        = vos_htonl(pDest->serviceEntry[i].serviceTypeId);
+        pDest->serviceEntry[i].destMCIP             = vos_htonl(pDest->serviceEntry[i].destMCIP);
+        pDest->serviceEntry[i].machineIP            = vos_htonl(pDest->serviceEntry[i].machineIP);
+        pDest->serviceEntry[i].timeToLive.tv_sec    = vos_htonl(pDest->serviceEntry[i].timeToLive.tv_sec);
+        pDest->serviceEntry[i].timeToLive.tv_usec   = (INT32) vos_htonl(
+                (UINT32) pDest->serviceEntry[i].timeToLive.tv_usec);
+        pDest->serviceEntry[i].lastUpdated.tv_sec   = vos_htonl(pDest->serviceEntry[i].lastUpdated.tv_sec);
+        pDest->serviceEntry[i].lastUpdated.tv_usec  = (INT32) vos_htonl(
+                (UINT32) pDest->serviceEntry[i].lastUpdated.tv_usec);
+        pDest->serviceEntry[i].timeSlot.tv_sec      = vos_htonl(pDest->serviceEntry[i].timeSlot.tv_sec);
+        pDest->serviceEntry[i].timeSlot.tv_usec     = (INT32) vos_htonl(
+                (UINT32) pDest->serviceEntry[i].timeSlot.tv_usec);
+     }
 }
+
 /**********************************************************************************************************************/
 /**    Function called on reception of message data
  *
@@ -150,9 +144,10 @@ static void soMDCallback (
     {
         if (pMsg->comId == SRM_SERVICE_ADD_REP_COMID)      /* Reply from ECSP */
         {
-            if (pContext->waitForResponse != NULL)
+            if ((pContext->waitForResponse != NULL) &&
+                (pData != NULL) && (dataSize > 0))
             {
-                /* copy if SDT or (un)marshall reply data */
+                /*  (un)marshall reply data */
                 netcpy(pContext->pServiceEntry, (SRM_SERVICE_ARRAY_T *) pData, dataSize);
             }
             else
@@ -165,6 +160,30 @@ static void soMDCallback (
             (pMsg->msgType == TRDP_MSG_MP))
         {
             pContext->returnVal = TRDP_NO_ERR;
+        }
+        if ((pMsg->comId == SRM_SERVICE_READ_REP_COMID) &&      /* Delete reply from ECSP */
+            (pMsg->msgType == TRDP_MSG_MP))
+        {
+            if ((pData != NULL) && (dataSize >= sizeof(SRM_SERVICE_ARRAY_T)))
+            {
+                SRM_SERVICE_ARRAY_T *pSrvList = (SRM_SERVICE_ARRAY_T*) vos_memAlloc(dataSize);
+                if (pSrvList == NULL)
+                {
+                    pContext->returnVal = TRDP_MEM_ERR;
+                    pContext->pServiceEntry =  NULL;
+                }
+                else
+                {
+                    /*  (un)marshall reply data */
+                    netcpy(pSrvList, (SRM_SERVICE_ARRAY_T *) pData, dataSize);
+                    pContext->pServiceEntry = pSrvList;
+                    pContext->returnVal = TRDP_NO_ERR;
+                }
+            }
+            else
+            {
+                pContext->returnVal = TRDP_NODATA_ERR;
+            }
         }
     }
     else if (pMsg->resultCode == TRDP_TIMEOUT_ERR)
@@ -182,15 +201,8 @@ static void soMDCallback (
     }
 }
 
-#pragma mark ----------------------- Public -----------------------------
-
 /**********************************************************************************************************************/
-/*    Train configuration information access                                                                          */
-/**********************************************************************************************************************/
-
-
-/**********************************************************************************************************************/
-/**    Function to access the service registry of the local TTDB.
+/**    Function to access the service registry of the local ECSP.
  *
  *
  *  @param[in]          appHandle           Handle returned by tlc_openSession().
@@ -205,17 +217,17 @@ static void soMDCallback (
  *  @retval             TRDP_SEMA_ERR       Semaphore could not be aquired
  *
  */
-EXT_DECL TRDP_ERR_T tau_addServices (
+static TRDP_ERR_T requestServices (
+    SRM_REQ_SELECTOR_T      selector,
     TRDP_APP_SESSION_T      appHandle,
     UINT16                  noOfServices,
-    SRM_SERVICE_ARRAY_T    *pServicesToAdd,
+    SRM_SERVICE_ARRAY_T     *pServicesToAdd,
     BOOL8                   waitForCompletion)
 {
     TRDP_ERR_T              err;
-    TRDP_SDTv2_T            *pSafetyTrail;
     SRM_SERVICE_ARRAY_T     *pPrivateBuffer = NULL;
     UINT32                  dataSize;
-    TAU_CB_BLOCK_T          context = {0, NULL, TRDP_NO_ERR};
+    TAU_CB_BLOCK_T          context = {0, NULL, 0u, TRDP_NO_ERR};
 
 
     if ((appHandle == NULL) ||
@@ -228,15 +240,8 @@ EXT_DECL TRDP_ERR_T tau_addServices (
     /* Compute the size of the data */;
     dataSize = sizeof(SRM_SERVICE_ARRAY_T) + (noOfServices - 1u) * sizeof(SRM_SERVICE_REGISTRY_ENTRY);
 
-    /* if the SDT trailer is not set, we need to copy/marshall the payload */
-
-    pSafetyTrail = (TRDP_SDTv2_T *) ((UINT8 *)pServicesToAdd        /* start of telegram                        */
-                                     + dataSize                     /* end of telegram                          */
-                                     - sizeof(TRDP_SDTv2_T));       /* start of safety trailer                  */
-
     /* check if the last 16 bytes (safety trailer) are zero: */
 
-    if (!(*pSafetyTrail[0] | *pSafetyTrail[1] | *pSafetyTrail[2] | *pSafetyTrail[3]) && !vos_hostIsBigEndian())
     {
         pPrivateBuffer = (SRM_SERVICE_ARRAY_T *) vos_memAlloc(dataSize);
         if (pPrivateBuffer == NULL)
@@ -248,10 +253,7 @@ EXT_DECL TRDP_ERR_T tau_addServices (
         /* copy if SDT or (un)marshall reply data */
         netcpy(context.pServiceEntry, pServicesToAdd, dataSize);
     }
-    else
-    {
-        context.pServiceEntry = pServicesToAdd;
-    }
+
     context.returnVal = TRDP_NO_ERR;
 
     /* if we should wait for the reply, create a semaphore and pass it to the callback routine */
@@ -265,11 +267,33 @@ EXT_DECL TRDP_ERR_T tau_addServices (
         }
     }
 
-    /* request the data now */
-    err = tlm_request(appHandle, &context, soMDCallback, NULL,
-                      SRM_SERVICE_ADD_REQ_COMID, 0u,
-                      0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                      SRM_SERVICE_ADD_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+    switch (selector)
+    {
+        case SRM_ADD:
+            /* request the data now */
+            err = tlm_request(appHandle, &context, soMDCallback, NULL,
+                              SRM_SERVICE_ADD_REQ_COMID, 0u,
+                              0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                              SRM_SERVICE_ADD_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+            break;
+        case SRM_UPD:
+            /* request the data now */
+            err = tlm_notify(appHandle, &context, soMDCallback,
+                              SRM_SERVICE_UPD_NOTIFY_COMID, 0u,
+                              0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_UPD_NOTIFY_URI), TRDP_FLAGS_CALLBACK,
+                              NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+            break;
+        case SRM_DEL:
+            /* request the data now */
+            err = tlm_request(appHandle, &context, soMDCallback, NULL,
+                              SRM_SERVICE_DEL_REQ_COMID, 0u,
+                              0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_DEL_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                              SRM_SERVICE_DEL_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+            break;
+        default:
+            err = TRDP_PARAM_ERR;
+            goto cleanup;
+    }
 
     if (err != TRDP_NO_ERR)
     {
@@ -277,7 +301,7 @@ EXT_DECL TRDP_ERR_T tau_addServices (
     }
     else if (waitForCompletion)
     {
-        /* Make sure the request is sent: */
+        /* Make sure the request is sent now: */
         (void) tlm_process(appHandle, NULL, NULL);
 
         /* wait on semaphore or timeout */
@@ -302,29 +326,164 @@ cleanup:
     return err;
 }
 
+
+#pragma mark ----------------------- Public -----------------------------
+
+/**********************************************************************************************************************/
+/*    Train configuration information access                                                                          */
+/**********************************************************************************************************************/
+
+
+/**********************************************************************************************************************/
+/** Function to add to the service registry of the consist-local SRM.
+ *  Note: If waitForCompletion == TRUE, this function will block until completion (or timeout).
+ *
+ *  @param[in]          appHandle           Handle returned by tlc_openSession().
+ *  @param[in]          noOfServices        No of services in the array
+ *  @param[in,out]      pServicesToAdd      Pointer to a service registry structure to be set and/or updated (returned)
+ *  @param[in]          waitForCompletion   if true, block for reply
+ *
+ *  @retval             TRDP_NO_ERR         no error
+ *  @retval             TRDP_PARAM_ERR      Parameter error
+ *  @retval             TRDP_NODATA_ERR     Data currently not available, try again later
+ *  @retval             TRDP_TIMEOUT_ERR    Reply timed out
+ *  @retval             TRDP_SEMA_ERR       Semaphore could not be aquired
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_addServices (
+    TRDP_APP_SESSION_T      appHandle,
+    UINT16                  noOfServices,
+    SRM_SERVICE_ARRAY_T    *pServicesToAdd,
+    BOOL8                   waitForCompletion)
+{
+    return requestServices(SRM_ADD, appHandle, noOfServices, pServicesToAdd, waitForCompletion);
+}
+
+/**********************************************************************************************************************/
+/** Remove the defined service from the service registry of the consist-local SRM.
+ *  Note: waitForCompletion is currently ignored, this function does not block.
+ *
+ *
+ *  @param[in]          appHandle           Handle returned by tlc_openSession().
+ *  @param[in]          noOfServices        No of services in the array
+ *  @param[in,out]      pServicesToRemove   Pointer to a service registry structure to be set and/or updated (returned)
+ *  @param[in]          waitForCompletion   if true, block for reply
+ *
+ *  @retval             TRDP_NO_ERR         no error
+ *  @retval             TRDP_PARAM_ERR      Parameter error
+ *  @retval             TRDP_NODATA_ERR     Data currently not available, try again later
+ *  @retval             TRDP_TIMEOUT_ERR    Reply timed out
+ *  @retval             TRDP_SEMA_ERR       Semaphore could not be aquired
+ *
+ */
 EXT_DECL TRDP_ERR_T tau_delServices (
-    TRDP_APP_SESSION_T          appHandle,
-    UINT16                      noOfServices,
-    const SRM_SERVICE_ARRAY_T  *pServicesToAdd,
-    BOOL8                       waitForCompletion)
+    TRDP_APP_SESSION_T      appHandle,
+    UINT16                  noOfServices,
+    SRM_SERVICE_ARRAY_T     *pServicesToRemove,
+    BOOL8                   waitForCompletion)
 {
-    return TRDP_UNKNOWN_ERR;
+    (void) waitForCompletion;
+    return requestServices(SRM_DEL, appHandle, noOfServices, pServicesToRemove, FALSE);
 }
 
+/**********************************************************************************************************************/
+/** Register an update a service. Same as addService.
+ *  Note: If waitForCompletion == TRUE, this function will block until completion (or timeout).
+ *
+ *
+ *  @param[in]          appHandle           Handle returned by tlc_openSession().
+ *  @param[in]          noOfServices        No of services in the array
+ *  @param[in,out]      pServicesToUpdate   Pointer to a service registry structure to be updated
+ *  @param[in]          waitForCompletion   if true, block for reply
+ *
+ *  @retval             TRDP_NO_ERR         no error
+ *  @retval             TRDP_PARAM_ERR      Parameter error
+ *  @retval             TRDP_NODATA_ERR     Data currently not available, try again later
+ *  @retval             TRDP_TIMEOUT_ERR    Reply timed out
+ *  @retval             TRDP_SEMA_ERR       Semaphore could not be aquired
+ *
+ */
 EXT_DECL TRDP_ERR_T tau_updServices (
-    TRDP_APP_SESSION_T          appHandle,
-    UINT16                      noOfServices,
-    const SRM_SERVICE_ARRAY_T  *pServicesToAdd,
-    BOOL8                       waitForCompletion)
+    TRDP_APP_SESSION_T      appHandle,
+    UINT16                  noOfServices,
+    SRM_SERVICE_ARRAY_T     *pServicesToUpdate,
+    BOOL8                   waitForCompletion)
 {
-    return TRDP_UNKNOWN_ERR;
-
+    return requestServices(SRM_ADD, appHandle, noOfServices, pServicesToUpdate, waitForCompletion);
 }
 
+/**********************************************************************************************************************/
+/**  Get a list of the services known by the service registry of the local TTDB / SRM.
+ *  Note: This function will block until completion (or timeout). The buffer must be provided by the caller.
+ *
+ *
+ *  @param[in]          appHandle               Handle returned by tlc_openSession().
+ *  @param[in,out]      ppServicesListBuffer    Pointer to pointer containing the list. Has to be vos_memfree'd by user
+ *
+ *  @retval             TRDP_NO_ERR         no error
+ *  @retval             TRDP_PARAM_ERR      Parameter error
+ *  @retval             TRDP_NODATA_ERR     Data currently not available, try again later
+ *  @retval             TRDP_TIMEOUT_ERR    Reply timed out
+ *
+ */
 EXT_DECL TRDP_ERR_T tau_getServiceList (
     TRDP_APP_SESSION_T      appHandle,
-    SRM_SERVICE_ARRAY_T    *pServicesToAdd)
+    SRM_SERVICE_ARRAY_T     **ppServicesListBuffer)
 {
-    return TRDP_UNKNOWN_ERR;
+    TRDP_ERR_T              err;
+    TAU_CB_BLOCK_T          context = {0, NULL, 0u, TRDP_NO_ERR};
 
+    if ((appHandle == NULL) ||
+        (ppServicesListBuffer == NULL))
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    VOS_ERR_T vos_err = vos_semaCreate(&context.waitForResponse, VOS_SEMA_FULL);
+    if (vos_err != VOS_NO_ERR)
+    {
+        err = TRDP_SEMA_ERR;
+        goto cleanup;
+    }
+
+    /* request the data now */
+    err = tlm_request(appHandle, &context, soMDCallback, NULL,
+                      SRM_SERVICE_READ_REQ_COMID, 0u,
+                      0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_READ_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
+                      SRM_SERVICE_READ_REQ_TO, NULL, NULL, 0u, NULL, NULL);
+
+    if (err == TRDP_NO_ERR)
+    {
+        /* Make sure the request is sent now and the reply can be received : */
+        (void) tlm_process(appHandle, NULL, NULL);
+
+        /* wait on semaphore or timeout */
+        VOS_ERR_T vos_err = vos_semaTake(context.waitForResponse, SRM_SERVICE_READ_REQ_TO);
+        if (vos_err == VOS_SEMA_ERR)
+        {
+            err = TRDP_TIMEOUT_ERR;
+            goto cleanup;
+        }
+        *ppServicesListBuffer = (SRM_SERVICE_ARRAY_T*) context.pServiceEntry;
+    }
+
+cleanup:
+
+    vos_semaDelete(context.waitForResponse);
+    return err;
+}
+
+/**********************************************************************************************************************/
+/**  Release the memory of a list received by tau_getServiceList
+ *
+ *
+ *  @param[in]          pServicesListBuffer    Pointer to list aquired by getServiceList.
+ *
+ *  @retval             none
+ *
+ */
+EXT_DECL void tau_freeServiceList (
+    SRM_SERVICE_ARRAY_T     *pServicesListBuffer)
+{
+    vos_memFree(pServicesListBuffer);
 }
