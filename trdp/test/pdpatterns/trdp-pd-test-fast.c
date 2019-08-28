@@ -868,7 +868,7 @@ static void printLog(
 {
     if (pLogFile != NULL)
     {
-        fprintf(pLogFile, "%s File: %s Line: %d %s\n", category==VOS_LOG_ERROR?"ERR ":(category==VOS_LOG_WARNING?"WAR ":(category==VOS_LOG_INFO?"INFO":"DBG ")), pFile, (int) line, pMsgStr);
+        fprintf(pLogFile, "%s File: %s Line: %d %s", category==VOS_LOG_ERROR?"ERR ":(category==VOS_LOG_WARNING?"WAR ":(category==VOS_LOG_INFO?"INFO":"DBG ")), pFile, (int) line, pMsgStr);
         fflush(pLogFile);
     }
 }

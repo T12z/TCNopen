@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 14 for Windows Desktop
+# Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_Tests", "TRDP_Tests\TRDP_Tests.vcxproj", "{8238C177-25D0-42E3-AD8E-3A4E61CFA079}"
@@ -74,13 +74,25 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP", "TRDP\TRDP.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_HighPerformance", "TRDP_HighPerformance\TRDP_HighPerformance.vcxproj", "{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_LocalTest2", "TRDP_LocalTest\TRDP_LocalTest.vcxproj", "{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_LocalTest", "TRDP_LocalTest\TRDP_LocalTest.vcxproj", "{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9} = {816CD0D9-C99D-40B9-94BB-56D979BA9AF9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_XMLPDTestFast", "TRDP_XMLPDTestFast\TRDP_XMLPDTestFast.vcxproj", "{871C2971-2155-4FD6-BFAB-0FABAFEC0633}"
+	ProjectSection(ProjectDependencies) = postProject
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9} = {816CD0D9-C99D-40B9-94BB-56D979BA9AF9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_PDTestFast", "TRDP_PDTestFast\TRDP_PDTestFast.vcxproj", "{36D915A4-13D2-4EFC-8F6C-A191CD865830}"
+	ProjectSection(ProjectDependencies) = postProject
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9} = {816CD0D9-C99D-40B9-94BB-56D979BA9AF9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_MDTestFast", "TRDP_MDTestFast\TRDP_MDTestFast.vcxproj", "{DEE1EDCD-2803-4AC8-ADC4-C8085E7F1509}"
+	ProjectSection(ProjectDependencies) = postProject
+		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9} = {816CD0D9-C99D-40B9-94BB-56D979BA9AF9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
