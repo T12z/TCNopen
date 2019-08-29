@@ -20,3 +20,8 @@ If you want to share your config file:
 
 You can use 'make help' to view available parameters and further make information. To build debug versions, you can
 call 'make' with the option DEBUG=1.
+
+*** Note: ***
+    For TRDP V2, makefiles regarding 'Ladder' have been moved into the 'ladder' directory!
+    To use them, they must be moved back to the trdp top directory, again.
+

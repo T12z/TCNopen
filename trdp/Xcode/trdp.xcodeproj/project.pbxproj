@@ -701,9 +701,6 @@
 		08014D33164840030065AADD /* SenderDemo_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SenderDemo_Prefix.pch; sourceTree = "<group>"; };
 		08090EE62018D86600CE518D /* readme-makefile.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "readme-makefile.txt"; path = "../readme-makefile.txt"; sourceTree = "<group>"; };
 		082938F420935967009A69C9 /* nestedDS.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = nestedDS.xml; sourceTree = "<group>"; };
-		082B3C06201F64F00061DF17 /* Makefile_TAUL */ = {isa = PBXFileReference; lastKnownFileType = text; name = Makefile_TAUL; path = ../Makefile_TAUL; sourceTree = "<group>"; };
-		082B3C07201F64F00061DF17 /* Makefile_TAUL_library */ = {isa = PBXFileReference; lastKnownFileType = text; name = Makefile_TAUL_library; path = ../Makefile_TAUL_library; sourceTree = "<group>"; };
-		082B3C08201F64F00061DF17 /* Makefile_TAUL_library_APP */ = {isa = PBXFileReference; lastKnownFileType = text; name = Makefile_TAUL_library_APP; path = ../Makefile_TAUL_library_APP; sourceTree = "<group>"; };
 		082B3C09201F66EE0061DF17 /* ladder */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ladder; path = ../ladder; sourceTree = "<group>"; };
 		0840586B20A0A57100C2821E /* mdTest4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mdTest4; sourceTree = BUILT_PRODUCTS_DIR; };
 		0846E26622396B84006C2BA7 /* trdp_tsn_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = trdp_tsn_def.h; sourceTree = "<group>"; };
@@ -811,9 +808,6 @@
 		732D87C91BA9571B004BF837 /* test_tau_tti */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_tau_tti; sourceTree = BUILT_PRODUCTS_DIR; };
 		7331A55C171566E400270642 /* pd_md_responder.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; name = pd_md_responder.c; path = ../test/diverse/pd_md_responder.c; sourceTree = "<group>"; tabWidth = 4; };
 		7331A5621715AB1F00270642 /* pd_md_responder */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pd_md_responder; sourceTree = BUILT_PRODUCTS_DIR; };
-		7334C1411742783700CA739C /* Makefile_Ladder */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text; name = Makefile_Ladder; path = ../Makefile_Ladder; sourceTree = SOURCE_ROOT; tabWidth = 4; };
-		7334C1421742783700CA739C /* Makefile_MDLadder */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text; name = Makefile_MDLadder; path = ../Makefile_MDLadder; sourceTree = SOURCE_ROOT; tabWidth = 4; };
-		7334C1431742783700CA739C /* Makefile_SE */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text; name = Makefile_SE; path = ../Makefile_SE; sourceTree = SOURCE_ROOT; tabWidth = 4; };
 		73361446165BBF4500A70D3D /* test_trafficShaping.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; name = test_trafficShaping.c; path = ../test/diverse/test_trafficShaping.c; sourceTree = "<group>"; tabWidth = 4; };
 		7336144C165BBF5B00A70D3D /* test_traffic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_traffic; sourceTree = BUILT_PRODUCTS_DIR; };
 		733615AA165BF91200A70D3D /* mdTest4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mdTest4.c; sourceTree = "<group>"; };
@@ -1338,12 +1332,6 @@
 				08090EE62018D86600CE518D /* readme-makefile.txt */,
 				73E4978516CE981E00045EFA /* Deviation Request.txt */,
 				73E051F015123F690058D590 /* Makefile */,
-				7334C1411742783700CA739C /* Makefile_Ladder */,
-				7334C1421742783700CA739C /* Makefile_MDLadder */,
-				7334C1431742783700CA739C /* Makefile_SE */,
-				082B3C06201F64F00061DF17 /* Makefile_TAUL */,
-				082B3C07201F64F00061DF17 /* Makefile_TAUL_library */,
-				082B3C08201F64F00061DF17 /* Makefile_TAUL_library_APP */,
 				085323DA20DD5BD200A29E56 /* component.mk */,
 				73CBA1AD19548350006648EE /* rules.mk */,
 				08594B071B6FB24E0066EA06 /* config */,
