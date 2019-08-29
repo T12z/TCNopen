@@ -74,7 +74,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP", "TRDP\TRDP.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_HighPerformance", "TRDP_HighPerformance\TRDP_HighPerformance.vcxproj", "{816CD0D9-C99D-40B9-94BB-56D979BA9AF9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_LocalTest", "TRDP_LocalTest\TRDP_LocalTest.vcxproj", "{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TRDP_LocalTest2", "TRDP_LocalTest2\TRDP_LocalTest2.vcxproj", "{CFBFD1F6-D645-48FF-83CD-AD9097AAB97E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{816CD0D9-C99D-40B9-94BB-56D979BA9AF9} = {816CD0D9-C99D-40B9-94BB-56D979BA9AF9}
 	EndProjectSection

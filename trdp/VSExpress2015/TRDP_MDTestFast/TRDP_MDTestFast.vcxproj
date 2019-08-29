@@ -23,7 +23,9 @@
     <ClCompile Include="..\..\test\mdpatterns\trdp-md-test-fast.c" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\Debug\x64\TRDP_HighPerformance.lib" />
+    <ProjectReference Include="..\TRDP_HighPerformance\TRDP_HighPerformance.vcxproj">
+      <Project>{816cd0d9-c99d-40b9-94bb-56d979ba9af9}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DEE1EDCD-2803-4AC8-ADC4-C8085E7F1509}</ProjectGuid>
@@ -82,6 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -89,6 +92,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
