@@ -2,7 +2,7 @@
 /**
  * @file            tau_so_if.c
  *
- * @brief           Functions for service oriented functions of the TTDB
+ * @brief           Access to service oriented functions of the SRM
  *
  * @details         Because of the asynchronous behavior of the TTI subsystem, the source functions (add/upd/del)
  *                  will return TRDP_NODATA_ERR if called with the the no-wait option.
@@ -35,6 +35,12 @@
 #include "tau_so_if.h"
 #include "vos_utils.h"
 
+#ifndef SOA_SUPPORT
+#warning \
+    "The service-oriented API and utility functions are preliminary and definitely not final! Use at your own risk!"
+#warning "Set compiler option SOA_SUPPORT=1 to enable serviceId filtering in libtrdp."
+#endif
+
 /***********************************************************************************************************************
  * DEFINES
  */
@@ -46,7 +52,7 @@
 typedef struct mdData
 {
     VOS_SEMA_T              waitForResponse;    /**< semaphore to be released               */
-    SRM_SERVICE_ARRAY_T     *pServiceEntry;     /**< pointer to request/reply data          */
+    SRM_SERVICE_ENTRIES_T   *pServiceEntry;     /**< pointer to request/reply data          */
     UINT32                  bufferSize;         /**< buffer size if provided by application */
     TRDP_ERR_T              returnVal;          /**< error return                           */
 } TAU_CB_BLOCK_T;
@@ -63,7 +69,7 @@ typedef enum
  */
 
 /**********************************************************************************************************************/
-/**    Marshall/Unmarshall service telegram
+/**    Marshall/Unmarshall a service telegram
  *
  *  @param[in]      pDest           Destination buffer
  *  @param[in]      pSource         Source buffer
@@ -74,36 +80,32 @@ typedef enum
  */
 
 static void netcpy (
-    SRM_SERVICE_ARRAY_T        *pDest,
-    const SRM_SERVICE_ARRAY_T  *pSource,
+    SRM_SERVICE_ENTRIES_T       *pDest,
+    const SRM_SERVICE_ENTRIES_T *pSource,
     UINT32                      srcSize)
 {
-    UINT32  noOfServices;
-    UINT32  i;
+    UINT16 idx, noOfEntries = (UINT16) srcSize / sizeof(SRM_SERVICE_INFO_T);
+
+    if (noOfEntries == 0u)
+    {
+        return;
+    }
 
     /* first: copy everything */
     memcpy(pDest, pSource, srcSize);
 
+    pDest->noOfEntries = vos_htons(pSource->noOfEntries);
 
-    /* Determine number of entries */
-    noOfServices = (srcSize - (sizeof(SRM_SERVICE_ARRAY_T) - sizeof(SRM_SERVICE_REGISTRY_ENTRY))) /
-                        sizeof(SRM_SERVICE_REGISTRY_ENTRY);
-    pDest->noOfEntries = vos_htons(pDest->noOfEntries);
-    for (i = 0; i < noOfServices; i++)
+    for (idx = 0; idx < noOfEntries; idx++)
     {
-        pDest->serviceEntry[i].serviceTypeId        = vos_htonl(pDest->serviceEntry[i].serviceTypeId);
-        pDest->serviceEntry[i].destMCIP             = vos_htonl(pDest->serviceEntry[i].destMCIP);
-        pDest->serviceEntry[i].machineIP            = vos_htonl(pDest->serviceEntry[i].machineIP);
-        pDest->serviceEntry[i].timeToLive.tv_sec    = vos_htonl(pDest->serviceEntry[i].timeToLive.tv_sec);
-        pDest->serviceEntry[i].timeToLive.tv_usec   = (INT32) vos_htonl(
-                (UINT32) pDest->serviceEntry[i].timeToLive.tv_usec);
-        pDest->serviceEntry[i].lastUpdated.tv_sec   = vos_htonl(pDest->serviceEntry[i].lastUpdated.tv_sec);
-        pDest->serviceEntry[i].lastUpdated.tv_usec  = (INT32) vos_htonl(
-                (UINT32) pDest->serviceEntry[i].lastUpdated.tv_usec);
-        pDest->serviceEntry[i].timeSlot.tv_sec      = vos_htonl(pDest->serviceEntry[i].timeSlot.tv_sec);
-        pDest->serviceEntry[i].timeSlot.tv_usec     = (INT32) vos_htonl(
-                (UINT32) pDest->serviceEntry[i].timeSlot.tv_usec);
-     }
+        /* Swap the ints > 8Bit */
+        pDest->serviceEntry[idx].serviceId      = vos_htonl(pSource->serviceEntry[idx].serviceId);
+        pDest->serviceEntry[idx].srvTTL.tv_sec  = vos_htonl(pSource->serviceEntry[idx].srvTTL.tv_sec);
+        pDest->serviceEntry[idx].srvTTL.tv_usec = (INT32) vos_htonl((UINT32) pSource->serviceEntry[idx].srvTTL.tv_usec);
+        pDest->serviceEntry[idx].addInfo[0]     = vos_htonl(pSource->serviceEntry[idx].addInfo[0]);
+        pDest->serviceEntry[idx].addInfo[1]     = vos_htonl(pSource->serviceEntry[idx].addInfo[1]);
+        pDest->serviceEntry[idx].addInfo[2]     = vos_htonl(pSource->serviceEntry[idx].addInfo[2]);
+    }
 }
 
 /**********************************************************************************************************************/
@@ -132,6 +134,7 @@ static void soMDCallback (
     (void) pRefCon;
     (void) appHandle;
 
+    vos_printLog(VOS_LOG_INFO, "MD received (comId %u)!\n", pMsg->comId);
     if (pContext == NULL)
     {
         vos_printLog(VOS_LOG_ERROR, "Callback called without context pointer (comId %u)!\n", pMsg->comId);
@@ -140,44 +143,39 @@ static void soMDCallback (
 
     pContext->returnVal = pMsg->resultCode;
 
-    if (pMsg->resultCode == TRDP_NO_ERR)
+    if ((pMsg->resultCode == TRDP_NO_ERR) &&
+        (pMsg->msgType == TRDP_MSG_MP))
     {
-        if (pMsg->comId == SRM_SERVICE_ADD_REP_COMID)      /* Reply from ECSP */
+        if (pMsg->comId == SRM_SERVICE_ADD_REP_COMID)           /* Reply from ECSP */
         {
-            if ((pContext->waitForResponse != NULL) &&
+            if ((pContext->waitForResponse != NULL) &&          /* In case the SRM has changed something... */
                 (pData != NULL) && (dataSize > 0))
             {
                 /*  (un)marshall reply data */
-                netcpy(pContext->pServiceEntry, (SRM_SERVICE_ARRAY_T *) pData, dataSize);
+                netcpy(pContext->pServiceEntry, (SRM_SERVICE_ENTRIES_T *) pData, dataSize);
             }
-            else
-            {
-                /* we ignore this reply */
-            }
-            pContext->returnVal = TRDP_NO_ERR;
+            pContext->returnVal = pMsg->resultCode;
         }
-        if ((pMsg->comId == SRM_SERVICE_DEL_REP_COMID) &&      /* Delete reply from ECSP */
-            (pMsg->msgType == TRDP_MSG_MP))
+        else if (pMsg->comId == SRM_SERVICE_DEL_REP_COMID)       /* Reply for delete request from ECSP */
         {
             pContext->returnVal = TRDP_NO_ERR;
         }
-        if ((pMsg->comId == SRM_SERVICE_READ_REP_COMID) &&      /* Delete reply from ECSP */
-            (pMsg->msgType == TRDP_MSG_MP))
+        else if (pMsg->comId == SRM_SERVICE_READ_REP_COMID)          /* Read reply from ECSP */
         {
-            if ((pData != NULL) && (dataSize >= sizeof(SRM_SERVICE_ARRAY_T)))
+            if ((pData != NULL) && (dataSize >= sizeof(SRM_SERVICE_ENTRIES_T)))
             {
-                SRM_SERVICE_ARRAY_T *pSrvList = (SRM_SERVICE_ARRAY_T*) vos_memAlloc(dataSize);
+                SRM_SERVICE_ENTRIES_T *pSrvList = (SRM_SERVICE_ENTRIES_T *) vos_memAlloc(dataSize);
                 if (pSrvList == NULL)
                 {
-                    pContext->returnVal = TRDP_MEM_ERR;
-                    pContext->pServiceEntry =  NULL;
+                    pContext->returnVal     = TRDP_MEM_ERR;
+                    pContext->pServiceEntry = NULL;
                 }
                 else
                 {
                     /*  (un)marshall reply data */
-                    netcpy(pSrvList, (SRM_SERVICE_ARRAY_T *) pData, dataSize);
+                    netcpy(pSrvList, (SRM_SERVICE_ENTRIES_T *) pData, dataSize);
                     pContext->pServiceEntry = pSrvList;
-                    pContext->returnVal = TRDP_NO_ERR;
+                    pContext->returnVal     = TRDP_NO_ERR;
                 }
             }
             else
@@ -202,12 +200,12 @@ static void soMDCallback (
 }
 
 /**********************************************************************************************************************/
-/**    Function to access the service registry of the local ECSP.
+/** Function to access the service registry of the local ECSP.
  *
  *
+ *  @param[in]          selector            Function selection
  *  @param[in]          appHandle           Handle returned by tlc_openSession().
- *  @param[in]          noOfServices        No of services in the array
- *  @param[in,out]      pServicesToAdd      Pointer to a service registry structure to be set and/or updated (returned)
+ *  @param[in,out]      pServiceToAdd       Pointer to a service registry structure to be set and/or updated (returned)
  *  @param[in]          waitForCompletion   if true, block for reply
  *
  *  @retval             TRDP_NO_ERR         no error
@@ -218,40 +216,40 @@ static void soMDCallback (
  *
  */
 static TRDP_ERR_T requestServices (
-    SRM_REQ_SELECTOR_T      selector,
-    TRDP_APP_SESSION_T      appHandle,
-    UINT16                  noOfServices,
-    SRM_SERVICE_ARRAY_T     *pServicesToAdd,
-    BOOL8                   waitForCompletion)
+    SRM_REQ_SELECTOR_T  selector,
+    TRDP_APP_SESSION_T  appHandle,
+    SRM_SERVICE_INFO_T  *pServiceToAdd,
+    BOOL8               waitForCompletion)
 {
-    TRDP_ERR_T              err;
-    SRM_SERVICE_ARRAY_T     *pPrivateBuffer = NULL;
-    UINT32                  dataSize;
-    TAU_CB_BLOCK_T          context = {0, NULL, 0u, TRDP_NO_ERR};
+    TRDP_ERR_T      err;
+    SRM_SERVICE_ENTRIES_T *pPrivateBuffer = NULL;
+    UINT32          dataSize;
+    TAU_CB_BLOCK_T  context = {0, NULL, 0u, TRDP_NO_ERR};
 
 
     if ((appHandle == NULL) ||
-        (noOfServices == 0u) ||
-        (pServicesToAdd == NULL))
+        (pServiceToAdd == NULL))
     {
         return TRDP_PARAM_ERR;
     }
 
     /* Compute the size of the data */;
-    dataSize = sizeof(SRM_SERVICE_ARRAY_T) + (noOfServices - 1u) * sizeof(SRM_SERVICE_REGISTRY_ENTRY);
-
-    /* check if the last 16 bytes (safety trailer) are zero: */
+    dataSize = sizeof(SRM_SERVICE_ENTRIES_T);
 
     {
-        pPrivateBuffer = (SRM_SERVICE_ARRAY_T *) vos_memAlloc(dataSize);
+        pPrivateBuffer = (SRM_SERVICE_ENTRIES_T *) vos_memAlloc(dataSize);
         if (pPrivateBuffer == NULL)
         {
             err = TRDP_MEM_ERR;
             goto cleanup;
         }
+
+        /* marshall request data */
+        pPrivateBuffer->version.ver     = 1u;
+        pPrivateBuffer->noOfEntries     = 1u;
+        pPrivateBuffer->serviceEntry[0] = *pServiceToAdd;
+        netcpy(pPrivateBuffer, pPrivateBuffer, sizeof(SRM_SERVICE_ENTRIES_T));
         context.pServiceEntry = pPrivateBuffer;
-        /* copy if SDT or (un)marshall reply data */
-        netcpy(context.pServiceEntry, pServicesToAdd, dataSize);
     }
 
     context.returnVal = TRDP_NO_ERR;
@@ -270,25 +268,25 @@ static TRDP_ERR_T requestServices (
     switch (selector)
     {
         case SRM_ADD:
-            /* request the data now */
+            /* add data */
             err = tlm_request(appHandle, &context, soMDCallback, NULL,
                               SRM_SERVICE_ADD_REQ_COMID, 0u,
                               0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                              SRM_SERVICE_ADD_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+                              SRM_SERVICE_ADD_REQ_TO, NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);
             break;
         case SRM_UPD:
-            /* request the data now */
+            /* notify for changes */
             err = tlm_notify(appHandle, &context, soMDCallback,
-                              SRM_SERVICE_UPD_NOTIFY_COMID, 0u,
-                              0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_UPD_NOTIFY_URI), TRDP_FLAGS_CALLBACK,
-                              NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+                             SRM_SERVICE_UPD_NOTIFY_COMID, 0u,
+                             0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_UPD_NOTIFY_URI), TRDP_FLAGS_CALLBACK,
+                             NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);
             break;
         case SRM_DEL:
-            /* request the data now */
+            /* request the deletion */
             err = tlm_request(appHandle, &context, soMDCallback, NULL,
                               SRM_SERVICE_DEL_REQ_COMID, 0u,
                               0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_DEL_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                              SRM_SERVICE_DEL_REQ_TO, NULL, (UINT8*)context.pServiceEntry, dataSize, NULL, NULL);
+                              SRM_SERVICE_DEL_REQ_TO, NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);
             break;
         default:
             err = TRDP_PARAM_ERR;
@@ -302,7 +300,7 @@ static TRDP_ERR_T requestServices (
     else if (waitForCompletion)
     {
         /* Make sure the request is sent now: */
-        (void) tlm_process(appHandle, NULL, NULL);
+        /* (void) tlm_process(appHandle, NULL, NULL); */
 
         /* wait on semaphore or timeout */
         VOS_ERR_T vos_err = vos_semaTake(context.waitForResponse, SRM_SERVICE_ADD_REQ_TO);
@@ -330,7 +328,7 @@ cleanup:
 #pragma mark ----------------------- Public -----------------------------
 
 /**********************************************************************************************************************/
-/*    Train configuration information access                                                                          */
+/*    Service Oriented API - Access the Service Registry Manager                                                      */
 /**********************************************************************************************************************/
 
 
@@ -339,8 +337,7 @@ cleanup:
  *  Note: If waitForCompletion == TRUE, this function will block until completion (or timeout).
  *
  *  @param[in]          appHandle           Handle returned by tlc_openSession().
- *  @param[in]          noOfServices        No of services in the array
- *  @param[in,out]      pServicesToAdd      Pointer to a service registry structure to be set and/or updated (returned)
+ *  @param[in,out]      pServiceToAdd       Pointer to a service registry structure to be set and/or updated (returned)
  *  @param[in]          waitForCompletion   if true, block for reply
  *
  *  @retval             TRDP_NO_ERR         no error
@@ -350,13 +347,12 @@ cleanup:
  *  @retval             TRDP_SEMA_ERR       Semaphore could not be aquired
  *
  */
-EXT_DECL TRDP_ERR_T tau_addServices (
-    TRDP_APP_SESSION_T      appHandle,
-    UINT16                  noOfServices,
-    SRM_SERVICE_ARRAY_T    *pServicesToAdd,
-    BOOL8                   waitForCompletion)
+EXT_DECL TRDP_ERR_T tau_addService (
+    TRDP_APP_SESSION_T  appHandle,
+    SRM_SERVICE_INFO_T  *pServiceToAdd,
+    BOOL8               waitForCompletion)
 {
-    return requestServices(SRM_ADD, appHandle, noOfServices, pServicesToAdd, waitForCompletion);
+    return requestServices(SRM_ADD, appHandle, pServiceToAdd, waitForCompletion);
 }
 
 /**********************************************************************************************************************/
@@ -365,8 +361,7 @@ EXT_DECL TRDP_ERR_T tau_addServices (
  *
  *
  *  @param[in]          appHandle           Handle returned by tlc_openSession().
- *  @param[in]          noOfServices        No of services in the array
- *  @param[in,out]      pServicesToRemove   Pointer to a service registry structure to be set and/or updated (returned)
+ *  @param[in,out]      pServiceToRemove   Pointer to a service registry structure to be set and/or updated (returned)
  *  @param[in]          waitForCompletion   if true, block for reply
  *
  *  @retval             TRDP_NO_ERR         no error
@@ -376,14 +371,13 @@ EXT_DECL TRDP_ERR_T tau_addServices (
  *  @retval             TRDP_SEMA_ERR       Semaphore could not be aquired
  *
  */
-EXT_DECL TRDP_ERR_T tau_delServices (
-    TRDP_APP_SESSION_T      appHandle,
-    UINT16                  noOfServices,
-    SRM_SERVICE_ARRAY_T     *pServicesToRemove,
-    BOOL8                   waitForCompletion)
+EXT_DECL TRDP_ERR_T tau_delService (
+    TRDP_APP_SESSION_T  appHandle,
+    SRM_SERVICE_INFO_T  *pServiceToRemove,
+    BOOL8               waitForCompletion)
 {
     (void) waitForCompletion;
-    return requestServices(SRM_DEL, appHandle, noOfServices, pServicesToRemove, FALSE);
+    return requestServices(SRM_DEL, appHandle, pServiceToRemove, FALSE);
 }
 
 /**********************************************************************************************************************/
@@ -392,8 +386,7 @@ EXT_DECL TRDP_ERR_T tau_delServices (
  *
  *
  *  @param[in]          appHandle           Handle returned by tlc_openSession().
- *  @param[in]          noOfServices        No of services in the array
- *  @param[in,out]      pServicesToUpdate   Pointer to a service registry structure to be updated
+ *  @param[in,out]      pServiceToUpdate   Pointer to a service registry structure to be updated
  *  @param[in]          waitForCompletion   if true, block for reply
  *
  *  @retval             TRDP_NO_ERR         no error
@@ -403,13 +396,12 @@ EXT_DECL TRDP_ERR_T tau_delServices (
  *  @retval             TRDP_SEMA_ERR       Semaphore could not be aquired
  *
  */
-EXT_DECL TRDP_ERR_T tau_updServices (
-    TRDP_APP_SESSION_T      appHandle,
-    UINT16                  noOfServices,
-    SRM_SERVICE_ARRAY_T     *pServicesToUpdate,
-    BOOL8                   waitForCompletion)
+EXT_DECL TRDP_ERR_T tau_updService (
+    TRDP_APP_SESSION_T  appHandle,
+    SRM_SERVICE_INFO_T  *pServiceToUpdate,
+    BOOL8               waitForCompletion)
 {
-    return requestServices(SRM_ADD, appHandle, noOfServices, pServicesToUpdate, waitForCompletion);
+    return requestServices(SRM_ADD, appHandle, pServiceToUpdate, waitForCompletion);
 }
 
 /**********************************************************************************************************************/
@@ -418,7 +410,8 @@ EXT_DECL TRDP_ERR_T tau_updServices (
  *
  *
  *  @param[in]          appHandle               Handle returned by tlc_openSession().
- *  @param[in,out]      ppServicesListBuffer    Pointer to pointer containing the list. Has to be vos_memfree'd by user
+ *  @param[out]         ppServicesListBuffer    Pointer to pointer containing the list. Has to be vos_memfree'd by user
+ *  @param[out]         pNoOfServices           Pointer to no. of services in returned list
  *
  *  @retval             TRDP_NO_ERR         no error
  *  @retval             TRDP_PARAM_ERR      Parameter error
@@ -426,12 +419,13 @@ EXT_DECL TRDP_ERR_T tau_updServices (
  *  @retval             TRDP_TIMEOUT_ERR    Reply timed out
  *
  */
-EXT_DECL TRDP_ERR_T tau_getServiceList (
+EXT_DECL TRDP_ERR_T tau_getServicesList (
     TRDP_APP_SESSION_T      appHandle,
-    SRM_SERVICE_ARRAY_T     **ppServicesListBuffer)
+    SRM_SERVICE_ENTRIES_T   * *ppServicesListBuffer,
+    UINT32                  *pNoOfServices)
 {
-    TRDP_ERR_T              err;
-    TAU_CB_BLOCK_T          context = {0, NULL, 0u, TRDP_NO_ERR};
+    TRDP_ERR_T      err;
+    TAU_CB_BLOCK_T  context = {0, NULL, 0u, TRDP_NO_ERR};
 
     if ((appHandle == NULL) ||
         (ppServicesListBuffer == NULL))
@@ -454,17 +448,30 @@ EXT_DECL TRDP_ERR_T tau_getServiceList (
 
     if (err == TRDP_NO_ERR)
     {
-        /* Make sure the request is sent now and the reply can be received : */
-        (void) tlm_process(appHandle, NULL, NULL);
+        const UINT32    cWaitChunk  = 100000u;  /* 100ms steps */
+        UINT32          count       = SRM_SERVICE_READ_REQ_TO / cWaitChunk;
+        do
+        {
+            /* Make sure the request is sent now and the reply can be received : */
+            /* (void) tlm_process(appHandle, NULL, NULL); */
 
-        /* wait on semaphore or timeout */
-        VOS_ERR_T vos_err = vos_semaTake(context.waitForResponse, SRM_SERVICE_READ_REQ_TO);
+            /* wait on semaphore or timeout */
+            vos_err = vos_semaTake(context.waitForResponse, cWaitChunk);
+            if (vos_err == VOS_NO_ERR)
+            {
+                /* We got access fast, leave the loop. */
+                break;
+            }
+        }
+        while (count-- || (vos_err != VOS_NO_ERR));
+
         if (vos_err == VOS_SEMA_ERR)
         {
             err = TRDP_TIMEOUT_ERR;
             goto cleanup;
         }
-        *ppServicesListBuffer = (SRM_SERVICE_ARRAY_T*) context.pServiceEntry;
+        *ppServicesListBuffer   = (SRM_SERVICE_ENTRIES_T *) context.pServiceEntry;
+        *pNoOfServices          = (context.pServiceEntry != NULL) ? (*ppServicesListBuffer)->noOfEntries : 0;
     }
 
 cleanup:
@@ -482,8 +489,8 @@ cleanup:
  *  @retval             none
  *
  */
-EXT_DECL void tau_freeServiceList (
-    SRM_SERVICE_ARRAY_T     *pServicesListBuffer)
+EXT_DECL void tau_freeServicesList (
+    SRM_SERVICE_ENTRIES_T *pServicesListBuffer)
 {
     vos_memFree(pServicesListBuffer);
 }

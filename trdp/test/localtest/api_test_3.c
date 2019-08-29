@@ -74,238 +74,11 @@ typedef struct
 TRDP_THREAD_SESSION_T   gSession1 = {NULL, 0x0A000364u, 1, 0, 0, 0};
 TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 1, 0, 0, 0};
 
-/* Data buffers to play with (Content is borrowed from Douglas Adams, "The Hitchhiker's Guide to the Galaxy") */
-
-static uint8_t          dataBuffer1[(64 * 1024) -1] =
-{
-    "Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-    "This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-    "And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-    "Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-    "And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-    "Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-    "This is not her story.\n"
-    "But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-    "It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-    "Nevertheless, a wholly remarkable book.\n"
-    "In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-    "Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-    "In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-    "First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-    "But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-    "It begins with a house.\n"
-    "Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-    "This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-    "And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-    "Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-    "And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-    "Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-    "This is not her story.\n"
-    "But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-    "It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-    "Nevertheless, a wholly remarkable book.\n"
-    "In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-    "Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-    "In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-    "First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-    "But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-    "It begins with a house.\n"
-    "Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-    "This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-    "And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-    "Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-    "And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-    "Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-    "This is not her story.\n"
-    "But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-    "It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-    "Nevertheless, a wholly remarkable book.\n"
-    "In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-"Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-"In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-"First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-"But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-"It begins with a house.\n"
-"Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-"This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-"And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-"Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-"And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-"Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-"This is not her story.\n"
-"But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-"It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-"Nevertheless, a wholly remarkable book.\n"
-"In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-"Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-"In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-"First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-"But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-"It begins with a house.\n"
-"Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-"This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-"And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-"Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-"And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-"Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-"This is not her story.\n"
-"But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-"It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-"Nevertheless, a wholly remarkable book.\n"
-"In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-"Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-"In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-"First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-"But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-"It begins with a house.\n"
-"Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-"This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-"And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-"Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-"And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-"Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-"This is not her story.\n"
-"But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-"It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-"Nevertheless, a wholly remarkable book.\n"
-"In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-"Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-"In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-"First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-"But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-"It begins with a house.\n"
-"Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-"This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-"And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-"Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-"And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-"Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-"This is not her story.\n"
-"But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-"It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-"Nevertheless, a wholly remarkable book.\n"
-"In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-"Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-"In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-"First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-"But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-"It begins with a house.\n"
-"Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-"This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-"And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-"Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-"And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-"Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-"This is not her story.\n"
-"But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-"It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-"Nevertheless, a wholly remarkable book.\n"
-"In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-"Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-"In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-"First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-"But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-"It begins with a house.\n"
-"Far out in the uncharted backwaters of the unfashionable end of the western spiral arm of the Galaxy lies a small unregarded yellow sun. Orbiting this at a distance of roughly ninety-two million miles is an utterly insignificant little blue green planet whose ape-descended life forms are so amazingly primitive that they still think digital watches are a pretty neat idea.\n"
-"This planet has – or rather had – a problem, which was this: most of the people on it were unhappy for pretty much of the time. Many solutions were suggested for this problem, but most of these were largely concerned with the movements of small green pieces of paper, which is odd because on the whole it wasn’t the small green pieces of paper that were unhappy.\n"
-"And so the problem remained; lots of the people were mean, and most of them were miserable, even the ones with digital watches.\n"
-"Many were increasingly of the opinion that they’d all made a big mistake in coming down from the trees in the first place. And some said that even the trees had been a bad move, and that no one should ever have left the oceans.\n"
-"And then, one Thursday, nearly two thousand years after one man had been nailed to a tree for saying how great it would be to be nice to people for a change, one girl sitting on her own in a small cafe in Rickmansworth suddenly realized what it was that had been going wrong all this time, and she finally knew how the world could be made a good and happy place. This time it was right, it would work, and no one would have to get nailed to anything.\n"
-"Sadly, however, before she could get to a phone to tell anyone about it, a terribly stupid catastrophe occurred, and the idea was lost forever.\n"
-"This is not her story.\n"
-"But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-"It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-"Nevertheless, a wholly remarkable book.\n"
-"In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-"Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-"In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-"First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-"But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-"It begins with a house.\n" 
-};
-
-
-static uint8_t          dataBuffer2[(64 * 1024) - 1] =
-{
-    "But it is the story of that terrible stupid catastrophe and some of its consequences.\n"
-    "It is also the story of a book, a book called The Hitchhiker’s Guide to the Galaxy – not an Earth book, never published on Earth, and until the terrible catastrophe occurred, never seen or heard of by any Earthman.\n"
-    "Nevertheless, a wholly remarkable book.\n"
-    "In fact it was probably the most remarkable book ever to come out of the great publishing houses of Ursa Minor – of which no Earthman had ever heard either.\n"
-    "Not only is it a wholly remarkable book, it is also a highly successful one – more popular than the Celestial Home Care Omnibus, better selling than Fifty More Things to do in Zero Gravity, and more controversial than Oolon Colluphid’s trilogy of philosophical blockbusters Where God Went Wrong, Some More of God’s Greatest Mistakes and Who is this God Person Anyway?\n"
-    "In many of the more relaxed civilizations on the Outer Eastern Rim of the Galaxy, the Hitchhiker’s Guide has already supplanted the great Encyclopedia Galactica as the standard repository of all knowledge and wisdom, for though it has many omissions and contains much that is apocryphal, or at least wildly inaccurate, it scores over the older, more pedestrian work in two important respects.\n"
-    "First, it is slightly cheaper; and secondly it has the words Don’t Panic inscribed in large friendly letters on its cover.\n"
-    "But the story of this terrible, stupid Thursday, the story of its extraordi- nary consequences, and the story of how these consequences are inextricably intertwined with this remarkable book begins very simply.\n"
-    "It begins with a house.\n"
-};
-
-
-static uint8_t          dataBuffer3[64] =
-{
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
-};
-
-static char xmlBuffer[] =
-{
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-    "<device xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"trdp-config.xsd\" host-name=\"examplehost\" leader-name=\"leaderhost\" type=\"dummy\">"
-    "<device-configuration memory-size=\"65535\">"
-    "<mem-block-list>"
-    "<mem-block size=\"32\" preallocate=\"512\" />"
-    "<mem-block size=\"72\" preallocate=\"256\"/>"
-    "<mem-block size=\"128\" preallocate=\"256\"/>"
-    "</mem-block-list>"
-    "</device-configuration>"
-    ""
-    "<bus-interface-list>"
-    "<bus-interface network-id=\"1\" name=\"enp0s3:1\" host-ip=\"10.0.1.30\">"
-    "<trdp-process blocking=\"no\" cycle-time=\"100000\" priority=\"80\" traffic-shaping=\"on\" />"
-    "<pd-com-parameter marshall=\"on\" port=\"17224\" qos=\"5\" ttl=\"64\" timeout-value=\"1000000\" validity-behavior=\"zero\" />"
-    "<md-com-parameter udp-port=\"17225\" tcp-port=\"17225\""
-    "confirm-timeout=\"1000000\" connect-timeout=\"60000000\" reply-timeout=\"5000000\""
-    "marshall=\"off\" protocol=\"UDP\" qos=\"3\" retries=\"2\" ttl=\"64\" />"
-    "<telegram name=\"tlg1001\" com-id=\"3000\" data-set-id=\"1001\" com-parameter-id=\"1\">"
-    "<pd-parameter cycle=\"500000\" marshall=\"off\" timeout =\"3000000\" validity-behavior=\"keep\"/>"
-    "<source id=\"1\" uri1=\"239.1.1.2\" >"
-    "<sdt-parameter smi1=\"1234\" udv=\"56\" rx-period=\"500\" tx-period=\"2000\" />"
-    "</source>"
-    "</telegram>"
-    "<telegram name=\"tlg1005\" com-id=\"3001\" data-set-id=\"1001\" com-parameter-id=\"1\">"
-    "<pd-parameter cycle=\"500000\" marshall=\"off\" timeout =\"3000000\" validity-behavior=\"zero\"/>"
-    "<source id=\"1\" uri1=\"239.1.1.2\" />"
-    "</telegram>"
-    "</bus-interface>"
-    "</bus-interface-list>"
-    ""
-    "<mapped-device-list>"
-    "</mapped-device-list>"
-    ""
-    "<com-parameter-list>"
-    "<!--Default PD communication parameters-->"
-    "<com-parameter id=\"1\" qos=\"5\" ttl=\"64\" />"
-    "<!--Default MD communication parameters-->"
-    "<com-parameter id=\"2\" qos=\"3\" ttl=\"64\" />"
-    "<!--Own PD communication parameters-->"
-    "<com-parameter id=\"4\" qos=\"4\" ttl=\"2\" />"
-    "</com-parameter-list>"
-    ""
-    "<data-set-list>"
-    "<data-set name=\"testDS1001\" id=\"1001\">"
-    "<element name=\"r32\" type=\"REAL32\"/>"
-    "<element name=\"r64\" type=\"REAL64\"/>"
-    "</data-set>"
-    "</data-set-list>"
-    ""
-    "<debug file-name=\"trdp.log\" file-size=\"1000000\" info=\"DTFC\" level=\"W\" />"
-    "</device>"
-};
 
 /**********************************************************************************************************************/
 /*  Macro to initialize the library and open two sessions                                                             */
 /**********************************************************************************************************************/
-#define PREPARE2(a, b, c)                                                           \
+#define PREPARE2(a, b, c)                                                       \
     gFailed = 0;                                                                \
     TRDP_ERR_T err = TRDP_NO_ERR;                                               \
     TRDP_APP_SESSION_T appHandle1 = NULL, appHandle2 = NULL;                    \
@@ -336,13 +109,13 @@ static char xmlBuffer[] =
     {                                                                           \
         gFullLog = FALSE;                                                       \
         fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
-        appHandle1 = test_init(dbgOut, &gSession1, (b), 10000u);                        \
+        appHandle1 = test_init(dbgOut, &gSession1, (b), 10000u);                \
         if (appHandle1 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
             goto end;                                                           \
         }                                                                       \
-        appHandle2 = test_init(NULL, &gSession2, (b), 10000u);                          \
+        appHandle2 = test_init(NULL, &gSession2, (b), 10000u);                  \
         if (appHandle2 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
@@ -705,95 +478,11 @@ static void test_deinit (
 
 
 /**********************************************************************************************************************/
-/** test1 SRM 
+/** test1 SRM
  *
  *  @retval         0        no error
  *  @retval         1        some error
  */
-
-#define                 TEST1_STRING_COMID         1000u
-#define                 TEST1_STRING_REQUEST       (char *)&dataBuffer1 /* "Requesting data" */
-#define                 TEST1_STRING_REQUEST_LEN   32  /* "Requesting data len" */
-#define                 TEST1_STRING_REPLY         (char *)&dataBuffer2 /* "Data transmission succeded" */
-#define                 TEST1_STRING_REPLY_LEN     33    /* "Replying data len" */
-#define                 TEST1_64BYTES              (char *)&dataBuffer3 /* "1...15 * 4" */
-
-static void  test1CBFunction (
-    void                    *pRefCon,
-    TRDP_APP_SESSION_T      appHandle,
-    const TRDP_MD_INFO_T    *pMsg,
-    UINT8                   *pData,
-    UINT32                  dataSize)
-{
-    TRDP_ERR_T err;
-    TRDP_URI_USER_T srcURI  = "12345678901234567890123456789012";   /* 32 chars */
-    CHAR8 *localData        = (pData == NULL) ? "empty data" : (CHAR8 *) pData;
-
-    if (pMsg->resultCode == TRDP_REPLYTO_ERR)
-    {
-        fprintf(gFp, "->> Reply timed out (ComId %u)\n", pMsg->comId);
-        gFailed = 1;
-    }
-    else if ((pMsg->msgType == TRDP_MSG_MR) &&
-             (pMsg->comId == TEST1_STRING_COMID))
-    {
-        if (pMsg->resultCode == TRDP_TIMEOUT_ERR)
-        {
-            fprintf(gFp, "->> Request timed out (ComId %u)\n", pMsg->comId);
-            gFailed = 1;
-        }
-        else
-        {
-            fprintf(gFp, "<<- Request received (%.16s...)\n", localData);
-/*
-              if (memcmp(srcURI, pMsg->srcUserURI, 32u) != 0)
-              {
-                  gFailed = 1;
-                  fprintf(gFp, "### srcUserURI wrong\n");
-              }
- */
-            fprintf(gFp, "->> Sending reply with query (%.16s)\n", (UINT8 *)TEST1_STRING_REPLY);
-            err = tlm_replyQuery(appHandle, &pMsg->sessionId, TEST1_STRING_COMID, 0u, 0u, NULL,
-                                 (UINT8 *)TEST1_STRING_REPLY, TEST1_STRING_REPLY_LEN);
-
-            IF_ERROR("tlm_reply");
-        }
-    }
-    else if ((pMsg->msgType == TRDP_MSG_MQ) &&
-             (pMsg->comId == TEST1_STRING_COMID))
-    {
-        fprintf(gFp, "<<- Reply received (%.16s...)\n", localData);
-        fprintf(gFp, "->> Sending confirmation\n");
-        err = tlm_confirm(appHandle, &pMsg->sessionId, 0u, NULL);
-
-        IF_ERROR("tlm_confirm");
-    }
-    else if (pMsg->msgType == TRDP_MSG_MC)
-    {
-        fprintf(gFp, "<<- Confirmation received (status = %u)\n", pMsg->userStatus);
-    }
-    else if ((pMsg->msgType == TRDP_MSG_MN) &&
-             (pMsg->comId == TEST1_STRING_COMID))
-    {
-        if (strlen((char *)pMsg->sessionId) > 0)
-        {
-            gFailed = 1;
-            fprintf(gFp, "#### ->> Notification received, sessionID = %16s\n", pMsg->sessionId);
-        }
-        else
-        {
-            gFailed = 0;
-            fprintf(gFp, "->> Notification received, sessionID == 0\n");
-        }
-    }
-    else
-    {
-        fprintf(gFp, "<<- Unsolicited Message received (type = %0xhx)\n", pMsg->msgType);
-        gFailed = 1;
-    }
-end:
-    return;
-}
 
 
 static int test1 ()
@@ -804,80 +493,132 @@ static int test1 ()
 
     {
         int i;
-        
-        gFullLog = TRUE;
-        UINT16                 noOfServices = 1;
-        SRM_SERVICE_ARRAY_T     servicesToAdd;
 
-        memset(&servicesToAdd, 0, sizeof(servicesToAdd));
-        servicesToAdd.version.ver   = 1;
-        servicesToAdd.version.rel   = 0;
-        servicesToAdd.noOfEntries   = vos_htons(1u);
-        servicesToAdd.serviceEntry[0].flags         = 0u;
-        servicesToAdd.serviceEntry[0].instanceId    = 0u;
-        servicesToAdd.serviceEntry[0].serviceTypeId = vos_htonl(10001u);
-        vos_strncpy(servicesToAdd.serviceEntry[0].serviceName, "testFakeNewService", 32);
-        vos_strncpy(servicesToAdd.serviceEntry[0].serviceURI, vos_ipDotted(gSession1.ifaceIP), 80);
-        servicesToAdd.serviceEntry[0].destMCIP = vos_htonl(0u);
-        servicesToAdd.serviceEntry[0].reserved = 0u;
-        vos_strncpy(servicesToAdd.serviceEntry[0].hostname, "ccu-o", 80);
-        servicesToAdd.serviceEntry[0].machineIP = vos_htonl(gSession1.ifaceIP);
-//        servicesToAdd.serviceEntry[0].timeToLive = {0,0};
-//        servicesToAdd.serviceEntry[0].lastUpdated = {0,0};
-//        servicesToAdd.serviceEntry[0].timeSlot = {0,0};
-//        {
-//            TRDP_SHORT_VERSION_T    version;        /**< 1.0 service version                */
-//            BITSET8                 flags;          /**< 0x01 | 0x02 == Safe Service        */
-//            UINT8                   instanceId;     /**< 8 Bit relevant                     */
-//            UINT32                  serviceTypeId;  /**< lower 24 Bit relevant              */
-//            CHAR8                   serviceName[32];/**< name of the service                */
-//            CHAR8                   serviceURI[80]; /**< destination URI for services       */
-//            TRDP_IP_ADDR_T          destMCIP;       /**< destination multicast for services */
-//            UINT32                  reserved;
-//            CHAR8                   hostname[80];   /**< device name - FQN (optional)       */
-//            TRDP_IP_ADDR_T          machineIP;      /**< current IP address of service host */
-//            TIMEDATE64              timeToLive;     /**< when to check for life sign        */
-//            TIMEDATE64              lastUpdated;    /**< last time seen  (optional)         */
-//            TIMEDATE64              timeSlot;       /**< timeslot for TSN (optional)        */
-//        } GNU_PACKED SRM_SERVICE_REGISTRY_ENTRY;
-
-        /* Preliminary definition of Request/Reply (DSID 113) */
-//        typedef struct
-//        {
-//            TRDP_SHORT_VERSION_T        version;        /**< 1.0 telegram version           */
-//            UINT16                      noOfEntries;    /**< number of entries in array     */
-//            SRM_SERVICE_REGISTRY_ENTRY  serviceEntry[1];/**< var. number of entries         */
-//            TRDP_SDTv2_T                safetyTrail;    /**< opt. SDT trailer               */
-//        } GNU_PACKED SRM_SERVICE_ARRAY_T;
+        /* gFullLog = TRUE; */
 
         /* We need DNR services! */
-        err = tau_initDnr (appHandle1, 0u, 0u,
-                               "hostsfile.txt",
-                           TRDP_DNR_COMMON_THREAD, TRUE);
+        err = tau_initDnr(appHandle1, 0u, 0u,
+                          "hostsfile.txt",
+                          TRDP_DNR_COMMON_THREAD, TRUE);
         IF_ERROR("tau_initDnr");
-        /* add the service */
-        err = tau_addServices (appHandle1, noOfServices, &servicesToAdd, TRUE);
-        IF_ERROR("tau_addServices");
 
-        /* Wait a second */
-        vos_threadDelay(1000000u);
+        UINT32 noOfServices = 1;
+        SRM_SERVICE_INFO_T      *pServicesToAdd     = (SRM_SERVICE_INFO_T *) vos_memAlloc(sizeof(SRM_SERVICE_INFO_T));
+        SRM_SERVICE_ENTRIES_T   *pServicesToList    = NULL;
+
+        if (pServicesToAdd == NULL)
+        {
+            err = TRDP_MEM_ERR;
+            IF_ERROR("SRM offer memory problem");
+        }
+
+        vos_printLogStr(VOS_LOG_USR, "Adding 2 service instances.\n");
+        memset(pServicesToAdd, 0, sizeof(SRM_SERVICE_INFO_T));
+
+        pServicesToAdd->srvVers.ver     = 1;
+        pServicesToAdd->srvFlags        = 0u;
+        pServicesToAdd->serviceId       = SOA_SERVICEID(0u, 10001u);
+        pServicesToAdd->srvTTL.tv_sec   = 0u;
+        pServicesToAdd->srvTTL.tv_usec  = 0u;
+        pServicesToAdd->cstVehNo        = 0u;
+        vos_strncpy(pServicesToAdd->srvName, "testFakeNewSrv", TRDP_MAX_LABEL_LEN);
+        vos_strncpy(pServicesToAdd->fctDev, vos_ipDotted(gSession1.ifaceIP), TRDP_MAX_LABEL_LEN);
+        /* vos_strncpy(pServicesToAdd->fctDev, "ccu-o", TRDP_MAX_LABEL_LEN); */
+
+
+        /* add the service */
+        err = tau_addService(appHandle1, pServicesToAdd, TRUE);
+        IF_ERROR("tau_addServices1");
+
+        /* add another service instance */
+        memset(pServicesToAdd, 0, sizeof(SRM_SERVICE_INFO_T));
+
+        pServicesToAdd->srvVers.ver     = 1;
+        pServicesToAdd->srvFlags        = 0u;
+        pServicesToAdd->serviceId       = SOA_SERVICEID(1u, 10001u);
+        pServicesToAdd->srvTTL.tv_sec   = 0u;
+        pServicesToAdd->srvTTL.tv_usec  = 0u;
+        pServicesToAdd->cstVehNo        = 0u;
+        vos_strncpy(pServicesToAdd->srvName, "testFakeBackSrv", TRDP_MAX_LABEL_LEN);
+        vos_strncpy(pServicesToAdd->fctDev, vos_ipDotted(gSession1.ifaceIP), TRDP_MAX_LABEL_LEN);
+
+        err = tau_addService(appHandle1, pServicesToAdd, TRUE);
+        IF_ERROR("tau_addServices2");
+
+        /* Wait a bit */
+        vos_threadDelay(200000u);
+        vos_printLogStr(VOS_LOG_USR, "Getting list of all services.\n");
 
         /* list the services */
-        SRM_SERVICE_ARRAY_T *pServicesToAdd = NULL;
-        err = tau_getServiceList (appHandle1, &pServicesToAdd);
+        err = tau_getServicesList(appHandle1, &pServicesToList, &noOfServices);
         IF_ERROR("tau_getServiceList");
-        noOfServices = pServicesToAdd->noOfEntries;
-        for (int i = 0; i < noOfServices; i++)
+
+        if ((pServicesToList != NULL) && (noOfServices != pServicesToList->noOfEntries))
         {
-            vos_printLog(VOS_LOG_USR, "[%d] Service name: %s, SrvId: %u, InstId: %u, host: %s, IP: %s\n",
-                         i,
-                         pServicesToAdd->serviceEntry[i].serviceName,
-                         pServicesToAdd->serviceEntry[i].serviceTypeId,
-                         pServicesToAdd->serviceEntry[i].instanceId,
-                         pServicesToAdd->serviceEntry[i].hostname,
-                         vos_ipDotted(pServicesToAdd->serviceEntry[i].machineIP));
+            err = -1;
+            IF_ERROR("inconsistent service list");
         }
-        tau_freeServiceList(pServicesToAdd);
+        vos_printLogStr(VOS_LOG_USR,
+                        "--- Services -------------------------------------------------------------------\n");
+        for (UINT32 i = 0; i < noOfServices; i++)
+        {
+            vos_printLog(VOS_LOG_USR, " [%d] Name: %s,\tTypeId: %u,\tInstId:%3u,\tdevice: %s\n",
+                         i,
+                         pServicesToList->serviceEntry[i].srvName,
+                         SOA_TYPE(pServicesToList->serviceEntry[i].serviceId),
+                         SOA_INST(pServicesToList->serviceEntry[i].serviceId),
+                         pServicesToList->serviceEntry[i].fctDev);
+        }
+        vos_printLogStr(VOS_LOG_USR,
+                        "--------------------------------------------------------------------------------\n");
+        tau_freeServicesList(pServicesToList);
+
+        /* Now delete the first entry */
+
+        vos_printLogStr(VOS_LOG_USR, "Deleting our first entry.\n");
+
+        memset(pServicesToAdd, 0, sizeof(SRM_SERVICE_INFO_T));
+
+        pServicesToAdd->srvVers.ver = 1;
+        pServicesToAdd->srvFlags    = 0u;
+        pServicesToAdd->serviceId   = SOA_SERVICEID(1u, 10001u);
+
+        err = tau_delService(appHandle1, pServicesToAdd, TRUE);
+        IF_ERROR("tau_delService");
+
+        vos_threadDelay(100000u);
+        /* list the services again */
+
+        vos_printLogStr(VOS_LOG_USR, "There should be one less listed, now:\n");
+        err = tau_getServicesList(appHandle1, &pServicesToList, &noOfServices);
+        IF_ERROR("tau_getServiceList");
+
+        if ((pServicesToList == NULL) || (noOfServices == 0))
+        {
+            vos_printLogStr(
+                VOS_LOG_USR,
+                "--- no services offered -----------------------------------------------------------------\n");
+            err = TRDP_NODATA_ERR;
+            IF_ERROR("tau_getServiceList");
+        }
+        else
+        {
+            vos_printLogStr(VOS_LOG_USR,
+                            "--- Services -------------------------------------------------------------------\n");
+            for (UINT32 i = 0; i < noOfServices; i++)
+            {
+                vos_printLog(VOS_LOG_USR, " [%d] Name: %s,\tTypeId: %u,\tInstId:%3u,\tdevice: %s\n",
+                             i,
+                             pServicesToList->serviceEntry[i].srvName,
+                             SOA_TYPE(pServicesToList->serviceEntry[i].serviceId),
+                             SOA_INST(pServicesToList->serviceEntry[i].serviceId),
+                             pServicesToList->serviceEntry[i].fctDev);
+            }
+            vos_printLogStr(VOS_LOG_USR,
+                            "--------------------------------------------------------------------------------\n");
+            tau_freeServicesList(pServicesToList);
+        }
+
     }
 
     /* ------------------------- test code ends here --------------------------- */
@@ -907,8 +648,8 @@ test_func_t *testArray[] =
 int main (int argc, char *argv[])
 {
     int ch;
-    unsigned int ip[4];
-    UINT32 testNo = 0;
+    unsigned int    ip[4];
+    UINT32          testNo = 0;
 
     if (gFp == NULL)
     {

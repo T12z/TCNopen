@@ -4737,6 +4737,7 @@
 					"-DDEBUG",
 					"-D_DARWIN_C_SOURCE",
 					"-pthread",
+					"-DSOA_SUPPORT",
 				);
 				PRODUCT_NAME = trdp64;
 				SDKROOT = macosx;
@@ -4772,6 +4773,7 @@
 					"-DPOSIX",
 					"-DL_ENDIAN",
 					"-D_DARWIN_C_SOURCE",
+					"-DSOA_SUPPORT",
 				);
 				PRODUCT_NAME = trdp64;
 				SDKROOT = macosx;
