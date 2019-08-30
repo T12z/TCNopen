@@ -204,7 +204,7 @@ typedef struct
 /** Control for debug output format on application level.
  */
     
-#define TRDP_DBG_DEFAULT    0,      /**< Printout default  */
+#define TRDP_DBG_DEFAULT    0       /**< Printout default  */
 #define TRDP_DBG_OFF        0x01    /**< Printout off  */
 #define TRDP_DBG_ERR        0x02    /**< Printout error */
 #define TRDP_DBG_WARN       0x04    /**< Printout warning and error */

@@ -18,6 +18,7 @@
 /*
 * $Id$
 *
+*      SB 2019-08-30: Added vos_getRealTime and vos_getNanoTime
 *      SB 2019-08-26: Added sub millisecond precision to vos_runCyclicThread
 *      SB 2019-08-13: Ticket #274: Cyclic parameters are now freed in the called thread
 *     AHW 2018-09-13: replaced by code of vos_thread.c to use native code of VS 2015 instead of pthread
@@ -151,7 +152,7 @@ static void vos_runCyclicThread (
             waitingTime = 0U;
             /* Have this value range violation logged */
             vos_printLog(VOS_LOG_ERROR,
-                         "cyclic thread with interval %d usec exceeded time out by running %d sec\n",
+                         "cyclic thread with interval %d usec exceeded time out by running %lld sec\n",
                          interval, (afterCall.QuadPart / (MSECS_PER_SEC * USECS_PER_MSEC)));
         }
         /* sleep, if waitingTime is at least 1 ms */
@@ -506,6 +507,40 @@ EXT_DECL void vos_getTime (
             pTime->tv_sec   = 0;
             pTime->tv_usec  = 0;
         }
+    }
+}
+/**********************************************************************************************************************/
+/** Return the current real time in sec and us
+*
+*
+*  @param[out]     pTime           Pointer to time value
+*/
+EXT_DECL void vos_getRealTime(
+    VOS_TIMEVAL_T *pTime)
+{
+    vos_getTime(pTime);
+}
+
+/**********************************************************************************************************************/
+/** Return the current time in nanosec
+*
+*
+*  @param[out]     pTime           Pointer to time value
+*/
+EXT_DECL void vos_getNanoTime(
+    UINT64 *pTime)
+{
+    if (pTime == NULL)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "ERROR NULL pointer\n");
+    }
+    else
+    {
+        FILETIME fileTime;
+        GetSystemTimePreciseAsFileTime(&fileTime);
+        *pTime = (((UINT64)fileTime.dwHighDateTime) << 32u) + (UINT64)fileTime.dwLowDateTime;
+        /* 11644473600 is the difference between 1601 and 1970 in sec */
+        *pTime = (*pTime * 100u) - (11644473600ull * NSECS_PER_USEC * USECS_PER_MSEC * MSECS_PER_SEC);
     }
 }
 

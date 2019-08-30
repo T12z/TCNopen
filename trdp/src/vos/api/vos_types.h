@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-08-30: Added precompiler warning macro for windows
  *      BL 2018-06-25: Ticket #202: vos_mutexTrylock return value
  *      BL 2018-05-03: no inline if < C99
  *      BL 2017-11-17: Undone: Ticket #169 Encapsulate declaration of packed structures within a macro
@@ -178,6 +179,13 @@ typedef double REAL64;
    #endif
 #endif
 
+/* Precompiler warnings */
+#if (defined WIN32 || defined WIN64)
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+
+#define WARNING(s) message (__FILE__ "(" STRING(__LINE__) "):warning: "  s)
+#endif
 
 /***********************************************************************************************************************
  * TYPEDEFS

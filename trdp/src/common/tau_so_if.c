@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      SB 2019-08-30: Fixed precompiler warnings for windows
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 */
 
@@ -36,9 +37,14 @@
 #include "vos_utils.h"
 
 #ifndef SOA_SUPPORT
+#if (defined WIN32 || defined WIN64)
+#pragma WARNING("The service-oriented API and utility functions are preliminary and definitely not final! Use at your own risk!")
+#pragma WARNING("Set compiler option SOA_SUPPORT=1 to enable serviceId filtering in libtrdp.")
+#else
 #warning \
     "The service-oriented API and utility functions are preliminary and definitely not final! Use at your own risk!"
 #warning "Set compiler option SOA_SUPPORT=1 to enable serviceId filtering in libtrdp."
+#endif
 #endif
 
 /***********************************************************************************************************************

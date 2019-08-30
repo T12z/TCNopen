@@ -17,9 +17,10 @@
  /*
  * $Id$
  *
+ *      SB 2019-08-29: Added parsing of debug info
  *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
- *      SB 2018-08-20: Fixed lint errors and warnings
- *      SB 2018-07-10: Ticket #264: Added parsing of service definitions for service oriented interface
+ *      SB 2019-08-20: Fixed lint errors and warnings
+ *      SB 2019-07-10: Ticket #264: Added parsing of service definitions for service oriented interface
  *      BL 2019-06-12: Ticket #262 XML Parsing Bug Fixes for Debug Output Print Level and SDTv2 Parameters
  *      BL 2019-06-12: Ticket #246 Incorrect reading of "user" part of source uri and destination
  *      BL 2019-05-22: Ticket #249 Issue when parsing memory block configuration from config file
@@ -1548,7 +1549,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                     {
                         if (strpbrk(value, "Dd") != NULL)
                         {
-                            pDbgConfig->option = TRDP_DBG_DBG | TRDP_DBG_WARN | TRDP_DBG_INFO | TRDP_DBG_ERR;
+                            pDbgConfig->option |= TRDP_DBG_DBG | TRDP_DBG_WARN | TRDP_DBG_INFO | TRDP_DBG_ERR;
                         }
                         if (strpbrk(value, "Ww") != NULL)
                         {
@@ -1561,6 +1562,29 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
                         if (strpbrk(value, "Ii") != NULL)
                         {
                             pDbgConfig->option |= TRDP_DBG_ERR | TRDP_DBG_WARN | TRDP_DBG_INFO;
+                        }
+                        if (strpbrk(value, "DdWwEeIi") == NULL)
+                        {
+                            pDbgConfig->option = TRDP_DBG_DEFAULT;
+                        }
+                    }
+                    else if (vos_strnicmp(attribute, "info", MAX_TOK_LEN) == 0)
+                    {
+                        if (strpbrk(value, "Aa") != NULL)
+                        {
+                            pDbgConfig->option |= TRDP_DBG_TIME | TRDP_DBG_LOC | TRDP_DBG_CAT;
+                        }
+                        if (strpbrk(value, "Dd") != NULL)
+                        {
+                            pDbgConfig->option |= TRDP_DBG_TIME;
+                        }
+                        if (strpbrk(value, "Ff") != NULL)
+                        {
+                            pDbgConfig->option |= TRDP_DBG_LOC;
+                        }
+                        if (strpbrk(value, "Cc") != NULL)
+                        {
+                            pDbgConfig->option |= TRDP_DBG_CAT;
                         }
                     }
                 }

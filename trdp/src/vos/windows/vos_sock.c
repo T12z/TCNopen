@@ -35,9 +35,10 @@
     "You are trying to compile the Windows implementation of vos_sock.c - either define WIN32 or WIN64 or exclude this file!"
 #endif
 
+#include "vos_types.h"
+
 #ifdef TSN_SUPPORT
-#warning \
-    "*** To build a TSN capable TRDP library the vos_sock implementation has to be extended! ***"
+#pragma WARNING("*** To build a TSN capable TRDP library the vos_sock implementation has to be extended! ***")
 #endif
 
 /***********************************************************************************************************************
