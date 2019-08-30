@@ -59,8 +59,8 @@
 #ifndef TRDP_VERSION
 #define TRDP_VERSION    2u
 #define TRDP_RELEASE    0u
-#define TRDP_UPDATE     0u
-#define TRDP_EVOLUTION  2u
+#define TRDP_UPDATE     1u
+#define TRDP_EVOLUTION  0u
 #endif
 
 #ifdef HIGH_PERF_INDEXED
