@@ -183,8 +183,8 @@ public:
 	 *
 	 *  @return     Any error occurred along the lookup. In case of an error, el is not changed.
 	 */
-	TRDP_ERR_T lookupVariable(UINT32 dsId, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
-		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, (const char*)0, index, el); }
+	static TRDP_ERR_T lookupVariable(UINT32 dsId, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
+		{ return lastErr = tau_xsession_lookup_variable(dsId, (const char*)0, index, el); }
 	}
 
 	/**
@@ -192,8 +192,8 @@ public:
 	 *
 	 *  Overloaded function of @see lookupVariable(). Lookup the element by name.
 	 */
-	TRDP_ERR_T lookupVariable(UINT32 dsId, const CHAR8 *name, TRDP_DATASET_ELEMENT_T **el) {
-		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, name, 0, el); }
+	static TRDP_ERR_T lookupVariable(UINT32 dsId, const CHAR8 *name, TRDP_DATASET_ELEMENT_T **el) {
+		{ return lastErr = tau_xsession_lookup_variable(dsId, name, 0, el); }
 	}
 
 private:

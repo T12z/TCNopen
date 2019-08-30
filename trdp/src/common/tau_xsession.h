@@ -57,6 +57,7 @@ typedef struct {
  *  These are all private to the latter functions. This is only for documentation in case of debugging
  */
 typedef struct TAU_XML_SESSION {
+	struct TAU_XML_SESSION *next;           /**< for list iteration */
 	int initialized;                        /**< flag to be evaluated by @see tau_xsession_up() */
 
 	TRDP_IF_CONFIG_T       *pIfConfig;      /**< General parameters from xml configuration file */
@@ -91,8 +92,8 @@ TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_P
 /**
  *  Initialize that specific bus interface for this session
  *
- *  @param[in,out] our           session state. Must be allocated by calling context / application.
- *  @param[in] busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute
+ *  @param[out] our              session state. A pointer to the internal buffer is returned on success.
+ *  @param[in] busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute, case ignored
  *  @param[in] callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
  *                               application's object instance that will handle the callbacks through static method
  *                               redirectors.
@@ -100,13 +101,16 @@ TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_P
  *             XML file or initializing the session. Errors will lead to an unusable empty session.
  */
 
-TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T *our, const char *busInterfaceName, void *callbackRef);
+TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T**our, const char *busInterfaceName, void *callbackRef);
 
 /**
  *  Destructor.
  *
- *  Will obviously NOT free the memory of our, since that is provided by caller. Deleting the last remaining session will
+ *  Frees the session behind the pointer, which will be invalid afterwards. Deleting the last remaining session will
  *  also undo the effects of @see tau_session_load().
+ *
+ *  Passing a NULL-pointer will clear all sessions!!
+ *
  */
 TRDP_ERR_T tau_xsession_delete   (TAU_XSESSION_T *our);
 
@@ -120,7 +124,7 @@ int        tau_xsession_up       (TAU_XSESSION_T *our);
 /**
  *  Stringify the error for the passed TRDP-error.
  */
-const char*tau_getResultString(TRDP_ERR_T ret);
+const char*tau_getResultString   (TRDP_ERR_T ret);
 
 /**
  *  Publish telegram ComID for sending.
@@ -151,6 +155,32 @@ TRDP_ERR_T tau_xsession_publish  (TAU_XSESSION_T *our, UINT32 ComID, UINT32 *pub
  *  @return  TRDP_ERR
  */
 TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *subTelID, TRDP_PD_CALLBACK_T cb);
+
+/**
+ *   Do the house-keeping of TRDP and packet transmission.
+ *
+ *  Call this function at least once per your application cycle, e.g., after all getCom and request calls. This version
+ *  checks all sessions together and requires to pass in a deadline, when it should return.
+ *  Do NOT mix with tau_xsession_cycle().
+ *
+ *  @param[in]  deadline  Absolute timevalue, when this call should return.
+ *
+ *  @return  TRDP_ERR from deeper processing.
+ */
+TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline );
+
+/**
+ *   Do the house-keeping of TRDP and packet transmission.
+ *
+ *  Call this function regularly between your application cycles, e.g., after all getCom and request calls.
+ *
+ *  @param[in,out] our       session state.
+ *  @param[out]  timeout_us  Timeout when this function should be called again. If it returns zero, it is time for the
+ *                           application cycle (ie. the configured process cycle time).
+ *
+ *  @return  TRDP_ERR from deeper processing.
+ */
+TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us );
 
 /**
  *   Do the house-keeping of TRDP and packet transmission.
@@ -208,13 +238,12 @@ TRDP_ERR_T tau_xsession_ComId2DatasetId(TAU_XSESSION_T *our, UINT32 ComID, UINT3
 /**
  *  get a dataset description for a related Com-ID
  *
- *  @param our     xsession handle
  *  @param ComID   the COM-ID to search for
  *  @param[out] returning the element, untouched in case of error
  *
  *  @return  error
  */
-TRDP_ERR_T tau_xsession_lookup_dataset(TAU_XSESSION_T *our, UINT32 datasetId, TRDP_DATASET_T **ds);
+TRDP_ERR_T tau_xsession_lookup_dataset(UINT32 datasetId, TRDP_DATASET_T **ds);
 
 /**
  *  get information on a dataset variable
@@ -227,6 +256,6 @@ TRDP_ERR_T tau_xsession_lookup_dataset(TAU_XSESSION_T *our, UINT32 datasetId, TR
  *
  *  @return  error
  */
-TRDP_ERR_T tau_xsession_lookup_variable(TAU_XSESSION_T *our, UINT32 dsId, const CHAR8 *name, UINT32 index, TRDP_DATASET_ELEMENT_T **el);
+TRDP_ERR_T tau_xsession_lookup_variable(UINT32 dsId, const CHAR8 *name, UINT32 index, TRDP_DATASET_ELEMENT_T **el);
 
 #endif /* TAU_XSESSION_H_ */
