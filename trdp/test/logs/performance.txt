@@ -1,0 +1,6 @@
+CPU: Intel Core i7-7820HQ @ 2.90 GHz
+
+Test with 500 PD telegrams with maximum payload size and cycle time of 10ms leads to:
+
+    - stable 572Mbit in High Performance Mode.
+    - 300Mbit +- 50Mbit on average.
