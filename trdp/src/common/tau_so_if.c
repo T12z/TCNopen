@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      BL 2019-09-02: Ticket #277 Bug in tau_so_if.c when not waiting for completion
 *      SB 2019-08-30: Fixed precompiler warnings for windows
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 */
@@ -140,7 +141,13 @@ static void soMDCallback (
     (void) pRefCon;
     (void) appHandle;
 
-    vos_printLog(VOS_LOG_INFO, "MD received (comId %u)!\n", pMsg->comId);
+    vos_printLog(VOS_LOG_INFO, "Message Data received (comId %u)!\n", pMsg->comId);
+
+    if (pMsg->msgType == TRDP_MSG_ME)
+    {
+        vos_printLog(VOS_LOG_WARNING, "ME received (comId %u)!\n", pMsg->comId);
+        return;
+    }
     if (pContext == NULL)
     {
         vos_printLog(VOS_LOG_ERROR, "Callback called without context pointer (comId %u)!\n", pMsg->comId);
@@ -231,7 +238,7 @@ static TRDP_ERR_T requestServices (
     SRM_SERVICE_ENTRIES_T *pPrivateBuffer = NULL;
     UINT32          dataSize;
     TAU_CB_BLOCK_T  context = {0, NULL, 0u, TRDP_NO_ERR};
-
+    void            *pContext = NULL;
 
     if ((appHandle == NULL) ||
         (pServiceToAdd == NULL))
@@ -269,27 +276,28 @@ static TRDP_ERR_T requestServices (
             err = TRDP_SEMA_ERR;
             goto cleanup;
         }
+        pContext = (void*) &context;
     }
 
     switch (selector)
     {
         case SRM_ADD:
             /* add data */
-            err = tlm_request(appHandle, &context, soMDCallback, NULL,
+            err = tlm_request(appHandle, pContext, soMDCallback, NULL,
                               SRM_SERVICE_ADD_REQ_COMID, 0u,
                               0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
                               SRM_SERVICE_ADD_REQ_TO, NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);
             break;
         case SRM_UPD:
             /* notify for changes */
-            err = tlm_notify(appHandle, &context, soMDCallback,
+            err = tlm_notify(appHandle, pContext, soMDCallback,
                              SRM_SERVICE_UPD_NOTIFY_COMID, 0u,
                              0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_UPD_NOTIFY_URI), TRDP_FLAGS_CALLBACK,
                              NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);
             break;
         case SRM_DEL:
             /* request the deletion */
-            err = tlm_request(appHandle, &context, soMDCallback, NULL,
+            err = tlm_request(appHandle, pContext, soMDCallback, NULL,
                               SRM_SERVICE_DEL_REQ_COMID, 0u,
                               0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_DEL_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
                               SRM_SERVICE_DEL_REQ_TO, NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);

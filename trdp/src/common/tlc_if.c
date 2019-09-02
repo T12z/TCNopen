@@ -386,8 +386,8 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
 {
     TRDP_ERR_T      ret         = TRDP_NO_ERR;
     TRDP_SESSION_PT pSession    = NULL;
-    TRDP_PUB_T      dummyPubHndl;
-    TRDP_SUB_T      dummySubHandle;
+    TRDP_PUB_T      dummyPubHndl    = NULL;
+    TRDP_SUB_T      dummySubHandle  = NULL;
 
     if (pAppHandle == NULL)
     {
