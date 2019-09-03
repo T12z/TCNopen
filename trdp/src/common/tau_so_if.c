@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      SB 2019-09-03: Removed unused selector element (SRM_UPD)
 *      BL 2019-09-02: Ticket #277 Bug in tau_so_if.c when not waiting for completion
 *      SB 2019-08-30: Fixed precompiler warnings for windows
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -67,8 +68,7 @@ typedef struct mdData
 typedef enum
 {
     SRM_ADD,
-    SRM_DEL,
-    SRM_UPD
+    SRM_DEL
 } SRM_REQ_SELECTOR_T;
 
 /***********************************************************************************************************************
@@ -237,7 +237,7 @@ static TRDP_ERR_T requestServices (
     TRDP_ERR_T      err;
     SRM_SERVICE_ENTRIES_T *pPrivateBuffer = NULL;
     UINT32          dataSize;
-    TAU_CB_BLOCK_T  context = {0, NULL, 0u, TRDP_NO_ERR};
+    TAU_CB_BLOCK_T  context = {NULL, NULL, 0u, TRDP_NO_ERR};
     void            *pContext = NULL;
 
     if ((appHandle == NULL) ||
@@ -287,13 +287,6 @@ static TRDP_ERR_T requestServices (
                               SRM_SERVICE_ADD_REQ_COMID, 0u,
                               0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_ADD_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
                               SRM_SERVICE_ADD_REQ_TO, NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);
-            break;
-        case SRM_UPD:
-            /* notify for changes */
-            err = tlm_notify(appHandle, pContext, soMDCallback,
-                             SRM_SERVICE_UPD_NOTIFY_COMID, 0u,
-                             0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_UPD_NOTIFY_URI), TRDP_FLAGS_CALLBACK,
-                             NULL, (UINT8 *)context.pServiceEntry, dataSize, NULL, NULL);
             break;
         case SRM_DEL:
             /* request the deletion */

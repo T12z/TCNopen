@@ -150,7 +150,7 @@ typedef struct service_info
                                                         Defined in IEC 61375-2-3.                           */
     UINT8   cstVehNo;                       /**<    -- sequence number of the vehicle
                                                         within the consist (1..32)                          */
-    UINT8   reserved02;                     /**<    -- reserved for future use (= 0)                        */
+    UINT8   cstNo;                          /**<    -- sequence number of the consist (1..63)               */
     UINT16  reserved03;                     /**<    -- reserved for future use (= 0)                        */
     UINT32  addInfo[3];                     /**<    -- service specific information                         */
 } GNU_PACKED SRM_SERVICE_INFO_T;

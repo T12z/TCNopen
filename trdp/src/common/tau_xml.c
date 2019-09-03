@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-09-03: Added parsing for service time to live
  *      SB 2019-08-29: Added parsing of debug info
  *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
  *      SB 2019-08-20: Fixed lint errors and warnings
@@ -1867,6 +1868,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                             else if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
                             {
                                 (*ppServiceDefs)[i].serviceId = (UINT32) valueInt;
+                            }
+                            else if (vos_strnicmp(attribute, "ttl", MAX_TOK_LEN) == 0)
+                            {
+                                (*ppServiceDefs)[i].serviceTTL = (UINT32) valueInt;
                             }
                         }
 

@@ -228,9 +228,14 @@
           <xs:documentation>Service type</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-            <xs:attribute name="id" type="uint32" use="required">
+      <xs:attribute name="id" type="uint32" use="required">
         <xs:annotation>
           <xs:documentation>Service identifier (24 bit)</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="ttl" type="uint32" use="optional">
+        <xs:annotation>
+          <xs:documentation>Service's time to live</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
