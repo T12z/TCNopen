@@ -15,11 +15,12 @@
 #
 #  ABSTRACT      : XML Schema for TRDP configuration configuration
 #
-#  VERSION       : 1.13.0.0
+#  VERSION       : 1.14.0.0
 #
 #  SVN           : $Id$
 #
 #  HISTORY       :
+#                            1.14.0.0  IPTCom references removed
 #                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
 #                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)
 #                            1.11.0.0  Ticket #106: User needs to be informed on every received PD packet
@@ -502,7 +503,7 @@
       </xs:sequence>
       <xs:attribute  name="memory-size" default="4194304" type="uint32" use="optional">
         <xs:annotation>
-          <xs:documentation>Size of IPTCom dynamically allocated memory</xs:documentation>
+          <xs:documentation>Size of TRDP dynamically allocated memory</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
@@ -512,7 +513,7 @@
     <xs:complexType>
       <xs:attribute name="cycle-time" type="uint32" use="optional" default="10000">
         <xs:annotation>
-          <xs:documentation>Cycle time of the IPTCom thread/task in microseconds.</xs:documentation>
+          <xs:documentation>Cycle time of the TRDP thread/task in microseconds.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="blocking" default="no" use="optional">
@@ -883,7 +884,7 @@
     <xs:complexType>
       <xs:attribute name="name" type="xs:string" use="optional">
         <xs:annotation>
-          <xs:documentation>Name of  the data set element. Not used by IPTCom but required when importing the file into the MTPE. Also displayed in the IPT-Spy.</xs:documentation>
+          <xs:documentation>Name of  the data set element. Not used by TRDP but required when importing the file into the MTPE. Also displayed in the TRDP-Spy.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="type" use="required">
@@ -962,7 +963,7 @@
       <xs:attribute name="name" type="name30" use="optional"/>
       <xs:attribute name="com-id" type="uint32" use="required">
         <xs:annotation>
-          <xs:documentation>ID for exchange parameter. Required for IPT telegrams.</xs:documentation>
+          <xs:documentation>ID for exchange parameter. Required for TRDP telegrams.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="data-set-id" type="uint32" use="required">
