@@ -191,15 +191,17 @@ static TRDP_ERR_T initMarshalling(const TRDP_XML_DOC_HANDLE_T * pDocHnd) {
 	}
 
 	/*  Initialize marshalling  */
+	int xmap_valid = 1;
+	for (int i=1; i<19 && xmap_valid; i++) {
+		if ( !__TAU_XTYPE_MAP[i] || !__TAU_XTYPE_MAP[i+20] ) xmap_valid = 0;
+	}
 	/* basically, take values, sort the arrays, but takes no copy! */
-	if (__TAU_XTYPE_MAP[1]) {
+	if (xmap_valid) {
 		result = tau_xinitMarshall(NULL /*cur. a nop*/, _.numComId, _.pComIdDsIdMap, _.numDataset, _.apDataset);
 		vos_printLog(VOS_LOG_INFO, "Using EXTENDED marshalling.");
-		printf("EXTENDED\n");
 	} else {
 		result = tau_initMarshall( NULL /*cur. a nop*/, _.numComId, _.pComIdDsIdMap, _.numDataset, _.apDataset);
 		vos_printLog(VOS_LOG_INFO, "Using default marshalling.");
-		printf("DEFAULT\n");
 	}
 	if (result != TRDP_NO_ERR) {
 		tau_freeXmlDatasetConfig(_.numComId, _.pComIdDsIdMap, _.numDataset, _.apDataset);
@@ -212,12 +214,12 @@ static TRDP_ERR_T initMarshalling(const TRDP_XML_DOC_HANDLE_T * pDocHnd) {
 	}
 
 	/*  Strore pointers to marshalling functions    */
-	_.marshallCfg.pfCbMarshall = __TAU_XTYPE_MAP[0] ? tau_xmarshall : tau_marshall;
-	_.marshallCfg.pfCbUnmarshall =  __TAU_XTYPE_MAP[0] ? tau_xunmarshall : tau_unmarshall;
+	_.marshallCfg.pfCbMarshall   = xmap_valid ? tau_xmarshall : tau_marshall;
+	_.marshallCfg.pfCbUnmarshall = xmap_valid ? tau_xunmarshall : tau_unmarshall;
 	_.marshallCfg.pRefCon = NULL; /* if we overwrite with own functions, pRefCon may be set to @our or something like it */
 
-	vos_printLog(VOS_LOG_INFO, "Initialized marshalling for %d datasets, %d ComId to Dataset Id relations",
-			_.numDataset, _.numComId);
+	vos_printLog(VOS_LOG_INFO, "Initialized %cmarshalling for %d datasets, %d ComId to Dataset Id relations",
+			xmap_valid?'x':' ',	_.numDataset, _.numComId);
 	return TRDP_NO_ERR;
 }
 
@@ -564,11 +566,8 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length, TAU_XSESSION_PRINT 
 	return result;
 }
 
-TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T *our, const char *busInterfaceName, void *callbackRef) {
+TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName, void *callbackRef) {
 	TRDP_ERR_T result = TRDP_INIT_ERR;
-
-	if (!our) return result;
-	memset(our, 0, sizeof(TAU_XSESSION_T));
 
 	/*  Log configuration   */
 	if (!_.devDocHnd.pXmlDocument || _.use < 0) {
@@ -576,30 +575,36 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T *our, const char *busInterfaceName, 
 		return result;
 	}
 
-	//find(pIfConfig, ifConfig[numIfConfig] based on busInterfaceName
+	TAU_XSESSION_T *s = (TAU_XSESSION_T *)vos_memAlloc( sizeof(TAU_XSESSION_T) );
+	if (!s) return TRDP_MEM_ERR;
+
 	for (UINT32 i=0; i<_.numIfConfig; i++)
 		if (strcasecmp(busInterfaceName, _.ifConfig[i].ifName) == 0) {
-			if ( !our->pIfConfig )
-				our->pIfConfig = &_.ifConfig[i];
+			if ( !s->pIfConfig )
+				s->pIfConfig = &_.ifConfig[i];
 			else {
-				vos_printLog(VOS_LOG_ERROR, "Multiple interfaces match \"%s\" for this XSession.", busInterfaceName);
+				vos_printLog(VOS_LOG_ERROR, "Multiple interfaces match \"%s\" in this XSession configuration.", busInterfaceName);
+				vos_memFree(s);
 				return result;
 			}
 		}
 
-	if (our->pIfConfig) {
+	if (s->pIfConfig) {
 		/*  Initialize TRDP sessions    */
-		result = configureSession(our, &_.devDocHnd, callbackRef);
+		result = configureSession(s, &_.devDocHnd, callbackRef);
 		//	tlc_openSession(&appHandle, ownIpAddr, leaderIpAddr, pMarshall, pPdDefault, pMdDefault, pProcessConfig);
-		if (result == TRDP_NO_ERR) {
-			_.use++;
-			our->next = _.session;
-			_.session = our;
-			our->initialized = _.use; /* something non-0 */
-			vos_getTime ( &our->lastTime );
-		}
 	} else
-		vos_printLog(VOS_LOG_ERROR, "Found no interface to match \"%s\" for this XSession.", busInterfaceName);
+		vos_printLog(VOS_LOG_ERROR, "Found no interface to match \"%s\" in this XSession configuration.", busInterfaceName);
+	if (result == TRDP_NO_ERR) {
+		_.use++;
+		s->next = _.session;
+		_.session = s;
+		s->initialized = _.use; /* something non-0 */
+		vos_getTime ( &s->lastTime );
+		if (our) *our = s;
+	} else {
+		vos_memFree(s);
+	}
 	return result;
 }
 
@@ -650,9 +655,9 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *sub
  */
 
 TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
-	if ( _.use <= 0 ) return TRDP_INIT_ERR;
+	TRDP_ERR_T result = TRDP_INIT_ERR;
+	if ( _.use <= 0 ) return result;
 
-	TRDP_ERR_T result;
 	const VOS_TIMEVAL_T zero = {0,0};
 	VOS_TIMEVAL_T now;
 	vos_getTime( &now );
@@ -712,7 +717,8 @@ TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 	if (timercmp( &tv, &zero, >) && timercmp( &tv, &max_tv, <)) max_tv = tv;
 
 	if (timercmp( &max_tv, &zero, <)) max_tv = zero;  /* max_tv must not be negative */
-	int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &zero);
+	tv = zero;
+	int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &tv);
 
 	result = tlc_process(our->sessionhandle, &rfds, &rv);
 
@@ -722,9 +728,9 @@ TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 }
 
 TRDP_ERR_T tau_xsession_cycle( TAU_XSESSION_T *our ) {
-	if ( _.use <= 0 || !tau_xsession_up(our) ) return TRDP_INIT_ERR;
+	TRDP_ERR_T result = TRDP_INIT_ERR;
+	if ( _.use <= 0 || !tau_xsession_up(our) ) return result;
 
-	TRDP_ERR_T result;
 	const VOS_TIMEVAL_T zero = {0,0};
 	VOS_TIMEVAL_T now;
 	vos_getTime( &now );

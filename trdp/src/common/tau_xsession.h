@@ -159,8 +159,8 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *sub
 /**
  *   Do the house-keeping of TRDP and packet transmission.
  *
- *  Call this function at least once per your application cycle, e.g., after all getCom and request calls. This version
- *  checks all sessions together and requires to pass in a deadline, when it should return.
+ *  Call this function at least once per your application cycle, e.g., after all getCom, setCom and request calls. This
+ *  version checks all sessions together and requires to pass in a deadline, when it should return.
  *  Do NOT mix with tau_xsession_cycle().
  *
  *  @param[in]  deadline  Absolute timevalue, when this call should return.
@@ -188,11 +188,10 @@ TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us );
  *  Call this function at least once per your application cycle, e.g., after all getCom and request calls.
  *
  *  @param[in,out] our       session state.
- *  @param[out]  timeout_us  Timeout in micro seconds to fulfill the configured cycle period. If NULL, the call will
- *                           wait for the required time itself.
+ *
  *  @return  TRDP_ERR from deeper processing.
  */
-TRDP_ERR_T tau_xsession_cycle    (TAU_XSESSION_T *our,  INT64 *timeout_us );
+TRDP_ERR_T tau_xsession_cycle    (TAU_XSESSION_T *our );
 
 /**
  *   Set the payload of the telegram to be sent at next cycle deadline (as configured by XML)

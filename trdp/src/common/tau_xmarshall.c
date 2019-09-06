@@ -62,7 +62,7 @@ static UINT32 sNumEntries = 0u;
 /** List of byte sizes for standard TCMS types, identical to tau-version */
 static const UINT8 cWireSizeOfBasicTypes[] = { 0, 1, 1, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 4, 6, 8 };
 
-const uint8_t __TAU_XTYPE_MAP[40];
+uint8_t __TAU_XTYPE_MAP[40];
 static const uint8_t *cMemSizeOfBasicTypes = __TAU_XTYPE_MAP;
 static const uint8_t *cAlignOfBasicTypes   = __TAU_XTYPE_MAP+20;
 
