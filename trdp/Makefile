@@ -556,7 +556,7 @@ help:
 	@$(ECHO) "  * LINUX_config                 - Native build for Linux (uses host gcc regardless of 32/64 bit)" >&2
 	@$(ECHO) "  * LINUX_X86_config             - Native build for Linux (Little Endian, uses host gcc 32Bit)" >&2
 	@$(ECHO) "  * LINUX_X86_64_config          - Native build for Linux (Little Endian, uses host gcc 64Bit)" >&2
-    @$(ECHO) "  * LINUX_X86_64_HP_config       - Native build for Linux as high performance library" >&2
+	@$(ECHO) "  * LINUX_X86_64_HP_config       - Native build for Linux as high performance library" >&2
 	@$(ECHO) "  * LINUX_PPC_config             - (experimental) Building for Linux on PowerPC using eglibc compiler (603 core)" >&2
 	@$(ECHO) "  * LINUX_imx7_config            - Building for Linux ARM7/imx7 using YOCTO toolchain" >&2
 	@$(ECHO) "  * LINUX_sama5d27_config        - Native build on NTSecureGateway HelmsDeep96" >&2
