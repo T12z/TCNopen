@@ -159,6 +159,11 @@ ifeq ($(HIGH_PERF_INDEXED),1)
 #	Option: Building high performance stack
 endif
 
+# Do a full build
+ifeq ($(FULL_BUILD), 1)
+	TRDP_OBJS += $(TRDP_OPT_OBJS)
+endif
+
 all:	$(TARGETS)
 
 outdir:
