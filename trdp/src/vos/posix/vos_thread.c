@@ -725,6 +725,10 @@ EXT_DECL VOS_ERR_T vos_threadIsActive (
     int policy;
     struct sched_param param;
 
+    if (thread == NULL)    /* Calling pthread_getschedparam with a zero threadID can crash a system */
+    {
+        return VOS_PARAM_ERR;
+    }
     retValue = pthread_getschedparam((pthread_t)thread, &policy, &param);
 
     return (retValue == 0 ? VOS_NO_ERR : VOS_PARAM_ERR);
