@@ -1,5 +1,5 @@
 #//
-#// $Id: OSX_X86_64_config 1832 2019-01-28 14:02:32Z bloehr $
+#// $Id$
 #//
 #// DESCRIPTION    Config file to make TRDP for OSX_X86_64 target
 #//
@@ -16,7 +16,8 @@ TCPOSTFIX =
 DOXYPATH = /Applications/Doxygen.app/Contents/Resources/
 
 CFLAGS += -Wall -m64 -fno-builtin -fsigned-char -pthread -fPIC -D__USE_BSD -D_DARWIN_C_SOURCE -DPOSIX -DL_ENDIAN -DTRDP_TSN
-CFLAGS += -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
+CFLAGS += -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign -DHAS_UUID
+
 INCPATH += -I /usr/include/uuid
 
 # Additional sources for TSN support

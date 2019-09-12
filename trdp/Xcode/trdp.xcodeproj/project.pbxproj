@@ -862,7 +862,7 @@
 		73821F2A150777B00046E0AC /* trdp_types.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = trdp_types.h; sourceTree = "<group>"; tabWidth = 4; };
 		73821F30150777B00046E0AC /* trdp_mdcom.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = trdp_mdcom.c; sourceTree = "<group>"; tabWidth = 4; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		73821F31150777B00046E0AC /* trdp_mdcom.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = trdp_mdcom.h; sourceTree = "<group>"; tabWidth = 4; };
-		73821F34150777B00046E0AC /* trdp_pdcom.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = trdp_pdcom.c; sourceTree = "<group>"; tabWidth = 4; };
+		73821F34150777B00046E0AC /* trdp_pdcom.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = trdp_pdcom.c; sourceTree = "<group>"; tabWidth = 4; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		73821F35150777B00046E0AC /* trdp_pdcom.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = trdp_pdcom.h; sourceTree = "<group>"; tabWidth = 4; };
 		73821F36150777B00046E0AC /* trdp_private.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = trdp_private.h; sourceTree = "<group>"; tabWidth = 4; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		73821F39150777B00046E0AC /* trdp_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = trdp_utils.c; sourceTree = "<group>"; tabWidth = 4; };
@@ -3403,14 +3403,12 @@
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				INSTALL_PATH = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				OTHER_CFLAGS = (
-					"-DMD_SUPPORT=1",
+					"-DHAS_UUID",
 					"-DPOSIX",
-					"-DL_ENDIAN",
-					"-DDEBUG",
-					"-D_DARWIN_C_SOURCE",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -3438,14 +3436,13 @@
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				INSTALL_PATH = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
-					"-DMD_SUPPORT=1",
+					"-DHAS_UUID",
 					"-DPOSIX",
-					"-DL_ENDIAN",
-					"-D_DARWIN_C_SOURCE",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -3484,6 +3481,7 @@
 					"-DL_ENDIAN",
 					"-DDEBUG",
 					"-D_DARWIN_C_SOURCE",
+					"-DHAS_UUID",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -3520,6 +3518,7 @@
 					"-DPOSIX",
 					"-DL_ENDIAN",
 					"-D_DARWIN_C_SOURCE",
+					"-DHAS_UUID",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -4036,6 +4035,7 @@
 					"-DL_ENDIAN",
 					"-DPOSIX",
 					"-DMD_SUPPORT=1",
+					"-DHAS_UUID",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = trdp64iOS;
@@ -4077,6 +4077,7 @@
 					"-DL_ENDIAN",
 					"-DPOSIX",
 					"-DMD_SUPPORT=1",
+					"-DHAS_UUID",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = trdp64iOS;
@@ -4109,6 +4110,7 @@
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				INSTALL_PATH = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				OTHER_CFLAGS = (
@@ -4119,6 +4121,7 @@
 					"-D_DARWIN_C_SOURCE",
 					"-DHIGH_PERF_INDEXED",
 					"-pthread",
+					"-DHAS_UUID",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -4146,6 +4149,7 @@
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				INSTALL_PATH = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
@@ -4154,6 +4158,7 @@
 					"-DPOSIX",
 					"-DL_ENDIAN",
 					"-D_DARWIN_C_SOURCE",
+					"-DHAS_UUID",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -4239,10 +4244,15 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-DPOSIX";
+				OTHER_CFLAGS = (
+					"-DPOSIX",
+					"-I",
+					uuid,
+				);
 				SDKROOT = macosx;
 				SYMROOT = ../bld/output/osx_x86_64;
 				USER_HEADER_SEARCH_PATHS = "";
@@ -4290,10 +4300,15 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-DPOSIX";
+				OTHER_CFLAGS = (
+					"-DPOSIX",
+					"-I",
+					uuid,
+				);
 				SDKROOT = macosx;
 				SYMROOT = ../bld/output/osx_x86_64;
 				USER_HEADER_SEARCH_PATHS = "";
@@ -4716,6 +4731,7 @@
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				INSTALL_PATH = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				OTHER_CFLAGS = (
@@ -4726,6 +4742,7 @@
 					"-D_DARWIN_C_SOURCE",
 					"-pthread",
 					"-DSOA_SUPPORT",
+					"-DHAS_UUID",
 				);
 				PRODUCT_NAME = trdp64;
 				SDKROOT = macosx;
@@ -4753,6 +4770,7 @@
 				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_SIGN_COMPARE = YES;
+				HEADER_SEARCH_PATHS = /usr/include/uuid;
 				INSTALL_PATH = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
@@ -4762,6 +4780,7 @@
 					"-DL_ENDIAN",
 					"-D_DARWIN_C_SOURCE",
 					"-DSOA_SUPPORT",
+					"-DHAS_UUID",
 				);
 				PRODUCT_NAME = trdp64;
 				SDKROOT = macosx;

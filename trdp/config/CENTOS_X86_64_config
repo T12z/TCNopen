@@ -1,7 +1,7 @@
 #//
 #// $Id$
 #//
-#// DESCRIPTION    Config file to make TRDP for POSIX_X86 target
+#// DESCRIPTION    Config file to make TRDP for CentOS target
 #//
 #// AUTHOR         NewTec GmbH
 #//
@@ -20,14 +20,8 @@ DOXYPATH = /usr/local/bin/
 # the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
 
 CFLAGS += -Wall -m64 -fstrength-reduce -fno-builtin -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX -DL_ENDIAN
-CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
-LDFLAGS += -lrt
+CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign -DHAS_UUID
+
+LDFLAGS += -lrt -luuid
 
 LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
-
-# Additional sources for TSN support
-#TSN_SUPPORT = 1
-#SOA_SUPPORT = 1
-
-
-HIGH_PERF_INDEXED = 1

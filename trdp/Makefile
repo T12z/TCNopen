@@ -565,6 +565,7 @@ help:
 	@$(ECHO) "  * OSX_X86_64_config            - Native (X86) build for OS X 64Bit" >&2
 	@$(ECHO) "  * OSX_X86_64_HP_config         - Native (X86) build for OS X 64Bit as high performance library" >&2
 	@$(ECHO) "  * POSIX_X86_config             - Native build for POSIX compliant systems" >&2
+    @$(ECHO) "  * CENTOS_X86_64_config         - Native build for CentOS7 (Linux, little endian, 64Bit)" >&2
 	@$(ECHO) "  * QNX_X86_config               - (experimental) Native (X86) build for QNX" >&2
 	@$(ECHO) "  * VXWORKS_KMODE_PPC_config     - (experimental) Building for VXWORKS kernel mode for PowerPC" >&2
 	@$(ECHO) " " >&2
