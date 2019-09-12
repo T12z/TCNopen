@@ -683,7 +683,8 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
             }
 #endif
         }
-        if (ioctl(sock, FIONBIO, &(pOptions->nonBlocking)) == -1)
+        sockOptValue = (pOptions->nonBlocking == TRUE) ? TRUE : FALSE;
+        if (ioctl(sock, FIONBIO, &sockOptValue) == -1)
         {
             char buff[VOS_MAX_ERR_STR_SIZE];
             STRING_ERR(buff);
