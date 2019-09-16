@@ -174,6 +174,7 @@ typedef struct
 {
     TRDP_URI_HOST_T     dstUri;         /**< Destination URI of the device */
     TRDP_URI_HOST_T     hostUri;        /**< Host URI of the device */
+    TRDP_URI_HOST_T     redUri;         /**< Redundancy URI of the device */
     UINT32              instanceCnt;    /**< Number of instances of a specific service on the device */
     TRDP_INSTANCE_T     *pInstance;     /**< Pointer to the Device's instances */
 }TRDP_SERVICE_DEVICE_T;

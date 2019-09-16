@@ -2034,6 +2034,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     {
                                         vos_strncpy(pServiceDevice->dstUri, value, TRDP_MAX_URI_HOST_LEN);
                                     }
+                                    else if (vos_strnicmp(attribute, "red-uri", MAX_TOK_LEN) == 0)
+                                    {
+                                        vos_strncpy(pServiceDevice->redUri, value, TRDP_MAX_URI_HOST_LEN);
+                                    }
                                     trdp_XMLEnter(pDocHnd->pXmlDocument);
 
                                     instanceCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "instance");

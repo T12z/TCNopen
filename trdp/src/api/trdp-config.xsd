@@ -257,6 +257,11 @@
           <xs:documentation>Destination URI for the specific end device.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute name="red-uri" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Redundancy multicast URI for the specific end device.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>  
   
