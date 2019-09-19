@@ -31,11 +31,7 @@
 /**
  *  Unfortunately, these are compile-time sizing constants for different reasons / shortcomings. For now, try to live with it.
  */
-
-#define MAX_INTERFACES      8        /**< Maximum number of bus-interface elements that can be read from bus-interface-list of the XML config. */
-#define MAX_COMPAR          10       /**< Maximum number of elements in the com-parameter-list  of the XML config */
-#define MAX_TELEGRAMS       64u      /**< Maximum number of telegrams (pub/sub) supported  */
-
+#include "tau_xsession_defaults.h"
 
 typedef void (*TAU_XSESSION_PRINT)(const char* lead, const char* msg, int putNL);
 
@@ -45,8 +41,6 @@ typedef void (*TAU_XSESSION_PRINT)(const char* lead, const char* msg, int putNL)
 typedef struct {
 	TRDP_SUB_T  handle; /**< the actual handle of inner TRDP */
 
-    UINT32      comID;  /**< for meaningful error output */
-    UINT32      peerID; /**< for meaningful error output */
     TRDP_ERR_T  result; /**< this is for duplicate error output suppression */
 } TLG_T;
 
@@ -87,7 +81,7 @@ typedef struct TAU_XML_SESSION {
  *  @param[in] dbg_print  Pass in a function that writes out the two strings and a line break if requested
  *  @return    returns a suitable TRDP_ERR. Any occurrence of an error will clean up resources.
  */
-TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print);
+TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print, const UINT8 *pXTypeMap);
 
 /**
  *  Initialize that specific bus interface for this session
@@ -139,7 +133,7 @@ const char*tau_getResultString   (TRDP_ERR_T ret);
  *                        NULL otherwise. If a destination was empty or the any-address, you must provide reply-to
  *                        source info. Only the replyIpAddr is used, if empty, srcIpAddr is the fall-back.
  */
-TRDP_ERR_T tau_xsession_publish  (TAU_XSESSION_T *our, UINT32 ComID, UINT32 *pubTelID, const UINT8 *data, UINT32 cap, const TRDP_PD_INFO_T *info /* NULL ok */);
+TRDP_ERR_T tau_xsession_publish  (TAU_XSESSION_T *our, UINT32 ComID, INT32 *pubTelID, UINT32 IDs, const UINT8 *data, UINT32 cap, const TRDP_PD_INFO_T *info /* NULL ok */);
 
 /**
  *   Subscribe to receiving the telegram ComID.
@@ -154,7 +148,7 @@ TRDP_ERR_T tau_xsession_publish  (TAU_XSESSION_T *our, UINT32 ComID, UINT32 *pub
  *
  *  @return  TRDP_ERR
  */
-TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *subTelID, TRDP_PD_CALLBACK_T cb);
+TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subTelID, UINT32 IDs, TRDP_PD_CALLBACK_T cb);
 
 /**
  *   Do the house-keeping of TRDP and packet transmission.
@@ -203,7 +197,7 @@ TRDP_ERR_T tau_xsession_cycle    (TAU_XSESSION_T *our );
  *
  *  @return  TRDP_ERR
  */
-TRDP_ERR_T tau_xsession_setCom   (TAU_XSESSION_T *our,               UINT32  pubTelID, const UINT8 *data, UINT32 cap);
+TRDP_ERR_T tau_xsession_setCom   (TAU_XSESSION_T *our,               INT32  pubTelID, const UINT8 *data, UINT32 cap);
 
 /**
  *   Check for most recent data for the previously subscribed telegram.
@@ -218,7 +212,7 @@ TRDP_ERR_T tau_xsession_setCom   (TAU_XSESSION_T *our,               UINT32  pub
  *  @return TRDP_ERR. May return TRDP_NODATA_ERR, which is not fatal, but indicates that no telegram has been
  *          received yet. May also return TRDP_TIMEOUT_ERR if the remote source stopped sending.
  */
-TRDP_ERR_T tau_xsession_getCom   (TAU_XSESSION_T *our,               UINT32  subTelID,       UINT8 *data, UINT32 cap, UINT32 *length, TRDP_PD_INFO_T *info);
+TRDP_ERR_T tau_xsession_getCom   (TAU_XSESSION_T *our,               INT32  subTelID,       UINT8 *data, UINT32 cap, UINT32 *length, TRDP_PD_INFO_T *info);
 
 /**
  *   Send out a request for the previously subscribed telegram. Use the ID returned by
@@ -227,7 +221,7 @@ TRDP_ERR_T tau_xsession_getCom   (TAU_XSESSION_T *our,               UINT32  sub
  *  @param[in,out] our    session state.
  *  @param[in]  subTelID  The ID returned by @see tau_xsession_subscribe()
  */
-TRDP_ERR_T tau_xsession_request  (TAU_XSESSION_T *our,               UINT32  subTelID);
+TRDP_ERR_T tau_xsession_request  (TAU_XSESSION_T *our,               INT32  subTelID);
 
 /**
  *  Lookup the corresponding datasetID for given ComID

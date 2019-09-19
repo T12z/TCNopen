@@ -62,9 +62,8 @@ static UINT32 sNumEntries = 0u;
 /** List of byte sizes for standard TCMS types, identical to tau-version */
 static const UINT8 cWireSizeOfBasicTypes[] = { 0, 1, 1, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 4, 6, 8 };
 
-uint8_t __TAU_XTYPE_MAP[40];
-static const uint8_t *cMemSizeOfBasicTypes = __TAU_XTYPE_MAP;
-static const uint8_t *cAlignOfBasicTypes   = __TAU_XTYPE_MAP+20;
+static const uint8_t *cMemSizeOfBasicTypes;
+static const uint8_t *cAlignOfBasicTypes;
 
 
 
@@ -607,6 +606,7 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
  *  @param[in]      pComIdDsIdMap    Pointer to an array of structures of type TRDP_DATASET_T
  *  @param[in]      numDataSet       Number of datasets found in the configuration
  *  @param[in]      pDataset         Pointer to an array of pointers to structures of type TRDP_DATASET_T
+ *  @param[in]      pTypeMap         Pointer to an alignment / size-map for xmarshalling (no copy is made!)
  *
  *  @retval         TRDP_NO_ERR      no error
  *  @retval         TRDP_MEM_ERR     provided buffer to small
@@ -616,11 +616,12 @@ static TRDP_ERR_T unmarshallDs(TAU_MARSHALL_INFO_T *pInfo, TRDP_DATASET_T *pData
 
 EXT_DECL TRDP_ERR_T tau_xinitMarshall ( void * *ppRefCon __unused,
 		UINT32 numComId,   TRDP_COMID_DSID_MAP_T *pComIdDsIdMap,
-		UINT32 numDataSet, TRDP_DATASET_T        *pDataset[]     ) {
+		UINT32 numDataSet, TRDP_DATASET_T        *pDataset[],
+		const UINT8 *pTypeMap) {
 
 	UINT32 i, j;
 
-	if (!pDataset || !numDataSet || !numComId || !pComIdDsIdMap ) return TRDP_PARAM_ERR;
+	if (!pDataset || !numDataSet || !numComId || !pComIdDsIdMap || !pTypeMap) return TRDP_PARAM_ERR;
 
 	/*    Save the pointer to the comId mapping table    */
 	sComIdDsIdMap   = pComIdDsIdMap;
@@ -640,6 +641,9 @@ EXT_DECL TRDP_ERR_T tau_xinitMarshall ( void * *ppRefCon __unused,
 
 	/* sort the table    */
 	vos_qsort(pDataset, numDataSet, sizeof(TRDP_DATASET_T *), compareDataset);
+
+	cMemSizeOfBasicTypes = pTypeMap;
+	cAlignOfBasicTypes   = pTypeMap+20;
 
 	return TRDP_NO_ERR;
 }

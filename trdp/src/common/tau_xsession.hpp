@@ -44,7 +44,7 @@ public:
 	 *  The default constructor.
 	 *  Use @see load() (one-time initialization) and @see init() for further setup of the object.
 	 */
-	TAU_XSession() { lastErr=TRDP_NO_ERR; }
+	TAU_XSession() { our = NULL; lastErr=TRDP_NO_ERR; }
 
 	/**
 	 *  Session destructor
@@ -60,8 +60,8 @@ public:
 	 *  @param[in] length Is 0 if xml contains a filename or describes the byte-length of the xml-config-buffer.
 	 *  @return    returns a suitable TRDP_ERR. Any occurrence of an error will clean up resources.
 	 */
-	static TRDP_ERR_T load(const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print)
-		{ return tau_xsession_load(xml, length, dbg_print); }
+	static TRDP_ERR_T load(const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print, UINT8 *pXTypeMap)
+		{ return tau_xsession_load(xml, length, dbg_print, pXTypeMap); }
 
 	/**
 	 *  initialize that specific bus interface for this session
@@ -113,8 +113,8 @@ public:
 	 *                       NULL otherwise. If a destination was empty or the any-address, you must provide reply-to
 	 *                       source info. Only the replyIpAddr is used, if empty, srcIpAddr is the fall-back.
 	 */
-	TRDP_ERR_T publish  (UINT32 ComID, UINT32 *pubTelID, const UINT8 *data, UINT32 cap, const TRDP_PD_INFO_T *info)
-		{ return lastErr = tau_xsession_publish( our, ComID, pubTelID, data, cap, info ); }
+	TRDP_ERR_T publish  (UINT32 ComID, INT32 *pubTelID, UINT32 IDs, const UINT8 *data, UINT32 cap, const TRDP_PD_INFO_T *info)
+		{ return lastErr = tau_xsession_publish( our, ComID, pubTelID, IDs, data, cap, info ); }
 
 	/**
 	 *   Subscribe to receiving the telegram ComID.
@@ -127,8 +127,8 @@ public:
 	 *
 	 *  @return  TRDP_ERR
 	 */
-	TRDP_ERR_T subscribe(UINT32 ComID, UINT32 *subTelID, TRDP_PD_CALLBACK_T cb)
-		{ return lastErr = tau_xsession_subscribe( our, ComID, subTelID, cb ); }
+	TRDP_ERR_T subscribe(UINT32 ComID, INT32 *subTelID, UINT32 IDs, TRDP_PD_CALLBACK_T cb)
+		{ return lastErr = tau_xsession_subscribe( our, ComID, subTelID, IDs, cb ); }
 
 	/**
 	 *   Do the house-keeping of TRDP and packet transmission.
@@ -161,7 +161,7 @@ public:
 	 *
 	 *  @return  TRDP_ERR
 	 */
-	TRDP_ERR_T setCom   (              UINT32  pubTelID, const UINT8 *data, UINT32 cap)
+	TRDP_ERR_T setCom   (              INT32  pubTelID, const UINT8 *data, UINT32 cap)
 		{ return lastErr = tau_xsession_setCom( our, pubTelID, data, cap );	}
 	/**
 	 *   Check for most recent data for the previously subscribed telegram.
@@ -175,14 +175,14 @@ public:
 	 *  @return TRDP_ERR. May return TRDP_NODATA_ERR, which is not fatal, but indicates that no telegram has been
 	 *          received yet. May also return TRDP_TIMEOUT_ERR if the remote source stopped sending.
 	 */
-	TRDP_ERR_T getCom   (              UINT32  subTelID,       UINT8 *data, UINT32 cap, UINT32 *length, TRDP_PD_INFO_T *info)
+	TRDP_ERR_T getCom   (              INT32  subTelID,       UINT8 *data, UINT32 cap, UINT32 *length, TRDP_PD_INFO_T *info)
 		{ return lastErr = tau_xsession_getCom( our, subTelID, data, cap, length, info ); }
 
 	/**
 	 *   Send out a request for the previously subscribed telegram. Use the ID returned by
 	 *          @see tau_xsession_subscribe()
 	 */
-	TRDP_ERR_T request  (              UINT32  subTelID)
+	TRDP_ERR_T request  (              INT32  subTelID)
 		{ return lastErr = tau_xsession_request( our, subTelID ); }
 
 	/**
