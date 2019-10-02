@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2019-10-02: Ticket #280 Moved assignment of iterMD after the mutex lock in tlm_abortSession
 *      SB 2019-07-12: Removing callback during tlm_abortSession to prevent it from being called with deleted pUserRef
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -893,7 +894,7 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
     TRDP_APP_SESSION_T  appHandle,
     const TRDP_UUID_T   *pSessionId)
 {
-    MD_ELE_T    *iterMD     = appHandle->pMDSndQueue;
+    MD_ELE_T    *iterMD     = NULL;
     BOOL8       firstLoop   = TRUE;
     TRDP_ERR_T  err         = TRDP_NOSESSION_ERR;
 
@@ -913,6 +914,8 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
     {
         return TRDP_NOINIT_ERR;
     }
+
+    iterMD = appHandle->pMDSndQueue;
 
     /*  Find the session which needs to be killed. Actual release will be done in tlc_process().
      Note: We must also check the receive queue for pending replies! */
