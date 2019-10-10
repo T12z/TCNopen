@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-08-16: Ticket #267 Incorrect values for fields WireError, CRCError and Topo...
  *      BL 2019-06-11: Possible NULL pointer access
  *      SB 2019-03-20: Ticket #235 TRDP MD Listener: Additional filter rule for multicast destIpAddr added
@@ -2701,7 +2702,7 @@ void  trdp_mdCheckListenSocks (
                                                   &new_sd, &newIp,
                                                   &(read_tcpPort));
 
-                if (new_sd < 0)
+                if (new_sd == VOS_INVALID_SOCKET)
                 {
                     if (err == TRDP_NO_ERR)
                     {

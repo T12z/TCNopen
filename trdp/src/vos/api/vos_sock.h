@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
  *      V 2.0.0 --------- ^^^ -----------
  *      V 1.4.2 --------- vvv -----------
@@ -111,14 +112,18 @@ extern "C" {
 #endif
 #endif
 
-#define VOS_INVALID_SOCKET  -1      /**< Invalid socket number */
-
 #define VOS_INADDR_ANY      INADDR_ANY
 
 #define VOS_DEFAULT_IFACE   cDefaultIface
 
 #if !defined(SOCKET) && !defined(WIN64)
-#define SOCKET  INT32
+#define SOCKET              INT32
+#endif
+
+#ifdef INVALID_SOCKET                           /* In Windows SOCKET is unsigned int */
+#define VOS_INVALID_SOCKET  INVALID_SOCKET      /**< Invalid socket number */
+#else
+#define VOS_INVALID_SOCKET  -1                  /**< Invalid socket number */
 #endif
 
 extern const CHAR8 *cDefaultIface;

@@ -1463,7 +1463,7 @@ TRDP_ERR_T  trdp_pdSend (
 
     if (err != VOS_NO_ERR)
     {
-        vos_printLogStr(VOS_LOG_WARNING, "trdp_pdSend failed\n");
+        vos_printLogStr(VOS_LOG_DBG, "trdp_pdSend failed\n");
         return TRDP_IO_ERR;
     }
 

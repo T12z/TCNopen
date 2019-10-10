@@ -18,6 +18,7 @@
 /*
 * $Id$*
 *
+*      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING
 *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
 *      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
@@ -1410,7 +1411,7 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
     {
         int sockLen = sizeof(srcAddress);
         connFd = accept(sock, (struct sockaddr *) &srcAddress, &sockLen);
-        if (connFd < 0)
+        if (connFd == INVALID_SOCKET)
         {
             int err = WSAGetLastError();
 
