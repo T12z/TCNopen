@@ -707,6 +707,263 @@ static TRDP_ERR_T readTelegramDef (
 }
 
 /**********************************************************************************************************************/
+static TRDP_ERR_T readMappedTelegramDef(
+    XML_HANDLE_T        *pXML,
+    TRDP_EXCHG_PAR_T    *pExchgParam)
+{
+    CHAR8       tag[MAX_TAG_LEN];
+    CHAR8       attribute[MAX_TOK_LEN];
+    CHAR8       value[MAX_TOK_LEN];
+    UINT32      valueInt;
+    UINT32      countSrc;
+    UINT32      countDst;
+    TRDP_SRC_T  *pSrc;
+    TRDP_DEST_T *pDest;
+    XML_TOKEN_T token;
+
+    /* Get the attributes */
+
+    while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+    {
+        if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
+        {
+            pExchgParam->comId = valueInt;
+        }
+    }
+
+    /* find out how many sources are defined before hand */
+    countSrc = (UINT32)trdp_XMLCountStartTag(pXML, "mapped-source");
+    pSrc = NULL;
+    countDst = (UINT32)trdp_XMLCountStartTag(pXML, "mapped-destination");
+    pDest = NULL;
+
+    /* Iterate thru <telegram> */
+
+    while (trdp_XMLSeekStartTagAny(pXML, tag, MAX_TAG_LEN) == 0)
+    {
+        if (vos_strnicmp(tag, "mapped-pd-parameter", MAX_TAG_LEN) == 0)
+        {
+            pExchgParam->pPdPar = (TRDP_PD_PAR_T *)vos_memAlloc(sizeof(TRDP_PD_PAR_T));
+
+            if (pExchgParam->pPdPar != NULL)
+            {
+                while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                {
+                    if (vos_strnicmp(attribute, "offset-address", MAX_TOK_LEN) == 0)
+                    {
+                        pExchgParam->pPdPar->offset = (UINT16)valueInt;
+                    }
+                }
+            }
+        }
+        else if (vos_strnicmp(tag, "mapped-source", MAX_TAG_LEN) == 0)
+        {
+            if (countSrc > 0u)
+            {
+                pExchgParam->pSrc = (TRDP_SRC_T *)vos_memAlloc(countSrc * sizeof(TRDP_SRC_T));
+
+                if (pExchgParam->pSrc == NULL)
+                {
+                    vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML source definitions!\n",
+                        (unsigned long)(countSrc * sizeof(TRDP_SRC_T)));
+                    return TRDP_MEM_ERR;
+                }
+                pExchgParam->srcCnt = countSrc;
+                countSrc = 0u;
+                pSrc = pExchgParam->pSrc;
+            }
+
+            while ((token = trdp_XMLGetAttribute(pXML, attribute, &valueInt, value)) == TOK_ATTRIBUTE && pSrc != NULL)
+            {
+                if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                {
+                    pSrc->id = valueInt;
+                }
+                else if (vos_strnicmp(attribute, "uri1", MAX_TOK_LEN) == 0)
+                {
+                    char *p = strchr(value, '@');   /* Get host part only */
+                    if (p != NULL)
+                    {
+                        pSrc->pUriUser = (TRDP_URI_USER_T *)vos_memAlloc(TRDP_MAX_URI_USER_LEN + 1u);
+                        if (pSrc->pUriUser == NULL)
+                        {
+                            vos_printLog(VOS_LOG_ERROR,
+                                "%u Bytes failed to allocate while reading XML source definitions!\n",
+                                (unsigned int)(TRDP_MAX_URI_USER_LEN + 1u));
+                            return TRDP_MEM_ERR;
+                        }
+                        memcpy(pSrc->pUriUser, value, p - value);  /* Trailing zero by vos_memAlloc    */
+                        p++;
+                    }
+                    else
+                    {
+                        p = value;
+                    }
+
+                    pSrc->pUriHost1 = (TRDP_URI_HOST_T *)vos_memAlloc((UINT32)strlen(p) + 1u);
+                    if (pSrc->pUriHost1 == NULL)
+                    {
+                        vos_printLog(VOS_LOG_ERROR,
+                            "%lu Bytes failed to allocate while reading XML source definitions!\n",
+                            (unsigned long)(strlen(p) + 1u));
+                        return TRDP_MEM_ERR;
+                    }
+                    vos_strncpy((char *)pSrc->pUriHost1, p, (UINT32)strlen(p) + 1u);
+                }
+                else if (vos_strnicmp(attribute, "uri2", MAX_TOK_LEN) == 0)
+                {
+                    char *p = strchr(value, '@');   /* Get host part only */
+                    p = (p == NULL) ? value : p + 1;
+
+                    pSrc->pUriHost2 = (TRDP_URI_HOST_T *)vos_memAlloc((UINT32)strlen(p) + 1u);
+                    if (pSrc->pUriHost2 == NULL)
+                    {
+                        vos_printLog(VOS_LOG_ERROR,
+                            "%lu Bytes failed to allocate while reading XML source definitions!\n",
+                            (unsigned long)(strlen(p) + 1u));
+                        return TRDP_MEM_ERR;
+                    }
+                    vos_strncpy((char *)pSrc->pUriHost2, p, (UINT32)strlen(p) + 1u);
+                }
+            }
+            //if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE)
+            if (token == TOK_CLOSE_EMPTY)
+            {
+            }
+            else
+            {
+                trdp_XMLEnter(pXML);
+                if (trdp_XMLCountStartTag(pXML, "mapped-sdt-parameter") > 0 &&
+                    trdp_XMLSeekStartTag(pXML, "mapped-sdt-parameter") == 0 &&
+                    pSrc != NULL)
+                {
+                    pSrc->pSdtPar = (TRDP_SDT_PAR_T *)vos_memAlloc(sizeof(TRDP_SDT_PAR_T));
+
+                    if (pSrc->pSdtPar == NULL)
+                    {
+                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML source definitions!\n",
+                            (unsigned long) sizeof(TRDP_SDT_PAR_T));
+                        return TRDP_MEM_ERR;
+                    }
+
+                    while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                    {
+                        if (vos_strnicmp(attribute, "smi1", MAX_TOK_LEN) == 0)
+                        {
+                            pSrc->pSdtPar->smi1 = valueInt;
+                        }
+                        else if (vos_strnicmp(attribute, "smi2", MAX_TOK_LEN) == 0)
+                        {
+                            pSrc->pSdtPar->smi2 = valueInt;
+                        }
+                    }
+                }
+                trdp_XMLLeave(pXML);
+            }
+            if (pSrc != NULL)
+            {
+                pSrc++;
+            }
+        }
+        else if (vos_strnicmp(tag, "mapped-destination", MAX_TAG_LEN) == 0)
+        {
+            if (countDst > 0u)
+            {
+                pExchgParam->pDest = (TRDP_DEST_T *)vos_memAlloc(countDst * sizeof(TRDP_DEST_T));
+
+                if (pExchgParam->pDest == NULL)
+                {
+                    vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML source definitions!\n",
+                        (unsigned long)(countDst * sizeof(TRDP_DEST_T)));
+                    return TRDP_MEM_ERR;
+                }
+                pExchgParam->destCnt = countDst;
+                countDst = 0u;
+                pDest = pExchgParam->pDest;
+            }
+
+            while ((token = trdp_XMLGetAttribute(pXML, attribute, &valueInt, value)) == TOK_ATTRIBUTE && pDest != NULL)
+            {
+                if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                {
+                    pDest->id = valueInt;
+                }
+                else if (vos_strnicmp(attribute, "uri", MAX_TOK_LEN) == 0)
+                {
+                    char *p = strchr(value, '@');   /* Get host part only */
+                    if (p != NULL)
+                    {
+                        pDest->pUriUser = (TRDP_URI_USER_T *)vos_memAlloc(TRDP_MAX_URI_USER_LEN + 1u);
+                        if (pDest->pUriUser == NULL)
+                        {
+                            vos_printLog(VOS_LOG_ERROR,
+                                "%u Bytes failed to allocate while reading XML source definitions!\n",
+                                (unsigned int)(TRDP_MAX_URI_USER_LEN + 1));
+                            return TRDP_MEM_ERR;
+                        }
+                        memcpy(pDest->pUriUser, value, p - value);  /* Trailing zero by vos_memAlloc    */
+                        p++;
+                    }
+                    else
+                    {
+                        p = value;
+                    }
+
+                    pDest->pUriHost = (TRDP_URI_HOST_T *)vos_memAlloc((UINT32)strlen(p) + 1u);
+                    if (pDest->pUriHost == NULL)
+                    {
+                        vos_printLog(VOS_LOG_ERROR,
+                            "%lu Bytes failed to allocate while reading XML source definitions!\n",
+                            (unsigned long)(strlen(p) + 1u));
+                        return TRDP_MEM_ERR;
+                    }
+                    vos_strncpy((char *)pDest->pUriHost, p, (UINT32)strlen(p) + 1u);
+                }
+            }
+            //if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE)
+            if (token == TOK_CLOSE_EMPTY)
+            {
+            }
+            else
+            {
+                trdp_XMLEnter(pXML);
+                if (trdp_XMLCountStartTag(pXML, "mapped-sdt-parameter") > 0 &&
+                    trdp_XMLSeekStartTag(pXML, "mapped-sdt-parameter") == 0 &&
+                    pDest != NULL)
+                {
+                    pDest->pSdtPar = (TRDP_SDT_PAR_T *)vos_memAlloc(sizeof(TRDP_SDT_PAR_T));
+
+                    if (pDest->pSdtPar == NULL)
+                    {
+                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML source definitions!\n",
+                            (unsigned long) sizeof(TRDP_SDT_PAR_T));
+                        return TRDP_MEM_ERR;
+                    }
+
+                    while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                    {
+                        if (vos_strnicmp(attribute, "smi1", MAX_TOK_LEN) == 0)
+                        {
+                            pDest->pSdtPar->smi1 = valueInt;
+                        }
+                        else if (vos_strnicmp(attribute, "smi2", MAX_TOK_LEN) == 0)
+                        {
+                            pDest->pSdtPar->smi2 = valueInt;
+                        }
+                    }
+                }
+                trdp_XMLLeave(pXML);
+            }
+            if (pDest != NULL)
+            {
+                pDest++;
+            }
+        }
+    }
+    return TRDP_NO_ERR;
+}
+
+/**********************************************************************************************************************/
 static TRDP_ERR_T readXmlDatasetMap (
     XML_HANDLE_T            *pXML,
     UINT32                  *pNumComId,
@@ -1694,6 +1951,344 @@ EXT_DECL TRDP_ERR_T tau_readXmlDeviceConfig (
     trdp_XMLLeave(pDocHnd->pXmlDocument);
 
     return TRDP_NO_ERR;
+}
+
+
+/**********************************************************************************************************************/
+/**    Function to read the TRDP mapped devices out of the XML configuration file.
+*
+*
+*  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+*  @param[out]     pNumProcConfig    Number of configured mapped devices
+*  @param[out]     ppProcessConfig   Pointer to an array of mapped devices configuration
+*
+*  @retval         TRDP_NO_ERR       no error
+*  @retval         TRDP_MEM_ERR      provided buffer to small
+*  @retval         TRDP_PARAM_ERR    File not existing
+*
+*/
+EXT_DECL TRDP_ERR_T tau_readXmlMappedDevices(
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    UINT32                      *pNumProcConfig,
+    TRDP_PROCESS_CONFIG_T       **ppProcessConfig
+    )
+{
+    CHAR8       attribute[MAX_TOK_LEN];
+    CHAR8       value[MAX_TOK_LEN];
+    UINT32      valueInt;
+
+    /*  Check parameters    */
+    if (!pDocHnd || !pNumProcConfig || !ppProcessConfig)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    trdp_XMLRewind(pDocHnd->pXmlDocument);
+
+    /* Set default values */
+    *pNumProcConfig = 0u;
+
+    trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+    if (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "device") == 0) /* Optional */
+    {
+        trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+        if (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-device-list") == 0)
+        {
+            trdp_XMLEnter(pDocHnd->pXmlDocument);
+            if (ppProcessConfig != NULL)
+            {
+                UINT32 count = 0u;
+                count = (UINT32)trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "mapped-device");
+
+                *ppProcessConfig = (TRDP_PROCESS_CONFIG_T *)vos_memAlloc(count * sizeof(TRDP_PROCESS_CONFIG_T));
+
+                if (*ppProcessConfig != NULL)
+                {
+                    UINT32 i;
+                    *pNumProcConfig = count;
+
+                    /* Read the mapped devices */
+                    for (i = 0u; i < count && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-device") == 0; i++)
+                    {
+                        while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                        {
+                            if (vos_strnicmp(attribute, "host-name", MAX_TOK_LEN) == 0)
+                            {
+                                vos_strncpy((*ppProcessConfig)[i].hostName, value, 50);
+                            }
+                            else if (vos_strnicmp(attribute, "leader-name", MAX_TOK_LEN) == 0)
+                            {
+                                vos_strncpy((*ppProcessConfig)[i].leaderName, value, TRDP_MAX_LABEL_LEN);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    trdp_XMLLeave(pDocHnd->pXmlDocument);
+
+    return TRDP_NO_ERR;
+
+}
+
+/**********************************************************************************************************************/
+/**    Function to read the TRDP mapped device configuration parameters for a particular host out of
+*  the XML configuration file.
+*
+*  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+*  @param[in]      pHostname         Host name for which interface config is to be read
+*  @param[out]     pNumIfConfig      Number of configured interfaces for this host
+*  @param[out]     ppIfConfig        Pointer to an array of interface parameter sets
+*
+*  @retval         TRDP_NO_ERR       no error
+*  @retval         TRDP_MEM_ERR      provided buffer to small
+*  @retval         TRDP_PARAM_ERR    File not existing
+*
+*/
+EXT_DECL TRDP_ERR_T tau_readXmlMappedDeviceConfig(
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    const CHAR8                 *pHostname,
+    UINT32                      *pNumIfConfig,
+    TRDP_IF_CONFIG_T            **ppIfConfig
+    )
+{
+    CHAR8       attribute[MAX_TOK_LEN];
+    CHAR8       value[MAX_TOK_LEN];
+    UINT32      valueInt;
+
+    /*  Check parameters    */
+    if (!pDocHnd || !pHostname || !pNumIfConfig || !ppIfConfig)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    /*  Default all parameters    */
+    *pNumIfConfig = 0;
+    *ppIfConfig = NULL;
+
+    trdp_XMLRewind(pDocHnd->pXmlDocument);
+
+    trdp_XMLEnter(pDocHnd->pXmlDocument);
+    if (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "device") == 0) /* Optional */
+    {
+        trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+        if (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-device-list") == 0)
+        {
+            trdp_XMLEnter(pDocHnd->pXmlDocument);
+            while (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-device") == 0)
+            {
+                int foundIdx = 0;
+
+                /* find the host, if its name was supplied, otherwise take the first one which was defined */
+                if (pHostname != NULL && strlen(pHostname))
+                {
+                    while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt,
+                        value) == TOK_ATTRIBUTE)
+                    {
+                        if (vos_strnicmp(attribute, "host-name", MAX_TOK_LEN) == 0 &&
+                            vos_strnicmp(pHostname, value, TRDP_MAX_LABEL_LEN) == 0)
+                        {
+                            foundIdx = 1;
+                        }
+                    }
+                    if (foundIdx == 0)
+                    {
+                        continue;
+                    }
+                }
+
+                trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+                if (ppIfConfig != NULL)
+                {
+                    UINT32 count = 0u;
+                    count = (UINT32)trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "mapped-bus-interface");
+
+                    *ppIfConfig = (TRDP_IF_CONFIG_T *)vos_memAlloc(count * sizeof(TRDP_IF_CONFIG_T));
+
+                    if (*ppIfConfig != NULL)
+                    {
+                        UINT32 i;
+                        *pNumIfConfig = count;
+
+                        /* Read the com params */
+                        for (i = 0u; i < count && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-bus-interface") == 0; i++)
+                        {
+                            while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                            {
+                                if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                {
+                                    vos_strncpy((*ppIfConfig)[i].ifName, value, TRDP_MAX_LABEL_LEN);
+                                }
+                                else if (vos_strnicmp(attribute, "host-ip", MAX_TOK_LEN) == 0)
+                                {
+                                    (*ppIfConfig)[i].hostIp = vos_dottedIP(value);
+                                }
+                                else if (vos_strnicmp(attribute, "leader-ip", MAX_TOK_LEN) == 0)
+                                {
+                                    (*ppIfConfig)[i].leaderIp = vos_dottedIP(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    trdp_XMLLeave(pDocHnd->pXmlDocument);
+
+    return TRDP_NO_ERR;
+}
+
+/**********************************************************************************************************************/
+/**    Read the interface relevant mapped telegram parameters for a particular host and it's interface
+*  out of the configuration file .
+*
+*
+*  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+*  @param[in]      pHostname         Host name
+*  @param[in]      pIfName           Interface name
+*  @param[out]     pNumExchgPar      Number of configured telegrams
+*  @param[out]     ppExchgPar        Pointer to array of telegram configurations
+*
+*  @retval         TRDP_NO_ERR       no error
+*  @retval         TRDP_MEM_ERR      provided buffer to small
+*  @retval         TRDP_PARAM_ERR    File not existing
+*
+*/
+EXT_DECL TRDP_ERR_T tau_readXmlMappedInterfaceConfig(
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    const CHAR8                 *pHostname,
+    const CHAR8                 *pIfName,
+    UINT32                      *pNumExchgPar,
+    TRDP_EXCHG_PAR_T            * *ppExchgPar
+    )
+{
+    CHAR8       tag[MAX_TAG_LEN];
+    CHAR8       attribute[MAX_TOK_LEN];
+    CHAR8       value[MAX_TOK_LEN];
+    UINT32      valueInt;
+    TRDP_ERR_T  result = TRDP_NO_ERR;
+
+    /*  Check parameters    */
+    if (!pDocHnd || !pIfName || !pNumExchgPar || !ppExchgPar)
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    trdp_XMLRewind(pDocHnd->pXmlDocument);
+
+    /* Set default values */
+    *pNumExchgPar = 0u;
+    *ppExchgPar = NULL;
+
+    trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+    if (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "device") == 0) /* Optional */
+    {
+        trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+        /* Iterate thru <device> */
+        if (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-device-list") == 0)
+        {
+            trdp_XMLEnter(pDocHnd->pXmlDocument);
+            while (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-device") == 0)
+            {
+                int foundIdx = 0;
+
+                /* find the host, if its name was supplied, otherwise take the first one which was defined */
+                if (pHostname != NULL && strlen(pHostname))
+                {
+                    while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt,
+                        value) == TOK_ATTRIBUTE)
+                    {
+                        if (vos_strnicmp(attribute, "host-name", MAX_TOK_LEN) == 0 &&
+                            vos_strnicmp(pHostname, value, TRDP_MAX_LABEL_LEN) == 0)
+                        {
+                            foundIdx = 1;
+                        }
+                    }
+                    if (foundIdx == 0)
+                    {
+                        continue;
+                    }
+                }
+
+                trdp_XMLEnter(pDocHnd->pXmlDocument);
+                while (trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "mapped-bus-interface") == 0)
+                {
+                    UINT32 idx = 0, count = 0;
+                    foundIdx = 0;
+
+                    /* find the interface, if its name was supplied, otherwise take the first one which was defined */
+                    if (pIfName != NULL && strlen(pIfName))
+                    {
+                        while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt,
+                            value) == TOK_ATTRIBUTE)
+                        {
+                            if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0 &&
+                                vos_strnicmp(pIfName, value, TRDP_MAX_LABEL_LEN) == 0)
+                            {
+                                foundIdx = 1;
+                            }
+                        }
+                        if (foundIdx == 0)
+                        {
+                            continue;
+                        }
+                    }
+
+                    trdp_XMLEnter(pDocHnd->pXmlDocument);
+
+                    /* find out how many telegrams are defined before hand */
+
+                    count = (UINT32)trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "mapped-telegram");
+
+                    if (count > 0u)
+                    {
+                        *ppExchgPar = (TRDP_EXCHG_PAR_T *)vos_memAlloc(count * sizeof(TRDP_EXCHG_PAR_T));
+
+                        if (*ppExchgPar == NULL)
+                        {
+                            vos_printLog(VOS_LOG_ERROR,
+                                "%lu Bytes failed to allocate while reading XML telegram definitions!\n",
+                                (unsigned long)(count * sizeof(TRDP_EXCHG_PAR_T)));
+                            return TRDP_MEM_ERR;
+                        }
+                    }
+
+                    while (trdp_XMLSeekStartTagAny(pDocHnd->pXmlDocument, tag, MAX_TAG_LEN) == 0)
+                    {
+                        /* read the n-th telegram / exchange parameters */
+                        if (count > 0u && count > idx && vos_strnicmp(tag, "mapped-telegram", MAX_TAG_LEN) == 0)
+                        {
+                            trdp_XMLEnter(pDocHnd->pXmlDocument);
+                            result = readMappedTelegramDef(pDocHnd->pXmlDocument, &(*ppExchgPar)[idx]);
+
+                            trdp_XMLLeave(pDocHnd->pXmlDocument);
+                            if (result != TRDP_NO_ERR)
+                            {
+                                return result;
+                            }
+                            idx++;
+                        }
+                    }
+                    *pNumExchgPar = count;
+                }
+                trdp_XMLLeave(pDocHnd->pXmlDocument);
+            }
+        }
+        trdp_XMLLeave(pDocHnd->pXmlDocument);
+    }
+    trdp_XMLLeave(pDocHnd->pXmlDocument);
+
+    return result;
 }
 
 
