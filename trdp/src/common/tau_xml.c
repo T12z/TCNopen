@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright NewTec GmbH, 2016. All rights reserved.
+ *          Copyright NewTec GmbH, 2016-2019. All rights reserved.
  */
  /*
  * $Id$
  *
+ *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
  *      SB 2019-09-03: Added parsing for service time to live
  *      SB 2019-08-29: Added parsing of debug info
  *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)

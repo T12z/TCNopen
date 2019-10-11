@@ -19,6 +19,7 @@
  /*
  * $Id$
  *
+ *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
  *      SB 2019-09-03: Added parsing for service time to live
  *      SB 2018-07-10: Ticket #264: Added structures for parsing of service definitions for service oriented interface
  *      BL 2019-06-14: Ticket #250: additional parameter lmi-max SDTv2
@@ -400,8 +401,8 @@ EXT_DECL void tau_freeXmlDatasetConfig (
  *
  */
 EXT_DECL void tau_freeTelegrams (
-    UINT32              numExchgPar,
-    TRDP_EXCHG_PAR_T    *pExchgPar);
+    UINT32                      numExchgPar,
+    TRDP_EXCHG_PAR_T            *pExchgPar);
 
 /**********************************************************************************************************************/
 /**    Function to read the TRDP device service definitions out of the XML configuration file.
@@ -419,8 +420,68 @@ EXT_DECL void tau_freeTelegrams (
 EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
     const TRDP_XML_DOC_HANDLE_T *pDocHnd,
     UINT32                      *pNumServiceDefs,
-    TRDP_SERVICE_DEF_T          **ppServiceDefs
-    );
+    TRDP_SERVICE_DEF_T          **ppServiceDefs);
+
+/**********************************************************************************************************************/
+/**    Function to read the TRDP mapped devices out of the XML configuration file.
+ *
+ *
+ *  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+ *  @param[out]     pNumProcConfig    Number of configured mapped devices
+ *  @param[out]     ppProcessConfig   Pointer to an array of mapped devices configuration
+ *
+ *  @retval         TRDP_NO_ERR       no error
+ *  @retval         TRDP_MEM_ERR      provided buffer to small
+ *  @retval         TRDP_PARAM_ERR    File not existing
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_readXmlMappedDevices(
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    UINT32                      *pNumProcConfig,
+    TRDP_PROCESS_CONFIG_T       **ppProcessConfig);
+
+/**********************************************************************************************************************/
+/**    Function to read the TRDP mapped device configuration parameters for a particular host out of
+ *  the XML configuration file.
+ *
+ *  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+ *  @param[in]      pHostname         Host name for which interface config is to be read
+ *  @param[out]     pNumIfConfig      Number of configured interfaces for this host
+ *  @param[out]     ppIfConfig        Pointer to an array of interface parameter sets
+ *
+ *  @retval         TRDP_NO_ERR       no error
+ *  @retval         TRDP_MEM_ERR      provided buffer to small
+ *  @retval         TRDP_PARAM_ERR    File not existing
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_readXmlMappedDeviceConfig(
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    const CHAR8                 *pHostname,
+    UINT32                      *pNumIfConfig,
+    TRDP_IF_CONFIG_T            **ppIfConfig);
+
+/**********************************************************************************************************************/
+/**    Read the interface relevant mapped telegram parameters for a particular host and it's interface
+ *  out of the configuration file .
+ *
+ *
+ *  @param[in]      pDocHnd           Handle of the XML document prepared by tau_prepareXmlDoc
+ *  @param[in]      pHostname         Host name
+ *  @param[in]      pIfName           Interface name
+ *  @param[out]     pNumExchgPar      Number of configured telegrams
+ *  @param[out]     ppExchgPar        Pointer to array of telegram configurations
+ *
+ *  @retval         TRDP_NO_ERR       no error
+ *  @retval         TRDP_MEM_ERR      provided buffer to small
+ *  @retval         TRDP_PARAM_ERR    File not existing
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_readXmlMappedInterfaceConfig(
+    const TRDP_XML_DOC_HANDLE_T *pDocHnd,
+    const CHAR8                 *pHostname,
+    const CHAR8                 *pIfName,
+    UINT32                      *pNumExchgPar,
+    TRDP_EXCHG_PAR_T            * *ppExchgPar);
 
 #ifdef __cplusplus
 }
