@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      SB 2019-10-15: Added option for filtering requested services.
 *      SB 2019-10-02: Fixed bug with reply callback triggered after timeout with now invalid context.
 *      SB 2019-09-17: Fixed bug, with semaphores not valid during callback (including MR retries triggering cb).
 *      SB 2019-09-03: Removed unused selector element (SRM_UPD)
@@ -440,7 +441,8 @@ EXT_DECL TRDP_ERR_T tau_updService (
 EXT_DECL TRDP_ERR_T tau_getServicesList (
     TRDP_APP_SESSION_T      appHandle,
     SRM_SERVICE_ENTRIES_T   * *ppServicesListBuffer,
-    UINT32                  *pNoOfServices)
+    UINT32                  *pNoOfServices,
+    SRM_SERVICE_ENTRIES_T   *pFilterEntry)
 {
     TRDP_ERR_T      err;
     TAU_CB_BLOCK_T  context = {0, NULL, 0u, TRDP_NO_ERR};
@@ -465,7 +467,7 @@ EXT_DECL TRDP_ERR_T tau_getServicesList (
     err = tlm_request(appHandle, &context, soMDCallback, &sessionId,
                       SRM_SERVICE_READ_REQ_COMID, 0u,
                       0u, 0u, tau_ipFromURI(appHandle, SRM_SERVICE_READ_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                      SRM_SERVICE_READ_REQ_TO, NULL, NULL, 0u, NULL, NULL);
+                      SRM_SERVICE_READ_REQ_TO, NULL, (UINT8*) pFilterEntry, sizeof(SRM_SERVICE_ENTRIES_T), NULL, NULL);
 
     if (err == TRDP_NO_ERR)
     {

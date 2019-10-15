@@ -51,7 +51,8 @@ EXT_DECL TRDP_ERR_T tau_updService (
 EXT_DECL TRDP_ERR_T tau_getServicesList (
     TRDP_APP_SESSION_T      appHandle,
     SRM_SERVICE_ENTRIES_T   * *ppServicesToAdd,
-    UINT32                  *noOfServices);
+    UINT32                  *pNoOfServices,
+    SRM_SERVICE_ENTRIES_T   *pFilterEntry);
 
 EXT_DECL void tau_freeServicesList (
     SRM_SERVICE_ENTRIES_T *pServicesListBuffer);
