@@ -537,7 +537,11 @@ EXT_DECL void vos_getNanoTime(
     else
     {
         FILETIME fileTime;
+#if defined(NTDDI_WIN8) && NTDDI_VERSION >= NTDDI_WIN8
         GetSystemTimePreciseAsFileTime(&fileTime);
+#else
+        GetSystemTimeAsFileTime(&fileTime);
+#endif
         *pTime = (((UINT64)fileTime.dwHighDateTime) << 32u) + (UINT64)fileTime.dwLowDateTime;
         /* 11644473600 is the difference between 1601 and 1970 in sec */
         *pTime = (*pTime * 100u) - (11644473600ull * NSECS_PER_USEC * USECS_PER_MSEC * MSECS_PER_SEC);
