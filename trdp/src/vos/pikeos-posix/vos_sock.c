@@ -157,24 +157,18 @@ BOOL8 vos_getMacAddress (
  */
 VOS_ERR_T vos_sockSetBuffer (SOCKET sock)
 {
+	int         err;
     int         optval      = 0;
     socklen_t   option_len  = sizeof(optval);
 
-    (void)getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (int *)&optval, &option_len);
-    if (optval < TRDP_SOCKBUF_SIZE)
+    err = getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (int *)&optval, &option_len);
+    if (!err && optval < TRDP_SOCKBUF_SIZE)
     {
-        optval = TRDP_SOCKBUF_SIZE;
-        if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (int *)&optval, option_len) == -1)
-        {
-            (void)getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (int *)&optval, &option_len);
-            vos_printLog(VOS_LOG_WARNING, "Send buffer size out of limit (max: %d)\n", optval);
-            return VOS_SOCK_ERR;
-        }
+        vos_printLog(VOS_LOG_INFO, "Send buffer limit = %d\n", optval);
     }
-    vos_printLog(VOS_LOG_INFO, "Send buffer limit = %d\n", optval);
 
-    (void)getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (int *)&optval, &option_len);
-    if (optval < TRDP_SOCKBUF_SIZE)
+    err = getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (int *)&optval, &option_len);
+    if (!err && optval < TRDP_SOCKBUF_SIZE)
     {
         optval = TRDP_SOCKBUF_SIZE;
         if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (int *)&optval, option_len) == -1)
@@ -431,9 +425,9 @@ EXT_DECL BOOL8 vos_netIfUp (VOS_IP4_ADDR_T ifAddress) {
 EXT_DECL VOS_ERR_T vos_sockInit (void)
 {
 //    memset(&gIfr, 0, sizeof(gIfr));
-    vosSockInitialised = TRUE;
+	vosSockInitialised = _lwip_init() == 0;
 
-    return VOS_NO_ERR;
+    return vosSockInitialised?VOS_NO_ERR:VOS_SOCK_ERR;
 }
 
 /**********************************************************************************************************************/
@@ -544,7 +538,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
 
     *pSock = (SOCKET) sock;
 
-    vos_printLog(VOS_LOG_DBG, "vos_sockOpenUDP: socket()=%d success\n", (int)sock);
+    vos_printLog(VOS_LOG_INFO, "vos_sockOpenUDP: socket()=%d success\n", (int)sock);
     return VOS_NO_ERR;
 }
 
@@ -648,15 +642,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
         if (1 == pOptions->reuseAddrPort)
         {
             sockOptValue = 1;
-#ifdef SO_REUSEPORT
-            if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &sockOptValue,
-                           sizeof(sockOptValue)) == -1)
-            {
-                char buff[VOS_MAX_ERR_STR_SIZE];
-                STRING_ERR(buff);
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() SO_REUSEPORT failed (Err: %s)\n", buff);
-            }
-#else
+#ifdef SO_REUSE
             if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &sockOptValue,
                            sizeof(sockOptValue)) == -1)
             {
@@ -1068,11 +1054,9 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pDstIPAddr,
     BOOL8   peek)
 {
-    struct sockaddr_in si_other;
-    int     slen    = sizeof(si_other), rcvSize;
+    struct sockaddr_in si[2];
+    int     slen    = sizeof(si), rcvSize;
     char    *buf    = (char *) pBuffer;
-    struct sockaddr_in dest;
-    int     dlen = sizeof(dest);
 
     if (sock == -1 || pBuffer == NULL || pSize == NULL)
     {
@@ -1082,27 +1066,27 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     do
     {
 
-        /* Note: recvfromdest is a call to a patched version of the lwip stack!
+        /* Note: this recvfrom is a call to a patched version of the lwip stack!
          The original recvfrom version does not provide such a call, neither does it provide the recvmsg() function!
+         This one also provides the dst-addr in a second element of sockaddr, if provided.
          */
-        rcvSize = lwip_recvfromdest(sock, buf, *pSize, peek ? MSG_PEEK|MSG_DONTWAIT : MSG_DONTWAIT, (struct sockaddr *) &si_other, (socklen_t *)&slen,
-                               (struct sockaddr *) &dest, (socklen_t *)&dlen);
+        rcvSize = recvfrom(sock, buf, *pSize, peek ? MSG_PEEK|MSG_DONTWAIT : MSG_DONTWAIT, (struct sockaddr *) si, (socklen_t *)&slen);
 
         if (rcvSize != -1)
         {
             if (pDstIPAddr != NULL)
             {
-                *pDstIPAddr = (UINT32)vos_ntohl(dest.sin_addr.s_addr);
+                *pDstIPAddr = (UINT32)vos_ntohl(si[1].sin_addr.s_addr);
             }
 
             if (pSrcIPAddr != NULL)
             {
-                *pSrcIPAddr = (uint32_t) vos_ntohl(si_other.sin_addr.s_addr);
+                *pSrcIPAddr = (uint32_t) vos_ntohl(si[0].sin_addr.s_addr);
             }
 
             if (pSrcIPPort != NULL)
             {
-                *pSrcIPPort = (UINT16) vos_ntohs(si_other.sin_port);
+                *pSrcIPPort = (UINT16) vos_ntohs(si[0].sin_port);
             }
         }
 

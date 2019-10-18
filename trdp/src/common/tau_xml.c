@@ -964,7 +964,7 @@ EXT_DECL TRDP_ERR_T tau_prepareXmlDoc (
     /*  Read XML file  */
     if (trdp_XMLOpen(pDocHnd->pXmlDocument, pFileName))
     {
-        vos_printLogStr(VOS_LOG_ERROR, "Prepare XML doc: failed to open XML file\n");
+        vos_printLogStr(VOS_LOG_ERROR, "Prepare XML doc: failed to open XML file: %m\n");
         return TRDP_PARAM_ERR;
     }
 

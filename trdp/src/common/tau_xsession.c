@@ -501,12 +501,18 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length, TAU_XSESSION_PRINT 
 	TRDP_COM_PAR_T    *pTempComPar;
 	XML_HANDLE_T       tempXML;
 
-	result = vos_memInit(NULL, 20000, NULL);
+	/* before tlc_init, there is no vos_printLog(). However, we can just call vos_init early with a default setting configuration. */
+	_.dbgConfig.option = TRDP_DBG_CAT | TRDP_DBG_ERR;
+	_.maxLogCategory = VOS_LOG_ERROR;
+	vos_init( &_.dbgConfig, dbgOut );
+
+	 /* as of 2019, memInit has some weird default behaviour and really needs a refactor, fall-through to mallox */
+	result = vos_memInit(NULL, 0, NULL);
 	if (result == TRDP_NO_ERR) {
 		/*  Prepare XML document    */
 		result = length ? tau_prepareXmlMem(xml,  length,  &_.devDocHnd) : tau_prepareXmlDoc(xml, &_.devDocHnd);
 		if (result != TRDP_NO_ERR) {
-			vos_printLog(VOS_LOG_ERROR, "Failed to prepare XML document: %s", tau_getResultString(result));
+			vos_printLog(VOS_LOG_ERROR, "Failed to prepare XML document (%s/%ld): %s", xml, length, tau_getResultString(result));
 		} else {
 
 			/*  Read general parameters from XML configuration*/
@@ -671,7 +677,7 @@ TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
 	if ( _.use <= 0 ) return result;
 
 	const VOS_TIMEVAL_T zero = {0,0};
-	VOS_TIMEVAL_T now;
+	VOS_TIMEVAL_T now, now2;
 	vos_getTime( &now );
 
 	do {
@@ -689,13 +695,17 @@ TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
 		}
 
 		if (timercmp( &max_tv, &zero, <)) max_tv = zero;  /* max_tv must not be negative */
+		vos_printLog(VOS_LOG_INFO, "CYCLE-select: %d++%ld -> %d++%ld\n", now.tv_sec, now.tv_usec/1000, max_tv.tv_sec, max_tv.tv_usec/1000);
 		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_tv);
 
 		vos_getTime( &now );
+		vos_printLog(VOS_LOG_INFO, "CYCLE-process: %d++%ld\n", now.tv_sec, now.tv_usec/1000);
 		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
 			result = tlc_process(s->sessionhandle, &rfds, &rv);
 			s->lastTime = now;
 		}
+		vos_getTime( &now2 );
+		vos_printLog(VOS_LOG_INFO, "\\\\CYCLE-process: %d++%ld\n", now2.tv_sec, now2.tv_usec/1000);
 
 	} while ( timercmp( &now, &deadline, <) );
 

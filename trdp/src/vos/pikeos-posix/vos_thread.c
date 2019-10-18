@@ -33,7 +33,7 @@
 
 #ifndef PIKEOS_POSIX
 #error \
-    "You are trying to compile the POSIX implementation of vos_thread.c - either define POSIX or exclude this file!"
+    "You are trying to compile the PikeOS-POSIX implementation of vos_thread.c - either define it or exclude this file!"
 #endif
 
 /***********************************************************************************************************************
@@ -739,35 +739,18 @@ EXT_DECL VOS_ERR_T vos_threadDelay (
 EXT_DECL void vos_getTime (
     VOS_TIMEVAL_T *pTime)
 {
-    struct timeval myTime;
-
     if (pTime == NULL)
     {
         vos_printLogStr(VOS_LOG_ERROR, "ERROR NULL pointer\n");
     }
     else
     {
-#ifndef CLOCK_MONOTONIC
-
-        /*    On systems without monotonic clock support,
-            changing the system clock during operation
-            might interrupt process data packet transmissions!    */
-
-        (void)gettimeofday(&myTime, NULL);
-
-#else
-
         struct timespec currentTime;
 
-        (void)clock_gettime(CLOCK_MONOTONIC, &currentTime);
+        (void)clock_gettime(CLOCK_REALTIME, &currentTime);
 
-        myTime.tv_sec   = currentTime.tv_sec;
-        myTime.tv_usec  = (int) currentTime.tv_nsec / 1000;
-
-#endif
-
-        pTime->tv_sec   = myTime.tv_sec;
-        pTime->tv_usec  = myTime.tv_usec;
+        pTime->tv_sec   = currentTime.tv_sec;
+        pTime->tv_usec  = (int) currentTime.tv_nsec / 1000;
     }
 }
 
