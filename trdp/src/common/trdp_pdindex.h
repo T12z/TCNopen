@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
  *      BL 2019-07-10: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2019-07-10: Ticket #161 Increase performance
  *      V 2.0.0 --------- ^^^ -----------
@@ -53,6 +54,19 @@
 #define TRDP_MID_CYCLE_LIMIT    1000000                 /* 101ms...1000ms   */
 #define TRDP_HIGH_CYCLE_LIMIT   10000000                /* > 1000ms         */
 
+/** Default table size settings in HIGH_PERF_INDEXED Mode  */
+#define TRDP_DEFAULT_INDEX_SIZES  {100,     /**< Max. number of expected subscriptions with intervals <= 100ms  */ \
+                                   200,     /**< Max. number of expected subscriptions with intervals <= 1000ms */ \
+                                   10,      /**< Max. number of expected subscriptions with intervals > 1000ms  */ \
+                                   100,     /**< Max. number of expected publishers with intervals <= 100ms     */ \
+                                   15,      /**< depth / overlapped publishers with intervals <= 100ms          */ \
+                                   200,     /**< Max. number of expected publishers with intervals <= 1000ms    */ \
+                                   15,      /**< depth / overlapped publishers with intervals <= 1000ms         */ \
+                                   10,      /**< Max. number of expected publishers with intervals <= 10000ms   */ \
+                                   5,       /**< depth / overlapped publishers with intervals <= 10000ms        */ \
+                                   10  }    /**< Max. number of expected publishers with intervals > 10000ms    */
+
+
 /***********************************************************************************************************************
  * TYPEDEFS
  */
@@ -66,6 +80,7 @@ typedef struct hp_slot
     UINT8           noOfTxEntries;                      /**< no of slots == first array dimension                   */
     UINT8           depthOfTxEntries;                   /**< depth of slots == second array dimension               */
     const PD_ELE_T  * *ppIdxCat;                        /**< pointer to an array of PD_ELE_T* (dim[depth][slot])    */
+    UINT32          allocatedTableSize;                 /**< real allocated size                                    */
 } TRDP_HP_CAT_SLOT_T;
 
 /* Definitions for the receiver optimisation */
@@ -85,31 +100,48 @@ typedef struct hp_slots
     UINT32              noOfRxEntries;                  /**< number of subscribed PDs to be handled             */
     PD_ELE_T            * *pRcvTableComId;              /**< Pointer to sorted array of PDs to be handled       */
     PD_ELE_T            * *pRcvTableTimeOut;            /**< Pointer to sorted array of PDs to be handled       */
-
+    UINT32              allocatedRcvTableSize;          /**< real allocated size                                */
     UINT8               noOfExtTxEntries;               /**< number of 'special' PDs to be handled              */
     PD_ELE_T            * *pExtTxTable;                 /**< Pointer to array of PDs to be handled              */
+    UINT32              allocatedExtTxTableSize;        /**< real allocated size                                */
 } TRDP_HP_CAT_SLOTS_T;
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+TRDP_ERR_T  trdp_indexInit (TRDP_SESSION_PT appHandle);
+void        trdp_indexDeInit (TRDP_SESSION_PT appHandle);
+
+TRDP_ERR_T  trdp_indexAllocTables (TRDP_SESSION_PT  appHandle,
+                                   UINT32           maxNoOfSubscriptions,
+                                   UINT32           maxNoOfLowCatPublishers,
+                                   UINT32           maxDepthOfLowCatPublishers,
+                                   UINT32           maxNoOfMidCatPublishers,
+                                   UINT32           maxDepthOfMidCatPublishers,
+                                   UINT32           maxNoOfHighCatPublishers,
+                                   UINT32           maxDepthOfHighCatPublishers,
+                                   UINT32           maxNoOfExtPublishers);
+
 void        trdp_queueInsIntervalAccending (PD_ELE_T    * *ppHead,
                                             PD_ELE_T    *pNew);
 void        trdp_queueInsThroughputAccending (PD_ELE_T  * *ppHead,
                                               PD_ELE_T  *pNew);
 
 TRDP_ERR_T  trdp_pdSendIndexed (TRDP_SESSION_PT appHandle);
+void        trdp_pdHandleTimeOutsIndexed (TRDP_SESSION_PT appHandle);
+
 PD_ELE_T    *trdp_indexedFindSubAddr (TRDP_SESSION_PT   appHandle,
                                       TRDP_ADDRESSES_T  *pAddr);
 
-void        trdp_indexClearTables (TRDP_SESSION_PT appHandle);
 TRDP_ERR_T  trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle);
 TRDP_ERR_T  trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle);
 void        trdp_indexCheckPending (TRDP_APP_SESSION_T  appHandle,
                                     TRDP_TIME_T         *pInterval,
                                     TRDP_FDS_T          *pFileDesc,
                                     INT32               *pNoDesc);
-void        trdp_indexRemovePub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement);
-void        trdp_indexRemoveSub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement);
+void        trdp_indexRemovePub (TRDP_SESSION_PT    appHandle,
+                                 PD_ELE_T           *pElement);
+void        trdp_indexRemoveSub (TRDP_SESSION_PT    appHandle,
+                                 PD_ELE_T           *pElement);
 
 #endif /* TRDP_PDINDEX_H */

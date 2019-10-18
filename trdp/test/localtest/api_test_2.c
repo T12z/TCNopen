@@ -56,6 +56,7 @@ typedef int (test_func_t)(void);
 UINT32      gDestMC = 0xEF000202u;
 int         gFailed;
 int         gFullLog = FALSE;
+VOS_LOG_T   gCatMask = 0;
 
 static FILE *gFp = NULL;
 
@@ -309,6 +310,7 @@ static char xmlBuffer[] =
     TRDP_APP_SESSION_T appHandle1 = NULL, appHandle2 = NULL;                    \
     {                                                                           \
         gFullLog = FALSE;                                                       \
+        gCatMask = 0;                                                           \
         fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
         appHandle1 = test_init(dbgOut, &gSession1, (b), (c));                   \
         if (appHandle1 == NULL)                                                 \
@@ -333,14 +335,15 @@ static char xmlBuffer[] =
     TRDP_APP_SESSION_T appHandle1 = NULL, appHandle2 = NULL;                    \
     {                                                                           \
         gFullLog = FALSE;                                                       \
+        gCatMask = 0;                                                           \
         fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
-        appHandle1 = test_init(dbgOut, &gSession1, (b), 10000u);                        \
+        appHandle1 = test_init(dbgOut, &gSession1, (b), 10000u);                \
         if (appHandle1 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
             goto end;                                                           \
         }                                                                       \
-        appHandle2 = test_init(NULL, &gSession2, (b), 10000u);                          \
+        appHandle2 = test_init(NULL, &gSession2, (b), 10000u);                  \
         if (appHandle2 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
@@ -357,6 +360,7 @@ static char xmlBuffer[] =
     TRDP_APP_SESSION_T appHandle1 = NULL;                                       \
     {                                                                           \
         gFullLog = FALSE;                                                       \
+        gCatMask = 0;                                                           \
         fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
         appHandle1 = test_init(dbgOut, &gSession1, "", 10000u);                 \
         if (appHandle1 == NULL)                                                 \
@@ -425,10 +429,20 @@ end:                                                                            
     fprintf(gFp, "### %s\n", message);
 
 /**********************************************************************************************************************/
-/*  Macro to terminate the test                                                                                       */
+/*  Macro to set logging                                                                                       */
 /**********************************************************************************************************************/
-#define FULL_LOG(true_false)     \
-    { gFullLog = (true_false); } \
+#define FULL_LOG(true_false)    \
+    { gFullLog = (true_false);  \
+      gCatMask = 0;             \
+    }
+
+/**********************************************************************************************************************/
+/*  Macro to set logging                                                                                       */
+/**********************************************************************************************************************/
+#define ADD_LOG(mask)          \
+    { gFullLog = FALSE;        \
+      gCatMask = mask;          \
+}
 
 /**********************************************************************************************************************/
 /** callback routine for TRDP logging/error output
@@ -452,7 +466,10 @@ static void dbgOut (
     const char  *catStr[]   = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
     CHAR8       *pF         = strrchr(pFile, VOS_DIR_SEP);
 
-    if (gFullLog || ((category == VOS_LOG_USR) || (category != VOS_LOG_DBG && category != VOS_LOG_INFO)))
+    if (gFullLog ||
+        (category == VOS_LOG_USR) ||
+        (category != VOS_LOG_DBG && category != VOS_LOG_INFO) ||
+        (category == gCatMask))
     {
         fprintf(gFp, "%s %s %s:%d\t%s",
                 strrchr(pTime, '-') + 1,
@@ -2226,7 +2243,7 @@ static int test15 ()
         TRDP_URI_USER_T destURI2    = "12345678901234567890123456789012";    /* 32 chars */
         TRDP_URI_USER_T srcURI      = "12345678901234567890123456789012";    /* 32 chars */
 
-        gFullLog = TRUE;
+        FULL_LOG(TRUE);
 
         /*
          Finished setup.
@@ -2281,7 +2298,7 @@ static int test15 ()
         err = tlm_delListener(appHandle2, listenHandle);
         IF_ERROR("tlm_delListener2");
 
-        gFullLog = FALSE;
+        FULL_LOG(FALSE);
 
     }
 
@@ -2305,7 +2322,7 @@ static int test16 ()
         TRDP_URI_USER_T destURI2    = "12345678901234567890123456789012";    /* 32 chars */
         TRDP_URI_USER_T srcURI      = "12345678901234567890123456789012";    /* 32 chars */
 
-        gFullLog = TRUE;
+        FULL_LOG(TRUE);
 
         /*
          Finished setup.
@@ -2360,7 +2377,7 @@ static int test16 ()
         err = tlm_delListener(appHandle2, listenHandle);
         IF_ERROR("tlm_delListener2");
 
-        gFullLog = FALSE;
+        FULL_LOG(FALSE);
 
     }
 
@@ -2629,7 +2646,7 @@ static int test19 ()
 
         TRDP_PROCESS_CONFIG_T procConf = {"TestHost", "me", TEST19_CYCLE_TIME, 0, TRDP_OPTION_NONE};
 
-        gFullLog = TRUE;
+        FULL_LOG(TRUE);
 
         err = tlc_configSession(gSession1.appHandle, NULL, NULL, NULL, &procConf);
         IF_ERROR("tlc_configSession");
@@ -2677,7 +2694,7 @@ static int test19 ()
 
         vos_threadDelay(10000000);   /* Let it run for 10s */
         fprintf(gFp, "\n...transmission is finished\n");
-        gFullLog = FALSE;
+        FULL_LOG(FALSE);
     }
 
     /* ------------------------- test code ends here --------------------------- */
@@ -2726,7 +2743,7 @@ static int test20 ()
 {
 #define TEST20_CYCLE_TIME           5000u          /* 5ms */
 
-    PREPARE2("Send and receive many telegrams, to check new indexed algorithm", "test", TEST20_CYCLE_TIME);
+    PREPARE2("Send and receive many telegrams, to check new indexed algorithm (#282)", "test", TEST20_CYCLE_TIME);
     /* allocates appHandle1, appHandle2, failed = 0, err */
 
     /* ------------------------- test code starts here --------------------------- */
@@ -2990,11 +3007,25 @@ static int test20 ()
         UINT32 i;
 
         TRDP_PROCESS_CONFIG_T procConf  = {"TestHost", "me", TEST20_CYCLE_TIME, 0, TRDP_OPTION_NONE};
-        TRDP_PD_CONFIG_T pdConfig       =
-        {test20CBFunction, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB,
-        100000u, TRDP_TO_SET_TO_ZERO, 0};
+        TRDP_PD_CONFIG_T pdConfig       = {test20CBFunction, NULL,
+                                            TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB,
+                                            100000u, TRDP_TO_SET_TO_ZERO, 0};
 
-        gFullLog = TRUE;
+        TRDP_IDX_TABLE_T    indexTableSizes = {
+            200,            /**< Max. number of expected subscriptions with intervals <= 100ms  */
+            200,            /**< Max. number of expected subscriptions with intervals <= 1000ms */
+            50,             /**< Max. number of expected subscriptions with intervals > 1000ms  */
+            200,            /**< Max. number of expected publishers with intervals <= 100ms     */
+            15,             /**< depth / overlapped publishers with intervals <= 100ms          */
+            200,            /**< Max. number of expected publishers with intervals <= 1000ms    */
+            15,             /**< depth / overlapped publishers with intervals <= 1000ms         */
+            100,            /**< Max. number of expected publishers with intervals <= 10000ms   */
+            5,              /**< depth / overlapped publishers with intervals <= 10000ms        */
+            50              /**< Max. number of expected publishers with intervals > 10000ms    */
+        };
+
+        //FULL_LOG(TRUE);
+        ADD_LOG(VOS_LOG_INFO);
 
         /* Configure two sessions   */
         err = tlc_configSession(gSession1.appHandle, NULL, NULL, NULL, &procConf);
@@ -3002,6 +3033,12 @@ static int test20 ()
 
         err = tlc_configSession(gSession2.appHandle, NULL, &pdConfig, NULL, &procConf);
         IF_ERROR("tlc_configSession 2");
+
+        err = tlc_presetIndexSession(gSession1.appHandle, &indexTableSizes);
+        IF_ERROR("tlc_presetIndexSession 1");
+
+        err = tlc_presetIndexSession(gSession2.appHandle, NULL);    /* use default sizes */
+        IF_ERROR("tlc_presetIndexSession 2");
 
         for (i = 0; i < noOfTelegrams; i++)
         {
@@ -3070,7 +3107,7 @@ static int test20 ()
 
         vos_threadDelay(10000000);   /* Let it run for 100s */
         fprintf(gFp, "\n...transmission is finished\n");
-        /* gFullLog = FALSE; */
+        /* FULL_LOG(FALSE); */
     }
 
     /* ------------------------- test code ends here --------------------------- */
@@ -3228,7 +3265,7 @@ static int test21 ()
         {test21CBFunction, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB,
             100000u, TRDP_TO_SET_TO_ZERO, 0};
 
-        gFullLog = TRUE;
+        FULL_LOG(TRUE);
 
         /* Configure two sessions   */
         err = tlc_configSession(gSession1.appHandle, NULL, NULL, NULL, &procConf);
@@ -3310,7 +3347,7 @@ static int test21 ()
 
         vos_threadDelay(5000000); /* Let it run for 5s */  
         fprintf(gFp, "\n...transmission is finished\n");
-        /* gFullLog = FALSE; */
+        /* FULL_LOG(FALSE); */
     }
 
     /* ------------------------- test code ends here --------------------------- */
@@ -3325,27 +3362,27 @@ static int test21 ()
 test_func_t *testArray[] =
 {
     NULL,
-    test1,  /* PD publish and subscribe */
-    test2,  /* Publish & Subscribe, Callback */
-    test3,  /* Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR */
-    test4,  /* Ticket #153 (two PDs on one pull request */
-    test5,  /* TCP MD Request - Reply - Confirm, #149, #160 */
-    test6,  /* UDP MD Request - Reply - Confirm, #149 */
-    test7,  /* UDP MD Notify no sessionID #127 */
-    test8,  /* #153 (two PDs on one pull request? Receiver only */
-    /* test9,  / * Send and receive many telegrams, to check time optimisations * / */
-    test10,  /* tlc_getVersionString */
-    test11,  /* babbling idiot :-) */
-    test12,  /* testing unsubscribe and unjoin */
-    test13,  /* PD publish and subscribe, auto increment using new 1.4 callback function */
-    test14,  /* Publish & Subscribe, Callback */
-    test15,  /* MD Request - Reply / Reuse of TCP connection */
-    test16,  /* MD Request - Reply / UDP */
-    test17,  /* CRC */
-    test18,  /* XML stream */
-    test19,  /* Basic test of PD send performance enhancement */
+//    test1,  /* PD publish and subscribe */
+//    test2,  /* Publish & Subscribe, Callback */
+//    test3,  /* Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR */
+//    test4,  /* Ticket #153 (two PDs on one pull request */
+//    test5,  /* TCP MD Request - Reply - Confirm, #149, #160 */
+//    test6,  /* UDP MD Request - Reply - Confirm, #149 */
+//    test7,  /* UDP MD Notify no sessionID #127 */
+//    test8,  /* #153 (two PDs on one pull request? Receiver only */
+//    /* test9,  / * Send and receive many telegrams, to check time optimisations * / */
+//    test10,  /* tlc_getVersionString */
+//    test11,  /* babbling idiot :-) */
+//    test12,  /* testing unsubscribe and unjoin */
+//    test13,  /* PD publish and subscribe, auto increment using new 1.4 callback function */
+//    test14,  /* Publish & Subscribe, Callback */
+//    test15,  /* MD Request - Reply / Reuse of TCP connection */
+//    test16,  /* MD Request - Reply / UDP */
+//    test17,  /* CRC */
+//    test18,  /* XML stream */
+//    test19,  /* Basic test of PD send performance enhancement */
     test20,  /* Basic test of PD receive performance enhancement */
-    test21,  /* Basic test of PD send/receive performance enhancement, unpublish/unsubscribe while operating */
+//    test21,  /* Basic test of PD send/receive performance enhancement, unpublish/unsubscribe while operating */
     NULL
 };
 

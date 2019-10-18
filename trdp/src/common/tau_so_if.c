@@ -431,6 +431,7 @@ EXT_DECL TRDP_ERR_T tau_updService (
  *  @param[in]          appHandle               Handle returned by tlc_openSession().
  *  @param[out]         ppServicesListBuffer    Pointer to pointer containing the list. Has to be vos_memfree'd by user
  *  @param[out]         pNoOfServices           Pointer to no. of services in returned list
+ *  @param[in]          pFilterEntry            Pointer to entry for filtering
  *
  *  @retval             TRDP_NO_ERR         no error
  *  @retval             TRDP_PARAM_ERR      Parameter error

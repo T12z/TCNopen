@@ -17,6 +17,8 @@
 /*
  * $Id$
  *
+ *      BL 2019-10-18: Ticket #287 Enhancement performance while receiving (HIGH_PERF_INDEXED mode)
+ *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
  *      BL 2019-08-23: pSlot must be NULL after freeing memory
  *      BL 2019-08-23: Possible crash on unsubscribing or unpublishing in High Performance mode
  *      SB 2019-08-21: Removed compiler warning and redundand code
@@ -34,12 +36,14 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "trdp_types.h"
 #include "trdp_utils.h"
 #include "trdp_pdcom.h"
 #include "vos_utils.h"
 #include "vos_sock.h"
+#include "vos_thread.h"
 #include "trdp_pdindex.h"
 
 #ifdef HIGH_PERF_INDEXED
@@ -157,8 +161,8 @@ static void   print_rcv_tables (
 static void   print_table (
     TRDP_HP_CAT_SLOT_T *pSlots)
 {
-    UINT32 slot, depth;
-    static CHAR8 buffer[1024] = {0};
+    UINT32          slot, depth;
+    static CHAR8    buffer[1024] = {0};
 
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
     vos_printLog(VOS_LOG_INFO,
@@ -170,7 +174,7 @@ static void   print_table (
     {
         for (depth = 0; depth < pSlots->depthOfTxEntries; depth++)
         {
-            int n;
+            int             n;
             static CHAR8    strBuf[32];
             PD_ELE_T        *pDest = getElement(pSlots, slot, depth);
             if (pDest == NULL)
@@ -201,8 +205,8 @@ static void   print_table (
  *  @retval         != 0                count of removed elements
  */
 static int removePub (
-    TRDP_HP_CAT_SLOT_T *pSlot,
-    PD_ELE_T  *pElement)
+    TRDP_HP_CAT_SLOT_T  *pSlot,
+    PD_ELE_T            *pElement)
 {
     UINT32  depth;
     UINT32  idx;
@@ -268,131 +272,133 @@ static PERF_TABLE_TYPE_T   perf_table_category (
     }
 }
 
-    /**********************************************************************************************************************/
-    /** Evenly distribute the PD over the array
-     *
-     *  @param[in,out]  pCat            pointer to the array to fill
-     *  @param[in]      pElement        pointer to the packet element to be handled
-     *
-     *  @retval         TRDP_NO_ERR         no error
-     *                  TRDP_PARAM_ERR      incompatible table size
-     *                  TRDP_MEM_ERR        table too small (depth)
-     */
-    static TRDP_ERR_T distribute (
-                                  TRDP_HP_CAT_SLOT_T  *pCat,
-                                  const PD_ELE_T      *pElement)
+/**********************************************************************************************************************/
+/** Evenly distribute the PD over the array
+ *
+ *  @param[in,out]  pCat            pointer to the array to fill
+ *  @param[in]      pElement        pointer to the packet element to be handled
+ *
+ *  @retval         TRDP_NO_ERR         no error
+ *                  TRDP_PARAM_ERR      incompatible table size
+ *                  TRDP_MEM_ERR        table too small (depth)
+ */
+static TRDP_ERR_T distribute (
+    TRDP_HP_CAT_SLOT_T  *pCat,
+    const PD_ELE_T      *pElement)
+{
+    TRDP_ERR_T  err         = TRDP_NO_ERR;
+    INT32       startIdx    = 0;
+    UINT32      depthIdx;
+    UINT32      maxStartIdx;
+    UINT32      count;
+    UINT32      idx;
+    int         found = FALSE;
+
+    /* This is the interval we need to distribute */
+    UINT32      pdInterval = (UINT32) pElement->interval.tv_usec + (UINT32) pElement->interval.tv_sec * 1000000u;
+
+    if ((pdInterval == 0u) || (pCat->slotCycle == 0u))
     {
-        TRDP_ERR_T  err = TRDP_NO_ERR;
-        INT32       startIdx = 0;
-        UINT32      depthIdx;
-        UINT32      maxStartIdx;
-        UINT32      count;
-        UINT32      idx;
-        int         found = FALSE;
+        vos_printLogStr(VOS_LOG_ERROR, "Cannot distribute a zero-interval PD telegram\n");
+        return TRDP_PARAM_ERR;
+    }
 
-        /* This is the interval we need to distribute */
-        UINT32      pdInterval = (UINT32) pElement->interval.tv_usec + (UINT32) pElement->interval.tv_sec * 1000000u;
+    /* We must not place the PD later than this in the array, or we will not be able to send without a gap! */
+    maxStartIdx = pdInterval / pCat->slotCycle;
 
-        if ((pdInterval == 0u) || (pCat->slotCycle == 0u))
+    /* How many times do we need to enter this PD? */
+    count = pCat->noOfTxEntries * pCat->slotCycle / pdInterval;
+
+    /* Control: */
+    if ((maxStartIdx * count) > pCat->noOfTxEntries)
+    {
+        vos_printLog(VOS_LOG_ERROR, "Config problem: PD references for interval %ums (startIdx %u, count %u)",
+                     (unsigned int) (pdInterval / 1000u), (unsigned int) maxStartIdx, (unsigned int) count);
+        return TRDP_PARAM_ERR;
+    }
+    /* Find a first empty slot */
+    for (depthIdx = 0u; depthIdx < pCat->depthOfTxEntries; depthIdx++)
+    {
+        /* for (startIdx = 0u; (startIdx < pCat->noOfTxEntries); startIdx++) */
+        for (startIdx = (INT32) maxStartIdx - 1; startIdx >= 0; startIdx--)
         {
-            vos_printLogStr(VOS_LOG_ERROR, "Cannot distribute a zero-interval PD telegram\n");
-            return TRDP_PARAM_ERR;
-        }
-
-        /* We must not place the PD later than this in the array, or we will not be able to send without a gap! */
-        maxStartIdx = pdInterval / pCat->slotCycle;
-
-        /* How many times do we need to enter this PD? */
-        count = pCat->noOfTxEntries * pCat->slotCycle / pdInterval;
-
-        /* Control: */
-        if ((maxStartIdx * count) > pCat->noOfTxEntries)
-        {
-            vos_printLog(VOS_LOG_ERROR, "Config problem: PD references for interval %ums (startIdx %u, count %u)",
-                         (unsigned int) (pdInterval / 1000u), (unsigned int) maxStartIdx, (unsigned int) count);
-            return TRDP_PARAM_ERR;
-        }
-        /* Find a first empty slot */
-        for (depthIdx = 0u; depthIdx < pCat->depthOfTxEntries; depthIdx++)
-        {
-            //for (startIdx = 0u; (startIdx < pCat->noOfTxEntries); startIdx++)
-            for (startIdx = (INT32) maxStartIdx - 1; startIdx >= 0; startIdx--)
+            if (getElement(pCat, (UINT32) startIdx, depthIdx) == NULL)
             {
-                if (getElement(pCat, (UINT32) startIdx, depthIdx) == NULL)
-                {
-                    found = TRUE;
-                    break;
-                }
-            }
-            if (found)
-            {
+                found = TRUE;
                 break;
             }
         }
-
-        if ((startIdx >= pCat->noOfTxEntries) ||
-            (startIdx < 0) ||
-            (depthIdx >= pCat->depthOfTxEntries))
+        if (found)
         {
-            vos_printLogStr(VOS_LOG_ERROR, "No room for PD in index table!\n");
-            err = TRDP_MEM_ERR;
+            break;
         }
-        else
-        {
-            /* Iterate over the array, outer loop is slot, inner loop is depth */
-            for (idx = (UINT32) startIdx; (idx < pCat->noOfTxEntries) && (count); )
-            {
-                UINT32  depth;
-                int     done = FALSE;
+    }
 
-                for (depth = depthIdx; depth < pCat->depthOfTxEntries; depth++)
+    if ((startIdx >= pCat->noOfTxEntries) ||
+        (startIdx < 0) ||
+        (depthIdx >= pCat->depthOfTxEntries))
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "No room for PD in index table!\n");
+        err = TRDP_MEM_ERR;
+    }
+    else
+    {
+        /* Iterate over the array, outer loop is slot, inner loop is depth */
+        for (idx = (UINT32) startIdx; (idx < pCat->noOfTxEntries) && (count); )
+        {
+            UINT32  depth;
+            int     done = FALSE;
+
+            for (depth = depthIdx; depth < pCat->depthOfTxEntries; depth++)
+            {
+                if (getElement(pCat, idx, depth) == NULL)
                 {
-                    if (getElement(pCat, idx, depth) == NULL)
-                    {
-                        /* Entry fits */
-                        setElement(pCat, idx, depth, pElement);
-                        /* set depth back to zero */
-                        depthIdx = 0u;
-                        /* we entered one pointer */
-                        count--;
-                        done = TRUE;
-                        break; /* Out of inner loop */
-                    }
-                }
-                if (done == TRUE)   /* jump to the next slot */
-                {
-                    idx += (UINT32) (pElement->interval.tv_usec + pElement->interval.tv_sec * 1000000u) / pCat->slotCycle;
-                }
-                else
-                {
-                    /* We need another slot (and will introduce some jitter!)
-                     This can be avoided by
-                     - increasing the depth-headroom or
-                     - by introducing a measurement to find the peaks before hand or
-                     - to re-run with larger depth values until it fits best
-                     */
-                    idx++;
-                    vos_printLog(VOS_LOG_WARNING,
-                                 "Max. depth exceeded - comId %u with %ums interval will have additional jitter (%ums)\n",
-                                 (unsigned int) pElement->addr.comId,
-                                 (int) (pElement->interval.tv_usec / 1000 + pElement->interval.tv_sec * 1000u),
-                                 (unsigned int) pCat->slotCycle / 1000u);
+                    /* Entry fits */
+                    setElement(pCat, idx, depth, pElement);
+                    /* set depth back to zero */
+                    depthIdx = 0u;
+                    /* we entered one pointer */
+                    count--;
+                    done = TRUE;
+                    break; /* Out of inner loop */
                 }
             }
+            if (done == TRUE)   /* jump to the next slot */
+            {
+                idx += (UINT32) (pElement->interval.tv_usec + pElement->interval.tv_sec * 1000000u) / pCat->slotCycle;
+            }
+            else
+            {
+                /* We need another slot (and will introduce some jitter!)
+                 This can be avoided by
+                 - increasing the depth-headroom or
+                 - by introducing a measurement to find the peaks before hand or
+                 - to re-run with larger depth values until it fits best
+                 */
+                idx++;
+                vos_printLog(VOS_LOG_WARNING,
+                             "Max. depth exceeded - comId %u with %ums interval will have additional jitter (%ums)\n",
+                             (unsigned int) pElement->addr.comId,
+                             (int) (pElement->interval.tv_usec / 1000 + pElement->interval.tv_sec * 1000u),
+                             (unsigned int) pCat->slotCycle / 1000u);
+            }
         }
-        return err;
     }
+    return err;
+}
 
 /**********************************************************************************************************************/
 /** Create an index table
  *
  *  @param[in]      rangeMax            time range this table shall support (e.g. 100000us for low table)
  *  @param[in]      cat_noOfTxEntries   interval of callers, i.e. cycle time of calls into each slot (e.g. 1000us for low table)
+ *  @param[in]      cat_Depth           preset depth, used if proposed value is smaller
  *  @param[out]     pCat                pointer to slot / category entry holding the resulting table
  */
 static TRDP_ERR_T indexCreatePubTable (
     UINT32              rangeMax,
     UINT32              cat_noOfTxEntries,
+    UINT32              cat_Depth,
     TRDP_HP_CAT_SLOT_T  *pCat)
 {
     /* Number of needed array entries for the lower range */
@@ -406,6 +412,10 @@ static TRDP_ERR_T indexCreatePubTable (
     iterating (e.g. using a trial & error scheme, starting with lower depth values) */
 
     UINT32 depth = cat_noOfTxEntries * 10u / slots + 5u;
+    if (depth < cat_Depth)
+    {
+        depth = cat_Depth;
+    }
 
     if ((rangeMax % pCat->slotCycle) > 0)
     {
@@ -427,20 +437,49 @@ static TRDP_ERR_T indexCreatePubTable (
     /* Allocate the 2-Dim array: */
     pCat->noOfTxEntries     = (UINT8) slots;
     pCat->depthOfTxEntries  = (UINT8) depth;
-    pCat->ppIdxCat          = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+
+    /* first time allocation */
     if (pCat->ppIdxCat == NULL)
     {
-        return TRDP_MEM_ERR;
+        pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+
+        if (pCat->ppIdxCat == NULL)
+        {
+            return TRDP_MEM_ERR;
+        }
+        pCat->allocatedTableSize = sizeof (PD_ELE_T *) * slots * depth;
+    }
+    /* check if pre-allocated size still fits! */
+    else if (pCat->allocatedTableSize < (sizeof (PD_ELE_T *) * slots * depth))
+    {
+        /* re-allocation is necessary, print warning! */
+        vos_memFree(pCat->ppIdxCat);
+        pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+
+        if (pCat->ppIdxCat == NULL)
+        {
+            return TRDP_MEM_ERR;
+        }
+        vos_printLog(VOS_LOG_WARNING,
+                     "Pre-allocated table size was not sufficent, enlarge depth! (%u < %u)\n",
+                     (unsigned int) pCat->allocatedTableSize, (unsigned int) sizeof (PD_ELE_T *) * slots * depth);
+
+        pCat->allocatedTableSize = sizeof (PD_ELE_T *) * slots * depth;
+    }
+    else
+    {
+        ;   /* it still fits */
     }
 
+
     vos_printLog(VOS_LOG_INFO,
-                 "Process cycle time: %ums, PDs < %ums: %u telegrams, allocating table[%u][%u] %ukByte\n",
+                 "Process cycle time: %ums, PDs < %ums: %u telegrams, (re-)allocating table[%u][%u] %ukByte\n",
                  (unsigned int) pCat->slotCycle / 1000u,
                  (unsigned int) rangeMax / 1000u,
                  (unsigned int) cat_noOfTxEntries,
                  (unsigned int) slots,
                  (unsigned int) depth,
-                 (unsigned int) sizeof (PD_ELE_T *) * slots * depth / 1024u);
+                 (unsigned int) pCat->allocatedTableSize / 1024u);
 
     return TRDP_NO_ERR;
 }
@@ -483,6 +522,162 @@ static int compareTimeouts (const void *pPDElement1, const void *pPDElement2)
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+
+/**********************************************************************************************************************/
+/** Allocate work area for the tables
+ *
+ *  @param[in]      appHandle                   The application handle
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *                  TRDP_MEM_ERR    not enough memory
+ */
+
+TRDP_ERR_T  trdp_indexInit (TRDP_SESSION_PT appHandle)
+{
+    /* Allocate some work space: */
+    if (appHandle->pSlot == NULL)
+    {
+        appHandle->pSlot = (TRDP_HP_SLOTS_T *) vos_memAlloc(sizeof(TRDP_HP_SLOTS_T));
+        if (appHandle->pSlot == NULL)
+        {
+            return TRDP_MEM_ERR;
+        }
+
+        /* prevent division with zero during initialisation */
+        appHandle->pSlot->lowCat.slotCycle  = TRDP_LOW_CYCLE;   /* the lowest table can be called with 1ms cycle      */
+        appHandle->pSlot->midCat.slotCycle  = TRDP_MID_CYCLE;   /* the mid table will always be called in 10ms steps  */
+        appHandle->pSlot->highCat.slotCycle = TRDP_HIGH_CYCLE;  /* the hi table will always be called in 100ms steps  */
+        /* The index tables will be allocated later */
+    }
+    return TRDP_NO_ERR;
+}
+
+/**********************************************************************************************************************/
+/** Dealloc work area for the tables
+ *
+ *  @param[in]      appHandle                   The application handle
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *                  TRDP_MEM_ERR    not enough memory
+ */
+
+void trdp_indexDeInit (TRDP_SESSION_PT appHandle)
+{
+    /* if not already done, allocate some work space: */
+    if (appHandle->pSlot != NULL)
+    {
+        if (appHandle->pSlot->lowCat.ppIdxCat != NULL)
+        {
+            vos_memFree(appHandle->pSlot->lowCat.ppIdxCat);
+        }
+        if (appHandle->pSlot->midCat.ppIdxCat != NULL)
+        {
+            vos_memFree(appHandle->pSlot->midCat.ppIdxCat);
+        }
+        if (appHandle->pSlot->highCat.ppIdxCat != NULL)
+        {
+            vos_memFree(appHandle->pSlot->highCat.ppIdxCat);
+        }
+        if (appHandle->pSlot->pRcvTableComId != NULL)
+        {
+            vos_memFree(appHandle->pSlot->pRcvTableComId);
+        }
+        if (appHandle->pSlot->pRcvTableTimeOut != NULL)
+        {
+            vos_memFree(appHandle->pSlot->pRcvTableTimeOut);
+        }
+        if (appHandle->pSlot->pExtTxTable != NULL)
+        {
+            vos_memFree(appHandle->pSlot->pExtTxTable);
+        }
+        vos_memFree(appHandle->pSlot);
+        appHandle->pSlot = NULL;
+    }
+}
+
+/**********************************************************************************************************************/
+/** Allocate/reserve all index tables
+ *  Number of max. expected different telegrams (comIds) to be received and send, depths of
+ *  tables for the separate time-classes need to be provided, too.
+ *
+ *  @param[in]      appHandle                   The application handle
+ *  @param[in]      maxNoOfSubscriptions        max. expected number of subscriptions
+ *  @param[in]      maxNoOfLowCatPublishers     max. expected number of publishers
+ *  @param[in]      maxDepthOfLowCatPublishers  max. depth of publishers
+ *  @param[in]      maxNoOfMidCatPublishers     max. expected number of publishers
+ *  @param[in]      maxDepthOfMidCatPublishers  max. depth of publishers
+ *  @param[in]      maxNoOfHighCatPublishers    max. expected number of publishers
+ *  @param[in]      maxDepthOfHighCatPublishers max. depth of publishers
+ *  @param[in]      maxNoOfExtPublishers        max. expected number of publishers
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *                  TRDP_MEM_ERR    not enough memory
+ */
+
+TRDP_ERR_T  trdp_indexAllocTables (
+    TRDP_SESSION_PT appHandle,
+    UINT32          maxNoOfSubscriptions,
+    UINT32          maxNoOfLowCatPublishers,
+    UINT32          maxDepthOfLowCatPublishers,
+    UINT32          maxNoOfMidCatPublishers,
+    UINT32          maxDepthOfMidCatPublishers,
+    UINT32          maxNoOfHighCatPublishers,
+    UINT32          maxDepthOfHighCatPublishers,
+    UINT32          maxNoOfExtPublishers)
+{
+    TRDP_ERR_T err = TRDP_NO_ERR;
+
+    err = indexCreatePubTable(TRDP_LOW_CYCLE_LIMIT, maxNoOfLowCatPublishers,
+                              maxDepthOfLowCatPublishers, &appHandle->pSlot->lowCat);
+    if (err == TRDP_NO_ERR)
+    {
+        err = indexCreatePubTable(TRDP_MID_CYCLE_LIMIT, maxNoOfMidCatPublishers,
+                                  maxDepthOfMidCatPublishers, &appHandle->pSlot->midCat);
+    }
+
+    if (err == TRDP_NO_ERR)
+    {
+        err = indexCreatePubTable(TRDP_HIGH_CYCLE_LIMIT, maxNoOfHighCatPublishers,
+                                  maxDepthOfHighCatPublishers, &appHandle->pSlot->highCat);
+    }
+
+    /* We must be prepared for additional packets outside of the indexed time slots.    */
+    if (err == TRDP_NO_ERR)
+    {
+        appHandle->pSlot->allocatedExtTxTableSize = maxNoOfExtPublishers * sizeof(PD_ELE_T *);
+        /* create the extended list  */
+        appHandle->pSlot->pExtTxTable = (PD_ELE_T * *) vos_memAlloc(appHandle->pSlot->allocatedExtTxTableSize);
+        if (appHandle->pSlot->pExtTxTable == NULL)
+        {
+            appHandle->pSlot->allocatedExtTxTableSize = 0u;
+            return TRDP_MEM_ERR;
+        }
+        appHandle->pSlot->noOfExtTxEntries = (UINT8) maxNoOfExtPublishers;
+    }
+
+    /* get some memory for the receive index tables */
+
+    appHandle->pSlot->allocatedRcvTableSize = maxNoOfSubscriptions * sizeof(PD_ELE_T * *);
+    appHandle->pSlot->pRcvTableComId        = (PD_ELE_T * *) vos_memAlloc(appHandle->pSlot->allocatedRcvTableSize);
+
+    if (appHandle->pSlot->pRcvTableComId == NULL)
+    {
+        appHandle->pSlot->allocatedRcvTableSize = 0u;
+        return TRDP_MEM_ERR;
+    }
+
+    appHandle->pSlot->pRcvTableTimeOut = (PD_ELE_T * *) vos_memAlloc(appHandle->pSlot->allocatedRcvTableSize);
+
+    if (appHandle->pSlot->pRcvTableTimeOut == NULL)
+    {
+        vos_memFree(appHandle->pSlot->pRcvTableComId);
+        appHandle->pSlot->pRcvTableComId        = NULL;
+        appHandle->pSlot->allocatedRcvTableSize = 0u;
+        return TRDP_MEM_ERR;
+    }
+
+    return TRDP_NO_ERR;
+}
 
 /**********************************************************************************************************************/
 /** Insert an element sorted by throughput (highest Byte/sec first)
@@ -598,7 +793,7 @@ void    trdp_queueInsIntervalAccending (
 TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
 {
     TRDP_ERR_T      err = TRDP_NO_ERR;
-    UINT32          processCycle = TRDP_DEFAULT_CYCLE;
+    UINT32          processCycle            = TRDP_DEFAULT_CYCLE;
     UINT32          lowCat_noOfTxEntries    = 0u;
     UINT32          midCat_noOfTxEntries    = 0u;
     UINT32          highCat_noOfTxEntries   = 0u;
@@ -616,16 +811,6 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
         (processCycle > TRDP_MAX_CYCLE))
     {
         return TRDP_PARAM_ERR;
-    }
-
-    /* if not already done, allocate some work space: */
-    if (appHandle->pSlot == NULL)
-    {
-        appHandle->pSlot = (TRDP_HP_SLOTS_T *) vos_memAlloc(sizeof(TRDP_HP_SLOTS_T));
-        if (appHandle->pSlot == NULL)
-        {
-            return TRDP_MEM_ERR;
-        }
     }
 
     pSlot = appHandle->pSlot;
@@ -671,24 +856,43 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
                          TRDP_HIGH_CYCLE_LIMIT / 1000000u);
             return TRDP_PARAM_ERR;
         }
-        /* create the extended list, if needed  */
-        pSlot->pExtTxTable = (PD_ELE_T * *) vos_memAlloc(extCat_noOfTxEntries * sizeof(PD_ELE_T *));
-        if (pSlot->pExtTxTable == NULL)
+        /* create the extended list, if not yet done or needed  */
+        if (pSlot->allocatedExtTxTableSize < extCat_noOfTxEntries * sizeof(PD_ELE_T *))
         {
-            return TRDP_MEM_ERR;
+            /* We need to extend the list, issue a warning */
+            if (pSlot->pExtTxTable != NULL)
+            {
+                vos_memFree(pSlot->pExtTxTable);
+            }
+            pSlot->pExtTxTable = (PD_ELE_T * *) vos_memAlloc(extCat_noOfTxEntries * sizeof(PD_ELE_T *));
+            if (pSlot->pExtTxTable == NULL)
+            {
+                return TRDP_MEM_ERR;
+            }
+            vos_printLog(VOS_LOG_WARNING,
+                         "Pre-allocated extended table size was not sufficent, enlarge size! (%u < %u)\n",
+                         (unsigned int) (pSlot->allocatedExtTxTableSize / sizeof(PD_ELE_T *)),
+                         (unsigned int) extCat_noOfTxEntries);
+
+            pSlot->allocatedExtTxTableSize = extCat_noOfTxEntries * sizeof(PD_ELE_T *);
         }
+        /* Update the number of publishers */
         pSlot->noOfExtTxEntries = (UINT8) extCat_noOfTxEntries;
         extCat_noOfTxEntries    = 0;
     }
 
-    err = indexCreatePubTable(TRDP_LOW_CYCLE_LIMIT, lowCat_noOfTxEntries, &pSlot->lowCat);
+    /* These are now checks to prevent a possible table overflow in case the pre-allocated tables are too small! */
+    err = indexCreatePubTable(TRDP_LOW_CYCLE_LIMIT, lowCat_noOfTxEntries,
+                              pSlot->lowCat.depthOfTxEntries, &pSlot->lowCat);
     if (err == TRDP_NO_ERR)
     {
-        err = indexCreatePubTable(TRDP_MID_CYCLE_LIMIT, midCat_noOfTxEntries, &pSlot->midCat);
+        err = indexCreatePubTable(TRDP_MID_CYCLE_LIMIT, midCat_noOfTxEntries,
+                                  pSlot->midCat.depthOfTxEntries, &pSlot->midCat);
     }
     if (err == TRDP_NO_ERR)
     {
-        err = indexCreatePubTable(TRDP_HIGH_CYCLE_LIMIT, highCat_noOfTxEntries, &pSlot->highCat);
+        err = indexCreatePubTable(TRDP_HIGH_CYCLE_LIMIT, highCat_noOfTxEntries,
+                                  pSlot->highCat.depthOfTxEntries, &pSlot->highCat);
     }
     if (err == TRDP_NO_ERR)
     {
@@ -736,6 +940,71 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
 }
 
 /**********************************************************************************************************************/
+/** Access the receiver index table for timeout supervision
+ *  Assume to be called irregularly by the receiver thread
+ *
+ *  @param[in]      appHandle         pointer to the packet element to send
+ *
+ *  @retval         none
+ */
+void  trdp_pdHandleTimeOutsIndexed (TRDP_SESSION_PT appHandle)
+{
+    UINT32              idx, idxMax;
+    TRDP_TIME_T         now, interval;
+    PD_ELE_T            * *pElement;
+    static TRDP_TIME_T  lastCall = {0, 0};
+    static TRDP_TIME_T  cumulatedCallTime = {0, 0};
+
+    vos_getTime(&now);
+
+    if (timerisset(&lastCall) != 0) /* On first run we do nothing but set lastCall to now */
+    {
+        /* determine the time since last call  */
+        interval = now;
+        vos_subTime(&interval, &lastCall);
+
+        /* sum up our execution time */
+        vos_addTime(&cumulatedCallTime, &interval);
+
+        /* determine which time slot we should search */
+        /* interval_ms = interval.tv_usec / 1000 + interval.tv_sec * 1000u; */
+
+        pElement    = (PD_ELE_T * *) appHandle->pSlot->pRcvTableTimeOut;
+        idxMax      = appHandle->pSlot->noOfRxEntries;
+
+        /* we need to check the first, fastest intervals each time we are called */
+        for (idx = 0;
+             (idx < idxMax) &&
+             timercmp(&(pElement[idx]->interval), &interval, < );
+             idx++)
+        {
+            if (timercmp(&(pElement[idx]->timeToGo), &now, <))
+            {
+                trdp_handleTimeout(appHandle, pElement[idx]);
+            }
+        }
+
+        /* every 100ms check for other timeouts */
+        if ((cumulatedCallTime.tv_usec % TRDP_LOW_CYCLE_LIMIT) == 0)
+        {
+            for (;
+                 idx < idxMax;
+                 idx++)
+            {
+                /* we check only briefly, complete check is done inside trdp_handleTimeout */
+                if (timercmp(&(pElement[idx]->timeToGo), &now, <))
+                {
+                    trdp_handleTimeout(appHandle, pElement[idx]);
+                }
+            }
+            /* Reset the cumulated time */
+            timerclear(&cumulatedCallTime);
+        }
+    }
+    lastCall = now;
+}
+
+/**********************************************************************************************************************/
 /** Access the transmitter index tables
  *  Assume to be called with the process cycle defined from openSession configuration!
  *
@@ -748,11 +1017,11 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
 
 TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
 {
-    TRDP_ERR_T err, result = TRDP_NO_ERR;
+    TRDP_ERR_T      err, result = TRDP_NO_ERR;
 
     /* Compute the indexes from the current cycle */
-    UINT32 idxLow, idxMid, idxHigh;
-    UINT32 depth;
+    UINT32          idxLow, idxMid, idxHigh;
+    UINT32          depth;
     TRDP_HP_SLOTS_T *pSlot = appHandle->pSlot;
     PD_ELE_T        *pCurElement;
     UINT32          i;
@@ -812,7 +1081,7 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
                    (appHandle->pSndQueue->pFrame->frameHead.msgType == vos_htons(TRDP_MSG_PR)))
             {
                 /* Defensive programming: Prohibit endless loop! */
-                PD_ELE_T    *pBefore = appHandle->pSndQueue;
+                PD_ELE_T *pBefore = appHandle->pSndQueue;
                 err = trdp_pdSendElement(appHandle, &appHandle->pSndQueue);
                 if (err != TRDP_NO_ERR)
                 {
@@ -891,14 +1160,10 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
 
     /* Check the parameters */
 
-    /* if not already done, allocate some work space: */
-    if (appHandle->pSlot == NULL)
+    if ((appHandle == NULL) ||
+        (appHandle->pSlot == NULL))
     {
-        appHandle->pSlot = (TRDP_HP_SLOTS_T *) vos_memAlloc(sizeof(TRDP_HP_SLOTS_T));
-        if (appHandle->pSlot == NULL)
-        {
-            return TRDP_MEM_ERR;
-        }
+        return TRDP_PARAM_ERR;
     }
 
     pSlot = appHandle->pSlot;
@@ -917,27 +1182,42 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
             return err;
         }
 
-        pSlot->pRcvTableTimeOut = NULL;
-
-        /* get some memory */
-        vos_printLog(VOS_LOG_DBG, "Get %u Bytes for the receive table (ComId indexed).\n",
-                     (unsigned int) (noOfSubs * sizeof(PD_ELE_T *)));
-        pSlot->pRcvTableComId = (PD_ELE_T * *) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T * *));
-        if (pSlot->pRcvTableComId == NULL)
+        /* Check the index tables if they still fit: */
+        if ((pSlot->allocatedRcvTableSize / sizeof(PD_ELE_T * *)) < noOfSubs)
         {
-            return TRDP_MEM_ERR;
-        }
+            /* There are more subscribers now!  */
+            if (pSlot->pRcvTableComId != NULL)
+            {
+                vos_memFree(pSlot->pRcvTableComId);
+            }
+            if (pSlot->pRcvTableTimeOut != NULL)
+            {
+                vos_memFree(pSlot->pRcvTableTimeOut);
+            }
+            pSlot->pRcvTableTimeOut         = NULL;
+            pSlot->allocatedRcvTableSize    = 0u;
 
-        vos_printLog(VOS_LOG_DBG, "Get %u Bytes for the receive table (Timeout indexed).\n",
-                     (unsigned int) (noOfSubs * sizeof(PD_ELE_T *)));
-        pSlot->pRcvTableTimeOut = (PD_ELE_T * *) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T * *));
-        if (pSlot->pRcvTableTimeOut == NULL)
-        {
-            vos_memFree(pSlot->pRcvTableComId);
-            pSlot->pRcvTableComId = NULL;
-            return TRDP_MEM_ERR;
-        }
+            /* re-alloc the table memory */
 
+            pSlot->pRcvTableComId = (PD_ELE_T * *) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T * *));
+            if (pSlot->pRcvTableComId == NULL)
+            {
+                return TRDP_MEM_ERR;
+            }
+
+            pSlot->pRcvTableTimeOut = (PD_ELE_T * *) vos_memAlloc(noOfSubs * sizeof(PD_ELE_T * *));
+            if (pSlot->pRcvTableTimeOut == NULL)
+            {
+                vos_memFree(pSlot->pRcvTableComId);
+                pSlot->pRcvTableComId = NULL;
+                return TRDP_MEM_ERR;
+            }
+            vos_printLog(VOS_LOG_WARNING,
+                         "Pre-allocated receiver table size was not sufficent, enlarge no of subs! (%u < %u)\n",
+                         (unsigned int) (pSlot->allocatedRcvTableSize / sizeof(PD_ELE_T * *)),
+                         (unsigned int) noOfSubs);
+            pSlot->allocatedRcvTableSize = noOfSubs * sizeof(PD_ELE_T * *);
+        }
         /* fill the arrays ... */
         pSlot->noOfRxEntries = noOfSubs;
         iterPD = appHandle->pRcvQueue;
@@ -967,49 +1247,6 @@ TRDP_ERR_T trdp_indexCreateSubTables (TRDP_SESSION_PT appHandle)
 #endif
     }
     return err;
-}
-
-/**********************************************************************************************************************/
-/** Delete / Free all index tables
-*  This allows for late updates, but is not recommended!
-*
-*  @param[in]      appHandle         pointer to the packet element to send
-*
-*  @retval         TRDP_NO_ERR     no error
-*                  TRDP_MEM_ERR    not enough memory
-*/
-
-void    trdp_indexClearTables (TRDP_SESSION_PT appHandle)
-{
-    if (appHandle->pSlot != NULL)
-    {
-        if (appHandle->pSlot->pRcvTableComId != NULL)
-        {
-            vos_memFree(appHandle->pSlot->pRcvTableComId);
-        }
-        if (appHandle->pSlot->pRcvTableTimeOut != NULL)
-        {
-            vos_memFree(appHandle->pSlot->pRcvTableTimeOut);
-        }
-        if (appHandle->pSlot->pExtTxTable != NULL)
-        {
-            vos_memFree(appHandle->pSlot->pExtTxTable);
-        }
-        if (appHandle->pSlot->lowCat.ppIdxCat != NULL)
-        {
-            vos_memFree(appHandle->pSlot->lowCat.ppIdxCat);
-        }
-        if (appHandle->pSlot->midCat.ppIdxCat != NULL)
-        {
-            vos_memFree(appHandle->pSlot->midCat.ppIdxCat);
-        }
-        if (appHandle->pSlot->highCat.ppIdxCat != NULL)
-        {
-            vos_memFree(appHandle->pSlot->highCat.ppIdxCat);
-        }
-        vos_memFree(appHandle->pSlot);
-        appHandle->pSlot = NULL;    /* Upps, that was missing, thanx Chirag! */
-    }
 }
 
 /**********************************************************************************************************************/
@@ -1086,9 +1323,11 @@ void trdp_indexCheckPending (
             break;
         }
     }
-    /*    Get the current time and add the found interval   */
+    /*    Get the current time and add the found interval to nextjob  */
     vos_getTime(&appHandle->nextJob);
     vos_addTime(&appHandle->nextJob, &delay);
+
+    /* Return the interval for select() directly */
     *pInterval = delay;
 
     /*    Check and set the socket file descriptor by going thru the socket list    */
@@ -1115,17 +1354,15 @@ void trdp_indexCheckPending (
  *  @param[in]      pElement            pointer of the publisher element to be removed
  *
  */
-void    trdp_indexRemovePub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement)
+void    trdp_indexRemovePub (TRDP_SESSION_PT appHandle, PD_ELE_T *pElement)
 {
-    UINT32  idx;
+    UINT32 idx;
     TRDP_HP_CAT_SLOTS_T *pSlot = appHandle->pSlot;
 
     if (pSlot == NULL)
     {
         return;
     }
-
-    vos_printLogStr(VOS_LOG_WARNING, "Unpublishing in High Performance Mode is NOT recommended!\n");
 
     /* Find the packet in the short list */
     if (removePub(&appHandle->pSlot->lowCat, pElement) != 0)
@@ -1166,34 +1403,23 @@ void    trdp_indexRemovePub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement)
  *  @param[in]      pElement            pointer of the subscriber to be removed
  *
  */
-void    trdp_indexRemoveSub (TRDP_SESSION_PT appHandle, PD_ELE_T  *pElement)
+void    trdp_indexRemoveSub (TRDP_SESSION_PT appHandle, PD_ELE_T *pElement)
 {
-    TRDP_ERR_T  err = TRDP_NO_ERR;
+    TRDP_ERR_T err = TRDP_NO_ERR;
 
     if (appHandle->pSlot == NULL)
     {
         return;
     }
 
-    vos_printLogStr(VOS_LOG_WARNING, "Unsubscribing in High Performance Mode is NOT recommended!\n");
-
-    /* we must re-create these index tables!
-      So, delete them first: */
-    if (appHandle->pSlot->pRcvTableComId != NULL)
-    {
-        vos_memFree(appHandle->pSlot->pRcvTableComId);
-    }
-    if (appHandle->pSlot->pRcvTableTimeOut != NULL)
-    {
-        vos_memFree(appHandle->pSlot->pRcvTableTimeOut);
-    }
-    appHandle->pSlot->noOfRxEntries = 0;
+    /* we must (re-)create these index tables! */
 
     err = trdp_indexCreateSubTables(appHandle);
 
     if (err != TRDP_NO_ERR)
     {
-        vos_printLog(VOS_LOG_ERROR, "Critical error while unsubscribing in High Performance Mode! (%d)\n", err);
+        vos_printLog(VOS_LOG_ERROR, "Critical error while unsubscribing comId %u in High Performance Mode! (%d)\n",
+                     (unsigned int) pElement->addr.comId, err);
     }
 }
 

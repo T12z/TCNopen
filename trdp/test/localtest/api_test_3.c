@@ -527,7 +527,7 @@ static int test1 ()
 
 
         /* add the service */
-        err = tau_addService(appHandle1, pServicesToAdd, TRUE);
+        err = tau_addService(appHandle1, pServicesToAdd, FALSE);
         IF_ERROR("tau_addServices1");
 
         /* add another service instance */
@@ -542,7 +542,7 @@ static int test1 ()
         vos_strncpy(pServicesToAdd->srvName, "testFakeBackSrv", TRDP_MAX_LABEL_LEN);
         vos_strncpy(pServicesToAdd->fctDev, vos_ipDotted(gSession1.ifaceIP), TRDP_MAX_LABEL_LEN);
 
-        err = tau_addService(appHandle1, pServicesToAdd, TRUE);
+        err = tau_addService(appHandle1, pServicesToAdd, FALSE);
         IF_ERROR("tau_addServices2");
 
         /* Wait a bit */

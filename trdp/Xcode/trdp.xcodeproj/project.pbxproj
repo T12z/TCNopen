@@ -143,7 +143,6 @@
 		086EEEB222D4BF720061637D /* api_test_2.c in Sources */ = {isa = PBXBuildFile; fileRef = 086EEEA822D4BE000061637D /* api_test_2.c */; };
 		086EEEB722D5D7EA0061637D /* trdp_pdindex.h in Headers */ = {isa = PBXBuildFile; fileRef = 086EEEB522D5D7EA0061637D /* trdp_pdindex.h */; };
 		086EEEB822D5D7EA0061637D /* trdp_pdindex.h in Headers */ = {isa = PBXBuildFile; fileRef = 086EEEB522D5D7EA0061637D /* trdp_pdindex.h */; };
-		086EEEB922D5D7EA0061637D /* trdp_pdindex.c in Sources */ = {isa = PBXBuildFile; fileRef = 086EEEB622D5D7EA0061637D /* trdp_pdindex.c */; };
 		086EEEBA22D5D7EA0061637D /* trdp_pdindex.c in Sources */ = {isa = PBXBuildFile; fileRef = 086EEEB622D5D7EA0061637D /* trdp_pdindex.c */; };
 		086EEEBB22D5D7EA0061637D /* trdp_pdindex.c in Sources */ = {isa = PBXBuildFile; fileRef = 086EEEB622D5D7EA0061637D /* trdp_pdindex.c */; };
 		0874F448228DC11F00038D72 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
@@ -384,6 +383,13 @@
 			remoteInfo = trdp64Posix;
 		};
 		0885F05920E26D1C000D1F2E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 73591F6F1B986C7900B758F0;
+			remoteInfo = trdp64Posix;
+		};
+		08864463235721CC00FDD103 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
@@ -2045,6 +2051,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				08864464235721CC00FDD103 /* PBXTargetDependency */,
 			);
 			name = test_local_loop;
 			productName = "crc-check";
@@ -2966,7 +2973,6 @@
 				081704F020C97BCF00EF1FA7 /* tau_ctrl.c in Sources */,
 				081704F120C97BCF00EF1FA7 /* tau_dnr.c in Sources */,
 				081704F220C97BCF00EF1FA7 /* tau_tti.c in Sources */,
-				086EEEB922D5D7EA0061637D /* trdp_pdindex.c in Sources */,
 				081704F320C97BCF00EF1FA7 /* tau_cstinfo.c in Sources */,
 				082938F720935E9F009A69C9 /* tau_marshall.c in Sources */,
 				0899477822B91586009D0D6C /* tlp_if.c in Sources */,
@@ -3126,6 +3132,11 @@
 			isa = PBXTargetDependency;
 			target = 73591F6F1B986C7900B758F0 /* trdp64Posix */;
 			targetProxy = 0885F05920E26D1C000D1F2E /* PBXContainerItemProxy */;
+		};
+		08864464235721CC00FDD103 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 73591F6F1B986C7900B758F0 /* trdp64Posix */;
+			targetProxy = 08864463235721CC00FDD103 /* PBXContainerItemProxy */;
 		};
 		08BFF2952024722E005E2AB8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

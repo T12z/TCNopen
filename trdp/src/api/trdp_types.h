@@ -15,6 +15,7 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2019. All rights reserved.
  */
 /*
+ *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
  *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
  *      BL 2019-06-17: Ticket #264 Provide service oriented interface
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -736,6 +737,23 @@ typedef struct
     TRDP_OPTION_T   options;        /**< TRDP options */
 } TRDP_PROCESS_CONFIG_T;
 
+/**********************************************************************************************************************/
+/** Settings for pre-allocation of index tables for application session initialization
+ */
+typedef struct
+{
+    UINT32  maxNoOfLowCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <= 100ms  */
+    UINT32  maxNoOfMidCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <= 1000ms */
+    UINT32  maxNoOfHighCatSubscriptions;        /**< Max. number of expected subscriptions with intervals > 1000ms  */
+    UINT32  maxNoOfLowCatPublishers;            /**< Max. number of expected publishers with intervals <= 100ms     */
+    UINT32  maxDepthOfLowCatPublishers;         /**< depth / overlapped publishers with intervals <= 100ms          */
+    UINT32  maxNoOfMidCatPublishers;            /**< Max. number of expected publishers with intervals <= 1000ms    */
+    UINT32  maxDepthOfMidCatPublishers;         /**< depth / overlapped publishers with intervals <= 1000ms         */
+    UINT32  maxNoOfHighCatPublishers;           /**< Max. number of expected publishers with intervals <= 10000ms   */
+    UINT32  maxDepthOfHighCatPublishers;        /**< depth / overlapped publishers with intervals <= 10000ms        */
+    UINT32  maxNoOfExtPublishers;               /**< Max. number of expected publishers with intervals > 10000ms    */
+} TRDP_IDX_TABLE_T;
+
 
 #ifdef __cplusplus
 }
@@ -807,7 +825,7 @@ typedef struct
     \latexonly
     \pagebreak
     \endlatexonly
-    The transmit thread should be a cyclic thread – cycle times down to 1ms are supported:
+    The transmit thread should be a cyclic thread. Cycle times down to 1ms are supported:
     \image html TRDPSpeedupFlowPDTransmit.pdf "Multi-threaded processing of PD Transmit"
     \image latex TRDPSpeedupFlowPDTransmit.pdf "Multi-threaded processing of PD Transmit" height=15cm
 
@@ -820,7 +838,7 @@ typedef struct
 
     Note: Mixed usage of the single threaded call tlc_process() with the multi-threaded
     calls tlm_process/tlp_processTransmit/tlp_processReceive is not supported!
- 
+
    \section api_conventions_sec Conventions of the API
 
    The API comprises a set of C header files that can also be used

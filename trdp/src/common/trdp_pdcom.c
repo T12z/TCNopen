@@ -17,7 +17,9 @@
 /*
 * $Id$
 *
-*      BL 2019-08-27: Changed send failure from ERROR to WARNING
+*      BL 2019-10-18: Ticket #287 Enhancement performance while receiving (HIGH_PERF_INDEXED mode)
+*      BL 2019-10-10: Ticket #283 Automatic PD sequence counter reset after timeout
+*      BL 2019-08-27: Changed send failure from ERROR to WARNING to DBG
 *      BL 2019-08-23: Use legacy reception if no index table
 *      BL 2019-08-21: Ticket #276 Bug with PD requests and replies in high performance
 *      SB 2019-08-15: Taking service Id from header in trdp_pdReceive()
@@ -100,7 +102,7 @@
 
 
 /******************************************************************************
- *   Locals
+ *   GLOBALS
  */
 
 /******************************************************************************/
@@ -411,6 +413,7 @@ TRDP_ERR_T trdp_pdGet (
 /** Send a due PD message
  *
  *  @param[in]      appHandle           session pointer
+ *  @param[in]      ppElement           pointer to pointer of the element to send
  *
  *  @retval         TRDP_NO_ERR         no error
  *  @retval         TRDP_IO_ERR         socket I/O error
@@ -562,7 +565,9 @@ TRDP_ERR_T  trdp_pdSendQueued (
     TRDP_TIME_T now;
     TRDP_ERR_T  err = TRDP_NO_ERR;
 
-    vos_clearTime(&appHandle->nextJob);
+    /* Clearing the nextJob indicator is of no use here, it will disturb PD timeout handling when separate
+        threads are used!
+     vos_clearTime(&appHandle->nextJob); */
 
     /*    Find the packet which has to be sent next:    */
     while (iterPD != NULL)
@@ -849,7 +854,8 @@ TRDP_ERR_T  trdp_pdReceive (
             pExistingElement->addr.destIpAddr = subAddresses.destIpAddr;
 
 
-            if (newSeqCnt == 0u)  /* restarted or new sender */
+            if ((newSeqCnt == 0u) ||                                /* restarted or new sender  */
+                (pExistingElement->privFlags & TRDP_TIMED_OUT))     /* or timed out before      */
             {
                 trdp_resetSequenceCounter(pExistingElement, subAddresses.srcIpAddr,
                                           (TRDP_MSG_T) vos_ntohs(pNewFrameHead->msgType));
@@ -1072,7 +1078,7 @@ void trdp_pdCheckPending (
 
     /*    Walk over the registered PDs, find pending packets */
 
-    timerclear(&appHandle->nextJob);
+    vos_clearTime(&appHandle->nextJob);
 
     /*    Find the packet which has to be received next:    */
     for (iterPD = appHandle->pRcvQueue; iterPD != NULL; iterPD = iterPD->pNext)
@@ -1125,78 +1131,90 @@ void trdp_pdCheckPending (
 void trdp_pdHandleTimeOuts (
     TRDP_SESSION_PT appHandle)
 {
-    PD_ELE_T    *iterPD = NULL;
+    PD_ELE_T *iterPD = NULL;
+
+    /*    Examine receive queue for late packets    */
+    for (iterPD = appHandle->pRcvQueue; iterPD != NULL; iterPD = iterPD->pNext)
+    {
+        trdp_handleTimeout(appHandle, iterPD);
+    }
+}
+
+/******************************************************************************/
+/** Check a packet for timeout packet
+ *  Call user's callback, if necessary
+ *
+ *  @param[in]      appHandle       Session handle
+ *  @param[in]      pPacket         pointer to the packet element to check
+ */
+void trdp_handleTimeout (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T        *pPacket)
+{
     TRDP_TIME_T now;
 
     /*    Update the current time    */
     vos_getTime(&now);
 
-    /*    Examine receive queue for late packets    */
-    for (iterPD = appHandle->pRcvQueue; iterPD != NULL; iterPD = iterPD->pNext)
+    if (timerisset(&pPacket->interval) &&
+        timerisset(&pPacket->timeToGo) &&                        /*  Prevent timing out of PULLed data too early */
+        !timercmp(&pPacket->timeToGo, &now, >) &&                /*  late?   */
+        !(pPacket->privFlags & TRDP_TIMED_OUT) &&                /*  and not already flagged ?   */
+        !(pPacket->addr.comId == TRDP_STATISTICS_PULL_COMID)) /*  Do not bother user with statistics timeout */
     {
-        if (timerisset(&iterPD->interval) &&
-            timerisset(&iterPD->timeToGo) &&                        /*  Prevent timing out of PULLed data too early */
-            !timercmp(&iterPD->timeToGo, &now, >) &&                /*  late?   */
-            !(iterPD->privFlags & TRDP_TIMED_OUT) &&                /*  and not already flagged ?   */
-            !(iterPD->addr.comId == TRDP_STATISTICS_PULL_COMID)) /*  Do not bother user with statistics timeout */
-        {
-            /*  Update some statistics  */
-            appHandle->stats.pd.numTimeout++;
-            iterPD->lastErr = TRDP_TIMEOUT_ERR;
+        /*  Update some statistics  */
+        appHandle->stats.pd.numTimeout++;
+        pPacket->lastErr = TRDP_TIMEOUT_ERR;
 
-            /* Packet is late! We inform the user about this:    */
-            if (iterPD->pfCbFunction != NULL)
+        /* Packet is late! We inform the user about this:    */
+        if (pPacket->pfCbFunction != NULL)
+        {
+            TRDP_PD_INFO_T theMessage;
+            memset(&theMessage, 0, sizeof(TRDP_PD_INFO_T));
+            theMessage.comId        = pPacket->addr.comId;
+            theMessage.srcIpAddr    = pPacket->addr.srcIpAddr;
+            theMessage.destIpAddr   = pPacket->addr.destIpAddr;
+            theMessage.pUserRef     = pPacket->pUserRef;
+            theMessage.resultCode   = TRDP_TIMEOUT_ERR;
+            if (pPacket->pFrame != NULL)
             {
-                TRDP_PD_INFO_T theMessage;
-                memset(&theMessage, 0, sizeof(TRDP_PD_INFO_T));
-                theMessage.comId        = iterPD->addr.comId;
-                theMessage.srcIpAddr    = iterPD->addr.srcIpAddr;
-                theMessage.destIpAddr   = iterPD->addr.destIpAddr;
-                theMessage.pUserRef     = iterPD->pUserRef;
-                theMessage.resultCode   = TRDP_TIMEOUT_ERR;
-                if (iterPD->pFrame != NULL)
-                {
 #ifdef TSN_SUPPORT
-                    if (iterPD->privFlags & TRDP_IS_TSN)
-                    {
-                        PD2_PACKET_T *pFrame = (PD2_PACKET_T *) iterPD->pFrame;
-                        theMessage.msgType      = (TRDP_MSG_T)pFrame->frameHead.msgType;
-                        theMessage.seqCount     = vos_ntohl(pFrame->frameHead.sequenceCounter);
-                        theMessage.protVersion  = pFrame->frameHead.protocolVersion;
-                    }
-                    else
-#endif
-                    {
-                        theMessage.etbTopoCnt   = vos_ntohl(iterPD->pFrame->frameHead.etbTopoCnt);
-                        theMessage.opTrnTopoCnt = vos_ntohl(iterPD->pFrame->frameHead.opTrnTopoCnt);
-                        theMessage.msgType      = (TRDP_MSG_T) vos_ntohs(iterPD->pFrame->frameHead.msgType);
-                        theMessage.seqCount     = vos_ntohl(iterPD->pFrame->frameHead.sequenceCounter);
-                        theMessage.protVersion  = vos_ntohs(iterPD->pFrame->frameHead.protocolVersion);
-                        theMessage.replyComId   = vos_ntohl(iterPD->pFrame->frameHead.replyComId);
-                        theMessage.replyIpAddr  = vos_ntohl(iterPD->pFrame->frameHead.replyIpAddress);
-                    }
-                    iterPD->pfCbFunction(appHandle->pdDefault.pRefCon,
-                                         appHandle,
-                                         &theMessage,
-                                         iterPD->pFrame->data,
-                                         iterPD->dataSize);
+                if (pPacket->privFlags & TRDP_IS_TSN)
+                {
+                    PD2_PACKET_T *pFrame = (PD2_PACKET_T *) pPacket->pFrame;
+                    theMessage.msgType      = (TRDP_MSG_T)pFrame->frameHead.msgType;
+                    theMessage.seqCount     = vos_ntohl(pFrame->frameHead.sequenceCounter);
+                    theMessage.protVersion  = pFrame->frameHead.protocolVersion;
                 }
                 else
+#endif
                 {
-                    iterPD->pfCbFunction(appHandle->pdDefault.pRefCon,
-                                         appHandle,
-                                         &theMessage,
-                                         NULL,
-                                         iterPD->dataSize);
+                    theMessage.etbTopoCnt   = vos_ntohl(pPacket->pFrame->frameHead.etbTopoCnt);
+                    theMessage.opTrnTopoCnt = vos_ntohl(pPacket->pFrame->frameHead.opTrnTopoCnt);
+                    theMessage.msgType      = (TRDP_MSG_T) vos_ntohs(pPacket->pFrame->frameHead.msgType);
+                    theMessage.seqCount     = vos_ntohl(pPacket->pFrame->frameHead.sequenceCounter);
+                    theMessage.protVersion  = vos_ntohs(pPacket->pFrame->frameHead.protocolVersion);
+                    theMessage.replyComId   = vos_ntohl(pPacket->pFrame->frameHead.replyComId);
+                    theMessage.replyIpAddr  = vos_ntohl(pPacket->pFrame->frameHead.replyIpAddress);
                 }
+                pPacket->pfCbFunction(appHandle->pdDefault.pRefCon,
+                                      appHandle,
+                                      &theMessage,
+                                      pPacket->pFrame->data,
+                                      pPacket->dataSize);
             }
-
-            /*    Prevent repeated time out events    */
-            iterPD->privFlags |= TRDP_TIMED_OUT;
+            else
+            {
+                pPacket->pfCbFunction(appHandle->pdDefault.pRefCon,
+                                      appHandle,
+                                      &theMessage,
+                                      NULL,
+                                      pPacket->dataSize);
+            }
         }
 
-        /*    Update the current time    */
-        vos_getTime(&now);
+        /*    Prevent repeated time out events    */
+        pPacket->privFlags |= TRDP_TIMED_OUT;
     }
 }
 
@@ -1213,7 +1231,7 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
     TRDP_FDS_T      *pRfds,
     INT32           *pCount)
 {
-    TRDP_ERR_T  result      = TRDP_NO_ERR;
+    TRDP_ERR_T result = TRDP_NO_ERR;
 
     /*  Check the input params, in case we are in polling mode, the application
      is responsible to get any process data by calling tlp_get()    */
@@ -1237,7 +1255,8 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
         for (idx = 0; idx < (UINT32) trdp_getCurrentMaxSocketCnt(TRDP_SOCK_PD); idx++)
         {
             if ((appHandle->ifacePD[idx].sock != -1) &&
-                (FD_ISSET(appHandle->ifacePD[idx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned division in macro */
+                (FD_ISSET(appHandle->ifacePD[idx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned division in
+                                                                               macro */
             {
                 VOS_LOG_T logType = VOS_LOG_ERROR;
 

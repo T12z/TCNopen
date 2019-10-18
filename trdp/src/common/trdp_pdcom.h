@@ -116,6 +116,10 @@ void        trdp_pdCheckPending (
     INT32               *pNoDesc,
     int                 checkSending);
 
+void        trdp_handleTimeout (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T        *pIterPD);
+
 void        trdp_pdHandleTimeOuts (
     TRDP_SESSION_PT appHandle);
 

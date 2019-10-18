@@ -18,6 +18,7 @@
 * $Id$
 *
 *
+*      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -91,6 +92,10 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
 EXT_DECL TRDP_ERR_T tlc_updateSession (
     TRDP_APP_SESSION_T appHandle);
 
+EXT_DECL TRDP_ERR_T tlc_presetIndexSession (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_IDX_TABLE_T    *pIndexTableSizes);
+
 EXT_DECL TRDP_ERR_T tlc_closeSession (
     TRDP_APP_SESSION_T appHandle);
 
@@ -135,7 +140,7 @@ EXT_DECL TRDP_ERR_T     tlp_getInterval (
     INT32               *pNoDesc);
 
 EXT_DECL TRDP_ERR_T tlp_processSend (
-    TRDP_APP_SESSION_T  appHandle);
+    TRDP_APP_SESSION_T appHandle);
 
 EXT_DECL TRDP_ERR_T tlp_processReceive (
     TRDP_APP_SESSION_T  appHandle,

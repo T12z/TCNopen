@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
 *      BL 2019-08-23: Possible crash on unsubscribing or unpublishing in High Performance mode
 *      SB 2019-08-21: Ticket #276: Bug with PD requests and replies in high performance mode
 *      SB 2019-08-20: Fixed lint errors and warnings
@@ -88,7 +89,7 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
     TRDP_FDS_T          *pFileDesc,
     INT32               *pNoDesc)
 {
-    TRDP_ERR_T  ret = TRDP_NOINIT_ERR;
+    TRDP_ERR_T ret = TRDP_NOINIT_ERR;
 
     if (trdp_isValidSession(appHandle))
     {
@@ -110,7 +111,7 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
 #ifdef HIGH_PERF_INDEXED
             else if (appHandle->pSlot != NULL)
             {
-                trdp_indexCheckPending (appHandle, pInterval, pFileDesc, pNoDesc);
+                trdp_indexCheckPending(appHandle, pInterval, pFileDesc, pNoDesc);
             }
 #endif
             else
@@ -185,12 +186,6 @@ EXT_DECL TRDP_ERR_T tlp_processReceive (
     else
     {
         /******************************************************
-         Find packets which are pending/overdue
-         ******************************************************/
-
-        trdp_pdHandleTimeOuts(appHandle);
-
-        /******************************************************
          Find packets which are to be received
          ******************************************************/
         err = trdp_pdCheckListenSocks(appHandle, pRfds, pCount);
@@ -201,6 +196,24 @@ EXT_DECL TRDP_ERR_T tlp_processReceive (
             result = err;
         }
 
+        /******************************************************
+         Find packets which are pending/overdue
+         ******************************************************/
+
+#ifdef HIGH_PERF_INDEXED
+        if ((appHandle->pSlot != NULL) &&
+            (appHandle->pSlot->pRcvTableTimeOut != NULL))
+        {
+            /* if available, use faster access */
+            trdp_pdHandleTimeOutsIndexed(appHandle);
+        }
+        else
+        {
+            trdp_pdHandleTimeOuts(appHandle);
+        }
+#else
+        trdp_pdHandleTimeOuts(appHandle);
+#endif
         if (vos_mutexUnlock(appHandle->mutexRxPD) != VOS_NO_ERR)
         {
             vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
@@ -223,8 +236,8 @@ EXT_DECL TRDP_ERR_T tlp_processReceive (
 EXT_DECL TRDP_ERR_T tlp_processSend (
     TRDP_APP_SESSION_T appHandle)
 {
-    TRDP_ERR_T  result = TRDP_NO_ERR;
-    TRDP_ERR_T  err = TRDP_NO_ERR;
+    TRDP_ERR_T  result  = TRDP_NO_ERR;
+    TRDP_ERR_T  err     = TRDP_NO_ERR;
 
     if (!trdp_isValidSession(appHandle))
     {
@@ -244,7 +257,8 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
          ******************************************************/
 
 #ifdef HIGH_PERF_INDEXED
-        if (appHandle->pSlot == NULL)
+        if ((appHandle->pSlot == NULL) ||
+            (appHandle->pSlot->processCycle == 0u))
         {
             static int count = 5000;
             err = trdp_pdSendQueued(appHandle);
@@ -819,7 +833,7 @@ TRDP_ERR_T  tlp_unpublish (
         }
 #else
         /* We must check if this publisher is listed in our indexed arrays */
-        trdp_indexRemovePub (appHandle, pElement);
+        trdp_indexRemovePub(appHandle, pElement);
 #endif
 
         if (vos_mutexUnlock(appHandle->mutexTxPD) != VOS_NO_ERR)
@@ -1436,7 +1450,7 @@ EXT_DECL TRDP_ERR_T tlp_unsubscribe (
 
 #ifdef HIGH_PERF_INDEXED
         /* We must check if this publisher is listed in our indexed arrays */
-        trdp_indexRemoveSub (appHandle, pElement);
+        trdp_indexRemoveSub(appHandle, pElement);
 #endif
 
         ret = TRDP_NO_ERR;

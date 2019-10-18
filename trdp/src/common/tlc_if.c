@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
 *      BL 2019-08-23: Ticket #162 Mutex handling in tlc_process corrected
 *      SB 2018-08-20: Fixed lint errors and warnings
 *      BL 2019-07-15: Ticket #272 Missing initialization of values in Global Statistics
@@ -128,11 +129,10 @@ static BOOL8 sInited = FALSE;
  * LOCAL FUNCTIONS
  */
 
-BOOL8       trdp_isValidSession (TRDP_APP_SESSION_T pSessionHandle);
-TRDP_APP_SESSION_T *trdp_sessionQueue (void);
-TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T  pSessionHandle,
-                            int                 force);
-void        trdp_releaseAccess (TRDP_APP_SESSION_T pSessionHandle);
+BOOL8               trdp_isValidSession (TRDP_APP_SESSION_T pSessionHandle);
+TRDP_APP_SESSION_T  *trdp_sessionQueue (void);
+TRDP_ERR_T          trdp_getAccess (TRDP_APP_SESSION_T  pSessionHandle, int force);
+void                trdp_releaseAccess (TRDP_APP_SESSION_T pSessionHandle);
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
@@ -197,7 +197,9 @@ TRDP_APP_SESSION_T *trdp_sessionQueue (void)
 /** Get mutual access to the session
  *  Take all mutexes of that session
  *
- *  @param[in]      appHandle          A handle for further calls to the trdp stack
+ *  @param[in]      appHandle           A handle for further calls to the trdp stack
+ *  @param[in]      force               If TRUE, access the session even if we cannot get the mutex.
+ *
  *  @retval         TRDP_NO_ERR
  *  @retval         TRDP_INIT_ERR
  *  @retval         TRDP_MUTEX_ERR
@@ -409,7 +411,16 @@ EXT_DECL TRDP_ERR_T tlc_openSession (
         return TRDP_MEM_ERR;
     }
 
-    memset(pSession, 0, sizeof(TRDP_SESSION_T));
+    /* memset(pSession, 0, sizeof(TRDP_SESSION_T)); not necessary, vos_memAlloc always returns cleared block! */
+
+#ifdef HIGH_PERF_INDEXED
+    ret = trdp_indexInit(pSession);
+    if (ret != TRDP_NO_ERR)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "trdp_indexInit() failed\n");
+        return ret;
+    }
+#endif
 
     pSession->realIP    = ownIpAddr;
     pSession->virtualIP = leaderIpAddr;
@@ -799,7 +810,7 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
  *  and subscriber was added and will create and compute the index tables to be used by the high-performance targets.
  *  This function is currently a no-op on standard targets.
  *
- *  @param[in]      appHandle          A handle for further calls to the trdp stack
+ *  @param[in]      appHandle           The handle returned by tlc_openSession
  *
  *  @retval         TRDP_NO_ERR         no error
  *  @retval         TRDP_INIT_ERR       not yet inited
@@ -818,11 +829,6 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
 
     if (ret == TRDP_NO_ERR)
     {
-        if (appHandle->pSlot != NULL)
-        {
-            /* we are called again! It seems there are additional subs/pubs? */
-            trdp_indexClearTables(appHandle);
-        }
         ret = trdp_indexCreatePubTables(appHandle);
         if (ret == TRDP_NO_ERR)
         {
@@ -840,6 +846,65 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
     return ret;
 } /* lint !w438 return value not used */
 
+/**********************************************************************************************************************/
+/** Preset the index table sizes of a session.
+ *
+ *  tlc_presetIndexSession allows to preallocate the table sizes in HIGH_PERF_INDEXED mode.
+ *  If no table sizes are provided, the default sizes are used. In normal mode, this is a no-op.
+ *  This function should be called during initialisation stage, e.g. right after a session has been opened.
+ *
+ *  @param[in]      appHandle           The handle returned by tlc_openSession
+ *  @param[in]      pIndexTableSizes    Pointer to a table of sizes to reserve the memory
+ *
+ *  @retval         TRDP_NO_ERR         no error
+ *  @retval         TRDP_INIT_ERR       not yet inited
+ *  @retval         TRDP_PARAM_ERR      parameter error
+ */
+EXT_DECL TRDP_ERR_T tlc_presetIndexSession (
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_IDX_TABLE_T    *pIndexTableSizes)
+{
+    TRDP_ERR_T ret = TRDP_NO_ERR;
+
+#ifdef HIGH_PERF_INDEXED
+
+    TRDP_IDX_TABLE_T    localSizes = TRDP_DEFAULT_INDEX_SIZES;
+
+    /*  Stop any ongoing communication by getting the mutexes */
+
+    ret = trdp_getAccess(appHandle, FALSE);
+
+    if (ret == TRDP_NO_ERR)
+    {
+        UINT32  maxNoOfSubscriptions;
+
+        if (pIndexTableSizes != NULL)
+        {
+            localSizes = *pIndexTableSizes;
+        }
+        maxNoOfSubscriptions =  localSizes.maxNoOfLowCatSubscriptions +
+                                localSizes.maxNoOfMidCatSubscriptions +
+                                localSizes.maxNoOfHighCatSubscriptions;
+
+        ret = trdp_indexAllocTables (   appHandle,
+                                        maxNoOfSubscriptions,
+                                        localSizes.maxNoOfLowCatPublishers,
+                                        localSizes.maxDepthOfLowCatPublishers,
+                                        localSizes.maxNoOfMidCatPublishers,
+                                        localSizes.maxDepthOfMidCatPublishers,
+                                        localSizes.maxNoOfHighCatPublishers,
+                                        localSizes.maxDepthOfHighCatPublishers,
+                                        localSizes.maxNoOfExtPublishers);
+        trdp_releaseAccess(appHandle);
+    }
+#else
+
+    appHandle = appHandle;  /* lint !e550 return value not used */
+
+#endif
+
+    return ret;
+} /* lint !w438 return value not used */
 
 /**********************************************************************************************************************/
 /** Close a session.
@@ -911,10 +976,14 @@ EXT_DECL TRDP_ERR_T tlc_closeSession (
 
             if (ret != TRDP_NO_ERR)
             {
-                vos_printLog(VOS_LOG_ERROR, "vos_mutexLock() failed (%s)\n", vos_getErrorString((VOS_ERR_T)ret));
+                vos_printLog(VOS_LOG_WARNING, "trdp_getAccess() failed while closing session (%s)\n",
+                                                vos_getErrorString((VOS_ERR_T)ret));
             }
             else
             {
+#ifdef HIGH_PERF_INDEXED
+                trdp_indexDeInit(pSession);
+#endif
                 /*    Release all allocated sockets and memory    */
                 vos_memFree(pSession->pNewFrame);
 
