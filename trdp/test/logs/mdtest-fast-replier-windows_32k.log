@@ -1,935 +1,729 @@
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 280 Size(in Bytes) of
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 281 	TRDP_SESSION_T        :	12912
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 282 	TRDP_SOCKETS_T        :	144
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 283 	TRDP_SEQ_CNT_LIST_T   :	16
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 284 	TRDP_SEQ_CNT_ENTRY_T  :	12
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 285 	PD_ELE_T              :	168
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 286 	PD_PACKET_T           :	1472
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 288 	MD_ELE_T              :	240
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 289 	MD_LIS_ELE_T          :	144
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 292 	TRDP_HP_SLOTS_T       :	96
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 293 	plus 300 * no of pubs * var. depth * pointer size:	 ~180 Bytes/publisher
-DBG File: ..\..\src\vos\common\vos_utils.c Line: 294 	plus   2 * no of subs * pointer size             :	   16 Bytes/subscription
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F354520, size	16
-INF File: ..\..\src\common\tlc_if.c Line: 344 TRDP Stack Version 2.0.0.2: successfully initiated
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F363720, size	12912
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F354500, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F354420, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F354640, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3546C0, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3669A0, size	1472
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F34B560, size	168
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 188 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 201 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1327 binding to: 10.0.1.100:0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A6500, size	16
+INF File: ..\..\src\common\tlc_if.c Line: 346 TRDP Stack Version 2.0.2.1: successfully initiated
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000042B640, size	12912
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000041E2C0, size	128
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A6560, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A6580, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A65A0, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A65C0, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000429B30, size	1472
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000042A100, size	168
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 236
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 152
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = PD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 5, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F369560, size	420
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 188 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 201 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1327 binding to: 10.0.1.100:17224
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000430460, size	420
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:17224
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 236
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 152
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = PD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 5, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 240
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 148
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = PD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 5, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F368D50, size	168
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F369850, size	1472
-INF File: ..\..\src\common\tlc_if.c Line: 566 TRDP session opened successfully
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 188 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 201 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1327 binding to: 10.0.1.100:17225
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2152 TCP socket opened and listening (Socket: 244, Port: 17225)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F346820, size	144
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F340750, size	144
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 188 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 201 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1327 binding to: 10.0.1.100:17225
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000042A1B0, size	168
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000430830, size	1472
+INF File: ..\..\src\common\tlc_if.c Line: 577 TRDP session opened successfully
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:17225
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2153 TCP socket opened and listening (Socket: 156, Port: 17225)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000431020, size	144
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000004310C0, size	144
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:17225
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F346EA0, size	144
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 968 joining MC: 239.2.24.1 on iface 10.0.1.100
-INF File: ..\..\src\common\trdp_utils.c Line: 978 socket 248 joined 239.2.24.1!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000431380, size	144
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 970 joining MC: 239.2.24.1 on iface 10.0.1.1
+INF File: ..\..\src\common\trdp_utils.c Line: 978 socket 160 joined 239.2.24.1!
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F346BF0, size	96
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36A0E0, size	4000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 443 Process cycle time: 1ms, PDs < 100ms: 0 telegrams, allocating table[100][5] 3kByte
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36B090, size	4000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 443 Process cycle time: 10ms, PDs < 1000ms: 0 telegrams, allocating table[100][5] 3kByte
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36C040, size	4000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 443 Process cycle time: 100ms, PDs < 10000ms: 0 telegrams, allocating table[100][5] 3kByte
-INF File: ..\..\src\common\trdp_pdindex.c Line: 163 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 166 ----- Time Slots for    1ms cycled packets  -----
-INF File: ..\..\src\common\trdp_pdindex.c Line: 167 ----- SlotNo: ComId (Tx-Interval) x depth   -----
-INF File: ..\..\src\common\trdp_pdindex.c Line: 168 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   0: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   1: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   2: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   3: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   4: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   5: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   6: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   7: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   8: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   9: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  10: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  11: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  12: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  13: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  14: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  15: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  16: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  17: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  18: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  19: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  20: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  21: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  22: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  23: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  24: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  25: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  26: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  27: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  28: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  29: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  30: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  31: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  32: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  33: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  34: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  35: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  36: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  37: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  38: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  39: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  40: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  41: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  42: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  43: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  44: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  45: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  46: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  47: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  48: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  49: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  50: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  51: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  52: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  53: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  54: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  55: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  56: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  57: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  58: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  59: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  60: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  61: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  62: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  63: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  64: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  65: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  66: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  67: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  68: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  69: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  70: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  71: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  72: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  73: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  74: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  75: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  76: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  77: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  78: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  79: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  80: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  81: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  82: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  83: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  84: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  85: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  86: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  87: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  88: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  89: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  90: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  91: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  92: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  93: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  94: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  95: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  96: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  97: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  98: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  99: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 191 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 163 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 166 ----- Time Slots for   10ms cycled packets  -----
-INF File: ..\..\src\common\trdp_pdindex.c Line: 167 ----- SlotNo: ComId (Tx-Interval) x depth   -----
-INF File: ..\..\src\common\trdp_pdindex.c Line: 168 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   0: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   1: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   2: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   3: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   4: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   5: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   6: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   7: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   8: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   9: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  10: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  11: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  12: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  13: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  14: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  15: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  16: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  17: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  18: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  19: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  20: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  21: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  22: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  23: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  24: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  25: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  26: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  27: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  28: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  29: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  30: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  31: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  32: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  33: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  34: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  35: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  36: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  37: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  38: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  39: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  40: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  41: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  42: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  43: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  44: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  45: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  46: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  47: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  48: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  49: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  50: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  51: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  52: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  53: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  54: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  55: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  56: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  57: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  58: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  59: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  60: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  61: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  62: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  63: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  64: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  65: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  66: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  67: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  68: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  69: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  70: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  71: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  72: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  73: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  74: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  75: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  76: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  77: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  78: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  79: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  80: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  81: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  82: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  83: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  84: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  85: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  86: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  87: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  88: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  89: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  90: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  91: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  92: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  93: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  94: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  95: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  96: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  97: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  98: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  99: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 191 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 163 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 166 ----- Time Slots for  100ms cycled packets  -----
-INF File: ..\..\src\common\trdp_pdindex.c Line: 167 ----- SlotNo: ComId (Tx-Interval) x depth   -----
-INF File: ..\..\src\common\trdp_pdindex.c Line: 168 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   0: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   1: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   2: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   3: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   4: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   5: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   6: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   7: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   8: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188   9: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  10: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  11: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  12: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  13: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  14: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  15: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  16: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  17: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  18: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  19: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  20: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  21: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  22: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  23: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  24: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  25: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  26: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  27: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  28: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  29: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  30: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  31: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  32: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  33: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  34: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  35: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  36: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  37: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  38: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  39: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  40: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  41: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  42: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  43: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  44: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  45: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  46: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  47: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  48: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  49: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  50: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  51: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  52: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  53: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  54: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  55: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  56: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  57: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  58: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  59: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  60: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  61: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  62: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  63: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  64: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  65: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  66: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  67: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  68: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  69: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  70: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  71: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  72: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  73: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  74: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  75: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  76: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  77: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  78: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  79: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  80: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  81: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  82: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  83: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  84: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  85: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  86: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  87: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  88: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  89: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  90: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  91: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  92: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  93: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  94: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  95: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  96: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  97: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  98: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 188  99: ........	........	........	........	........	
-INF File: ..\..\src\common\trdp_pdindex.c Line: 191 -------------------------------------------------
-DBG File: ..\..\src\common\trdp_pdindex.c Line: 924 Get 8 Bytes for the receive table (ComId indexed).
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F346470, size	8
-DBG File: ..\..\src\common\trdp_pdindex.c Line: 932 Get 8 Bytes for the receive table (Timeout indexed).
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F34B610, size	8
-DBG File: ..\..\src\common\trdp_pdindex.c Line: 954 Sorting array at 000001DF5F346470.
-DBG File: ..\..\src\common\trdp_pdindex.c Line: 959 Sorting array at 000001DF5F34B610.
-INF File: ..\..\src\common\trdp_pdindex.c Line: 131 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 133 --- Table of ComId-sorted subscriptions (1) --
-INF File: ..\..\src\common\trdp_pdindex.c Line: 134 - Idx	(addr):			  comId SrcIP	Timeout(s)
-INF File: ..\..\src\common\trdp_pdindex.c Line: 135 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 145   0	(000001DF5F368D50):       31 0.0.0.0          0.000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 147 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 131 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 133 --- Table of Timeout-sorted subscriptions (1) --
-INF File: ..\..\src\common\trdp_pdindex.c Line: 134 - Idx	(addr):			  comId SrcIP	Timeout(s)
-INF File: ..\..\src\common\trdp_pdindex.c Line: 135 -------------------------------------------------
-INF File: ..\..\src\common\trdp_pdindex.c Line: 145   0	(000001DF5F368D50):       31 0.0.0.0          0.000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 147 -------------------------------------------------
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: 252 (Port: 35452)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000431420, size	4000
+INF File: ..\..\src\common\trdp_pdindex.c Line: 482 Process cycle time: 1ms, PDs < 100ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000004323D0, size	4000
+INF File: ..\..\src\common\trdp_pdindex.c Line: 482 Process cycle time: 10ms, PDs < 1000ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000433380, size	4000
+INF File: ..\..\src\common\trdp_pdindex.c Line: 482 Process cycle time: 100ms, PDs < 10000ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000416210, size	8
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000413D70, size	8
+WAR File: ..\..\src\common\trdp_pdindex.c Line: 1218 Pre-allocated receiver table size was not sufficent, enlarge no of subs! (0 < 1)
+DBG File: ..\..\src\common\trdp_pdindex.c Line: 1234 Sorting array at 0000000000416210.
+DBG File: ..\..\src\common\trdp_pdindex.c Line: 1239 Sorting array at 0000000000413D70.
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60294)
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 252
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: -1 (Port: 17225)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 819 setsockopt() SO_REUSEADDR failed (Err: 10038)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 832 setsockopt() FIONBIO failed (Err: 10038)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3466F0, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F375F90, size	32884
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -46)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2868 Incomplete TCP MD received (Socket: 252)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F37E010, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F375F90
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3466F0
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating TCP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD TCP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F37E010
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1198 vos_sockReceiveTCP - No data at socket 252
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -5)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2878 The socket has been closed in the other corner (Corner Ip: 10.0.1.101, Socket: 252)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 252) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 252, lIndex: 1)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: 252 (Port: 35454)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C9A0, size	32116
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -46)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2869 Incomplete TCP MD received (Socket: 164)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000444720, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C9A0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000444720
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60296)
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 252
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: -1 (Port: 17225)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 819 setsockopt() SO_REUSEADDR failed (Err: 10038)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 832 setsockopt() FIONBIO failed (Err: 10038)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3466F0, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F375F90, size	32884
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -46)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2868 Incomplete TCP MD received (Socket: 252)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F37E010, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F375F90
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3466F0
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mr' UUID: 7efe000064930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating TCP MD replier session '7efe000064930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using TCP MD session '7efe000064930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F37E010
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2262 Opened TCP connection to 10.0.1.101 (Socket: 252, Port: 17225)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD TCP replier session '7efe000064930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: 8563020065930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '8563020065930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session '8563020065930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '8563020065930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: f529030066930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session 'f529030066930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session 'f529030066930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session 'f529030066930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1198 vos_sockReceiveTCP - No data at socket 252
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -5)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2878 The socket has been closed in the other corner (Corner Ip: 10.0.1.101, Socket: 252)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 252) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 252, lIndex: 1)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: b7f0030067930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session 'b7f0030067930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session 'b7f0030067930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session 'b7f0030067930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: 252 (Port: 35456)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mr' UUID: d3f70e008d170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session 'd3f70e008d170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using TCP MD session 'd3f70e008d170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 164, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session 'd3f70e008d170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: 578e00008f170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '578e00008f170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session '578e00008f170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '578e00008f170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: ba98010090170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'ba98010090170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'ba98010090170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'ba98010090170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: f59e020091170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'f59e020091170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'f59e020091170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'f59e020091170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60298)
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 252
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: -1 (Port: 17225)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 819 setsockopt() SO_REUSEADDR failed (Err: 10038)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 832 setsockopt() FIONBIO failed (Err: 10038)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mr' UUID: 5b6104006b930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating TCP MD replier session '5b6104006b930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using TCP MD session '5b6104006b930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2262 Opened TCP connection to 10.0.1.101 (Socket: 252, Port: 17225)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3466F0, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mc' UUID: 5b6104006b930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD TCP replier session '5b6104006b930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: 577905006c930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '577905006c930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session '577905006c930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mc' UUID: 577905006c930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '577905006c930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3466F0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: cd6706006d930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session 'cd6706006d930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session 'cd6706006d930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3466F0, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mc' UUID: cd6706006d930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session 'cd6706006d930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1198 vos_sockReceiveTCP - No data at socket 252
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -5)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2878 The socket has been closed in the other corner (Corner Ip: 10.0.1.101, Socket: 252)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 252) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 252, lIndex: 1)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: 2c2f07006e930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '2c2f07006e930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session '2c2f07006e930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mc' UUID: 2c2f07006e930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '2c2f07006e930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3466F0
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: 252 (Port: 35458)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C9A0, size	32116
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -46)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2869 Incomplete TCP MD received (Socket: 164)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000444720, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C9A0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mr' UUID: 6814030095170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session '6814030095170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using TCP MD session '6814030095170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000444720
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 164, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mc' UUID: 6814030095170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session '6814030095170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: da4a040096170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'da4a040096170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'da4a040096170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C2D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mc' UUID: da4a040096170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'da4a040096170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: 5b1a050097170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '5b1a050097170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session '5b1a050097170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mc' UUID: 5b1a050097170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '5b1a050097170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C2D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: f711060098170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'f711060098170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'f711060098170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C2D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mc' UUID: f711060098170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'f711060098170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60300)
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 252
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: -1 (Port: 17225)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 819 setsockopt() SO_REUSEADDR failed (Err: 10038)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 832 setsockopt() FIONBIO failed (Err: 10038)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating TCP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD TCP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1198 vos_sockReceiveTCP - No data at socket 252
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -5)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2878 The socket has been closed in the other corner (Corner Ip: 10.0.1.101, Socket: 252)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 252) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 252, lIndex: 1)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: 252 (Port: 35460)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000444150, size	32116
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -46)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2869 Incomplete TCP MD received (Socket: 164)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000044BED0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000444150
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000044BED0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C2D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60302)
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 252
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: -1 (Port: 17225)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 819 setsockopt() SO_REUSEADDR failed (Err: 10038)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 832 setsockopt() FIONBIO failed (Err: 10038)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mr' UUID: 38b5080075930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating TCP MD replier session '38b5080075930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using TCP MD session '38b5080075930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2262 Opened TCP connection to 10.0.1.101 (Socket: 252, Port: 17225)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD TCP replier session '38b5080075930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: dc1a0a0076930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session 'dc1a0a0076930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session 'dc1a0a0076930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session 'dc1a0a0076930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: 30820b0077930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '30820b0077930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session '30820b0077930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '30820b0077930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1198 vos_sockReceiveTCP - No data at socket 252
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -5)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2878 The socket has been closed in the other corner (Corner Ip: 10.0.1.101, Socket: 252)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 252) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 252, lIndex: 1)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: db490c0078930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session 'db490c0078930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session 'db490c0078930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 3, msgType=Mp
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session 'db490c0078930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: 252 (Port: 35462)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mr' UUID: 5e2d08009f170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session '5e2d08009f170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using TCP MD session '5e2d08009f170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 164, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session '5e2d08009f170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: e6480900a0170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'e6480900a0170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'e6480900a0170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'e6480900a0170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: ee3c0a00a1170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'ee3c0a00a1170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'ee3c0a00a1170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'ee3c0a00a1170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: 4c070b00a2170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '4c070b00a2170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session '4c070b00a2170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '4c070b00a2170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60304)
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 252
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: -1 (Port: 17225)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 819 setsockopt() SO_REUSEADDR failed (Err: 10038)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 832 setsockopt() FIONBIO failed (Err: 10038)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mr' UUID: 70b70c007c930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating TCP MD replier session '70b70c007c930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using TCP MD session '70b70c007c930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2262 Opened TCP connection to 10.0.1.101 (Socket: 252, Port: 17225)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3466F0, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mc' UUID: 70b70c007c930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD TCP replier session '70b70c007c930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: 4dfc0d007d930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '4dfc0d007d930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session '4dfc0d007d930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mc' UUID: 4dfc0d007d930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '4dfc0d007d930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3466F0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: 92c50e007e930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '92c50e007e930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session '92c50e007e930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3466F0, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mc' UUID: 92c50e007e930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '92c50e007e930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1198 vos_sockReceiveTCP - No data at socket 252
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -5)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2878 The socket has been closed in the other corner (Corner Ip: 10.0.1.101, Socket: 252)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 252) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 252, lIndex: 1)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mr' UUID: 9b4d000080930104 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '9b4d000080930104'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 230 Using UDP MD session '9b4d000080930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	32884
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3205 MD sender element state = 4, msgType=Mq
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2355 Setting timeout for confirmation!
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F3759C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mc' UUID: 9b4d000080930104 Data len: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 640 Received Confirmation, session will be closed!
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '9b4d000080930104'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3759C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F3466F0
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: 252 (Port: 35464)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C9A0, size	32116
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -46)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2869 Incomplete TCP MD received (Socket: 164)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000444720, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C9A0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mr' UUID: b17c0b00a6170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session 'b17c0b00a6170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using TCP MD session 'b17c0b00a6170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000444720
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 164, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mc' UUID: b17c0b00a6170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session 'b17c0b00a6170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: 33c00c00a7170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '33c00c00a7170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session '33c00c00a7170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C2D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mc' UUID: 33c00c00a7170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '33c00c00a7170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: 6ab70d00a8170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '6ab70d00a8170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session '6ab70d00a8170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mc' UUID: 6ab70d00a8170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '6ab70d00a8170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C2D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: b2ae0e00a9170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'b2ae0e00a9170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'b2ae0e00a9170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C2D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mc' UUID: b2ae0e00a9170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'b2ae0e00a9170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60306)
 DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 248
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 252
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000164
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
 DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
 DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
 DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
 DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2733 Accepting new TCP connection on Socket: -1 (Port: 17225)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 819 setsockopt() SO_REUSEADDR failed (Err: 10038)
-ERR File: ..\..\src\vos\windows\vos_sock.c Line: 832 setsockopt() FIONBIO failed (Err: 10038)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating TCP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD TCP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36DF10, size	32884
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36D940
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2023 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32768)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1744 Creating UDP MD replier session '0000000000000000'
-INF File: ..\..\src\common\trdp_mdcom.c Line: 763 Freeing MD UDP replier session '0000000000000000'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F36DF10
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000001DF5F347A40
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F347A40, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000001DF5F36D940, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 1198 vos_sockReceiveTCP - No data at socket 252
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1521 trdp_mdCheck TCP failed (Err: -5)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2878 The socket has been closed in the other corner (Corner Ip: 10.0.1.101, Socket: 252)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 252) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 252, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000444150, size	32116
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -46)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2869 Incomplete TCP MD received (Socket: 164)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000044BED0, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C3D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000444150
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000044BED0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C2D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60308)
+DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C9A0, size	32116
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -46)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2869 Incomplete TCP MD received (Socket: 164)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000444720, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C9A0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mr' UUID: 6b6f0100b1170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session '6b6f0100b1170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using TCP MD session '6b6f0100b1170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000444720
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 164, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session '6b6f0100b1170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: c6880200b2170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session 'c6880200b2170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session 'c6880200b2170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session 'c6880200b2170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: 04670300b3170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '04670300b3170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session '04670300b3170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '04670300b3170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mr' UUID: 1f2f0400b4170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating UDP MD replier session '1f2f0400b4170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using UDP MD session '1f2f0400b4170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD UDP replier session '1f2f0400b4170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2734 Accepting new TCP connection on Socket: 164 (Port: 60310)
+DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 160
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 164
+DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434C20, size	32116
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mr' UUID: aa8f0400b8170004 Data len: 32000)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1745 Creating TCP MD replier session 'aa8f0400b8170004'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 231 Using TCP MD session 'aa8f0400b8170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434C20
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434650, size	32116
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 164, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2356 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C3D0, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000043C4D0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mc' UUID: aa8f0400b8170004 Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434650
+INF File: ..\..\src\common\trdp_mdcom.c Line: 641 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 764 Freeing MD TCP replier session 'aa8f0400b8170004'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 000000000043C4D0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000000000434550
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000000000434550, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1199 vos_sockReceiveTCP - No data at socket 164
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1522 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.22, Socket: 164)
+INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 164) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 164, lIndex: 1)
