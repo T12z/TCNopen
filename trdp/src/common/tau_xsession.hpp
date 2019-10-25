@@ -56,8 +56,11 @@ public:
 	 *  @ brief Loads the configuration.
 	 *  It is a static method, must be called first, if no sessions pre-exist.
 	 *  @see tau_xsession_load().
-	 *  @param[in] xml    contains either a NULL-terminated filename or the xml-buffer itself with length @ref length
-	 *  @param[in] length Is 0 if xml contains a filename or describes the byte-length of the xml-config-buffer.
+	 *  @param[in] xml       contains either a NULL-terminated filename or the xml-buffer itself with @ref length
+	 *  @param[in] length    Is 0 if xml contains a filename or describes the byte-length of the xml-config-buffer.
+	 *  @param[in] dbg_print Pass in a function that writes out the two strings and a line break if requested
+	 *  @param[in] pXTypeMap is a translation table for application to TRDP types linking an alignment / size-map for
+	 *                         xmarshalling (no copy is made!)
 	 *  @return    returns a suitable TRDP_ERR. Any occurrence of an error will clean up resources.
 	 */
 	static TRDP_ERR_T load(const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print, UINT8 *pXTypeMap)
