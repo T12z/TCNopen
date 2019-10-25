@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
 *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
 *      BL 2019-08-23: Possible crash on unsubscribing or unpublishing in High Performance mode
 *      SB 2019-08-21: Ticket #276: Bug with PD requests and replies in high performance mode
@@ -302,7 +303,7 @@ EXT_DECL TRDP_ERR_T tlp_processSend (
  *  @retval         TRDP_PARAM_ERR      parameter error / redId not existing
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
-TRDP_ERR_T tlp_setRedundant (
+EXT_DECL TRDP_ERR_T tlp_setRedundant (
     TRDP_APP_SESSION_T  appHandle,
     UINT32              redId,
     BOOL8               leader)
@@ -788,7 +789,7 @@ EXT_DECL TRDP_ERR_T tlp_republish (
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
 
-TRDP_ERR_T  tlp_unpublish (
+EXT_DECL TRDP_ERR_T  tlp_unpublish (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_PUB_T          pubHandle)
 {
@@ -860,7 +861,7 @@ TRDP_ERR_T  tlp_unpublish (
  *  @retval         TRDP_NOINIT_ERR    handle invalid
  *  @retval         TRDP_COMID_ERR     ComID not found when marshalling
  */
-TRDP_ERR_T tlp_put (
+EXT_DECL TRDP_ERR_T tlp_put (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_PUB_T          pubHandle,
     const UINT8         *pData,
@@ -924,7 +925,7 @@ TRDP_ERR_T tlp_put (
  *  @retval         TRDP_NOPUB_ERR     not published
  *  @retval         TRDP_NOINIT_ERR    handle invalid
  */
-TRDP_ERR_T tlp_putImmediate (
+EXT_DECL TRDP_ERR_T tlp_putImmediate (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_PUB_T          pubHandle,
     const UINT8         *pData,

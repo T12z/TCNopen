@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
 *      SB 2019-10-02: Ticket #280 Moved assignment of iterMD after the mutex lock in tlm_abortSession
 *      SB 2019-07-12: Removing callback during tlm_abortSession to prevent it from being called with deleted pUserRef
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -211,7 +212,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
  *  @retval         TRDP_MEM_ERR        out of memory
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
-TRDP_ERR_T tlm_notify (
+EXT_DECL TRDP_ERR_T tlm_notify (
     TRDP_APP_SESSION_T      appHandle,
     const void              *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
@@ -287,7 +288,7 @@ TRDP_ERR_T tlm_notify (
  *  @retval         TRDP_MEM_ERR        out of memory
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
-TRDP_ERR_T tlm_request (
+EXT_DECL TRDP_ERR_T tlm_request (
     TRDP_APP_SESSION_T      appHandle,
     const void              *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
@@ -561,7 +562,7 @@ EXT_DECL TRDP_ERR_T  tlm_addListener (
  *  @retval         TRDP_PARAM_ERR      parameter error
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
-TRDP_ERR_T tlm_delListener (
+EXT_DECL TRDP_ERR_T tlm_delListener (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_LIS_T          listenHandle)
 {
@@ -757,7 +758,7 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
  *  @retval         TRDP_NO_SESSION_ERR no such session
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
-TRDP_ERR_T tlm_reply (
+EXT_DECL TRDP_ERR_T tlm_reply (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
     UINT32                  comId,
@@ -806,7 +807,7 @@ TRDP_ERR_T tlm_reply (
  *  @retval         TRDP_NO_SESSION_ERR no such session
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
-TRDP_ERR_T tlm_replyQuery (
+EXT_DECL TRDP_ERR_T tlm_replyQuery (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
     UINT32                  comId,
@@ -866,7 +867,7 @@ TRDP_ERR_T tlm_replyQuery (
  *  @retval         TRDP_NOSESSION_ERR  no such session
  *  @retval         TRDP_NOINIT_ERR     handle invalid
  */
-TRDP_ERR_T tlm_confirm (
+EXT_DECL TRDP_ERR_T tlm_confirm (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
     UINT16                  userStatus,
