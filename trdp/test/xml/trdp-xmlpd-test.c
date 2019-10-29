@@ -702,7 +702,7 @@ static TRDP_ERR_T publishTelegram(UINT32 ifcIdx, TRDP_EXCHG_PAR_T * pExchgPar)
         }
         /*  Publish the telegram    */
         result = tlp_publish(
-            pPubTlg->sessionhandle, &pPubTlg->pubHandle, NULL, NULL,
+            pPubTlg->sessionhandle, &pPubTlg->pubHandle, NULL, NULL, 0u,
             pExchgPar->comId, 
             0, 0, 0, destIP, interval, redId, flags, pSendParam, 
             (UINT8 *)pPubTlg->dataset.buffer, pPubTlg->dataset.size);
@@ -802,8 +802,11 @@ static TRDP_ERR_T subscribeTelegram(UINT32 ifcIdx, TRDP_EXCHG_PAR_T * pExchgPar)
         }
         /*  Subscribe the telegram    */
         result = tlp_subscribe(
-                               pSubTlg->sessionhandle, &pSubTlg->subHandle, pSubTlg, NULL, pExchgPar->comId,
-                               0u, 0u, 0u, 0u, destMCIP, flags, timeout, toBehav);
+                               pSubTlg->sessionhandle, &pSubTlg->subHandle, pSubTlg, NULL,
+                               pExchgPar->serviceId, pExchgPar->comId,
+                               0u, 0u, 0u, 0u, destMCIP, flags,
+                               NULL,                      /*    default interface                    */
+                               timeout, toBehav);
         if (result != TRDP_NO_ERR)
         {
             printf("tlp_subscribe for comID %u, destMC %s failed: %s\n",
@@ -870,8 +873,10 @@ static TRDP_ERR_T subscribeTelegram(UINT32 ifcIdx, TRDP_EXCHG_PAR_T * pExchgPar)
 
             /*  Subscribe the telegram    */
             result = tlp_subscribe(
-                pSubTlg->sessionhandle, &pSubTlg->subHandle, pSubTlg, NULL, pExchgPar->comId,
-                0, 0, srcIP1, srcIP2, destMCIP, flags, timeout, toBehav);
+                pSubTlg->sessionhandle, &pSubTlg->subHandle, pSubTlg, NULL, pExchgPar->serviceId, pExchgPar->comId,
+                0, 0, srcIP1, srcIP2, destMCIP, flags,
+                NULL,                      /*    default interface                    */
+                timeout, toBehav);
             if (result != TRDP_NO_ERR)
             {
                 printf("tlp_subscribe for comID %u, srcID %u failed: %s\n",
@@ -1136,7 +1141,7 @@ int main(int argc, char * argv[])
     printf("TRDP PD test using XML configuration\n\n");
     if (argc < 2)
     {
-        printf("usage: %s <xmlfilename> [quite]\n", argv[0]);
+        printf("usage: %s <xmlfilename> [quiet]\n", argv[0]);
         return 1;
     }
 

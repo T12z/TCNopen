@@ -37,9 +37,10 @@
 
 #include "trdp_stats.h"
 #include "trdp_if_light.h"
-#include "trdp_if.h"
+#include "tlc_if.h"
 #include "trdp_private.h"
 #include "trdp_pdcom.h"
+#include "trdp_utils.h"
 #include "vos_mem.h"
 #include "vos_thread.h"
 
@@ -77,7 +78,8 @@ void trdp_initStats (
         return;
     }
 
-    memset(&appHandle->stats, 0, sizeof(TRDP_STATISTICS_T));
+    /* memset(&appHandle->stats, 0, sizeof(TRDP_STATISTICS_T)); #272: we should not do this, it is cleared already and
+                                                                    has the some configuration properties already! */  
 
     pVersion = tlc_getVersion();
     appHandle->stats.version = (UINT32) pVersion->ver << 24 | (UINT32) pVersion->rel << 16 |
@@ -513,11 +515,22 @@ void    trdp_UpdateStats (
 
     /*  Count our joins */
     appHandle->stats.numJoin = 0u;
-    for (lIndex = 0u; lIndex < VOS_MAX_SOCKET_CNT; lIndex++)
+    for (lIndex = 0u; lIndex < trdp_getCurrentMaxSocketCnt(TRDP_SOCK_PD); lIndex++)
     {
         for (llIndex = 0u; llIndex < VOS_MAX_MULTICAST_CNT; llIndex++)
         {
-            if (appHandle->iface[lIndex].mcGroups[llIndex] != 0u)
+            if (appHandle->ifacePD[lIndex].mcGroups[llIndex] != 0u)
+            {
+                appHandle->stats.numJoin++;
+            }
+        }
+    }
+    /* Count the joins on MD sockets, as well */
+    for (lIndex = 0u; lIndex < trdp_getCurrentMaxSocketCnt(TRDP_SOCK_MD_UDP); lIndex++)
+    {
+        for (llIndex = 0u; llIndex < VOS_MAX_MULTICAST_CNT; llIndex++)
+        {
+            if (appHandle->ifaceMD[lIndex].mcGroups[llIndex] != 0u)
             {
                 appHandle->stats.numJoin++;
             }

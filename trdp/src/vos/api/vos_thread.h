@@ -233,21 +233,6 @@ EXT_DECL VOS_ERR_T vos_threadCreate (
     void                    *pArguments);
 
 /**********************************************************************************************************************/
-/** Cyclic thread functions.
- *  Wrapper for cyclic threads. The thread function will be called cyclically with interval.
- *
- *  @param[in]      interval        Interval for cyclic threads in us (incl. runtime)
- *  @param[in]      pFunction       Pointer to the thread function
- *  @param[in]      pArguments      Pointer to the thread function parameters
- *  @retval         void
- */
-
-EXT_DECL void vos_cyclicThread (
-    UINT32              interval,
-    VOS_THREAD_FUNC_T   pFunction,
-    void                *pArguments);
-
-/**********************************************************************************************************************/
 /** Terminate a thread.
  *  This call will terminate the thread with the given threadId and release all resources. Depending on the
  *    underlying architectures, it may just block until the thread ran out.

@@ -6,7 +6,7 @@
 #=====================================================================================================
 #         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
 #         If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#         Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved..  
+#         Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved..
 #=====================================================================================================
 #
 #  PRODUCT       : TRDP
@@ -15,11 +15,13 @@
 #
 #  ABSTRACT      : XML Schema for TRDP configuration configuration
 #
-#  VERSION       : 1.12.0.0
+#  VERSION       : 1.14.0.0
 #
 #  SVN           : $Id$
 #
 #  HISTORY       :
+#                            1.14.0.0  IPTCom references removed
+#                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
 #                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)
 #                            1.11.0.0  Ticket #106: User needs to be informed on every received PD packet
 #                            1.10.0.0  sink/source attribute for telegrams added
@@ -129,6 +131,7 @@
         <xs:element ref="mapped-device-list" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="data-set-list" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="com-parameter-list" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="service-list" minOccurs="0" maxOccurs="1"/>
      </xs:all>
      <xs:attribute name="type" type="name8">
         <xs:annotation>
@@ -179,6 +182,14 @@
     </xs:complexType>
   </xs:element>
  
+   <xs:element name="service-list">
+    <xs:complexType>
+       <xs:sequence>
+        <xs:element  ref="service" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+ 
    <xs:element name="bus-interface-list">
     <xs:complexType>
        <xs:sequence>
@@ -201,6 +212,154 @@
       <xs:sequence>
         <xs:element  ref="data-set" maxOccurs="unbounded"/>
       </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="service">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="event" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="field" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="method" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="service-device" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="telegramRef" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Service type</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Service identifier (24 bit)</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="ttl" type="uint32" use="optional">
+        <xs:annotation>
+          <xs:documentation>Service's time to live</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>  
+  
+    <xs:element name="service-device">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="instance" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="src-uri" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Source URI for the specific end device.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="dst-uri" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Destination URI for the specific end device.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="red-uri" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Redundancy multicast URI for the specific end device.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>  
+  
+   <xs:element name="event">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Event identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for Event</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="field">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Field identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for field</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="method">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Method identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for method call</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="reply-com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for method reply</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="confirm" default="off" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="on"/>
+            <xs:enumeration value="off"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="instance">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Instance identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="dst-uri" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Destination identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>  
+  
+    <xs:element name="telegramRef">
+    <xs:complexType>
+      <xs:attribute name="id" type="uint16" use="required">
+        <xs:annotation>
+          <xs:documentation>Telegram reference identifier</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="com-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>ComId of telegram used for method call</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>      
+      <xs:attribute name="src-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Source identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+            <xs:attribute name="dst-id" type="uint32" use="required">
+        <xs:annotation>
+          <xs:documentation>Destination identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
   
@@ -349,7 +508,7 @@
       </xs:sequence>
       <xs:attribute  name="memory-size" default="4194304" type="uint32" use="optional">
         <xs:annotation>
-          <xs:documentation>Size of IPTCom dynamically allocated memory</xs:documentation>
+          <xs:documentation>Size of TRDP dynamically allocated memory</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
@@ -359,7 +518,7 @@
     <xs:complexType>
       <xs:attribute name="cycle-time" type="uint32" use="optional" default="10000">
         <xs:annotation>
-          <xs:documentation>Cycle time of the IPTCom thread/task in microseconds.</xs:documentation>
+          <xs:documentation>Cycle time of the TRDP thread/task in microseconds.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="blocking" default="no" use="optional">
@@ -599,8 +758,8 @@
       <xs:attribute name="validity-behavior" default="zero" use="optional">
         <xs:annotation>
           <xs:documentation>Behavior when received process data is invalid.
-zero = zero values
-keep = keep the last value</xs:documentation>
+                zero = zero values
+                keep = keep the last value</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -642,8 +801,8 @@ keep = keep the last value</xs:documentation>
       <xs:attribute name="validity-behavior" default="zero" use="optional">
         <xs:annotation>
           <xs:documentation>Behavior when received process data is invalid.
-0 = zero values
-1 = keep values as is</xs:documentation>
+                0 = zero values
+                1 = keep values as is</xs:documentation>
         </xs:annotation>
         <xs:simpleType>
           <xs:restriction base="xs:string">
@@ -730,31 +889,31 @@ keep = keep the last value</xs:documentation>
     <xs:complexType>
       <xs:attribute name="name" type="xs:string" use="optional">
         <xs:annotation>
-          <xs:documentation>Name of  the data set element. Not used by IPTCom but required when importing the file into the MTPE. Also displayed in the IPT-Spy.</xs:documentation>
+          <xs:documentation>Name of  the data set element. Not used by TRDP but required when importing the file into the MTPE. Also displayed in the TRDP-Spy.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="type" use="required">
         <xs:annotation>
           <xs:documentation>Either the name of a type like "INT8" or "UINT32" or a numerical data-set ID for nested data types.
           The following datatypes are predefined:
-            BITSET8            1    =UINT8, 8 bit relevant
+            BITSET8             1    =UINT8, 8 bit relevant
             BOOL8               1    =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true)
-            ANTIVALENT8   1     =UINT8, 2 bit relevant ('01'B -> false, '10'B -> true)
+            ANTIVALENT8         1    =UINT8, 2 bit relevant ('01'B -> false, '10'B -> true)
             CHAR8               2    char, can be used also as UTF8 
-            UTF16                3    Unicode UTF-16 character
-            INT8                    4    Signed integer, 8 bit
-            INT16                  5    Signed integer, 16 bit
-            INT32                  6    Signed integer, 32 bit
-            INT64                  7    Signed integer, 64 bit
-            UINT8                 8    Unsigned integer, 8 bit
-            UINT16               9    Unsigned integer, 16 bit
+            UTF16               3    Unicode UTF-16 character
+            INT8                4    Signed integer, 8 bit
+            INT16               5    Signed integer, 16 bit
+            INT32               6    Signed integer, 32 bit
+            INT64               7    Signed integer, 64 bit
+            UINT8               8    Unsigned integer, 8 bit
+            UINT16              9    Unsigned integer, 16 bit
             UINT32             10    Unsigned integer, 32 bit
             UINT64             11   Unsigned integer, 64 bit
-            REAL32            12   Floating point real, 32 bit
-            REAL64            13   Floating point real, 64 bit
-            TIMEDATE32   14   32 bit UNIX time
-            TIMEDATE48   15   48 bit TCN time (32 bit seconds and 16 bit ticks)
-            TIMEDATE64   16   32 bit seconds and 32 bit microseconds
+            REAL32             12   Floating point real, 32 bit
+            REAL64             13   Floating point real, 64 bit
+            TIMEDATE32         14   32 bit UNIX time
+            TIMEDATE48         15   48 bit TCN time (32 bit seconds and 16 bit ticks)
+            TIMEDATE64         16   32 bit seconds and 32 bit microseconds
           </xs:documentation>
         </xs:annotation>
         <xs:simpleType>
@@ -763,8 +922,7 @@ keep = keep the last value</xs:documentation>
       </xs:attribute>
       <xs:attribute name="array-size" default="1" type="uint32" use="optional">
         <xs:annotation>
-          <xs:documentation>0 = Array with dynamic size
- 1= single value &gt;1 Number of elements in array</xs:documentation>
+          <xs:documentation>0 = Array with dynamic size 1 = single value &gt;1 Number of elements in array</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="unit" type="xs:string" use="optional">
@@ -774,12 +932,12 @@ keep = keep the last value</xs:documentation>
       </xs:attribute>
       <xs:attribute name="scale" type="xs:float" use="optional">
         <xs:annotation>
-          <xs:documentation>Factor for visualisation purposes (val = scale*x+ offset).</xs:documentation>
+          <xs:documentation>Factor for visualisation purposes (val = scale * x + offset).</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="offset" type="int32" use="optional">
         <xs:annotation>
-          <xs:documentation>Offset for visualisation purposes (val = scale*x+ offset).</xs:documentation>
+          <xs:documentation>Offset for visualisation purposes (val = scale * x + offset).</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
@@ -810,7 +968,7 @@ keep = keep the last value</xs:documentation>
       <xs:attribute name="name" type="name30" use="optional"/>
       <xs:attribute name="com-id" type="uint32" use="required">
         <xs:annotation>
-          <xs:documentation>ID for exchange parameter. Required for IPT telegrams.</xs:documentation>
+          <xs:documentation>ID for exchange parameter. Required for TRDP telegrams.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
       <xs:attribute name="data-set-id" type="uint32" use="required">

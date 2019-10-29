@@ -255,6 +255,7 @@ int main (int argc, char *argv[])
         err = tlp_publish(  appHandle,                /*    our application identifier      */
                           &pubHandle,                 /*    our pulication identifier       */
                           NULL, NULL,
+                          0u,
                           gPD[i].comID,
                           0,                          /*    local consist only              */
                           0,

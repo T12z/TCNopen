@@ -1024,7 +1024,7 @@ EXT_DECL VOS_ERR_T vos_queueReceive (
         err = vos_semaTake(queueHandle->semaphore, usTimeout);
         if (err != VOS_NO_ERR)
         {
-            if (usTimeout != 0)
+            if (usTimeout == 0)
             {
                 vos_printLogStr(VOS_LOG_ERROR, "vos_queueReceive() could not take semaphore\n");
             }

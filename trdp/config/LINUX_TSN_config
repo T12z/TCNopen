@@ -1,5 +1,5 @@
 #//
-#// $Id: LINUX_config 1832 2019-01-28 14:02:32Z bloehr $
+#// $Id$
 #//
 #// DESCRIPTION    Config file to make TRDP for native Linux
 #//
@@ -21,12 +21,14 @@ DOXYPATH = /usr/local/bin/
 
 CFLAGS += -Wall -fstrength-reduce -fno-builtin -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX
 CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
-CFLAGS += -DTRDP_TSN
 
 LDFLAGS += -lrt
 
 LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
 
-# Additional sources for TSN support
-ADD_INC += ../TSN
-ADD_SRC += ../TSN
+TSN_SUPPORT = 1
+SOA_SUPPORT = 1
+RT_THREADS = 1
+
+#ADD_INC += ../TSN
+#ADD_SRC += ../TSN

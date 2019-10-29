@@ -15,18 +15,18 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  */
- /*
- * $Id$
- *
- *      BL 2017-05-08: Compiler warnings
- *      BL 2017-02-27: #142 Compiler warnings / MISRA-C 2012 issues
- *      BL 2016-08-17: parentheses added (compiler warning)
- *      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
- *      BL 2016-03-10: Ticket #114 SC-32
- *      BL 2016-02-10: ifdef DEBUG for some functions
- *      BL 2014-02-28: Ticket #25: CRC32 calculation is not according IEEE802.3
- *
- */
+/*
+* $Id$
+*
+*      BL 2017-05-08: Compiler warnings
+*      BL 2017-02-27: #142 Compiler warnings / MISRA-C 2012 issues
+*      BL 2016-08-17: parentheses added (compiler warning)
+*      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
+*      BL 2016-03-10: Ticket #114 SC-32
+*      BL 2016-02-10: ifdef DEBUG for some functions
+*      BL 2014-02-28: Ticket #25: CRC32 calculation is not according IEEE802.3
+*
+*/
 
 /***********************************************************************************************************************
  * INCLUDES
@@ -140,9 +140,8 @@ static const UINT32 fcs_table[256u] PROGMEM =
 
 /** Table of CRC-32s of all single-byte values according to IEC 61375-2-3 B.7 / IEC61784-3-3
  *  The CRC of the string "123456789" is 0x1697d06a
- *
  */
-static const UINT32 sc32_table[256] PROGMEM =
+static const UINT32 sc32_table[256u] PROGMEM =              /**< Table of CRC-32s */
 {
     0x00000000U, 0xF4ACFB13U, 0x1DF50D35U, 0xE959F626U,
     0x3BEA1A6AU, 0xCF46E179U, 0x261F175FU, 0xD2B3EC4CU,
@@ -258,12 +257,19 @@ const CHAR8         *cErrStrings[NO_OF_ERROR_STRINGS] PROGMEM =
 
 #ifdef DEBUG
 static BOOL8 sIsBigEndian = FALSE;
+#ifndef HIGH_PERF_INDEXED
+#define HIGH_PERF_INDEXED
+#endif
 
 /***********************************************************************************************************************
  * LOCAL FUNCTIONS
  */
 
 #include "trdp_private.h"
+#ifdef HIGH_PERF_INDEXED
+#include "trdp_pdindex.h"
+#endif
+
 /**********************************************************************************************************************/
 /** Print sizes of used structs.
  *
@@ -282,6 +288,11 @@ static void vos_printStructSizes ()
     vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%lu\n", "MD_ELE_T", sizeof(MD_ELE_T));
     vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%lu\n", "MD_LIS_ELE_T", sizeof(MD_LIS_ELE_T));
 #endif
+#ifdef HIGH_PERF_INDEXED
+    vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%lu\n", "TRDP_HP_SLOTS_T", sizeof(TRDP_HP_SLOTS_T));
+    vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%s\n", "plus 300 * no of pubs * var. depth * pointer size", " ~180 Bytes/publisher");
+    vos_printLog(VOS_LOG_DBG, "\t%-22s:\t%s\n", "plus   2 * no of subs * pointer size             ", "   16 Bytes/subscription");
+#endif
 }
 #endif
 
@@ -294,11 +305,11 @@ static void vos_printStructSizes ()
 static VOS_ERR_T vos_initRuntimeConsts (void)
 {
 #ifdef DEBUG
-    VOS_ERR_T   err                     = VOS_INTEGRATION_ERR;
-    UINT32      sAlignINT8              = 1u;
-    UINT32      sAlignINT16             = 2u;
-    UINT32      sAlignINT32             = 4u;
-    UINT32      sAlignREAL32            = 4u;
+    VOS_ERR_T   err = VOS_INTEGRATION_ERR;
+    UINT32      sAlignINT8 = 1u;
+    UINT32      sAlignINT16 = 2u;
+    UINT32      sAlignINT32 = 4u;
+    UINT32      sAlignREAL32 = 4u;
     UINT32      sAlignTIMEDATE48        = 6u;
     UINT32      sAlignINT64             = 8u;
     UINT32      sAlignREAL64            = 8u;
@@ -353,10 +364,10 @@ static VOS_ERR_T vos_initRuntimeConsts (void)
         vos_printLogStr(VOS_LOG_ERROR, "Endianess is not set correctly!\n");
     }
 
-    sAlignINT16             = (INT8 *) &vAlignTest.word - (INT8 *) &vAlignTest.byte3;
-    sAlignINT32             = (INT8 *) &vAlignTest.dword1 - (INT8 *) &vAlignTest.byte2;
-    sAlignINT64             = (INT8 *) &vAlignTest.longLong1 - (INT8 *) &vAlignTest.byte1;
-    sAlignREAL32            = (INT8 *) &vAlignTest.dword2 - (INT8 *) &vAlignTest.byte5;
+    sAlignINT16 = (INT8 *) &vAlignTest.word - (INT8 *) &vAlignTest.byte3;
+    sAlignINT32 = (INT8 *) &vAlignTest.dword1 - (INT8 *) &vAlignTest.byte2;
+    sAlignINT64 = (INT8 *) &vAlignTest.longLong1 - (INT8 *) &vAlignTest.byte1;
+    sAlignREAL32 = (INT8 *) &vAlignTest.dword2 - (INT8 *) &vAlignTest.byte5;
     sAlignTIMEDATE48        = (INT8 *) &vAlignTest.dword3 - (INT8 *) &vAlignTest.byte6;
     sAlignREAL64            = (INT8 *) &vAlignTest.longLong2 - (INT8 *) &vAlignTest.byte4;
     sAlignTIMEDATE48Array1  = (INT8 *) &vAlignTest.a[0].dword - (INT8 *) &vAlignTest.a[0].byte;
@@ -364,19 +375,31 @@ static VOS_ERR_T vos_initRuntimeConsts (void)
 
     if (sAlignINT8 != ALIGNOF(INT8))
     {
-        vos_printLog(VOS_LOG_ERROR, "Unexpected alignment: %u != %u [ALIGNOF(INT8)]\n", sAlignINT8, (unsigned int) ALIGNOF(INT8));
+        vos_printLog(VOS_LOG_ERROR,
+                     "Unexpected alignment: %u != %u [ALIGNOF(INT8)]\n",
+                     sAlignINT8,
+                     (unsigned int) ALIGNOF(INT8));
     }
     else if (sAlignINT16 != ALIGNOF(INT16))
     {
-        vos_printLog(VOS_LOG_ERROR, "Unexpected alignment: %u != %u [ALIGNOF(INT16)]\n", sAlignINT16, (unsigned int) ALIGNOF(INT16));
+        vos_printLog(VOS_LOG_ERROR,
+                     "Unexpected alignment: %u != %u [ALIGNOF(INT16)]\n",
+                     sAlignINT16,
+                     (unsigned int) ALIGNOF(INT16));
     }
     else if (sAlignINT32 != ALIGNOF(INT32))
     {
-        vos_printLog(VOS_LOG_ERROR, "Unexpected alignment: %u != %u [ALIGNOF(INT32)]\n", sAlignINT32, (unsigned int) ALIGNOF(INT32));
+        vos_printLog(VOS_LOG_ERROR,
+                     "Unexpected alignment: %u != %u [ALIGNOF(INT32)]\n",
+                     sAlignINT32,
+                     (unsigned int) ALIGNOF(INT32));
     }
     else if (sAlignREAL32 != ALIGNOF(REAL32))
     {
-        vos_printLog(VOS_LOG_ERROR, "Unexpected alignment: %u != %u [ALIGNOF(REAL32)]\n", sAlignREAL32, (unsigned int) ALIGNOF(REAL32));
+        vos_printLog(VOS_LOG_ERROR,
+                     "Unexpected alignment: %u != %u [ALIGNOF(REAL32)]\n",
+                     sAlignREAL32,
+                     (unsigned int) ALIGNOF(REAL32));
     }
     else if (sAlignTIMEDATE48 != ALIGNOF(TIMEDATE48))
     {
@@ -385,11 +408,17 @@ static VOS_ERR_T vos_initRuntimeConsts (void)
     }
     else if (sAlignINT64 != ALIGNOF(INT64))
     {
-        vos_printLog(VOS_LOG_ERROR, "Unexpected alignment: %u != %u [ALIGNOF(INT64)]\n", sAlignINT64, (unsigned int) ALIGNOF(INT64));
+        vos_printLog(VOS_LOG_ERROR,
+                     "Unexpected alignment: %u != %u [ALIGNOF(INT64)]\n",
+                     sAlignINT64,
+                     (unsigned int) ALIGNOF(INT64));
     }
     else if (sAlignREAL64 != ALIGNOF(REAL64))
     {
-        vos_printLog(VOS_LOG_ERROR, "Unexpected alignment: %u != %u [ALIGNOF(REAL64)]\n", sAlignREAL64, (unsigned int) ALIGNOF(REAL64));
+        vos_printLog(VOS_LOG_ERROR,
+                     "Unexpected alignment: %u != %u [ALIGNOF(REAL64)]\n",
+                     sAlignREAL64,
+                     (unsigned int) ALIGNOF(REAL64));
     }
     else if (sAlignTIMEDATE48Array1 != ALIGNOF(TIMEDATE48))
     {
@@ -421,6 +450,13 @@ static VOS_ERR_T vos_initRuntimeConsts (void)
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+
+int vos_hostIsBigEndian ()
+{
+    /*  Compute endianess  */
+    long one = 1;
+    return !(*((char *)(&one)));
+}
 
 /**********************************************************************************************************************/
 /** Initialize the virtual operating system.

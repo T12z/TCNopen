@@ -42,10 +42,10 @@ extern "C" {
 
     /* The VOS version can be predefined as CFLAG   */
 #ifndef VOS_VERSION
-#define VOS_VERSION            1u
+#define VOS_VERSION            2u
 #define VOS_RELEASE            0u
-#define VOS_UPDATE             3u
-#define VOS_EVOLUTION          1u
+#define VOS_UPDATE             0u
+#define VOS_EVOLUTION          0u
 #endif
 
 struct VOS_MUTEX

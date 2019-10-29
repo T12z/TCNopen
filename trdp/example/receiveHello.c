@@ -124,7 +124,7 @@ int main (int argc, char *argv[])
     TRDP_PD_CONFIG_T        pdConfiguration =
     {NULL, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_NONE, 1000000u, TRDP_TO_SET_TO_ZERO, 0u};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_NONE};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0, TRDP_OPTION_NONE};
     UINT32  ownIP   = 0u;
     UINT32  dstIP   = 0u;
     int     rv      = 0;
@@ -210,12 +210,14 @@ int main (int argc, char *argv[])
                          &subHandle,                /*    our subscription identifier           */
                          NULL,                      /*    user reference                        */
                          NULL,                      /*    callback functiom                     */
+                         0u,
                          comId,                     /*    ComID                                 */
                          0,                         /*    etbTopoCnt: local consist only        */
                          0,                         /*    opTopoCnt                             */
                          VOS_INADDR_ANY, VOS_INADDR_ANY,    /*    Source IP filter              */
                          dstIP,                     /*    Default destination    (or MC Group)  */
                          TRDP_FLAGS_DEFAULT,        /*    TRDP flags                            */
+                         NULL,                      /*    default interface                    */
                          PD_COMID_CYCLE * 3,        /*    Time out in us                        */
                          TRDP_TO_SET_TO_ZERO        /*    delete invalid data on timeout        */
                          );
@@ -223,6 +225,22 @@ int main (int argc, char *argv[])
     if (err != TRDP_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_ERROR, "prep pd receive error\n");
+        tlc_terminate();
+        return 1;
+    }
+
+    /*
+     Finish the setup.
+     On non-high-performance targets, this is a no-op.
+     This call is necessary if HIGH_PERF_INDEXED is defined. It will create the internal index tables for faster access.
+     It should be called after the last publisher and subscriber has been added.
+     Maybe tlc_activateSession would be a better name.If HIGH_PERF_INDEXED is set, this call will create the internal index tables for fast telegram access
+     */
+
+    err = tlc_updateSession(appHandle);
+    if (err != TRDP_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_USR, "tlc_updateSession error (%s)\n", vos_getErrorString((VOS_ERR_T)err));
         tlc_terminate();
         return 1;
     }
@@ -236,7 +254,7 @@ int main (int argc, char *argv[])
         INT32 noDesc;
         TRDP_TIME_T tv = {0, 0};
         const TRDP_TIME_T   max_tv  = {1, 0};
-        const TRDP_TIME_T   min_tv  = {0, 10000};
+        const TRDP_TIME_T   min_tv  = {0, TRDP_PROCESS_DEFAULT_CYCLE_TIME};
 
         /*
          Prepare the file descriptor set for the select call.

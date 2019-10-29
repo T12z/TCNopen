@@ -610,7 +610,7 @@ int main (int argc, char *argv[])
         }
         else
         {
-            vos_threadDelay((UINT32)(tv.tv_sec * 1000000) + (UINT32) tv.tv_usec);
+            (void) vos_threadDelay((UINT32)(tv.tv_sec * 1000000) + (UINT32) tv.tv_usec);
             rv = 0;
 
             /*

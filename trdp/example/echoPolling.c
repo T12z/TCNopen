@@ -35,7 +35,7 @@
 #include "getopt.h"
 #endif
 
-#include "trdp_if.h"
+#include "tlc_if.h"
 #include "vos_thread.h"
 #include "vos_utils.h"
 
@@ -113,7 +113,7 @@ int main (int argc, char * *argv)
     TRDP_PD_CONFIG_T        pdConfiguration = {NULL, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_NONE,
                                                10000000u, TRDP_TO_SET_TO_ZERO, 0u};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0u}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0u, 0u, TRDP_OPTION_NONE};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_NONE};
 
     TRDP_PD_INFO_T          myPDInfo;
     UINT32  receivedSize;
@@ -148,6 +148,7 @@ int main (int argc, char * *argv)
                          &subHandle,                /*    our subscription identifier          */
                          NULL,                      /*    user reference                       */
                          NULL,                      /*    callback function                    */
+                         0u,
                          PD_COMID1,                 /*    ComID                                */
                          0,                         /*    etbTopocount: local consist only     */
                          0,                         /*    opTopocount: local consist only      */
@@ -155,6 +156,7 @@ int main (int argc, char * *argv)
                          VOS_INADDR_ANY,            /*    source IP 1                          */
                          VOS_INADDR_ANY,            /*    Default destination IP (or MC Group) */
                          TRDP_FLAGS_DEFAULT,        /*    Flags                                */
+                         NULL,                      /*    default interface                    */
                          PD_COMID1_TIMEOUT,         /*    Time out in us                       */
                          TRDP_TO_SET_TO_ZERO);      /*    delete invalid data on timeout       */
 
@@ -171,6 +173,7 @@ int main (int argc, char * *argv)
     err = tlp_publish(  appHandle,                  /*    our application identifier        */
                         &pubHandle,                 /*    our pulication identifier         */
                         NULL, NULL,
+                        0u,
                         PD_COMID2,                  /*    ComID to send                     */
                         0u,                         /*    local consist only                */
                         0u,
@@ -188,6 +191,22 @@ int main (int argc, char * *argv)
     if (err != TRDP_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_USR, "prep pd publish error\n");
+        tlc_terminate();
+        return 1;
+    }
+
+    /*
+     Finish the setup.
+     On non-high-performance targets, this is a no-op.
+     This call is necessary if HIGH_PERF_INDEXED is defined. It will create the internal index tables for faster access.
+     It should be called after the last publisher and subscriber has been added.
+     Maybe tlc_activateSession would be a better name.If HIGH_PERF_INDEXED is set, this call will create the internal index tables for fast telegram access
+     */
+
+    err = tlc_updateSession(appHandle);
+    if (err != TRDP_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_USR, "tlc_updateSession error (%s)\n", vos_getErrorString((VOS_ERR_T)err));
         tlc_terminate();
         return 1;
     }
@@ -213,7 +232,7 @@ int main (int argc, char * *argv)
                 Just put us to sleep.
                 We can use VOS (Virtual Operating System) functions as well. It will make our code more portable...
              */
-            vos_threadDelay((UINT32) tv.tv_usec / 1000);
+            (void) vos_threadDelay((UINT32) tv.tv_usec / 1000);
         }
 
         /*

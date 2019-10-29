@@ -1059,7 +1059,10 @@ int main ()
 
     err = tau_initMarshall((void *)&gpRefCon, sizeof(gComIdMap)/sizeof(TRDP_COMID_DSID_MAP_T), gComIdMap, 8, gDataSets);
 
-    return test1();
-    //return test2();
+    if (err == TRDP_NO_ERR)
+    {
+        return test1();
+        //return test2();
+    }
 }
 

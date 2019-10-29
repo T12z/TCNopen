@@ -52,10 +52,13 @@ void dbgOut(
          catStr[category],
          pMsgStr);
 
-      fprintf(pLogFile, "%s %s %s",
-         strrchr(pTime, '-') + 1,
-         catStr[category],
-         pMsgStr);
+       if (pLogFile != NULL)
+       {
+           fprintf(pLogFile, "%s %s %s",
+                   strrchr(pTime, '-') + 1,
+                   catStr[category],
+                   pMsgStr);
+       }
    }
 }
 
@@ -66,12 +69,12 @@ MEM_ERR_T L3_test_mem_init()
    TRDP_ERR_T res = TRDP_NO_ERR;
    MEM_ERR_T retVal = MEM_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[MEM_INIT] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_INIT] start...\n");
    res = vos_memInit(dynamicConfig.p, dynamicConfig.size, dynamicConfig.prealloc);
    if (res != 0)
    {
       retVal = MEM_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_INIT] vos_memInit() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_INIT] vos_memInit() error\n");
    }
    vos_printLog(VOS_LOG_USR, "[MEM_INIT] finished with errcnt = %i\n", res);
    return retVal;
@@ -83,16 +86,16 @@ MEM_ERR_T L3_test_mem_alloc()
    TRDP_MEM_CONFIG_T   memConfig = { NULL, RESERVED_MEMORY, {0} };
    MEM_ERR_T retVal = MEM_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[MEM_ALLOC] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_ALLOC] start...\n");
    if (vos_memInit(memConfig.p, memConfig.size, memConfig.prealloc) != VOS_NO_ERR)
    {
       retVal = MEM_ALLOC_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_ALLOC] vos_memInit() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_ALLOC] vos_memInit() error\n");
    }
    ptr = (UINT32*)vos_memAlloc(4);
    if (ptr == NULL)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_ALLOC] vos_memAlloc() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_ALLOC] vos_memAlloc() error\n");
       retVal = MEM_ALLOC_ERR;
    }
    vos_memFree(ptr); /* undo mem_alloc */
@@ -114,12 +117,12 @@ MEM_ERR_T L3_test_mem_alloc()
          || numAllocErr != 0
          || numFreeErr != 0)
       {
-         vos_printLog(VOS_LOG_ERROR, "[MEM_ALLOC] vos_memFree() error\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[MEM_ALLOC] vos_memFree() error\n");
          retVal = MEM_ALLOC_ERR;
       }
    }
 
-   vos_printLog(VOS_LOG_USR, "[MEM_ALLOC] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_ALLOC] finished\n");
    return retVal;
 }
 
@@ -133,7 +136,7 @@ MEM_ERR_T L3_test_mem_queue()
    VOS_TIMEVAL_T timeout = { 0,20000 };
    VOS_TIMEVAL_T startTime, endTime;
 
-   vos_printLog(VOS_LOG_USR, "[MEM_QUEUE] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_QUEUE] start...\n");
    res = vos_queueCreate(VOS_QUEUE_POLICY_FIFO, 3, &qHandle);
    if (res != VOS_NO_ERR)
    {
@@ -143,59 +146,59 @@ MEM_ERR_T L3_test_mem_queue()
    res = vos_queueSend(qHandle, (UINT8*)0x0123, 0x12);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 1.queueSend() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 1.queueSend() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    res = vos_queueSend(qHandle, (UINT8*)0x4567, 0x34);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 2.queueSend() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 2.queueSend() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    res = vos_queueSend(qHandle, (UINT8*)0x89AB, 0x56);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 3.queueSend() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 3.queueSend() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    res = vos_queueSend(qHandle, (UINT8*)0xCDEF, 0x78); /* error expected because queue is full */
    if (res != VOS_QUEUE_FULL_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 4.queueSend() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 4.queueSend() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    res = vos_queueReceive(qHandle, &pData, &size, timeout.tv_usec);
    if ((res != VOS_NO_ERR) || (pData != (UINT8*)0x0123) || (size != 0x12))
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 1.queueReceive() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 1.queueReceive() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    res = vos_queueReceive(qHandle, &pData, &size, timeout.tv_usec);
    if ((res != VOS_NO_ERR) || (pData != (UINT8*)0x4567) || (size != 0x34))
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 2.queueReceive() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 2.queueReceive() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    res = vos_queueReceive(qHandle, &pData, &size, timeout.tv_usec);
    if ((res != VOS_NO_ERR) || (pData != (UINT8*)0x89AB) || (size != 0x56))
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 3.queueReceive() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 3.queueReceive() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    vos_getTime(&startTime);
    res = vos_queueReceive(qHandle, &pData, &size, timeout.tv_usec);
    vos_getTime(&endTime);
    vos_subTime(&endTime, &timeout);
-   vos_printLog(VOS_LOG_USR, "[MEM_QUEUE] Start: %i:%i; End %i:%i\n", startTime.tv_sec, startTime.tv_usec, endTime.tv_sec, endTime.tv_usec);
+   vos_printLog(VOS_LOG_USR, "[MEM_QUEUE] Start: %i:%i; End %i:%i\n", (int) startTime.tv_sec, (int) startTime.tv_usec, (int) endTime.tv_sec, (int) endTime.tv_usec);
    if ((res == VOS_NO_ERR) || (pData != NULL) || (size != 0x0) || (vos_cmpTime(&endTime, &startTime) < 0))
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] 4.queueReceive() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] 4.queueReceive() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
    res = vos_queueDestroy(qHandle);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] vos_queueDestroy() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] vos_queueDestroy() ERROR\n");
       retVal = MEM_QUEUE_ERR;
    }
 
@@ -216,7 +219,7 @@ MEM_ERR_T L3_test_mem_queue()
          || numAllocErr != 0
          || numFreeErr != 0)
       {
-         vos_printLog(VOS_LOG_ERROR, "[MEM_QUEUE] vos_memFree() error\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] vos_memFree() error\n");
          retVal = MEM_QUEUE_ERR;
       }
    }
@@ -238,14 +241,14 @@ MEM_ERR_T L3_test_mem_help()
    UINT8 keyUINT = 0;
    MEM_ERR_T retVal = MEM_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[MEM_HELP] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_HELP] start...\n");
    /* qsort */
    vos_qsort(array2sort, 5, sizeof(UINT8), compareuints);
    if ((array2sort[0] != 0) || (array2sort[1] != 1) || (array2sort[2] != 2)
       || (array2sort[3] != 3) || (array2sort[4] != 4))
    {
       retVal = MEM_HELP_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_HELP] vos_qsort() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_HELP] vos_qsort() error\n");
    }
    vos_printLog(VOS_LOG_USR, "[MEM_HELP] array = %u %u %u %u %u\n", array2sort[0], array2sort[1], array2sort[2], array2sort[3], array2sort[4]);
 
@@ -255,26 +258,26 @@ MEM_ERR_T L3_test_mem_help()
    if ((*pItem != keyUINT) || (pItem == 0))
    {
       retVal = MEM_HELP_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_HELP] vos_bsearch() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_HELP] vos_bsearch() error\n");
    }
    keyUINT = 5;
    pItem = (UINT8*)vos_bsearch(&keyUINT, array2sort, 4, sizeof(UINT8), compareuints);
    if (pItem != 0)
    {
       retVal = MEM_HELP_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_HELP] vos_bsearch() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_HELP] vos_bsearch() error\n");
    }
 
    /* strnicmp */
    if (vos_strnicmp(str1, str2, 6) != 0)
    {
       retVal = MEM_HELP_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_HELP] vos_strnicmp() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_HELP] vos_strnicmp() error\n");
    }
    if (vos_strnicmp(str1, str2, 7) >= 0)
    {
       retVal = MEM_HELP_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_HELP] vos_strnicmp() error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_HELP] vos_strnicmp() error\n");
    }
 
    /* strncpy */
@@ -282,15 +285,15 @@ MEM_ERR_T L3_test_mem_help()
    if (vos_strnicmp(str2, "string1", 6) != 0)
    {
       retVal = MEM_HELP_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_HELP] vos_strncpy() 1 error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_HELP] vos_strncpy() 1 error\n");
    }
    vos_strncpy(str2, str1, 7);
    if (vos_strnicmp(str2, "string1", 7) != 0)
    {
       retVal = MEM_HELP_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[MEM_HELP] vos_strncpy() 2 error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_HELP] vos_strncpy() 2 error\n");
    }
-   vos_printLog(VOS_LOG_USR, "[MEM_HELP] finished...\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_HELP] finished...\n");
    return retVal;
 }
 
@@ -307,7 +310,7 @@ MEM_ERR_T L3_test_mem_count()
    UINT32  blockSize[VOS_MEM_NBLOCKSIZES];
    UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];
 
-   vos_printLog(VOS_LOG_USR, "[MEM_COUNT] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_COUNT] start...\n");
    vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
    if (allocatedMemory != RESERVED_MEMORY
       || freeMemory != RESERVED_MEMORY
@@ -315,7 +318,7 @@ MEM_ERR_T L3_test_mem_count()
       || numAllocErr != 0
       || numFreeErr != 0)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_COUNT] Test 1 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 1 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    ptr1 = (UINT8*)vos_memAlloc(8);
@@ -325,7 +328,7 @@ MEM_ERR_T L3_test_mem_count()
       || numAllocErr != 0
       || numFreeErr != 0)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_COUNT] Test 2 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 2 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    ptr2 = (UINT8*)vos_memAlloc(1600);
@@ -335,7 +338,7 @@ MEM_ERR_T L3_test_mem_count()
       || numAllocErr != 0
       || numFreeErr != 0)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_COUNT] Test 3 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 3 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    vos_memFree(ptr1);
@@ -345,7 +348,7 @@ MEM_ERR_T L3_test_mem_count()
       || numAllocErr != 0
       || numFreeErr != 0)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_COUNT] Test 4 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 4 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    vos_memFree(ptr2);
@@ -356,11 +359,11 @@ MEM_ERR_T L3_test_mem_count()
       || numAllocErr != 0
       || numFreeErr != 0)
    {
-      vos_printLog(VOS_LOG_ERROR, "[MEM_COUNT] Test 5 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 5 Error\n");
       retVal = MEM_COUNT_ERR;
    }
 
-   vos_printLog(VOS_LOG_USR, "[MEM_COUNT] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[MEM_COUNT] finished\n");
    return retVal;
 }
 
@@ -428,7 +431,7 @@ THREAD_ERR_T L3_test_thread_init()
    BOOL8 both_finished = FALSE;
 
    res = vos_init(NULL, dbgOut);
-   vos_printLog(VOS_LOG_USR, "[THREAD_INIT] first run start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_INIT] first run start...\n");
 
    /********************************************************************************************/
     /*  First Run                                                                               */
@@ -438,7 +441,7 @@ THREAD_ERR_T L3_test_thread_init()
     /**********************/
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadInit() Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadInit() Error\n");
       retVal = THREAD_INIT_ERR;
    }
    vos_getTime(&startTime);
@@ -448,7 +451,7 @@ THREAD_ERR_T L3_test_thread_init()
    vos_getTime(&endTime);
    if ((res != VOS_NO_ERR) && (vos_cmpTime(&endTime, &startTime)))
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadDelay() Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadDelay() Error\n");
       retVal = THREAD_INIT_ERR;
    }
 
@@ -465,18 +468,18 @@ THREAD_ERR_T L3_test_thread_init()
    /************************/
    /*  vos_threadCreate()1 */
    /************************/
-   vos_printLog(VOS_LOG_USR, "[THREAD_INIT] start\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_INIT] start\n");
    res = vos_threadCreate(&thread1, "Thread1", THREAD_POLICY, 0, 0, 0, (void*)testThread1, (void*)&arg1);
    if ((res != VOS_NO_ERR) || (thread1 == 0))
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [1] sendThread Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [1] sendThread Error\n");
    }
    res = vos_threadCreate(&thread2, "Thread2", THREAD_POLICY, 0, 0, 0, (void*)testThread2, (void*)&arg2);
    if ((res != VOS_NO_ERR) || (thread2 == 0))
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [1] recvThread Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [1] recvThread Error\n");
    }
 
    vos_threadDelay(1000000);
@@ -488,14 +491,14 @@ THREAD_ERR_T L3_test_thread_init()
    if (res != VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread1 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread1 Error\n");
    }
 
    res = vos_threadIsActive(thread2);
    if (res != VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread2 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread2 Error\n");
    }
 
    /***************************/
@@ -505,13 +508,13 @@ THREAD_ERR_T L3_test_thread_init()
    if (res != VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [1] Thread1 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [1] Thread1 Error\n");
    }
    res = vos_threadTerminate(thread2);
    if (res != VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [1] Thread2 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [1] Thread2 Error\n");
    }
    vos_threadDelay(1000000);
 
@@ -522,22 +525,22 @@ THREAD_ERR_T L3_test_thread_init()
    res = vos_threadIsActive(thread1);
    if (res == VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread1 active ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread1 active ERROR\n");
    }
    res = vos_threadIsActive(thread2);
    if (res == VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread2 active ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [1] Thread2 active ERROR\n");
    }
 
    /*Threads are terminated before regular exit, therefore error is expected */
    if ((arg1.result != VOS_NO_ERR) || (arg2.result != VOS_NO_ERR))
    {
-      vos_printLog(VOS_LOG_USR, "[THREAD_INIT] First run terminated OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[THREAD_INIT] First run terminated OK\n");
    }
    else
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] ERROR First run terminated with error(s) in thread(s)\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] ERROR First run terminated with error(s) in thread(s)\n");
       retVal = THREAD_INIT_ERR;
    }
 
@@ -557,20 +560,20 @@ THREAD_ERR_T L3_test_thread_init()
    /************************/
    /*  vos_threadCreate()2 */
    /************************/
-   vos_printLog(VOS_LOG_USR, "[THREAD_INIT] Second run start\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_INIT] Second run start\n");
 
    res = vos_threadCreate(&thread1, "Thread2", THREAD_POLICY, 0, 0, 0, (void*)testThread1, (void*)&arg1);
    if ((res != VOS_NO_ERR) || (thread1 == 0))
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [2] Thread1 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [2] Thread1 Error\n");
    }
 
    res = vos_threadCreate(&thread2, "Thread2", THREAD_POLICY, 0, 0, 0, (void*)testThread2, (void*)&arg2);
    if ((res != VOS_NO_ERR) || (thread2 == 0))
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [2] Thread2 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadCreate() [2] Thread2 Error\n");
    }
 
    vos_threadDelay(1000000);
@@ -582,14 +585,14 @@ THREAD_ERR_T L3_test_thread_init()
    if (res == VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread1 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread1 Error\n");
    }
 
    res = vos_threadIsActive(thread2);
    if (res == VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread2 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread2 Error\n");
    }
 
    /***************************/
@@ -599,13 +602,13 @@ THREAD_ERR_T L3_test_thread_init()
    if (res != VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [2] Thread1 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [2] Thread1 Error\n");
    }
    res = vos_threadTerminate(thread2);
    if (res != VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [2] Thread2 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadTerminate() [2] Thread2 Error\n");
    }
 
    /**************************/
@@ -615,21 +618,21 @@ THREAD_ERR_T L3_test_thread_init()
    if (res == VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread1 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread1 Error\n");
    }
    res = vos_threadIsActive(thread1);
    if (res == VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread2 Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] vos_threadIsActive() [2] Thread2 Error\n");
    }
    if ((arg1.result == VOS_NO_ERR) || (arg2.result == VOS_NO_ERR))
    {
-      vos_printLog(VOS_LOG_USR, "[THREAD_INIT] Second run terminated OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[THREAD_INIT] Second run terminated OK\n");
    }
    else
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_INIT] ERROR Second run terminated with error(s) in thread(s)\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_INIT] ERROR Second run terminated with error(s) in thread(s)\n");
       retVal = THREAD_INIT_ERR;
    }
 
@@ -642,10 +645,10 @@ THREAD_ERR_T L3_test_thread_getTime()
 {
    VOS_TIMEVAL_T sysTime;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_GETTIME] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_GETTIME] start...\n");
    vos_getTime(&sysTime);
    vos_printLog(VOS_LOG_USR, "[THREAD_GETTIME] time is: %lu:%lu\n", (long unsigned int)sysTime.tv_sec, (long unsigned int)sysTime.tv_usec);
-   vos_printLog(VOS_LOG_USR, "[THREAD_GETTIME] finished \n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_GETTIME] finished \n");
    return THREAD_NO_ERR;
 }
 
@@ -653,10 +656,10 @@ THREAD_ERR_T L3_test_thread_getTimeStamp()
 {
    CHAR8 pTimeString[32] = { 0 };
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_GETTIMESTAMP] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_GETTIMESTAMP] start...\n");
    vos_strncpy(pTimeString, vos_getTimeStamp(), 32);
    vos_printLog(VOS_LOG_USR, "[THREAD_GETTIMESTAMP] Time Stamp: %s\n", pTimeString);
-   vos_printLog(VOS_LOG_USR, "[THREAD_GETTIMESTAMP] finished \n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_GETTIMESTAMP] finished \n");
    return THREAD_NO_ERR;
 }
 
@@ -666,7 +669,7 @@ THREAD_ERR_T L3_test_thread_addTime()
    VOS_TIMEVAL_T add = { 0 /*sec */, 2 /* usec */ };
    THREAD_ERR_T retVal = THREAD_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_ADDTIME] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_ADDTIME] start...\n");
    vos_addTime(&time, &add);
    if (time.tv_sec != 1 || time.tv_usec != 2)
    {
@@ -696,7 +699,7 @@ THREAD_ERR_T L3_test_thread_addTime()
    {
       retVal = THREAD_ADDTIME_ERR;
    }
-   vos_printLog(VOS_LOG_USR, "[THREAD_ADDTIME] finished \n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_ADDTIME] finished \n");
    return retVal;
 }
 
@@ -706,7 +709,7 @@ THREAD_ERR_T L3_test_thread_subTime()
    VOS_TIMEVAL_T subs = { 0 /*sec */, 2 /* usec */ };
    THREAD_ERR_T retVal = THREAD_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_SUBTIME] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_SUBTIME] start...\n");
    vos_subTime(&time, &subs);
    if (time.tv_sec != 1 || time.tv_usec != 2)
    {
@@ -737,7 +740,7 @@ THREAD_ERR_T L3_test_thread_subTime()
       retVal = THREAD_SUBTIME_ERR;
    }
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_SUBTIME] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_SUBTIME] finished\n");
    return retVal;
 }
 
@@ -747,7 +750,7 @@ THREAD_ERR_T L3_test_thread_mulTime()
    UINT32 mul = 0;
    THREAD_ERR_T retVal = THREAD_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_MULTIME] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_MULTIME] start...\n");
    vos_mulTime(&time, mul);
    if (time.tv_sec != 0 || time.tv_usec != 0)
    {
@@ -786,7 +789,7 @@ THREAD_ERR_T L3_test_thread_mulTime()
       retVal = THREAD_MULTIME_ERR;
    }
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_MULTIME] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_MULTIME] finished\n");
    return retVal;
 }
 
@@ -796,7 +799,7 @@ THREAD_ERR_T L3_test_thread_divTime()
    UINT32 div = 1;
    THREAD_ERR_T retVal = THREAD_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_DIVTIME] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_DIVTIME] start...\n");
    vos_divTime(&time, div);
    if (time.tv_sec != 5 || time.tv_usec != 4)
    {
@@ -827,7 +830,7 @@ THREAD_ERR_T L3_test_thread_divTime()
       retVal = THREAD_DIVTIME_ERR;
    }
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_DIVTIME] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_DIVTIME] finished\n");
    return retVal;
 }
 
@@ -837,7 +840,7 @@ THREAD_ERR_T L3_test_thread_cmpTime()
    VOS_TIMEVAL_T time2 = { 1 /*sec */, 2 /* usec */ };
    THREAD_ERR_T retVal = THREAD_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_CMPTIME] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_CMPTIME] start...\n");
    /* time 1 and time 2 should be equal */
    if (vos_cmpTime(&time1, &time2) != 0)
    {
@@ -936,7 +939,7 @@ THREAD_ERR_T L3_test_thread_cmpTime()
       retVal = THREAD_CMPTIME_ERR;
    }
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_CMPTIME] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_CMPTIME] finished\n");
    return retVal;
 }
 
@@ -947,15 +950,15 @@ THREAD_ERR_T L3_test_thread_clearTime()
    timeVar.tv_sec = 123;
    timeVar.tv_usec = 456;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_CLEARTIME] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_CLEARTIME] start...\n");
    vos_clearTime(&timeVar);
 
    if ((timeVar.tv_sec != 0) || (timeVar.tv_usec != 0))
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_CLEARTIME] vos_clearTime() Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_CLEARTIME] vos_clearTime() Error\n");
       retVal = THREAD_CLEARTIME_ERR;
    }
-   vos_printLog(VOS_LOG_USR, "[THREAD_CLEARTIME] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_CLEARTIME] finished\n");
    return retVal;
 }
 
@@ -966,7 +969,7 @@ THREAD_ERR_T L3_test_thread_getUUID()
    UINT16 cnt = 0;
    THREAD_ERR_T retVal = THREAD_UUID_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_GETUUID] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_GETUUID] start...\n");
    vos_sockInit();
    vos_getUuid(uuid1);
    vos_getUuid(uuid2);
@@ -980,7 +983,7 @@ THREAD_ERR_T L3_test_thread_getUUID()
    vos_sockTerm();
    vos_printLog(VOS_LOG_USR, "[THREAD_GETUUID] UUID1 = %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u\n", uuid1[0], uuid1[1], uuid1[2], uuid1[3], uuid1[4], uuid1[5], uuid1[6], uuid1[7], uuid1[8], uuid1[9], uuid1[10], uuid1[11], uuid1[12], uuid1[13], uuid1[14], uuid1[15]);
    vos_printLog(VOS_LOG_USR, "[THREAD_GETUUID] UUID2 = %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u\n", uuid2[0], uuid2[1], uuid2[2], uuid2[3], uuid2[4], uuid2[5], uuid2[6], uuid2[7], uuid2[8], uuid2[9], uuid2[10], uuid2[11], uuid2[12], uuid2[13], uuid2[14], uuid2[15]);
-   vos_printLog(VOS_LOG_USR, "[THREAD_GETUUID] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_GETUUID] finished\n");
    return retVal;
 }
 
@@ -1014,7 +1017,7 @@ VOS_THREAD_FUNC_T testMutex(void* arguments)
    if (res == VOS_NO_ERR)
    {
       /* error trying to lock a locked mutex */
-      vos_printLog(VOS_LOG_ERROR, "[MUTEX THREAD] [1] mutexTryLock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MUTEX THREAD] [1] mutexTryLock Error\n");
       retVal = VOS_THREAD_ERR;
    }
 
@@ -1023,7 +1026,7 @@ VOS_THREAD_FUNC_T testMutex(void* arguments)
    if (res != VOS_NO_ERR)
    {
       /* error trying to wait for a locked mutex */
-      vos_printLog(VOS_LOG_ERROR, "[MUTEX THREAD] [2] mutexLock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MUTEX THREAD] [2] mutexLock Error\n");
       retVal = VOS_THREAD_ERR;
    }
 
@@ -1034,7 +1037,7 @@ VOS_THREAD_FUNC_T testMutex(void* arguments)
    if (res != VOS_NO_ERR)
    {
       /* error trying to unlock a locked mutex */
-      vos_printLog(VOS_LOG_ERROR, "[MUTEX THREAD] [3] mutexUnlock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MUTEX THREAD] [3] mutexUnlock Error\n");
       retVal = VOS_THREAD_ERR;
    }
 
@@ -1044,7 +1047,7 @@ VOS_THREAD_FUNC_T testMutex(void* arguments)
    if (res != VOS_NO_ERR)
    {
       /* error trying to take an available mutex */
-      vos_printLog(VOS_LOG_ERROR, "[MUTEX THREAD] [4] mutexTryLock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MUTEX THREAD] [4] mutexTryLock Error\n");
       retVal = VOS_THREAD_ERR;
    }
    /* 7 */
@@ -1052,7 +1055,7 @@ VOS_THREAD_FUNC_T testMutex(void* arguments)
    if (res != VOS_NO_ERR)
    {
       /* error trying to unlock a locked mutex */
-      vos_printLog(VOS_LOG_ERROR, "[MUTEX THREAD] [5] mutexUnlock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[MUTEX THREAD] [5] mutexUnlock Error\n");
       retVal = VOS_THREAD_ERR;
    }
 
@@ -1076,13 +1079,13 @@ THREAD_ERR_T L3_test_thread_mutex()
 
    vos_init(NULL, dbgOut);
 
-   vos_printLog(VOS_LOG_USR, "[THREAD_MUTEX] Test start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_MUTEX] Test start...\n");
 
    res = vos_mutexTryLock(mutex);
    if (res == VOS_NO_ERR)
    {
       /* error trying to take a non initialised mutex */
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [1] mutexTryLock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [1] mutexTryLock Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1090,14 +1093,14 @@ THREAD_ERR_T L3_test_thread_mutex()
    if (res == VOS_NO_ERR)
    {
       /* error trying to take a non initialised mutex */
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [2] mutexLock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [2] mutexLock Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
    res = vos_mutexCreate(&mutex);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [3] mutexCreate Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [3] mutexCreate Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1105,7 +1108,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    if (res == VOS_NO_ERR)
    {
       /* Trying to unlock unlocked mutex */
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [4] mutexUnlock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [4] mutexUnlock Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1113,7 +1116,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    if (res != VOS_NO_ERR)
    {
       /* error take a mutex */
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [5] mutexLock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [5] mutexLock Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1121,7 +1124,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    if (res != VOS_NO_ERR)
    {
       /* error take a mutex more than once from same thread, this shall be possible */
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [6] mutexLock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [6] mutexLock Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1129,7 +1132,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    if (res != VOS_NO_ERR)
    {
       /* Trying to unlock mutex first level */
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [7] mutexUnlock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [7] mutexUnlock Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1140,7 +1143,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    if ((res != VOS_NO_ERR) || (threadID == NULL))
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [8] vos_threadCreate() Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [8] vos_threadCreate() Error\n");
    }
 
    vos_threadDelay(100000);
@@ -1150,7 +1153,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    if (res != VOS_NO_ERR)
    {
       /* Trying to unlock mutex 2nd level*/
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [10] mutexUnlock Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [10] mutexUnlock Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1158,7 +1161,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    res = vos_mutexTryLock(mutex);
    if (res == VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [11] mutexTryLock with not available mutex Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [11] mutexTryLock with not available mutex Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1174,7 +1177,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    res = vos_mutexUnlock(mutex);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [13] mutexUnlock mutex Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [13] mutexUnlock mutex Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1183,7 +1186,7 @@ THREAD_ERR_T L3_test_thread_mutex()
    res = vos_mutexTryLock(mutex);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [14] mutexTryLock with available mutex Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [14] mutexTryLock with available mutex Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1193,18 +1196,18 @@ THREAD_ERR_T L3_test_thread_mutex()
    if (res == VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] [15] vos_threadIsActive Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] [15] vos_threadIsActive Error\n");
    }
 
    vos_mutexDelete(mutex);
 
    if ((arg.result == VOS_NO_ERR) || (arg.result == VOS_NO_ERR))
    {
-      vos_printLog(VOS_LOG_USR, "[THREAD_MUTEX] finished OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[THREAD_MUTEX] finished OK\n");
    }
    else
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] finished with error(s) in thread(s)\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] finished with error(s) in thread(s)\n");
       retVal = THREAD_INIT_ERR;
    }
 
@@ -1230,7 +1233,7 @@ VOS_THREAD_FUNC_T testSema(void* arguments)
    if (res == VOS_NO_ERR)
    {
       /* error trying to lock a locked sema */
-      vos_printLog(VOS_LOG_ERROR, "[SEMA THREAD] [1] semaTake Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SEMA THREAD] [1] semaTake Error\n");
       retVal = VOS_THREAD_ERR;
    }
 
@@ -1239,7 +1242,7 @@ VOS_THREAD_FUNC_T testSema(void* arguments)
    if (res != VOS_NO_ERR)
    {
       /* error trying to wait for a locked sema */
-      vos_printLog(VOS_LOG_ERROR, "[SEMA THREAD] [2] semaTake Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SEMA THREAD] [2] semaTake Error\n");
       retVal = VOS_THREAD_ERR;
    }
 
@@ -1254,7 +1257,7 @@ VOS_THREAD_FUNC_T testSema(void* arguments)
    if (res != VOS_NO_ERR)
    {
       /* error trying to take an available sema */
-      vos_printLog(VOS_LOG_ERROR, "[SEMA THREAD] [3] semaTake Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SEMA THREAD] [3] semaTake Error\n");
       retVal = VOS_THREAD_ERR;
    }
 
@@ -1284,30 +1287,30 @@ THREAD_ERR_T L3_test_thread_sema()
    INT32 ret = 0;
 
    vos_init(NULL, dbgOut);
-   vos_printLog(VOS_LOG_USR, "[THREAD_SEMA] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[THREAD_SEMA] start...\n");
    res = vos_semaCreate(&sema, VOS_SEMA_FULL);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [1] semaCreate Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [1] semaCreate Error\n");
       retVal = THREAD_SEMA_ERR;
    }
    res = vos_semaTake(sema, VOS_SEMA_EMPTY);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [2] semaTake Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [2] semaTake Error\n");
       retVal = THREAD_SEMA_ERR;
    }
    vos_semaGive(sema); /* void */
    res = vos_semaTake(sema, VOS_SEMA_WAIT_FOREVER);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [3] semaTake Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [3] semaTake Error\n");
       retVal = THREAD_SEMA_ERR;
    }
    res = vos_semaTake(sema, timeout.tv_usec);
    if (res == VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [4] semaTake Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [4] semaTake Error\n");
       retVal = THREAD_SEMA_ERR;
    }
    /*check if endTime > startTime */
@@ -1318,7 +1321,7 @@ THREAD_ERR_T L3_test_thread_sema()
    ret = vos_cmpTime(&endTime, &startTime);
    if (ret < 0)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [5] semaTake Timeout ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [5] semaTake Timeout ERROR\n");
       retVal = THREAD_SEMA_ERR;
    }
 
@@ -1329,7 +1332,7 @@ THREAD_ERR_T L3_test_thread_sema()
    if ((res != VOS_NO_ERR) || (threadID == NULL))
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [6] vos_threadCreate Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [6] vos_threadCreate Error\n");
    }
 
    vos_threadDelay(10000);
@@ -1341,7 +1344,7 @@ THREAD_ERR_T L3_test_thread_sema()
    res = vos_semaTake(sema, 0);
    if (res == VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [7] semaTake with not available mutex Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [7] semaTake with not available mutex Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1361,7 +1364,7 @@ THREAD_ERR_T L3_test_thread_sema()
    res = vos_semaTake(sema, 0);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [9] semaTake with available sema Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [9] semaTake with available sema Error\n");
       retVal = THREAD_MUTEX_ERR;
    }
 
@@ -1371,18 +1374,18 @@ THREAD_ERR_T L3_test_thread_sema()
    if (res == VOS_NO_ERR)
    {
       retVal = THREAD_INIT_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_SEMA] [10] vos_threadIsActive Error\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_SEMA] [10] vos_threadIsActive Error\n");
    }
 
    vos_semaDelete(sema);
 
    if ((arg.result == VOS_NO_ERR) || (arg.result == VOS_NO_ERR))
    {
-      vos_printLog(VOS_LOG_USR, "[THREAD_MUTEX] finished OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[THREAD_MUTEX] finished OK\n");
    }
    else
    {
-      vos_printLog(VOS_LOG_ERROR, "[THREAD_MUTEX] finished with error(s) in thread(s)\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[THREAD_MUTEX] finished with error(s) in thread(s)\n");
       retVal = THREAD_INIT_ERR;
    }
 
@@ -1402,7 +1405,7 @@ SOCK_ERR_T L3_test_sock_helpFunctions()
    UINT8 macAddr[6] = { 0,0,0,0,0,0 };
    SOCK_ERR_T retVal = SOCK_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[SOCK_HELP] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_HELP] start...\n");
    /**************************/
    /* Testing vos_dottedIP() */
    /**************************/
@@ -1448,7 +1451,7 @@ SOCK_ERR_T L3_test_sock_helpFunctions()
    {
       vos_printLog(VOS_LOG_USR, "[SOCK_HELP] MAC = %x:%x:%x:%x:%x:%x\n", macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5]);
    }
-   vos_printLog(VOS_LOG_USR, "[SOCK_HELP] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_HELP] finished\n");
    return retVal;
 }
 
@@ -1456,13 +1459,13 @@ SOCK_ERR_T L3_test_sock_init()
 {
    VOS_ERR_T res = VOS_NO_ERR;
    SOCK_ERR_T retVal = SOCK_NO_ERR;
-   vos_printLog(VOS_LOG_USR, "[SOCK_INIT] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_INIT] start...\n");
    res = vos_sockInit();
    if (res != VOS_NO_ERR)
    {
       retVal = SOCK_INIT_ERR;
    }
-   vos_printLog(VOS_LOG_USR, "[SOCK_INIT] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_INIT] finished\n");
    return retVal;
 }
 
@@ -1488,14 +1491,14 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
    gTestIP = mcIP;
    gTestPort = portPD;
 
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDPMC] start...\n");
    /*******************/
    /* open UDP socket */
    /*******************/
    res = vos_sockOpenUDP(&sockDesc, NULL);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockOpenUDP() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockOpenUDP() ERROR!\n");
       retVal = SOCK_UDP_MC_ERR;
    }
    vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockOpenUDP() Open socket %li\n", (long int)sockDesc);
@@ -1507,11 +1510,11 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
    sockOpts.qos = 7;
    sockOpts.reuseAddrPort = TRUE;
    sockOpts.ttl_multicast = 63;
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockSetOptions()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockSetOptions()\n");
    res = vos_sockSetOptions(sockDesc, &sockOpts);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockSetOptions() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockSetOptions() ERROR!\n");
       retVal = SOCK_UDP_MC_ERR;
    }
    /********/
@@ -1520,23 +1523,23 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
    res = vos_sockBind(sockDesc, mcIP, portPD);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockBind() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockBind() ERROR!\n");
       retVal = SOCK_UDP_MC_ERR;
    }
    /***********/
    /* join mc */
    /***********/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockJoinMC\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockJoinMC\n");
    res = vos_sockJoinMC(sockDesc, mcIP, mcIF);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockJoinMC() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockJoinMC() ERROR!\n");
       retVal = SOCK_UDP_MC_ERR;
    }
    /********************/
    /* set multicast if */
    /********************/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockSetMulticastIF()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockSetMulticastIF()\n");
    res = vos_sockSetMulticastIf(sockDesc, mcIF);
    if (res != VOS_NO_ERR)
    {
@@ -1549,11 +1552,11 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
       /* send UDP Multicast */
       /**********************/
       vos_threadDelay(1000000);
-      vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockSendUDP()\n");
+      vos_printLogStr(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockSendUDP()\n");
       res = vos_sockSendUDP(sockDesc, &sndBuf, &bufSize, mcIP, portPD);
       if (res != VOS_NO_ERR)
       {
-         vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockSendUDP() ERROR!\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockSendUDP() ERROR!\n");
          retVal = SOCK_UDP_MC_ERR;
       }
       /*************************/
@@ -1564,7 +1567,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
       res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, FALSE);
       if (res != VOS_NO_ERR)
       {
-         vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockreceiveUDP() ERROR!\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockreceiveUDP() ERROR!\n");
          retVal = SOCK_UDP_MC_ERR;
       }
       else
@@ -1579,14 +1582,14 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
       res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, FALSE);
       if (res != VOS_NO_ERR)
       {
-         vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockReceiveUDP() ERROR!\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockReceiveUDP() ERROR!\n");
          retVal = SOCK_UDP_MC_ERR;
       }
       else
       {
          if (rcvBuf != rcvBufExpVal)
          {
-            vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] rcvBuf!= rcvBufExpVal ERROR!\n");
+            vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] rcvBuf!= rcvBufExpVal ERROR!\n");
             retVal = SOCK_UDP_MC_ERR;
          }
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] UDP MC received: %u\n", rcvBuf);
@@ -1599,21 +1602,21 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
    /************/
    /* leave mc */
    /************/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockLeaveMC()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockLeaveMC()\n");
    res = vos_sockLeaveMC(sockDesc, mcIP, mcIF);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockLeaveMC() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockLeaveMC() ERROR!\n");
       retVal = SOCK_UDP_MC_ERR;
    }
    /********************/
    /* close UDP socket */
    /********************/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockClose()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockClose()\n");
    res = vos_sockClose(sockDesc);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockClose() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockClose() ERROR!\n");
       retVal = SOCK_UDP_MC_ERR;
    }
 
@@ -1643,7 +1646,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    UINT32 cnt = 0;
 
    vos_init(NULL, dbgOut);
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] start...\n");
 
    /*******************/
    /* open UDP socket */
@@ -1651,7 +1654,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    res = vos_sockOpenUDP(&sockDesc, NULL);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockOpenUDP() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockOpenUDP() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
    vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockOpenUDP() Open socket %ld\n", (long int)sockDesc);
@@ -1662,21 +1665,21 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    sockOpts.qos = 7;
    sockOpts.reuseAddrPort = TRUE;
    sockOpts.ttl = 17;
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockSetOptions()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockSetOptions()\n");
    res = vos_sockSetOptions(sockDesc, &sockOpts);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSetOptions() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSetOptions() ERROR\n");
       retVal = SOCK_UDP_ERR;
    }
    /********/
    /* bind */
    /********/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockBind()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockBind()\n");
    res = vos_sockBind(sockDesc, srcIP, portPD);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockBind() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockBind() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
    else
@@ -1689,17 +1692,17 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       res = vos_sockSendUDP(sockDesc, &sndBuf, &bufSize, destIP, portPD);
       if (res != VOS_NO_ERR)
       {
-         vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSendUDP() ERROR!\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSendUDP() ERROR!\n");
          retVal = SOCK_UDP_ERR;
       }
       /***************/
       /* receive UDP */
       /***************/
-      vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
+      vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
       res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, FALSE);
       if (res != VOS_NO_ERR)
       {
-         vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
          retVal = SOCK_UDP_ERR;
       }
       else
@@ -1707,7 +1710,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
          if ((rcvBuf != rcvBufExp) || (rcvIP != srcIP) || (rcvPort != portPD))
          {
             retVal = SOCK_UDP_ERR;
-            vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
+            vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvBuf %u != %u\n", rcvBuf, rcvBufExpVal);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvIP %u != %u\n", rcvIP, srcIP);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvPort %u != %u\n", rcvPort, portPD);
@@ -1725,11 +1728,11 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    /********************/
    /* close UDP socket */
    /********************/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockClose()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockClose()\n");
    res = vos_sockClose(sockDesc);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockClose() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockClose() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
 
@@ -1741,7 +1744,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    res = vos_sockOpenUDP(&sockDesc, NULL);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockOpenUDP() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockOpenUDP() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
    vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockOpenUDP() Open socket %ld\n", (long int)sockDesc);
@@ -1752,21 +1755,21 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    sockOpts.qos = 7;
    sockOpts.reuseAddrPort = TRUE;
    sockOpts.ttl = 17;
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockSetOptions()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockSetOptions()\n");
    res = vos_sockSetOptions(sockDesc, &sockOpts);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSetOptions() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSetOptions() ERROR\n");
       retVal = SOCK_UDP_ERR;
    }
    /********/
    /* bind */
    /********/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockBind()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockBind()\n");
    res = vos_sockBind(sockDesc, srcIP, portMD);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockBind() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockBind() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
    else
@@ -1779,17 +1782,17 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       res = vos_sockSendUDP(sockDesc, &sndBuf, &bufSize, destIP, portMD);
       if (res != VOS_NO_ERR)
       {
-         vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSendUDP() ERROR!\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockSendUDP() ERROR!\n");
          retVal = SOCK_UDP_ERR;
       }
       /***************/
       /* receive UDP */
       /***************/
-      vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
+      vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
       res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, FALSE);
       if (res != VOS_NO_ERR)
       {
-         vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
+         vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
          retVal = SOCK_UDP_ERR;
       }
       else
@@ -1797,7 +1800,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
          if ((rcvBuf != rcvBufExp) || (rcvIP != srcIP) || (rcvPort != portMD))
          {
             retVal = SOCK_UDP_ERR;
-            vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
+            vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvBuf %u != %u\n", rcvBuf, rcvBufExpVal);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvIP %u != %u\n", rcvIP, srcIP);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvPort %u != %u\n", rcvPort, portMD);
@@ -1814,11 +1817,11 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    /********************/
    /* close UDP socket */
    /********************/
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockClose()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockClose()\n");
    res = vos_sockClose(sockDesc);
    if (res != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockClose() ERROR!\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockClose() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
 
@@ -1856,11 +1859,11 @@ VOS_THREAD_FUNC_T testTCPClient(void* arguments)
       res = vos_threadDelay((UINT32)((arg->delay.tv_sec * 1000000) + (arg->delay.tv_usec)));
    }
 
-   vos_printLog(VOS_LOG_USR, "[SOCK_TCPCLIENT] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPCLIENT] start...\n");
    /*******************/
    /* open tcp socket */
    /*******************/
-   vos_printLog(VOS_LOG_USR, "[SOCK_TCPCLIENT] vos_sockOpenTCP()\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPCLIENT] vos_sockOpenTCP()\n");
    res = vos_sockOpenTCP(&sockDesc, NULL);
    if (res != VOS_NO_ERR)
    {
@@ -1881,7 +1884,7 @@ VOS_THREAD_FUNC_T testTCPClient(void* arguments)
       sockOpts.ttl_multicast = 0u;
       sockOpts.no_mc_loop = FALSE;
 
-      vos_printLog(VOS_LOG_USR, "[SOCK_TCPCLIENT] vos_sockSetOptions()\n");
+      vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPCLIENT] vos_sockSetOptions()\n");
       res = vos_sockSetOptions(sockDesc, &sockOpts);
       if (res != VOS_NO_ERR)
       {
@@ -1972,7 +1975,7 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
 
    vos_init(NULL, dbgOut);
 
-   vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPSERVER] start...\n");
 
    arg.result = VOS_UNKNOWN_ERR;
    arg.rcvBufExpVal = sndBufStartVal;
@@ -2021,7 +2024,7 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockSetOptions( OK)\n");
+      vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockSetOptions( OK)\n");
    }
    /********/
    /* bind */
@@ -2046,12 +2049,12 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
       }
       else
       {
-         vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockListen()\n");
+         vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockListen()\n");
 
          /**********/
          /* accept */
          /**********/
-         vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockAccept()\n");
+         vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockAccept()\n");
 
          res = vos_sockAccept(sockDesc, &newSock, &rcvIP, &rcvPort);
          if (res != VOS_NO_ERR)
@@ -2060,9 +2063,9 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
          }
          else
          {
-            if (newSock != SOCKET_ERROR)
+            if (newSock != -1)
             {
-               vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockAccept() Connection accepted from %s:%u, Socket %lx\n", vos_ipDotted(rcvIP), rcvPort, (int)newSock);
+               vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockAccept() Connection accepted from %s:%u, Socket %d\n", vos_ipDotted(rcvIP), rcvPort, (int)newSock);
             }
 
             /***************/
@@ -2127,7 +2130,7 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] finished OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[SOCK_TCPSERVER] finished OK\n");
    }
    vos_terminate();
    return retVal;
@@ -2145,14 +2148,14 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_write(void* arguments)
    VOS_SEMA_T sema = arg->sema;
 
    vos_init(NULL, dbgOut);
-   vos_printLog(VOS_LOG_USR, "[SHMEM Write] start\n");
+   vos_printLogStr(VOS_LOG_USR, "[SHMEM Write] start\n");
    res = vos_sharedOpen(arg->key, &handle, &pMemArea, &size);
    if (res != VOS_NO_ERR)
    {
       retVal = VOS_UNKNOWN_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM Write] vos_sharedOpen() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM Write] vos_sharedOpen() ERROR\n");
    }
-   vos_printLog(VOS_LOG_USR, "handle->fd = %llx\n", (long long)handle->fd);
+   vos_printLog(VOS_LOG_USR, "handle = %llx\n", *(long long *)handle);
    vos_printLog(VOS_LOG_USR, "pMemArea = %llx\n", (long long)pMemArea);
    memcpy(pMemArea, &content, 4);
    vos_printLog(VOS_LOG_USR, "*pMemArea = %x\n", *pMemArea);
@@ -2160,7 +2163,7 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_write(void* arguments)
    if (res != VOS_NO_ERR)
    {
       retVal = VOS_UNKNOWN_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM Write] vos_sharedClose() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM Write] vos_sharedClose() ERROR\n");
    }
    arg->result = retVal;
    vos_semaGive(sema);
@@ -2171,7 +2174,7 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_write(void* arguments)
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[SHMEM Write] finished OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[SHMEM Write] finished OK\n");
    }
 
    vos_terminate();
@@ -2190,14 +2193,14 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_read(void* arguments)
    VOS_SEMA_T sema = arg->sema;
 
    vos_init(NULL, dbgOut);
-   vos_printLog(VOS_LOG_USR, "[SHMEM Read] start\n");
+   vos_printLogStr(VOS_LOG_USR, "[SHMEM Read] start\n");
    res = vos_semaTake(sema, VOS_SEMA_WAIT_FOREVER);
 
    res = vos_sharedOpen(arg->key, &handle, &pMemArea, &size);
    if (res != VOS_NO_ERR)
    {
       retVal = VOS_UNKNOWN_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM Read] vos_sharedOpen() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM Read] vos_sharedOpen() ERROR\n");
    }
    memcpy(&content, pMemArea, 4);
    vos_printLog(VOS_LOG_USR, "pMemArea = %llx\n", (long long)pMemArea);
@@ -2206,7 +2209,7 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_read(void* arguments)
    if (content != arg->content)
    {
       retVal = VOS_UNKNOWN_ERR;
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM Read] vos_sharedClose() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM Read] vos_sharedClose() ERROR\n");
    }
    arg->result = retVal;
    vos_semaGive(sema);
@@ -2216,7 +2219,7 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_read(void* arguments)
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[SHMEM Read] finished OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[SHMEM Read] finished OK\n");
    }
    vos_terminate();
    return 0;
@@ -2244,12 +2247,12 @@ SHMEM_ERR_T L3_test_sharedMem()/*--> improve / check test!*/
    vos_strncpy(arg2.key, "shmem1452", 20);
 
    vos_semaCreate(&sema, VOS_SEMA_EMPTY);
-   vos_printLog(VOS_LOG_USR, "[SHMEM] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[SHMEM] start...\n");
 
    ret = vos_sharedOpen(arg1.key, &handle, &pMemArea, &(arg1.size));
    if (ret != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM] vos_sharedOpen() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM] vos_sharedOpen() ERROR\n");
       retVal = SHMEM_ALL_ERR;
    }
    arg1.sema = sema;
@@ -2258,12 +2261,12 @@ SHMEM_ERR_T L3_test_sharedMem()/*--> improve / check test!*/
    ret2 = vos_semaTake(sema, VOS_SEMA_WAIT_FOREVER);
    if (ret2 != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM] vos_semaTake() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM] vos_semaTake() ERROR\n");
       retVal = SHMEM_ALL_ERR;
    }
    if ((ret != VOS_NO_ERR) || (arg1.result != VOS_NO_ERR))
    {
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM] writeThread() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM] writeThread() ERROR\n");
       retVal = SHMEM_ALL_ERR;
    }
    vos_semaGive(sema);
@@ -2272,19 +2275,19 @@ SHMEM_ERR_T L3_test_sharedMem()/*--> improve / check test!*/
    ret2 = vos_semaTake(sema, VOS_SEMA_WAIT_FOREVER);
    if (ret2 != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM] vos_semaTake() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM] vos_semaTake() ERROR\n");
       retVal = SHMEM_ALL_ERR;
    }
    if ((ret != VOS_NO_ERR) || (arg1.result != VOS_NO_ERR))
    {
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM] readThread() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM] readThread() ERROR\n");
       retVal = SHMEM_ALL_ERR;
    }
    vos_semaDelete(sema);
    ret = vos_sharedClose(handle, pMemArea);
    if (ret != VOS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[SHMEM] vos_sharedClose() ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[SHMEM] vos_sharedClose() ERROR\n");
       retVal = SHMEM_ALL_ERR;
    }
    if (retVal)
@@ -2293,7 +2296,7 @@ SHMEM_ERR_T L3_test_sharedMem()/*--> improve / check test!*/
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[SHMEM] finished OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[SHMEM] finished OK\n");
    }
    vos_terminate();
    return retVal;
@@ -2304,13 +2307,13 @@ UTILS_ERR_T L3_test_utils_init()
    VOS_ERR_T res = VOS_NO_ERR;
    UTILS_ERR_T retVal = UTILS_NO_ERR;
 
-   vos_printLog(VOS_LOG_USR, "[UTILS_INIT] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[UTILS_INIT] start...\n");
    res = vos_init(NULL, dbgOut);
    if (res != VOS_NO_ERR)
    {
       retVal = UTILS_INIT_ERR;
    }
-   vos_printLog(VOS_LOG_USR, "[UTILS_INIT] finished\n");
+   vos_printLogStr(VOS_LOG_USR, "[UTILS_INIT] finished\n");
 
    return retVal;
 }
@@ -2322,7 +2325,7 @@ UTILS_ERR_T L3_test_utils_CRC()
    UINT32 length = sizeof(testdata);
    UINT32 crc;
 
-   vos_printLog(VOS_LOG_USR, "[UTILS_CRC] start...\n");
+   vos_printLogStr(VOS_LOG_USR, "[UTILS_CRC] start...\n");
    /**********************************/
    /* init test data to get zero CRC */
    /**********************************/
@@ -2362,11 +2365,11 @@ UTILS_ERR_T L3_test_utils_CRC()
 
    if (retVal == UTILS_NO_ERR)
    {
-      vos_printLog(VOS_LOG_USR, "[UTILS_CRC] finished OK\n");
+      vos_printLogStr(VOS_LOG_USR, "[UTILS_CRC] finished OK\n");
    }
    else
    {
-      vos_printLog(VOS_LOG_ERROR, "[UTILS_CRC] finished ERROR\n");
+      vos_printLogStr(VOS_LOG_ERROR, "[UTILS_CRC] finished ERROR\n");
    }
    return retVal;
 }
@@ -2382,27 +2385,27 @@ UTILS_ERR_T L3_test_utils_terminate()
 MEM_ERR_T L2_test_mem()
 {
    MEM_ERR_T errcnt = MEM_NO_ERR;
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
-   vos_printLog(VOS_LOG_USR, "*   [MEM] Test start...\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*   [MEM] Test start...\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    errcnt += L3_test_mem_init();
    errcnt += L3_test_mem_count();
    errcnt += L3_test_mem_alloc();
    errcnt += L3_test_mem_queue();
    errcnt += L3_test_mem_help();
    errcnt += L3_test_mem_delete();
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    vos_printLog(VOS_LOG_USR, "*   [MEM] Test finished with errcnt = %i\n", errcnt);
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    return errcnt;
 }
 
 THREAD_ERR_T L2_test_thread()
 {
    THREAD_ERR_T errcnt = THREAD_NO_ERR;
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
-   vos_printLog(VOS_LOG_USR, "*   [THREAD] Test start...\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*   [THREAD] Test start...\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    errcnt += L3_test_thread_init();
    errcnt += L3_test_thread_getTime();
    errcnt += L3_test_thread_getTimeStamp();
@@ -2415,9 +2418,9 @@ THREAD_ERR_T L2_test_thread()
    errcnt += L3_test_thread_getUUID();
    errcnt += L3_test_thread_mutex();
    errcnt += L3_test_thread_sema();
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    vos_printLog(VOS_LOG_USR, "*   [THREAD] Test finished with errcnt = %i\n", errcnt);
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    return errcnt;
 }
 
@@ -2426,9 +2429,9 @@ SOCK_ERR_T L2_test_sock(TEST_IP_CONFIG_T ipCfg)
    SOCK_ERR_T errcnt = SOCK_NO_ERR;
    UINT8 sndBufStartVal = 0x12;
    UINT8 rcvBufExpVal = 0x12;
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
-   vos_printLog(VOS_LOG_USR, "*   [SOCK] Test start...\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*   [SOCK] Test start...\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    errcnt += L3_test_sock_init();
    errcnt += L3_test_sock_helpFunctions();
    errcnt += L3_test_sock_UDPMC(sndBufStartVal, rcvBufExpVal, ipCfg);      /* 0,1 */
@@ -2438,336 +2441,336 @@ SOCK_ERR_T L2_test_sock(TEST_IP_CONFIG_T ipCfg)
    sndBufStartVal = 0x56;
    rcvBufExpVal = 0x57;
    errcnt += L3_test_sock_TCPserver(sndBufStartVal, rcvBufExpVal, ipCfg);  /* 7,6 */
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    vos_printLog(VOS_LOG_USR, "*   [SOCK] Test finished with errcnt = %i\n", errcnt);
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    return errcnt;
 }
 
 SHMEM_ERR_T L2_test_sharedMem()
 {
    SHMEM_ERR_T errcnt = SHMEM_NO_ERR;
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
-   vos_printLog(VOS_LOG_USR, "*   [SHMEM] Test start...\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*   [SHMEM] Test start...\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    errcnt += L3_test_sharedMem();
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    vos_printLog(VOS_LOG_USR, "*   [SHMEM] Test finished with errcnt = %i\n", errcnt);
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    return errcnt;
 }
 
 UTILS_ERR_T L2_test_utils()
 {
    UTILS_ERR_T errcnt = UTILS_NO_ERR;
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
-   vos_printLog(VOS_LOG_USR, "*   [UTILS] Test start...\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*   [UTILS] Test start...\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    errcnt += L3_test_utils_init();
    errcnt += L3_test_utils_CRC();
    errcnt += L3_test_utils_terminate();
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    vos_printLog(VOS_LOG_USR, "*   [UTILS] Test finished with errcnt = %i\n", errcnt);
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
    return errcnt;
 }
 
 void L1_testEvaluation(MEM_ERR_T memErr, THREAD_ERR_T threadErr, SOCK_ERR_T sockErr, SHMEM_ERR_T shMemErr, UTILS_ERR_T utilsErr)
 {
-   vos_printLog(VOS_LOG_USR, "\n\n\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
-   vos_printLog(VOS_LOG_USR, "*                       Dev Test Evaluation                         *\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "\n\n\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*                       Dev Test Evaluation                         *\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
 
    /********************************************/
    /*           vos_mem functionality          */
    /********************************************/
 
-   vos_printLog(VOS_LOG_USR, "\n");
+   vos_printLogStr(VOS_LOG_USR, "\n");
    vos_printLog(VOS_LOG_USR, "-> L2_test_mem err = %i\n", memErr);
    if (memErr & MEM_INIT_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " MEM_INIT\n");
+   vos_printLogStr(VOS_LOG_USR, " MEM_INIT\n");
    if (memErr & MEM_ALLOC_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " MEM_ALLOC\n");
+   vos_printLogStr(VOS_LOG_USR, " MEM_ALLOC\n");
    if (memErr & MEM_QUEUE_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " MEM_QUEUE\n");
+   vos_printLogStr(VOS_LOG_USR, " MEM_QUEUE\n");
    if (memErr & MEM_HELP_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " MEM_HELP\n");
+   vos_printLogStr(VOS_LOG_USR, " MEM_HELP\n");
    if (memErr & MEM_COUNT_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " MEM_COUNT\n");
+   vos_printLogStr(VOS_LOG_USR, " MEM_COUNT\n");
    if (memErr & MEM_DELETE_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " MEM_DELETE\n");
+   vos_printLogStr(VOS_LOG_USR, " MEM_DELETE\n");
    /********************************************/
    /*          vos_thread functionality        */
    /********************************************/
-   vos_printLog(VOS_LOG_USR, "\n");
+   vos_printLogStr(VOS_LOG_USR, "\n");
    vos_printLog(VOS_LOG_USR, "-> L2_test_thread err = %i\n", threadErr);
    if (threadErr & THREAD_INIT_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_INIT\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_INIT\n");
    if (threadErr & THREAD_GETTIME_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_GETTIME\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_GETTIME\n");
    if (threadErr & THREAD_GETTIMESTAMP_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_GETTIMESTAMP\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_GETTIMESTAMP\n");
    if (threadErr & THREAD_ADDTIME_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_ADDTIME\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_ADDTIME\n");
    if (threadErr & THREAD_SUBTIME_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_SUBTIME\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_SUBTIME\n");
    if (threadErr & THREAD_MULTIME_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_MULTIME\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_MULTIME\n");
    if (threadErr & THREAD_DIVTIME_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_DIVTIME\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_DIVTIME\n");
    if (threadErr & THREAD_CMPTIME_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_CMPTIME\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_CMPTIME\n");
    if (threadErr & THREAD_CLEARTIME_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " VOS_LOG_USR\n");
+   vos_printLogStr(VOS_LOG_USR, " VOS_LOG_USR\n");
    if (threadErr & THREAD_UUID_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_UUID\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_UUID\n");
    if (threadErr & THREAD_MUTEX_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_MUTEX\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_MUTEX\n");
    if (threadErr & THREAD_SEMA_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " THREAD_SEMA\n");
+   vos_printLogStr(VOS_LOG_USR, " THREAD_SEMA\n");
 
    /********************************************/
    /*          vos_sock functionality          */
    /********************************************/
 
-   vos_printLog(VOS_LOG_USR, "\n");
+   vos_printLogStr(VOS_LOG_USR, "\n");
    vos_printLog(VOS_LOG_USR, "-> L2_test_sock err = %i\n", sockErr);
    if (sockErr & SOCK_INIT_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " SOCK_INIT\n");
+   vos_printLogStr(VOS_LOG_USR, " SOCK_INIT\n");
    if (sockErr & SOCK_HELP_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " SOCK_HELPFUNCTIONS\n");
+   vos_printLogStr(VOS_LOG_USR, " SOCK_HELPFUNCTIONS\n");
    if (sockErr & SOCK_UDP_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " SOCK_UDP\n");
+   vos_printLogStr(VOS_LOG_USR, " SOCK_UDP\n");
    if (sockErr & SOCK_UDP_MC_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " SOCK_UDP_MC\n");
+   vos_printLogStr(VOS_LOG_USR, " SOCK_UDP_MC\n");
    if (sockErr & SOCK_TCP_CLIENT_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " SOCK_TCP_CLIENT\n");
+   vos_printLogStr(VOS_LOG_USR, " SOCK_TCP_CLIENT\n");
    if (sockErr & SOCK_TCP_SERVER_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " SOCK_TCP_SERVER\n");
+   vos_printLogStr(VOS_LOG_USR, " SOCK_TCP_SERVER\n");
 
    /********************************************/
    /*       vos_sharedMem functionality        */
    /********************************************/
 
-   vos_printLog(VOS_LOG_USR, "\n");
+   vos_printLogStr(VOS_LOG_USR, "\n");
    vos_printLog(VOS_LOG_USR, "-> L2_test_sharedMem err = %i\n", shMemErr);
    if (shMemErr & SHMEM_ALL_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " SHMEM\n");
+   vos_printLogStr(VOS_LOG_USR, " SHMEM\n");
 
    /********************************************/
    /*       vos_utils functionality        */
    /********************************************/
 
-   vos_printLog(VOS_LOG_USR, "\n");
+   vos_printLogStr(VOS_LOG_USR, "\n");
    vos_printLog(VOS_LOG_USR, "-> L2_test_utils err = %i\n", utilsErr);
    if (utilsErr& UTILS_INIT_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " UTILS_INIT\n");
+   vos_printLogStr(VOS_LOG_USR, " UTILS_INIT\n");
    if (utilsErr& UTILS_CRC_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " UTILS_CRC\n");
+   vos_printLogStr(VOS_LOG_USR, " UTILS_CRC\n");
    if (utilsErr& UTILS_TERMINATE_ERR)
    {
-      vos_printLog(VOS_LOG_ERROR, "[ERR]");
+      vos_printLogStr(VOS_LOG_ERROR, "[ERR]");
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[OK] ");
+      vos_printLogStr(VOS_LOG_USR, "[OK] ");
    }
-   vos_printLog(VOS_LOG_USR, " UTILS_TERMINATE\n");
+   vos_printLogStr(VOS_LOG_USR, " UTILS_TERMINATE\n");
 
-   vos_printLog(VOS_LOG_USR, "\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
-   vos_printLog(VOS_LOG_USR, "*                   Dev Test Evaluation Finished                    *\n");
-   vos_printLog(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
+   vos_printLogStr(VOS_LOG_USR, "*                   Dev Test Evaluation Finished                    *\n");
+   vos_printLogStr(VOS_LOG_USR, "*********************************************************************\n");
 }
 
 
@@ -2786,15 +2789,15 @@ UINT32 L1_test_basic(UINT32 testCnt, TEST_IP_CONFIG_T ipCfg)
    UINT32 errcnt = 0;
 
    errcnt = VOS_NO_ERR;
-   vos_printLog(VOS_LOG_USR, "Test start\n");
-   vos_printLog(VOS_LOG_USR, "\n\n\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
-   vos_printLog(VOS_LOG_USR, "#                                                                   #\n");
+   vos_printLogStr(VOS_LOG_USR, "Test start\n");
+   vos_printLogStr(VOS_LOG_USR, "\n\n\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#                                                                   #\n");
    vos_printLog(VOS_LOG_USR, "#                         Dev Test %i Start...                     #\n", testCnt);
-   vos_printLog(VOS_LOG_USR, "#                                                                   #\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#                                                                   #\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
    if (mem == TRUE)
    {
       memErr = L2_test_mem();
@@ -2823,14 +2826,14 @@ UINT32 L1_test_basic(UINT32 testCnt, TEST_IP_CONFIG_T ipCfg)
 
    /*errcnt = (VOS_ERR_T) memErr + threadErr + sockErr + shMemErr + utilsErr;*/
    L1_testEvaluation(memErr, threadErr, sockErr, shMemErr, utilsErr);
-   vos_printLog(VOS_LOG_USR, "\n\n\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
-   vos_printLog(VOS_LOG_USR, "#                                                                   #\n");
+   vos_printLogStr(VOS_LOG_USR, "\n\n\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#                                                                   #\n");
    vos_printLog(VOS_LOG_USR, "#                         Dev Test %i Finished                     #\n", testCnt);
-   vos_printLog(VOS_LOG_USR, "#                                                                   #\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
-   vos_printLog(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#                                                                   #\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
+   vos_printLogStr(VOS_LOG_USR, "#####################################################################\n");
    return errcnt;
 }
 
@@ -2849,9 +2852,9 @@ int main(int argc, char *argv[])
 
    printf("TRDP VOS test program, version 0\n");
 
-   if (argc < 5)
+   if (argc < 4)
    {
-      printf("usage: %s <mode> <localip> <remoteip> <mcast>\n", argv[0]);
+      printf("usage: %s <localip> <remoteip> <mcast>\n", argv[0]);
       printf("  <localip>  .. own IP address (ie. 10.2.24.1)\n");
       printf("  <remoteip> .. remote IP address (ie. 10.2.24.2)\n");
       printf("  <mcast>    .. multicast group address (ie. 239.2.24.1)\n");
@@ -2872,7 +2875,7 @@ int main(int argc, char *argv[])
       return 1;
    }
 
-   if (argc >= 5)
+   if (argc >= 4)
    {
       pLogFile = fopen(argv[4], "w");
       gPDebugFunction = dbgOut;

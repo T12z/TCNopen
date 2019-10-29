@@ -1,0 +1,69 @@
+#
+# diego.quagreda@SairaElectronics.com
+#
+# Makefile for MD test
+#
+# the posix target is used to build TRDP for
+# 1.Linux Debian 6
+# 2.Linux Slackware 14
+# 3.QNX 650SP1
+#
+# v0.3 19-mar-2013
+#
+
+UNAME := $(shell uname)
+
+VOS_POSIX=src/vos/posix
+VOS_CMM=src/vos/common
+VOS_API=src/vos/api
+COM_CMM=src/common
+API_INC=src/api
+
+RM=rm -f
+MD=mkdir -p
+
+BLDDIR=bld/posix
+
+PROJ1=$(BLDDIR)/mdTest4
+
+TRDPLIB=$(BLDDIR)/libtrdp.a
+
+OSLIB= -ltrdp
+ifeq ($(UNAME),Linux)
+OSLIB += -lpthread
+OSLIB += -luuid
+OSLIB += -lrt
+endif
+ifeq ($(UNAME),QNX)
+OSLIB += -lsocket
+endif
+
+OBJLIB=\
+	$(COM_CMM)/trdp_stats.o \
+	$(COM_CMM)/trdp_mdcom.o \
+	$(COM_CMM)/trdp_pdcom.o \
+	$(COM_CMM)/trdp_utils.o \
+	$(COM_CMM)/trdp_if.o \
+		\
+	$(VOS_CMM)/vos_utils.o \
+	$(VOS_CMM)/vos_mem.o \
+		\
+	$(VOS_POSIX)/vos_sock.o \
+	$(VOS_POSIX)/vos_thread.o
+
+OBJPRJ1= test/udpmdcom/mdTest4.o
+
+CFLAGS=-Wall -D_GNU_SOURCE -DPOSIX -I$(VOS_POSIX) -I$(VOS_API) -I$(COM_CMM) -I$(API_INC) -DMD_SUPPORT=1
+
+.PHONY: all clean
+
+all: $(TRDPLIB) $(PROJ1)
+
+clean:
+	$(RM) $(OBJLIB) $(TRDPLIB) $(OBJPRJ1) $(PROJ1)
+
+$(PROJ1) : $(TRDPLIB) $(OBJPRJ1) 
+	$(CC) -o $(PROJ1) $(OBJPRJ1) -L $(BLDDIR) $(OSLIB)
+
+$(TRDPLIB) : $(OBJLIB)
+	$(AR) cr $(TRDPLIB) $(OBJLIB)

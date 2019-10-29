@@ -1,0 +1,307 @@
+DBG vos_mem.c:376 vos_memAlloc() 0x4c40b8, size	28
+INF tlc_if.c:346 TRDP Stack Version 2.0.2.1: successfully initiated
+DBG vos_mem.c:376 vos_memAlloc() 0x4c4288, size	12152
+DBG vos_mem.c:376 vos_memAlloc() 0x4c4100, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x4c4120, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x4c4140, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x4c4160, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x4c7208, size	1472
+DBG vos_mem.c:376 vos_memAlloc() 0x4c4180, size	140
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=4 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 4
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = PD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 5, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+DBG vos_mem.c:376 vos_memAlloc() 0x4c77d0, size	420
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=5 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:17224
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 4
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = PD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 5, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:122 iface[1].sock = 5
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = PD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 5, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 1
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+DBG vos_mem.c:376 vos_memAlloc() 0x4c7978, size	140
+DBG vos_mem.c:376 vos_memAlloc() 0x4c7a08, size	1472
+INF tlc_if.c:577 TRDP session opened successfully
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:17225
+INF trdp_mdcom.c:2153 TCP socket opened and listening (Socket: 6, Port: 17225)
+DBG vos_mem.c:376 vos_memAlloc() 0x4c7fd0, size	124
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8050, size	124
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:17225
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 7
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 1
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+DBG vos_mem.c:376 vos_memAlloc() 0x4c80d0, size	124
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=8 success
+INF vos_sock.c:1352 trying to bind to: 0.0.0.0:17225
+INF vos_sock.c:992 joining MC: 239.2.24.1 on iface 10.0.1.22
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 7
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 1
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:122 iface[1].sock = 8
+DBG trdp_utils.c:123 iface[1].bindAddr = 0
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 1
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF trdp_mdcom.c:2734 Accepting new TCP connection on Socket: 9 (Port: 50006)
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 7
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 1
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:122 iface[1].sock = 8
+DBG trdp_utils.c:123 iface[1].bindAddr = 0
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 1
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:122 iface[2].sock = 9
+DBG trdp_utils.c:123 iface[2].bindAddr = a000116
+DBG trdp_utils.c:126 iface[2].type = MD_TCP 
+DBG trdp_utils.c:131 iface[2].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[2].rcvMostly = 1
+DBG trdp_utils.c:133 iface[2].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 9)
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+DBG vos_sock.c:1657 received 65336 bytes (Socket: 9)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF trdp_mdcom.c:1745 Creating TCP MD replier session '0000000000000000'
+INF trdp_mdcom.c:764 Freeing MD TCP replier session '0000000000000000'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session '0000000000000000'
+INF trdp_mdcom.c:764 Freeing MD UDP replier session '0000000000000000'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session '0000000000000000'
+INF trdp_mdcom.c:764 Freeing MD UDP replier session '0000000000000000'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 9)
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+DBG vos_sock.c:1657 received 64124 bytes (Socket: 9)
+DBG vos_sock.c:1657 received 1212 bytes (Socket: 9)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mr' UUID: 08ab06000e14b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating TCP MD replier session '08ab06000e14b00d'
+INF trdp_mdcom.c:231 Using TCP MD session '08ab06000e14b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 3, msgType=Mp
+DBG vos_sock.c:1541 connect() 9: Transport endpoint is already connected
+INF trdp_mdcom.c:2263 Opened TCP connection to 10.0.1.1 (Socket: 9, Port: 17225)
+INF trdp_mdcom.c:764 Freeing MD TCP replier session '08ab06000e14b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mr' UUID: 689507000f14b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session '689507000f14b00d'
+INF trdp_mdcom.c:231 Using UDP MD session '689507000f14b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 3, msgType=Mp
+INF trdp_mdcom.c:764 Freeing MD UDP replier session '689507000f14b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mr' UUID: d8a608001014b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session 'd8a608001014b00d'
+INF trdp_mdcom.c:231 Using UDP MD session 'd8a608001014b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 3, msgType=Mp
+INF trdp_mdcom.c:764 Freeing MD UDP replier session 'd8a608001014b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+INF trdp_mdcom.c:1199 vos_sockReceiveTCP - No data at socket 9
+ERR trdp_mdcom.c:1522 trdp_mdCheck TCP failed (Err: -5)
+INF trdp_mdcom.c:2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 9)
+INF trdp_utils.c:1348 The socket (Num = 9) will be closed
+DBG vos_sock.c:748 vos_sockClose(9) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 9, lIndex: 2)
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mr' UUID: 389109001114b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session '389109001114b00d'
+INF trdp_mdcom.c:231 Using UDP MD session '389109001114b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 3, msgType=Mp
+INF trdp_mdcom.c:764 Freeing MD UDP replier session '389109001114b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+INF trdp_mdcom.c:2734 Accepting new TCP connection on Socket: 9 (Port: 50017)
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 7
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 1
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:122 iface[1].sock = 8
+DBG trdp_utils.c:123 iface[1].bindAddr = 0
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 1
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:122 iface[2].sock = 9
+DBG trdp_utils.c:123 iface[2].bindAddr = a000116
+DBG trdp_utils.c:126 iface[2].type = MD_TCP 
+DBG trdp_utils.c:131 iface[2].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[2].rcvMostly = 1
+DBG trdp_utils.c:133 iface[2].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 9)
+DBG vos_mem.c:376 vos_memAlloc() 0x4c87f8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+DBG vos_sock.c:1657 received 65336 bytes (Socket: 9)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mr' UUID: 68060a001514b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating TCP MD replier session '68060a001514b00d'
+INF trdp_mdcom.c:231 Using TCP MD session '68060a001514b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4c87f8
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8228, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 4, msgType=Mq
+DBG vos_sock.c:1541 connect() 9: Transport endpoint is already connected
+INF trdp_mdcom.c:2263 Opened TCP connection to 10.0.1.1 (Socket: 9, Port: 17225)
+INF trdp_mdcom.c:2356 Setting timeout for confirmation!
+DBG vos_mem.c:376 vos_memAlloc() 0x4d81d8, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4d82b0, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 9)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mc' UUID: 68060a001514b00d Data len: 0)
+DBG vos_mem.c:519 vos_memFree() 0x4c8228
+INF trdp_mdcom.c:641 Received Confirmation, session will be closed!
+INF trdp_mdcom.c:764 Freeing MD TCP replier session '68060a001514b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4d82b0
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x4d82b0, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mr' UUID: d8170b001614b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session 'd8170b001614b00d'
+INF trdp_mdcom.c:231 Using UDP MD session 'd8170b001614b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4d82b0
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 4, msgType=Mq
+INF trdp_mdcom.c:2356 Setting timeout for confirmation!
+DBG vos_mem.c:376 vos_memAlloc() 0x4d8100, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4d82b0, size	1480
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mc' UUID: d8170b001614b00d Data len: 0)
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+INF trdp_mdcom.c:641 Received Confirmation, session will be closed!
+INF trdp_mdcom.c:764 Freeing MD UDP replier session 'd8170b001614b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4d82b0
+DBG vos_mem.c:519 vos_memFree() 0x4d81d8
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x4d81d8, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mr' UUID: 38020c001714b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session '38020c001714b00d'
+INF trdp_mdcom.c:231 Using UDP MD session '38020c001714b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4d81d8
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 4, msgType=Mq
+INF trdp_mdcom.c:2356 Setting timeout for confirmation!
+DBG vos_mem.c:376 vos_memAlloc() 0x4d81d8, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4d82b0, size	1480
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mc' UUID: 38020c001714b00d Data len: 0)
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+INF trdp_mdcom.c:641 Received Confirmation, session will be closed!
+INF trdp_mdcom.c:764 Freeing MD UDP replier session '38020c001714b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4d82b0
+DBG vos_mem.c:519 vos_memFree() 0x4d8100
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	1480
+INF trdp_mdcom.c:1199 vos_sockReceiveTCP - No data at socket 9
+ERR trdp_mdcom.c:1522 trdp_mdCheck TCP failed (Err: -5)
+INF trdp_mdcom.c:2879 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 9)
+INF trdp_utils.c:1348 The socket (Num = 9) will be closed
+DBG vos_sock.c:748 vos_sockClose(9) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 9, lIndex: 2)
+DBG vos_mem.c:376 vos_memAlloc() 0x4d82b0, size	65452
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mr' UUID: 98ec0c001814b00d Data len: 65336)
+INF trdp_mdcom.c:1745 Creating UDP MD replier session '98ec0c001814b00d'
+INF trdp_mdcom.c:231 Using UDP MD session '98ec0c001814b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4d82b0
+DBG vos_mem.c:376 vos_memAlloc() 0x4c8150, size	65452
+INF trdp_mdcom.c:3206 MD sender element state = 4, msgType=Mq
+INF trdp_mdcom.c:2356 Setting timeout for confirmation!
+DBG vos_mem.c:376 vos_memAlloc() 0x4d8100, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x4d82b0, size	1480
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mc' UUID: 98ec0c001814b00d Data len: 0)
+DBG vos_mem.c:519 vos_memFree() 0x4c8150
+INF trdp_mdcom.c:641 Received Confirmation, session will be closed!
+INF trdp_mdcom.c:764 Freeing MD UDP replier session '98ec0c001814b00d'
+DBG vos_mem.c:519 vos_memFree() 0x4d82b0
+DBG vos_mem.c:519 vos_memFree() 0x4d81d8
+INF trdp_mdcom.c:2734 Accepting new TCP connectio

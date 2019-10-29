@@ -4,7 +4,8 @@
  *
  * @brief           Demo echoing application for TRDP
  *
- * @details         Receive and send process data, single threaded using callback and heap memory
+ * @details         Receive and send process data, multi threaded using callback and heap memory
+ *                  Three threads are created: PD receiver, PD transmitter and an MD transceiver (not used)
  *
  * @note            Project: TCNOpen TRDP prototype stack
  *
@@ -12,10 +13,11 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright NewTec GmbH, 2018. All rights reserved.
+ *          Copyright NewTec GmbH, 2019. All rights reserved.
  *
  * $Id$
  *
+ *      BL 2019-07-30: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2018-02-02: Example renamed: cmdLineSelect -> echoCallback
  *      BL 2017-06-30: Compiler warnings, local prototypes added
@@ -44,14 +46,14 @@
 
 /* Expect receiving AND Send as echo    */
 #define PD_COMID1               2001
-#define PD_COMID1_CYCLE         5000000
-#define PD_COMID1_TIMEOUT       15000000
+#define PD_COMID1_CYCLE         50000
+#define PD_COMID1_TIMEOUT       150000
 #define PD_COMID1_DATA_SIZE     32
 
 /* We use dynamic memory    */
 #define RESERVED_MEMORY     1000000
 
-#define APP_VERSION         "1.4"
+#define APP_VERSION         "2.0"
 
 #define GBUFFER_SIZE        128
 CHAR8   gBuffer[GBUFFER_SIZE]       = "Hello World";
@@ -70,6 +72,11 @@ void    usage (const char *);
 void    myPDcallBack (void *,
                       TRDP_APP_SESSION_T,
                       const     TRDP_PD_INFO_T *,
+                      UINT8 *,
+                      UINT32    dataSize);
+void    myMDcallBack (void *,
+                      TRDP_APP_SESSION_T,
+                      const     TRDP_MD_INFO_T *,
                       UINT8 *,
                       UINT32    dataSize);
 
@@ -101,6 +108,96 @@ void dbgOut (
            pMsgStr);
 }
 
+/*********************************************************************************************************************/
+/** Call tlp_processReceive asynchronously
+ */
+static void *receiverThread (void * arg)
+{
+    TRDP_APP_SESSION_T  sessionhandle = (TRDP_APP_SESSION_T) arg;
+    TRDP_ERR_T      result;
+    TRDP_TIME_T     interval = {0,0};
+    TRDP_FDS_T      fileDesc;
+    INT32           noDesc = 0;
+
+    while (vos_threadDelay(0u) == VOS_NO_ERR)   /* this is a cancelation point! */
+    {
+        FD_ZERO(&fileDesc);
+        result = tlp_getInterval(sessionhandle, &interval, &fileDesc, &noDesc);
+        if (result != TRDP_NO_ERR)
+        {
+            vos_printLog(VOS_LOG_WARNING, "tlp_getInterval failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+        }
+        noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        result = tlp_processReceive(sessionhandle, &fileDesc, &noDesc);
+        if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
+        {
+            vos_printLog(VOS_LOG_WARNING, "tlp_processReceive failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+        }
+    }
+    return NULL;
+}
+
+/*********************************************************************************************************************/
+/** Call tlm_process asynchronously
+ */
+static void *transceiverMDThread (void * arg)
+{
+    TRDP_APP_SESSION_T  sessionhandle = (TRDP_APP_SESSION_T) arg;
+    TRDP_ERR_T      result;
+    TRDP_TIME_T     interval = {0,0};
+    TRDP_FDS_T      fileDesc;
+    INT32           noDesc = 0;
+
+    while (vos_threadDelay(0u) == VOS_NO_ERR)   /* this is a cancelation point! */
+    {
+        FD_ZERO(&fileDesc);
+        result = tlm_getInterval(sessionhandle, &interval, &fileDesc, &noDesc);
+        if (result != TRDP_NO_ERR)
+        {
+            vos_printLog(VOS_LOG_WARNING, "tlm_getInterval failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+        }
+        noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        result = tlm_process(sessionhandle, &fileDesc, &noDesc);
+        if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
+        {
+            vos_printLog(VOS_LOG_WARNING, "tlm_process failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+        }
+    }
+    return NULL;
+}
+
+/*********************************************************************************************************************/
+/** Call tlp_processSend synchronously
+ */
+static void *senderThread (void * arg)
+{
+    TRDP_APP_SESSION_T  sessionhandle = (TRDP_APP_SESSION_T) arg;
+    TRDP_ERR_T result = tlp_processSend(sessionhandle);
+    if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
+    {
+        vos_printLog(VOS_LOG_WARNING, "tlp_processSend failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
+    }
+    return NULL;
+}
+
+/**********************************************************************************************************************/
+/** callback routine for receiving TRDP traffic
+ *
+ *  @param[in]      pRefCon         user supplied context pointer
+ *  @param[in]      pMsg            pointer to header/packet infos
+ *  @param[in]      pData           pointer to data block
+ *  @param[in]      dataSize        pointer to data size
+ *  @retval         none
+ */
+void myMDcallBack (
+    void                    *pRefCon,
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_MD_INFO_T    *pMsg,
+    UINT8                   *pData,
+    UINT32                  dataSize)
+{
+    ;
+}
 
 /**********************************************************************************************************************/
 /** callback routine for receiving TRDP traffic
@@ -175,15 +272,18 @@ int main (int argc, char * *argv)
     TRDP_ERR_T              err;
     TRDP_PD_CONFIG_T        pdConfiguration = {myPDcallBack, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
                                                10000000, TRDP_TO_SET_TO_ZERO, 0};
+    TRDP_MD_CONFIG_T        mdConfiguration = {myMDcallBack, NULL, TRDP_MD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
+                                                0u, 0u, 0u, 0u, 0u, 0u, 0u};
+
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
-    int rv = 0;
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_BLOCK};
+    int                     rv = 0;
     unsigned int            ip[4];
-    UINT32  destIP = 0;
-    int     ch;
-    UINT32  hugeCounter = 0;
-    UINT32  ownIP       = 0;
-    UINT32  comId_In    = PD_COMID1, comId_Out = PD_COMID1;
+    UINT32                  destIP = 0;
+    int                     ch;
+    UINT32                  hugeCounter = 0;
+    UINT32                  ownIP       = 0;
+    UINT32                  comId_In    = PD_COMID1, comId_Out = PD_COMID1;
 
     /****** Parsing the command line arguments */
     if (argc <= 1)
@@ -259,6 +359,7 @@ int main (int argc, char * *argv)
     }
 
     /*    Init the library for callback operation    (PD only) */
+
     if (tlc_init(dbgOut,                           /* actually printf    */
                  NULL,
                  &dynamicConfig                    /* Use application supplied memory    */
@@ -272,11 +373,49 @@ int main (int argc, char * *argv)
     if (tlc_openSession(&appHandle,
                         ownIP, 0u,                  /* use default IP addresses           */
                         NULL,                       /* no Marshalling                     */
-                        &pdConfiguration, NULL,     /* system defaults for PD and MD      */
+                        &pdConfiguration,
+                        &mdConfiguration,           /* system defaults for PD and MD      */
                         &processConfig) != TRDP_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_USR, "Initialization error\n");
         return 1;
+    }
+
+    /*  Create and install threads for the new separate PD/MD process functions */
+    {
+        VOS_THREAD_T    rcvThread, sndThread, mdThread;
+
+        /* Create new PD receiver thread */
+        /* Receiver thread runs until cancel */
+        vos_threadCreate (&rcvThread,
+                          "PD Receiver Task",
+                          VOS_THREAD_POLICY_OTHER,
+                          VOS_THREAD_PRIORITY_DEFAULT,
+                          0u,
+                          0u,
+                          (VOS_THREAD_FUNC_T) receiverThread,
+                          appHandle);
+
+        vos_printLog(VOS_LOG_USR, "Sender task cycle:\t%uµs\n", processConfig.cycleTime);
+        /* Send thread is a cyclic thread, runs until cancel */
+        vos_threadCreate (&sndThread,
+                          "PD Sender Task",
+                          VOS_THREAD_POLICY_OTHER,
+                          VOS_THREAD_PRIORITY_HIGHEST,
+                          processConfig.cycleTime,        /* 10ms process cycle time */
+                          0u,
+                          (VOS_THREAD_FUNC_T) senderThread,
+                          appHandle);
+
+        /* MD thread is a standard thread */
+        vos_threadCreate (&mdThread,
+                          "MD Task",
+                          VOS_THREAD_POLICY_OTHER,
+                          VOS_THREAD_PRIORITY_HIGHEST,
+                          0u,
+                          0u,
+                          (VOS_THREAD_FUNC_T) transceiverMDThread,
+                          appHandle);
     }
 
     /*    Subscribe to control PD        */
@@ -286,6 +425,7 @@ int main (int argc, char * *argv)
     err = tlp_subscribe( appHandle,                 /*    our application identifier           */
                          &subHandle,                /*    our subscription identifier          */
                          NULL, NULL,                /*    userRef & callback function          */
+                         0u,
                          comId_In,                  /*    ComID                                */
                          0u,                        /*    topocount: local consist only        */
                          0u,
@@ -293,6 +433,7 @@ int main (int argc, char * *argv)
                          VOS_INADDR_ANY,            /*     */
                          destIP,                    /*    Default destination IP (or MC Group) */
                          TRDP_FLAGS_DEFAULT,        /*   */
+                         NULL,                      /*    default interface                    */
                          PD_COMID1_TIMEOUT,         /*    Time out in us                       */
                          TRDP_TO_SET_TO_ZERO);      /*    delete invalid data    on timeout    */
 
@@ -308,6 +449,7 @@ int main (int argc, char * *argv)
     err = tlp_publish(  appHandle,                  /*    our application identifier    */
                         &pubHandle,                 /*    our pulication identifier     */
                         NULL, NULL,
+                        0u,
                         comId_Out,                  /*    ComID to send                 */
                         0u,                         /*    local consist only            */
                         0u,
@@ -329,74 +471,31 @@ int main (int argc, char * *argv)
         return 1;
     }
 
+    /*
+     Finish the setup.
+     On non-high-performance targets, this is a no-op.
+     This call is necessary if HIGH_PERF_INDEXED is defined. It will create the internal index tables for faster access.
+     It should be called after the last publisher and subscriber has been added.
+     Maybe tlc_activateSession would be a better name.If HIGH_PERF_INDEXED is set, this call will create the internal index tables for fast telegram access
+     */
+
+    err = tlc_updateSession(appHandle);
+    if (err != TRDP_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_USR, "tlc_updateSession error (%s)\n", vos_getErrorString((VOS_ERR_T)err));
+        tlc_terminate();
+        return 1;
+    }
+
 
     /*
         Enter the main processing loop.
      */
     while (1)
     {
-        fd_set  rfds;
-        INT32   noOfDesc;
-        struct timeval  tv;
-        struct timeval  max_tv = {0, 100000};
+        /* sleep a while, then produce some data ... */
 
-        /*
-            Prepare the file descriptor set for the select call.
-            Additional descriptors can be added here.
-         */
-        FD_ZERO(&rfds);
-        /*
-            Compute the min. timeout value for select and return descriptors to wait for.
-            This way we can guarantee that PDs are sent in time...
-         */
-        tlc_getInterval(appHandle,
-                        (TRDP_TIME_T *) &tv,
-                        (TRDP_FDS_T *) &rfds,
-                        &noOfDesc);
-
-        /*
-            The wait time for select must consider cycle times and timeouts of
-            the PD packets received or sent.
-            If we need to poll something faster than the lowest PD cycle,
-            we need to set the maximum timeout ourselfs
-         */
-
-        if (vos_cmpTime((TRDP_TIME_T *) &tv, (TRDP_TIME_T *) &max_tv) > 0)
-        {
-            tv = max_tv;
-        }
-
-        /*
-            Select() will wait for ready descriptors or timeout,
-            what ever comes first.
-         */
-
-        rv = select((int)noOfDesc + 1, &rfds, NULL, NULL, &tv);
-
-        vos_printLog(VOS_LOG_USR, "Pending events: %d\n", rv);
-        /*
-            Check for overdue PDs (sending and receiving)
-            Send any PDs if it's time...
-            Detect missing PDs...
-            'rv' will be updated to show the handled events, if there are
-            more than one...
-            The callback function will be called from within the trdp_work
-            function (in it's context and thread)!
-         */
-
-        (void) tlc_process(appHandle, (TRDP_FDS_T *) &rfds, &rv);
-
-        /*
-           Handle other ready descriptors...
-         */
-        if (rv > 0)
-        {
-            vos_printLogStr(VOS_LOG_USR, "other descriptors were ready\n");
-        }
-        else
-        {
-            /* vos_printLogStr(VOS_LOG_USR, "looping...\n"); */
-        }
+        (void) vos_threadDelay(100000u);
 
         /* Update the information, that is sent */
         sprintf((char *)gBuffer, "Ping for the %dth. time.", hugeCounter++);

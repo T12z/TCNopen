@@ -14,9 +14,13 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  */
- /*
+/*
  * $Id$
  *
+ *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
+ *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+ *      V 2.0.0 --------- ^^^ -----------
+ *      V 1.4.2 --------- vvv -----------
  *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-03-06: 64Bit endian swap added
@@ -83,7 +87,7 @@ extern "C" {
 
 #endif
 
-#define VOS_TTL_MULTICAST       64  /**< The maximum number of hops a multicast packet can take    */
+#define VOS_TTL_MULTICAST  64       /**< The maximum number of hops a multicast packet can take    */
 #ifndef VOS_MAX_IF_NAME_SIZE        /**< The maximum size for the interface name                   */
 #ifdef IFNAMSIZ
 #define VOS_MAX_IF_NAME_SIZE    IFNAMSIZ
@@ -108,14 +112,18 @@ extern "C" {
 #endif
 #endif
 
-#define VOS_INVALID_SOCKET  -1      /**< Invalid socket number */
-
 #define VOS_INADDR_ANY      INADDR_ANY
 
 #define VOS_DEFAULT_IFACE   cDefaultIface
 
 #if !defined(SOCKET) && !defined(WIN64)
-#define SOCKET          INT32
+#define SOCKET              INT32
+#endif
+
+#ifdef INVALID_SOCKET                           /* In Windows SOCKET is unsigned int */
+#define VOS_INVALID_SOCKET  INVALID_SOCKET      /**< Invalid socket number */
+#else
+#define VOS_INVALID_SOCKET  -1                  /**< Invalid socket number */
 #endif
 
 extern const CHAR8 *cDefaultIface;
@@ -134,12 +142,10 @@ typedef struct
     BOOL8   nonBlocking;    /**< use non blocking calls                             */
     BOOL8   no_mc_loop;     /**< no multicast loop back                             */
     BOOL8   no_udp_crc;     /**< supress udp crc computation                       */
-#ifdef TRDP_TSN
     BOOL8   txTime;         /**< use transmit time on send, if available            */
     BOOL8   raw;            /**< use raw socket, not for receiver!                  */
     UINT16  vlanId;
     CHAR8   ifName[VOS_MAX_IF_NAME_SIZE]; /**< interface name if available          */
-#endif
 } VOS_SOCK_OPT_T;
 
 typedef fd_set VOS_FDS_T;
@@ -151,7 +157,7 @@ typedef struct
     VOS_IP4_ADDR_T  netMask;                    /**< subnet mask                    */
     UINT8           mac[VOS_MAC_SIZE];          /**< interface adapter MAC address  */
     BOOL8           linkState;                  /**< link down (false) / link up (true) */
-//    UINT16          vlanId;
+/*    UINT16          vlanId; */
 } VOS_IF_REC_T;
 
 /***********************************************************************************************************************
@@ -203,7 +209,7 @@ EXT_DECL UINT32 vos_ntohl (
     UINT32 val);
 
 /**********************************************************************************************************************/
-/** Byte swapping 8å Bytes.
+/** Byte swapping 8 Bytes.
  *
  *  @param[in]          val             Initial value.
  *
@@ -357,7 +363,7 @@ EXT_DECL VOS_ERR_T vos_sockGetMAC(
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenUDP (
-    SOCKET                   *pSock,
+    SOCKET                  *pSock,
     const VOS_SOCK_OPT_T    *pOptions);
 
 /**********************************************************************************************************************/
@@ -374,7 +380,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenTCP (
-    SOCKET                   *pSock,
+    SOCKET                  *pSock,
     const VOS_SOCK_OPT_T    *pOptions);
 
 /**********************************************************************************************************************/
@@ -402,7 +408,7 @@ EXT_DECL VOS_ERR_T vos_sockClose (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSetOptions (
-    SOCKET                   sock,
+    SOCKET                  sock,
     const VOS_SOCK_OPT_T    *pOptions);
 
 /**********************************************************************************************************************/
@@ -419,7 +425,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
  */
 
 EXT_DECL VOS_ERR_T vos_sockJoinMC (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  mcAddress,
     UINT32  ipAddress);
 
@@ -439,7 +445,7 @@ EXT_DECL VOS_ERR_T vos_sockJoinMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockLeaveMC (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  mcAddress,
     UINT32  ipAddress);
 
@@ -460,7 +466,7 @@ EXT_DECL VOS_ERR_T vos_sockLeaveMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendUDP (
-    SOCKET       sock,
+    SOCKET      sock,
     const UINT8 *pBuffer,
     UINT32      *pSize,
     UINT32      ipAddress,
@@ -491,7 +497,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT8   *pBuffer,
     UINT32  *pSize,
     UINT32  *pSrcIPAddr,
@@ -514,7 +520,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockBind (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  ipAddress,
     UINT16  port);
 
@@ -532,7 +538,7 @@ EXT_DECL VOS_ERR_T vos_sockBind (
  */
 
 EXT_DECL VOS_ERR_T vos_sockListen (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  backlog);
 
 /**********************************************************************************************************************/
@@ -551,8 +557,8 @@ EXT_DECL VOS_ERR_T vos_sockListen (
  */
 
 EXT_DECL VOS_ERR_T vos_sockAccept (
-    SOCKET   sock,
-    SOCKET   *pSock,
+    SOCKET  sock,
+    SOCKET  *pSock,
     UINT32  *pIPAddress,
     UINT16  *pPort);
 
@@ -570,7 +576,7 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
  */
 
 EXT_DECL VOS_ERR_T vos_sockConnect (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  ipAddress,
     UINT16  port);
 
@@ -590,7 +596,7 @@ EXT_DECL VOS_ERR_T vos_sockConnect (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendTCP (
-    SOCKET       sock,
+    SOCKET      sock,
     const UINT8 *pBuffer,
     UINT32      *pSize);
 
@@ -614,7 +620,7 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT8   *pBuffer,
     UINT32  *pSize);
 
@@ -628,7 +634,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
  *  @retval         VOS_PARAM_ERR              sock descriptor unknown, parameter error
  */
 EXT_DECL VOS_ERR_T vos_sockSetMulticastIf (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  mcIfAddress);
 
 
@@ -644,16 +650,34 @@ EXT_DECL VOS_IP4_ADDR_T vos_determineBindAddr ( VOS_IP4_ADDR_T  srcIP,
                                                 VOS_IP4_ADDR_T  mcGroup,
                                                 VOS_IP4_ADDR_T  rcvMostly);
 
+#ifdef TSN_SUPPORT
 /* Extension for TSN & VLAN support */
-EXT_DECL VOS_ERR_T vos_ifnameFromVlanId (UINT16 vlanId, CHAR8 *pIFaceName);
-EXT_DECL VOS_ERR_T vos_createVlanIF (UINT16 vlanId, UINT8 vlanPriority, CHAR8 *pIFaceName, VOS_IP4_ADDR_T ipAddr);
-EXT_DECL VOS_ERR_T vos_sockOpenTSN (SOCKET *pSock, const VOS_SOCK_OPT_T *pOptions);
-EXT_DECL VOS_ERR_T vos_sockSendTSN (SOCKET sock, const UINT8 *pBuffer, UINT32 *pSize, VOS_IP4_ADDR_T srcIpAddress,
-                                    VOS_IP4_ADDR_T dstIpAddress,UINT16 port, VOS_TIMEVAL_T *pTxTime);
-EXT_DECL VOS_ERR_T vos_sockReceiveTSN (SOCKET sock, UINT8 *pBuffer, UINT32 *pSize, UINT32 *pSrcIPAddr,
-                                       UINT16 *pSrcIPPort, UINT32 *pDstIPAddr, BOOL8 peek);
-EXT_DECL VOS_ERR_T vos_sockBind2IF (SOCKET sock, VOS_IF_REC_T *pIFace, BOOL8 doBind);
-EXT_DECL void vos_sockPrintOptions (SOCKET sock);
+EXT_DECL VOS_ERR_T  vos_ifnameFromVlanId (UINT16    vlanId,
+                                          CHAR8     *pIFaceName);
+EXT_DECL VOS_ERR_T  vos_createVlanIF (UINT16            vlanId,
+                                      CHAR8             *pIFaceName,
+                                      VOS_IP4_ADDR_T    ipAddr);
+EXT_DECL VOS_ERR_T  vos_sockOpenTSN (SOCKET                 *pSock,
+                                     const VOS_SOCK_OPT_T   *pOptions);
+EXT_DECL VOS_ERR_T  vos_sockSendTSN (SOCKET         sock,
+                                     const UINT8    *pBuffer,
+                                     UINT32         *pSize,
+                                     VOS_IP4_ADDR_T srcIpAddress,
+                                     VOS_IP4_ADDR_T dstIpAddress,
+                                     UINT16         port,
+                                     VOS_TIMEVAL_T  *pTxTime);
+EXT_DECL VOS_ERR_T vos_sockReceiveTSN (SOCKET   sock,
+                                       UINT8    *pBuffer,
+                                       UINT32   *pSize,
+                                       UINT32   *pSrcIPAddr,
+                                       UINT16   *pSrcIPPort,
+                                       UINT32   *pDstIPAddr,
+                                       BOOL8    peek);
+EXT_DECL VOS_ERR_T  vos_sockBind2IF (SOCKET         sock,
+                                     VOS_IF_REC_T   *pIFace,
+                                     BOOL8          doBind);
+EXT_DECL void       vos_sockPrintOptions (SOCKET sock);
+#endif
 
 #ifdef __cplusplus
 }

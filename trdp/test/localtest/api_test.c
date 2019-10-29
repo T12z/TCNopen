@@ -18,9 +18,12 @@
  *
  * $Id$
  *
+ *      BL 2019-08-27: Interval timing in test 9 changed
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  */
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 /***********************************************************************************************************************
  * INCLUDES
@@ -415,14 +418,14 @@ static void dbgOut (
     const CHAR8 *pMsgStr)
 {
     const char *catStr[] = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
-
+    CHAR8       *pF = strrchr(pFile, VOS_DIR_SEP);
 
     if (gFullLog || ((category == VOS_LOG_USR) || (category != VOS_LOG_DBG && category != VOS_LOG_INFO)))
     {
         fprintf(gFp, "%s %s %s:%d %s",
                 strrchr(pTime, '-') + 1,
                 catStr[category],
-                strrchr(pFile, '/') + 1,
+                (pF == NULL)? "" : pF + 1,
                 lineNumber,
                 pMsgStr);
     }
@@ -623,7 +626,7 @@ static int test1 ()
 
         /*    Copy the packet into the internal send queue, prepare for sending.    */
 
-        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, TEST1_COMID, 0u, 0u,
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL,  0u, TEST1_COMID, 0u, 0u,
                           0u, /* gSession1.ifaceIP,                   / * Source * / */
                           gSession2.ifaceIP, /* gDestMC,               / * Destination * / */
                           TEST1_INTERVAL,
@@ -631,11 +634,13 @@ static int test1 ()
 
         IF_ERROR("tlp_publish");
 
-        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL, 0u,
                             TEST1_COMID, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             0u, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_DEFAULT, TEST1_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TEST1_INTERVAL * 3, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe");
@@ -747,7 +752,7 @@ static int test2 ()
 
         /*    Copy the packet into the internal send queue, prepare for sending.    */
 
-        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, TEST2_COMID, 0u, 0u,
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL,  0u, TEST2_COMID, 0u, 0u,
                           0u, /* gSession1.ifaceIP,                   / * Source * / */
                           gSession2.ifaceIP, /* gDestMC,               / * Destination * / */
                           TEST2_INTERVAL,
@@ -755,11 +760,13 @@ static int test2 ()
 
         IF_ERROR("tlp_publish");
 
-        err = tlp_subscribe(gSession2.appHandle, &subHandle, data1, test2PDcallBack,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, data1, test2PDcallBack, 0u,
                             TEST2_COMID, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             0u, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_CALLBACK, TEST2_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_CALLBACK,
+                            NULL,                      /*    default interface                    */
+                            TEST2_INTERVAL * 3, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe");
@@ -807,11 +814,13 @@ static int test3 ()
 #define TEST3_INTERVAL  100000u
 
 
-        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL, 0u,
                             TEST3_COMID, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             0u, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_DEFAULT, TRDP_INFINITE_TIMEOUT, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TRDP_INFINITE_TIMEOUT, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe");
@@ -879,16 +888,18 @@ static int test4 ()
 
             /*    Session1 Install subscriber and publisher for PULL (interval = 0).    */
 
-            err = tlp_subscribe(gSession1.appHandle, &subHandle, NULL, NULL,
+            err = tlp_subscribe(gSession1.appHandle, &subHandle, NULL, NULL, 0u,
                                 TEST4_COMID, 0u, 0u,
                                 0u, 0u,
                                 gDestMC,                            /* MC group */
-                                TRDP_FLAGS_NONE, 0, TRDP_TO_DEFAULT);
+                                TRDP_FLAGS_NONE,
+                                NULL,                      /*    default interface                    */
+                                0, TRDP_TO_DEFAULT);
 
 
             IF_ERROR("tlp_subscribe");
 
-            err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, TEST4_COMID, 0u, 0u,
+            err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL,  0u, TEST4_COMID, 0u, 0u,
                               0u,
                               gDestMC,                              /* Destination */
                               0u,
@@ -898,16 +909,18 @@ static int test4 ()
 
             /*    Session2 Install subscriber and do a request for PULL.    */
 
-            err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL,
+            err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL, 0u,
                                 TEST4_COMID, 0u, 0u,
                                 0u, 0u,                                 /* Source */
                                 gDestMC,                            /* Destination */
-                                TRDP_FLAGS_DEFAULT, TEST4_INTERVAL * 3, TRDP_TO_DEFAULT);
+                                TRDP_FLAGS_DEFAULT,
+                                NULL,                      /*    default interface                    */
+                                TEST4_INTERVAL * 3, TRDP_TO_DEFAULT);
 
 
             IF_ERROR("tlp_subscribe");
 
-            err = tlp_request(gSession2.appHandle, subHandle,
+            err = tlp_request(gSession2.appHandle, subHandle, 0u,
                               TEST4_COMID, 0u, 0u, gSession2.ifaceIP, gSession1.ifaceIP,
                               0u, TRDP_FLAGS_NONE, NULL, NULL, 0u, TEST4_COMID, gDestMC);
 
@@ -1224,16 +1237,18 @@ static int test8 ()
 
         /*    Session1 Install subscriber and publisher for PULL (interval = 0).    */
 
-        err = tlp_subscribe(gSession1.appHandle, &subHandle, NULL, NULL,
+        err = tlp_subscribe(gSession1.appHandle, &subHandle, NULL, NULL, 0u,
                             TEST8_COMID, 0u, 0u,
                             0u, 0u,
                             gDestMC,                            /* MC group */
-                            TRDP_FLAGS_NONE, 0, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_NONE,
+                            NULL,                      /*    default interface                    */
+                            0, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe");
 
-        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, TEST8_COMID, 0u, 0u,
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, 0u, TEST8_COMID, 0u, 0u,
                           0u,
                           gDestMC,                              /* Destination */
                           0u,
@@ -1306,7 +1321,7 @@ static int test9 ()
     {
 #define TEST9_NO_OF_TELEGRAMS   200u
 #define TEST9_COMID             10000u
-#define TEST9_INTERVAL          100000u
+#define TEST9_INTERVAL          20000u
 #define TEST9_TIMEOUT           (TEST9_INTERVAL * 3)
 #define TEST9_DATA              "Hello World!"
 #define TEST9_DATA_LEN          16u
@@ -1319,7 +1334,7 @@ static int test9 ()
         {
             /*    Session1 Install all publishers    */
 
-            err = tlp_publish(gSession1.appHandle, &pubHandle[i], NULL, NULL,
+            err = tlp_publish(gSession1.appHandle, &pubHandle[i], NULL, NULL, 0u,
                               TEST9_COMID + i, 0u, 0u,
                               0u,
                               gSession2.ifaceIP,                              /* Destination */
@@ -1327,11 +1342,13 @@ static int test9 ()
                               0u, TRDP_FLAGS_DEFAULT, NULL, (UINT8 *) TEST9_DATA, TEST9_DATA_LEN);
 
             IF_ERROR("tlp_publish");
-            err = tlp_subscribe(gSession2.appHandle, &subHandle[i], NULL, NULL,
+            err = tlp_subscribe(gSession2.appHandle, &subHandle[i], NULL, NULL, 0u,
                                 TEST9_COMID + i, 0u, 0u,
                                 gSession1.ifaceIP,
                                 0u, 0u,                        /* MC group */
-                                TRDP_FLAGS_NONE, TEST9_TIMEOUT, TRDP_TO_DEFAULT);
+                                TRDP_FLAGS_NONE,
+                                NULL,                      /*    default interface                    */
+                                TEST9_TIMEOUT, TRDP_TO_DEFAULT);
 
 
             IF_ERROR("tlp_subscribe");
@@ -1357,7 +1374,7 @@ static int test9 ()
                 (void) tlp_put(gSession1.appHandle, pubHandle[i], (UINT8 *) data2, TEST9_DATA_LEN);
 
                 /*    Wait for answer   */
-                usleep(100000u);
+                vos_threadDelay(TEST9_INTERVAL * 2);
 
                 err = tlp_get(gSession2.appHandle, subHandle[i], &pdInfo, (UINT8 *) data2, &dataSize2);
                 if (err == TRDP_NODATA_ERR)
@@ -1461,7 +1478,7 @@ static int test11 ()
 #define TEST11_DATA         "Hello World!"
 #define TEST11_DATA_LEN     24u
 
-        err = tlp_publish(gSession2.appHandle, &pubHandle1, NULL, NULL,
+        err = tlp_publish(gSession2.appHandle, &pubHandle1, NULL, NULL, 0u,
                           TEST11_COMID_1000, 0u, 0u,
                           0u,
                           TEST11_COMID_1000_DEST,
@@ -1472,34 +1489,40 @@ static int test11 ()
 
         IF_ERROR("tlp_publish");
 
-        err = tlp_subscribe(gSession2.appHandle, &subHandle0, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle0, NULL, NULL, 0u,
                             TEST11_COMID_1000, 0u, 0u,
                             0u, 0u, /* gSession2.ifaceIP,                  / * Source * / */
                             TEST11_COMID_1000_DEST,                  /* Destination */
-                            TRDP_FLAGS_DEFAULT, 0u, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            0u, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe1");
 
-        err = tlp_subscribe(gSession1.appHandle, &subHandle1, NULL, NULL,
+        err = tlp_subscribe(gSession1.appHandle, &subHandle1, NULL, NULL, 0u,
                             TEST11_COMID_2000, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             TEST11_COMID_2000_DEST,                  /* Destination */
-                            TRDP_FLAGS_DEFAULT, 0u, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            0u, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe1");
 
-        err = tlp_subscribe(gSession1.appHandle, &subHandle2, NULL, NULL,
+        err = tlp_subscribe(gSession1.appHandle, &subHandle2, NULL, NULL, 0u,
                             TEST11_COMID_1000, 0u, 0u,
                             0u, 0u, /* TEST11_COMID_1000_SRC,             / * Source filter* / */
                             0u,                                     /* Destination unicast */
-                            TRDP_FLAGS_DEFAULT, 0u, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            0u, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe2");
 
-        err = tlp_request(gSession1.appHandle, subHandle2, TEST11_COMID_1000, 0u, 0u,
+        err = tlp_request(gSession1.appHandle, subHandle2, 0u, TEST11_COMID_1000, 0u, 0u,
                           0u,
                           TEST11_COMID_1000_DEST, 0u, TRDP_FLAGS_NONE, NULL, NULL, 0u,
                           TEST11_COMID_1000, TEST11_COMID_1000_SRC);
@@ -1573,7 +1596,7 @@ static int test12 ()
 
         /*    Copy the packet into the internal send queue, prepare for sending.    */
 
-        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, TEST12_COMID1, 0u, 0u,
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, 0u, TEST12_COMID1, 0u, 0u,
                           0u, /* gSession1.ifaceIP,                   / * Source * / */
                           TEST12_MCDEST1,                           /* Destination */
                           TEST12_INTERVAL,
@@ -1581,32 +1604,40 @@ static int test12 ()
 
         IF_ERROR("tlp_publish");
 
-        err = tlp_subscribe(gSession2.appHandle, &subHandle1, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle1, NULL, NULL, 0u,
                             TEST12_COMID1, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             TEST12_MCDEST1, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_DEFAULT, TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
 
         IF_ERROR("tlp_subscribe1");
-        err = tlp_subscribe(gSession2.appHandle, &subHandle2, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle2, NULL, NULL, 0u,
                             TEST12_COMID2, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             TEST12_MCDEST2, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_DEFAULT, TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
 
         IF_ERROR("tlp_subscribe2");
-        err = tlp_subscribe(gSession2.appHandle, &subHandle3, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle3, NULL, NULL, 0u,
                             TEST12_COMID3, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             TEST12_MCDEST3, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_DEFAULT, TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
 
         IF_ERROR("tlp_subscribe3");
-        err = tlp_subscribe(gSession2.appHandle, &subHandle4, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle4, NULL, NULL, 0u,
                             TEST12_COMID4, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             TEST12_MCDEST2, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_DEFAULT, TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TEST12_INTERVAL * 3, TRDP_TO_DEFAULT);
 
         IF_ERROR("tlp_subscribe4");
 
@@ -1721,7 +1752,7 @@ static int test13 ()
 
         /*    Copy the packet into the internal send queue, prepare for sending.    */
 
-        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, (TRDP_PD_CALLBACK_T) cbIncrement, TEST13_COMID, 0u, 0u,
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, (TRDP_PD_CALLBACK_T) cbIncrement, 0u, TEST13_COMID, 0u, 0u,
                           0u, /* gSession1.ifaceIP,                   / * Source * / */
                           gSession2.ifaceIP, /* gDestMC,               / * Destination * / */
                           TEST13_INTERVAL,
@@ -1729,11 +1760,13 @@ static int test13 ()
 
         IF_ERROR("tlp_publish");
 
-        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL, 0u,
                             TEST13_COMID, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             0u, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_DEFAULT, TEST13_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TEST13_INTERVAL * 3, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe");
@@ -1853,7 +1886,7 @@ static int test14 ()
 
         /*    Copy the packet into the internal send queue, prepare for sending.    */
 
-        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, TEST14_COMID, 0u, 0u,
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, 0u, TEST14_COMID, 0u, 0u,
                           0u, /* gSession1.ifaceIP,                   / * Source * / */
                           gSession2.ifaceIP, /* gDestMC,               / * Destination * / */
                           TEST14_INTERVAL,
@@ -1861,11 +1894,13 @@ static int test14 ()
 
         IF_ERROR("tlp_publish");
 
-        err = tlp_subscribe(gSession2.appHandle, &subHandle, data1, test14PDcallBack,
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, data1, test14PDcallBack, 0u,
                             TEST14_COMID, 0u, 0u,
                             0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
                             0u, /* gDestMC,                            / * Destination * / */
-                            TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB, TEST14_INTERVAL * 3, TRDP_TO_DEFAULT);
+                            TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB,
+                            NULL,                      /*    default interface                    */
+                            TEST14_INTERVAL * 3, TRDP_TO_DEFAULT);
 
 
         IF_ERROR("tlp_subscribe");

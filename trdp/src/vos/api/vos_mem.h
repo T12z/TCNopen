@@ -18,6 +18,8 @@
  /*
  * $Id$
  *
+ *      BL 2019-09-06: Default pre-allocated blocks for HIGH_PERF raised again
+ *      BL 2019-08-15: Default pre-allocated blocks for HIGH_PERF raised
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
  */
 
@@ -44,7 +46,6 @@ extern "C" {
 #define __cdecl
 #endif
 
-#define VOS_MEM_MAX_PREALLOCATE     10u  /**< Max blocks to pre-allocate */
 #define VOS_MEM_NBLOCKSIZES         15u  /**< No of pre-defined block sizes */
 
 /** Queue policy matching pthread/Posix defines    */
@@ -56,22 +57,39 @@ typedef enum
 } VOS_QUEUE_POLICY_T;
 
 
-#if MD_SUPPORT
+#ifdef HIGH_PERF_INDEXED
+    /** We internally allocate memory always by these block sizes. The largest available block is (tbd), provided */
+
+#define VOS_MEM_MAX_PREALLOCATE     100u  /**< Max. no. of blocks to pre-allocate */
+
+#define VOS_MEM_BLOCKSIZES  {48u, 72u, 128u, 180u, 256u, 512u, 1024u, 1480u, 2048u, 4096u, \
+                                8192u, 16384u, 32768u, 65536u, 131072u}
+
+    /** Default pre-allocation of free memory blocks. To avoid problems with too many small blocks and no large one.
+     Specify how many of each block size that should be pre-allocated (and freed!) to pre-segment the memory area. */
+
+#define VOS_MEM_PREALLOCATE  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 50u, 0u, 2u, 10u, 1u, 0u, 5u, 5u}
+
+#elif MD_SUPPORT
 /** We internally allocate memory always by these block sizes. The largest available block is 524288 Bytes, provided
     the overal size of the used memory allocation area is larger. */
 
+#define VOS_MEM_MAX_PREALLOCATE     15u  /**< Max. no. of blocks to pre-allocate */
+
 #define VOS_MEM_BLOCKSIZES  {48u, 72u, 128u, 180u, 256u, 512u, 1024u, 1480u, 2048u, 4096u, \
-                             11520u, 16384u, 32768u, 65536u, 131072u}
+                             8192u, 16384u, 32768u, 65536u, 131072u}
 
 /** Default pre-allocation of free memory blocks. To avoid problems with too many small blocks and no large one.
    Specify how many of each block size that should be pre-allocated (and freed!) to pre-segment the memory area. */
 
-#define VOS_MEM_PREALLOCATE  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 10u, 0u, 2u, 1u, 0u, 2u, 0u, 0u}
+#define VOS_MEM_PREALLOCATE  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 10u, 0u, 2u, 0u, 1u, 0u, 1u, 0u}
 
 #else /* Small systems, PD only */
 
 /** We internally allocate memory always by these block sizes. The largest available block is 524288 Bytes, provided
  the overal size of the used memory allocation area is larger. */
+
+#define VOS_MEM_MAX_PREALLOCATE     10u  /**< Max. no. of blocks to pre-allocate */
 
 #define VOS_MEM_BLOCKSIZES  {34u, 48u, 128u, 180u, 256u, 512u, 1024u, 1480u, 2048u, \
                              4096u, 11520u, 16384u, 32768u, 65536u, 131072u}

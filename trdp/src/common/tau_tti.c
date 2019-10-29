@@ -26,6 +26,13 @@
 /*
 * $Id$
 *
+*      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
+*      BL 2019-06-17: Ticket #264 Provide service oriented interface
+*      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
+*      BL 2019-06-17: Ticket #161 Increase performance
+*      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+*      V 2.0.0 --------- ^^^ -----------
+*      V 1.4.2 --------- vvv -----------
 *      BL 2019-06-11: Ticket #253 Incorrect storing of TTDB_STATIC_CONSIST_INFO_REPLY from network packet into local copy
 *      BL 2019-05-15: Ticket #254 API of TTI to get OwnOpCstNo and OwnTrnCstNo
 *      BL 2019-05-15: Ticket #255 opTrnState of pTTDB isn't copied completely
@@ -102,17 +109,6 @@ static void ttiGetUUIDfromLabel (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_UUID_T         cstUUID,
     const TRDP_LABEL_T  cstLabel);
-
-static TRDP_IP_ADDR_T ipFromURI (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_URI_HOST_T     uri)
-{
-    TRDP_IP_ADDR_T ipAddr = VOS_INADDR_ANY;
-
-    (void) tau_uri2Addr(appHandle, &ipAddr, uri);
-
-    return ipAddr;
-}
 
 /**********************************************************************************************************************/
 /**    Function returns the UUID for the given UIC ID
@@ -199,6 +195,7 @@ static void ttiPDCallback (
         {
             TRDP_OP_TRAIN_DIR_STATUS_INFO_T *pTelegram = (TRDP_OP_TRAIN_DIR_STATUS_INFO_T *) pData;
             UINT32 crc;
+            TAU_DNR_ENTRY_T  *pDNRIp   = (TAU_DNR_ENTRY_T *) appHandle->pUser;
 
             /* check the crc:   */
             crc = vos_sc32(0xFFFFFFFFu, (const UINT8 *) &pTelegram->state, sizeof(TRDP_OP_TRAIN_DIR_STATE_T) - 4);
@@ -210,14 +207,27 @@ static void ttiPDCallback (
                 return;
             }
 
+            /* This is an addition purely done for TRDP to handle DNS/ECSP Redundancy switchover.
+               PD 100 is always sent from the original IP address of switch and not the virtual one.
+               Everytime a PD 100 is received, we store its source IP address in the appHandle->pUser.
+               This will change the (server) IP to which the DNS requests will be sent. */
+
+            if ((pDNRIp != NULL) && (pMsg->srcIpAddr != VOS_INADDR_ANY))
+            {
+                pDNRIp->ipAddr = pMsg->srcIpAddr;
+            }
+
             /* Store the state locally */
-            memcpy(&appHandle->pTTDB->opTrnState, pTelegram,
-                   (sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) < dataSize) ? sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) : dataSize);
+            memcpy(
+                &appHandle->pTTDB->opTrnState,
+                pTelegram,
+                (sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) <
+                 dataSize) ? sizeof(TRDP_OP_TRAIN_DIR_STATUS_INFO_T) : dataSize);
 
             /* unmarshall manually:   */
             appHandle->pTTDB->opTrnState.etbTopoCnt         = vos_ntohl(pTelegram->etbTopoCnt);
             appHandle->pTTDB->opTrnState.state.opTrnTopoCnt = vos_ntohl(pTelegram->state.opTrnTopoCnt);
-            appHandle->pTTDB->opTrnState.state.crc          = vos_ntohl(pTelegram->state.crc);
+            appHandle->pTTDB->opTrnState.state.crc = vos_ntohl(pTelegram->state.crc);
 
             /* vos_printLog(VOS_LOG_INFO, "---> Operational status info received on %p\n", appHandle); */
 
@@ -300,7 +310,7 @@ static BOOL8 ttiStoreOpTrnDir (
 
     /* unmarshall manually and update the opTrnTopoCount   */
 
-    appHandle->pTTDB->opTrnDir.opTrnTopoCnt = *(UINT32*) (pData + size);
+    appHandle->pTTDB->opTrnDir.opTrnTopoCnt = *(UINT32 *) (pData + size);
 
     appHandle->pTTDB->opTrnDir.opTrnTopoCnt = vos_ntohl(appHandle->pTTDB->opTrnDir.opTrnTopoCnt);
 
@@ -753,7 +763,7 @@ static void ttiMDCallback (
             {
                 crc = 0xFFFFFFFF;
             }
-            if (crc == vos_ntohl(*(UINT32*)(pData + dataSize - 4)))
+            if (crc == vos_ntohl(*(UINT32 *)(pData + dataSize - 4)))
             {
                 /* find a free place in the cache, or overwrite oldest entry   */
                 (void) ttiStoreCstInfo(appHandle, pData, dataSize);
@@ -761,7 +771,7 @@ static void ttiMDCallback (
             else
             {
                 vos_printLog(VOS_LOG_WARNING, "CRC error of received consist info (%08x != %08x)!\n",
-                             crc, vos_ntohl(*(UINT32*)(pData + dataSize - 4)));
+                             crc, vos_ntohl(*(UINT32 *)(pData + dataSize - 4)));
                 return;
             }
         }
@@ -798,9 +808,9 @@ static void ttiRequestTTDBdata (
         {
             UINT8 param = 0;
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_OP_DIR_INFO_REQ_COMID, appHandle->etbTopoCnt,
-                               appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                               appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_OP_DIR_INFO_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_OP_DIR_INFO_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_OP_DIR_INFO_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
             /* Make sure the request is sent: */
         }
         break;
@@ -808,35 +818,35 @@ static void ttiRequestTTDBdata (
         {
             UINT8 param = 0;        /* ETB0 */
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_TRN_DIR_REQ_COMID, appHandle->etbTopoCnt,
-                               appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                               appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_TRN_DIR_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_TRN_DIR_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_TRN_DIR_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
         }
         break;
         case TTDB_NET_DIR_REQ_COMID:
         {
             UINT8 param = 0;        /* ETB0 */
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_NET_DIR_REQ_COMID, appHandle->etbTopoCnt,
-                               appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                               appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_NET_DIR_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_NET_DIR_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_NET_DIR_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
         }
         break;
         case TTDB_READ_CMPLT_REQ_COMID:
         {
             UINT8 param = 0;        /* ETB0 */
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_READ_CMPLT_REQ_COMID, appHandle->etbTopoCnt,
-                               appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                               appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_READ_CMPLT_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_READ_CMPLT_REQ_TO, NULL, &param, sizeof(param), NULL, NULL);
+                               TTDB_READ_CMPLT_REQ_TO_US, NULL, &param, sizeof(param), NULL, NULL);
         }
         break;
         case TTDB_STAT_CST_REQ_COMID:
         {
             (void) tlm_request(appHandle, NULL, ttiMDCallback, NULL, TTDB_STAT_CST_REQ_COMID, appHandle->etbTopoCnt,
-                               appHandle->opTrnTopoCnt, 0, ipFromURI(appHandle,
+                               appHandle->opTrnTopoCnt, 0, tau_ipFromURI(appHandle,
                                                                      TTDB_STAT_CST_REQ_URI), TRDP_FLAGS_CALLBACK, 1,
-                               TTDB_STAT_CST_REQ_TO, NULL, cstUUID, sizeof(TRDP_UUID_T), NULL, NULL);
+                               TTDB_STAT_CST_REQ_TO_US, NULL, cstUUID, sizeof(TRDP_UUID_T), NULL, NULL);
         }
         break;
 
@@ -890,12 +900,14 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
     if (tlp_subscribe(appHandle,
                       &appHandle->pTTDB->pd100SubHandle1,
                       userAction, ttiPDCallback,
+                      0u,
                       TRDP_TTDB_OP_TRN_DIR_STAT_INF_COMID,
                       0u, 0u,
                       VOS_INADDR_ANY, VOS_INADDR_ANY,
                       vos_dottedIP(TTDB_STATUS_DEST_IP),
                       (TRDP_FLAGS_T) (TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB),
-                      TTDB_STATUS_TO * 1000u,
+                      NULL,                      /*    default interface                    */
+                      TTDB_STATUS_TO_US,
                       TRDP_TO_SET_TO_ZERO) != TRDP_NO_ERR)
     {
         vos_memFree(appHandle->pTTDB);
@@ -905,12 +917,14 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
     if (tlp_subscribe(appHandle,
                       &appHandle->pTTDB->pd100SubHandle2,
                       userAction, ttiPDCallback,
+                      0u,
                       TRDP_TTDB_OP_TRN_DIR_STAT_INF_COMID,
                       0u, 0u,
                       VOS_INADDR_ANY, VOS_INADDR_ANY,
                       vos_dottedIP(TTDB_STATUS_DEST_IP_ETB0),
                       (TRDP_FLAGS_T) (TRDP_FLAGS_CALLBACK | TRDP_FLAGS_FORCE_CB),
-                      TTDB_STATUS_TO * 1000u,
+                      NULL,                      /*    default interface                    */
+                      TTDB_STATUS_TO_US,
                       TRDP_TO_SET_TO_ZERO) != TRDP_NO_ERR)
     {
         (void) tlp_unsubscribe(appHandle, appHandle->pTTDB->pd100SubHandle1);
@@ -1014,7 +1028,7 @@ EXT_DECL TRDP_ERR_T tau_getOpTrDirectory (
     {
         return TRDP_PARAM_ERR;
     }
-    if ((appHandle->pTTDB->opTrnDir.opCstCnt == 0 )||
+    if ((appHandle->pTTDB->opTrnDir.opCstCnt == 0) ||
         (appHandle->pTTDB->opTrnDir.opTrnTopoCnt != appHandle->opTrnTopoCnt))    /* need update? */
     {
         ttiRequestTTDBdata(appHandle, TTDB_OP_DIR_INFO_REQ_COMID, NULL);
@@ -1756,7 +1770,7 @@ EXT_DECL UINT8 tau_getOwnOpCstNo (
     if ((appHandle != NULL) &&
         (appHandle->pTTDB != NULL))
     {
-        return appHandle->pTTDB->opTrnState.ownOpCstNo;    //pTTDB opTrnState ownOpCstNo;
+        return appHandle->pTTDB->opTrnState.ownOpCstNo;    /* pTTDB opTrnState ownOpCstNo; */
     }
     return 0u;
 }

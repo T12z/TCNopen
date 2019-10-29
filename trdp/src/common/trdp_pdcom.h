@@ -10,18 +10,24 @@
  *
  * @author          Bernd Loehr, NewTec GmbH
  *
- * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
  */
 /*
- * $Id$
- *
- *      BL 2018-09-29: Ticket #191 Ready for TSN (PD2 Header)
- *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
- *      BL 2014-07-14: Ticket #46: Protocol change: operational topocount needed
- *                     Ticket #47: Protocol change: no FCS for data part of telegrams
- */
+* $Id$
+*
+*      BL 2019-06-17: Ticket #264 Provide service oriented interface
+*      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
+*      BL 2019-06-17: Ticket #161 Increase performance
+*      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+*      V 2.0.0 --------- ^^^ -----------
+*      V 1.4.2 --------- vvv -----------
+*      BL 2018-09-29: Ticket #191 Ready for TSN (PD2 Header)
+*      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+*      BL 2014-07-14: Ticket #46: Protocol change: operational topocount needed
+*                     Ticket #47: Protocol change: no FCS for data part of telegrams
+*/
 
 
 #ifndef TRDP_PDCOM_H
@@ -46,13 +52,14 @@
  * GLOBAL FUNCTIONS
  */
 
-void        trdp_pdInit(
+void trdp_pdInit(
     PD_ELE_T *,
     TRDP_MSG_T,
     UINT32 topoCount,
     UINT32 optopoCount,
     UINT32 replyComId,
-    UINT32 replyIpAddress);
+    UINT32 replyIpAddress,
+    UINT32 serviceId);
 
 void        trdp_pdUpdate (
     PD_ELE_T *);
@@ -64,18 +71,12 @@ TRDP_ERR_T  trdp_pdPut (
     const UINT8     *pData,
     UINT32          dataSize);
 
-#ifdef TRDP_TSN
-TRDP_ERR_T  trdp_pdCheck (
+TRDP_ERR_T trdp_pdCheck (
     PD_HEADER_T *pPacket,
     UINT32      packetSize,
     int         *pIsTSN);
-#else
-TRDP_ERR_T  trdp_pdCheck (
-    PD_HEADER_T *pPacket,
-    UINT32      packetSize);
-#endif
 
-TRDP_ERR_T  trdp_pdSend (
+TRDP_ERR_T trdp_pdSend (
     SOCKET      pdSock,
     PD_ELE_T    *pPacket,
     UINT16      port);
@@ -87,24 +88,37 @@ TRDP_ERR_T trdp_pdGet (
     const UINT8         *pData,
     UINT32              *pDataSize);
 
+TRDP_ERR_T  trdp_pdSendElement (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T        * *ppElement);
+
 TRDP_ERR_T  trdp_pdSendQueued (
     TRDP_SESSION_PT appHandle);
 
-#ifdef TRDP_TSN
-TRDP_ERR_T  trdp_pdSendImmediate (
+#ifdef TSN_SUPPORT
+TRDP_ERR_T  trdp_pdSendImmediateTSN (
     TRDP_SESSION_PT appHandle,
     PD_ELE_T        *pSendPD,
     VOS_TIMEVAL_T   *pTxTime);
 #endif
 
+TRDP_ERR_T  trdp_pdSendImmediate (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T        *pSendPD);
+
 TRDP_ERR_T  trdp_pdReceive (
     TRDP_SESSION_PT pSessionHandle,
-    SOCKET           sock);
+    SOCKET          sock);
 
 void        trdp_pdCheckPending (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc);
+    INT32               *pNoDesc,
+    int                 checkSending);
+
+void        trdp_handleTimeout (
+    TRDP_SESSION_PT appHandle,
+    PD_ELE_T        *pIterPD);
 
 void        trdp_pdHandleTimeOuts (
     TRDP_SESSION_PT appHandle);
@@ -113,8 +127,9 @@ TRDP_ERR_T  trdp_pdCheckListenSocks (
     TRDP_SESSION_PT appHandle,
     TRDP_FDS_T      *pRfds,
     INT32           *pCount);
-
+#ifndef HIGH_PERF_INDEXED
 TRDP_ERR_T trdp_pdDistribute (
     PD_ELE_T *pSndQueue);
+#endif
 
 #endif

@@ -15,6 +15,7 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Toshiba Corporation, Japan, 2013. All rights reserved.
  *
+ * $Id$
  */
 
 #ifdef TRDP_OPTION_LADDER
@@ -45,27 +46,27 @@ typedef struct
 } sSESSION_CONFIG_T;
 #else
 /* Length of IP Address  (xxx.xxx.xxx.xxx) */
-#define					TRDP_CHAR_IP_ADDR_LEN	16
+#define                 TRDP_CHAR_IP_ADDR_LEN  16
 /* Character String of IP Address */
 typedef CHAR8 TRDP_CHAR_IP_ADDR_T[TRDP_CHAR_IP_ADDR_LEN];
 /* Subnet1 Parameter */
 /* IF Name of Subnet1 */
-#define					IF_NAME_SUBNET_1	"Neta"
+#define                 IF_NAME_SUBNET_1        "Neta"
 /* Network ID of Subnet1 : 1 */
-#define					NETWORK_ID_SUBNET_1	1
+#define                 NETWORK_ID_SUBNET_1     1
 /* Subnet2 Parameter */
 /* IF Name of Subnet2 */
-#define					IF_NAME_SUBNET_2	"Netb"
+#define                 IF_NAME_SUBNET_2        "Netb"
 /* Network ID of Subnet2 : 2 */
-#define					NETWORK_ID_SUBNET_2	2
+#define                 NETWORK_ID_SUBNET_2     2
 
 /*Array IF Config */
 typedef struct INTERNAL_CONFIG_IF_CONFIG
 {
-	TRDP_LABEL_T			ifName;			/**< interface name */
-	UINT8					networkId;			/**< used network on the device (1..4) */
-	TRDP_CHAR_IP_ADDR_T  dottedHostIp;		/**< host IP address (xxx.xxx.xxx.xxx) */
-	TRDP_CHAR_IP_ADDR_T	dottedLeaderIp;	/**< Leader IP address dependant on redundancy concept (xxx.xxx.xxx.xxx) */
+    TRDP_LABEL_T        ifName;             /**< interface name */
+    UINT8               networkId;              /**< used network on the device (1..4) */
+    TRDP_CHAR_IP_ADDR_T dottedHostIp;       /**< host IP address (xxx.xxx.xxx.xxx) */
+    TRDP_CHAR_IP_ADDR_T dottedLeaderIp; /**< Leader IP address dependant on redundancy concept (xxx.xxx.xxx.xxx) */
 } INTERNAL_CONFIG_IF_CONFIG_T;
 
 /* IF Config Parameter **********************************************/
@@ -82,16 +83,16 @@ typedef struct
 /* Destination parameter of Internal Config */
 typedef struct INTERNAL_CONFIG_DEST
 {
-	UINT32          destCnt;      /* number of destinations */
-	TRDP_DEST_T     *pDest;       /* Pointer to array of destination descriptors */
+    UINT32      destCnt;          /* number of destinations */
+    TRDP_DEST_T *pDest;           /* Pointer to array of destination descriptors */
 } INITERNAL_CONFIG_DEST_T;
 
 /* Source Parameter *****/
 /* Source parameter of Internal Config */
 typedef struct INTERNAL_CONFIG_SRC
 {
-	UINT32          srcCnt;      /* number of Sources */
-	TRDP_SRC_T     *pSrc;       /* Pointer to array of Source descriptors */
+    UINT32      srcCnt;          /* number of Sources */
+    TRDP_SRC_T  *pSrc;          /* Pointer to array of Source descriptors */
 } INITERNAL_CONFIG_SRC_T;
 
 #endif /* ifdef XML_CONFIG_ENABLE */
@@ -101,4 +102,4 @@ typedef struct INTERNAL_CONFIG_SRC
 #endif
 
 #endif /* TAU_LDLADDER_CONFIG_H_ */
-#endif	/* TRDP_OPTION_LADDER */
+#endif  /* TRDP_OPTION_LADDER */

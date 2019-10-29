@@ -339,6 +339,7 @@ int main (int argc, char * *argv)
                             &gSubPackets[i].subHandle,  /*    our subscription identifier          */
                             (const void *) &i,           /*    user reference                       */
                             NULL,                       /*    callback function                    */
+                            0u,
                             gSubPackets[i].comID,       /*    ComID                                */
                             0,                          /*    topocount: local consist only        */
                             0,
@@ -346,6 +347,7 @@ int main (int argc, char * *argv)
                             VOS_INADDR_ANY,
                             gSubPackets[i].addr,        /*    Default destination    (or MC Group) */
                             TRDP_FLAGS_CALLBACK,        /*    packet flags                         */
+                            NULL,                       /*    default interface                    */
                             gSubPackets[i].time,        /*    Time out in us                       */
                             TRDP_TO_SET_TO_ZERO);       /*    delete invalid data on timeout       */
 
@@ -361,6 +363,7 @@ int main (int argc, char * *argv)
         err = tlp_publish(appHandle,                    /*    our application identifier    */
                           &gPubPackets[i].pubHandle,    /*    our pulication identifier     */
                           NULL, NULL,
+                          0u,
                           gPubPackets[i].comID,         /*    ComID to send                 */
                           0,                            /*    local consist only            */
                           0,
