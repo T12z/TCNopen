@@ -212,7 +212,7 @@ BOOL8 trdp_SockDelJoin (
     return FALSE;
 }
 
-TRDP_IP_ADDR_T trdp_getOwnIP ()
+TRDP_IP_ADDR_T trdp_getOwnIP( void )
 {
     UINT32          i;
     UINT32          addrCnt = 2 * VOS_MAX_NUM_IF;
@@ -1203,6 +1203,8 @@ TRDP_ERR_T  trdp_requestSocket (
 #endif /* TSN */
             case TRDP_SOCK_MD_UDP:
                 sock_options.nonBlocking = TRUE;  /* MD UDP sockets are always non blocking because they are polled */
+				__fallthrough;
+				// no break for Eclipse
             /* fall thru! */
             case TRDP_SOCK_PD:
                 err = (TRDP_ERR_T) vos_sockOpenUDP(&iface[lIndex].sock, &sock_options);

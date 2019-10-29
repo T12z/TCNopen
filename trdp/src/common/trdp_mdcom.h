@@ -107,7 +107,7 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T        msgType,
 
 TRDP_ERR_T trdp_mdCall (const TRDP_MSG_T        msgType,
                         TRDP_APP_SESSION_T      appHandle,
-                        const void              *pUserRef,
+                        void                    *pUserRef,
                         TRDP_MD_CALLBACK_T      pfCbFunction,
                         TRDP_UUID_T             *pSessionId,
                         UINT32                  comId,

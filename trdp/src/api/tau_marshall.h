@@ -109,7 +109,7 @@ EXT_DECL TRDP_ERR_T tau_initMarshall(
 EXT_DECL TRDP_ERR_T tau_marshall (
     void            *pRefCon,
     UINT32          comId,
-    UINT8           *pSrc,
+    const UINT8     *pSrc,
     UINT32          srcSize,
     UINT8           *pDest,
     UINT32          *pDestSize,

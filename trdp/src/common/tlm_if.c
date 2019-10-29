@@ -214,7 +214,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
  */
 EXT_DECL TRDP_ERR_T tlm_notify (
     TRDP_APP_SESSION_T      appHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
     UINT32                  comId,
     UINT32                  etbTopoCnt,
@@ -290,7 +290,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
  */
 EXT_DECL TRDP_ERR_T tlm_request (
     TRDP_APP_SESSION_T      appHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
     TRDP_UUID_T             *pSessionId,
     UINT32                  comId,
@@ -393,7 +393,7 @@ EXT_DECL TRDP_ERR_T tlm_request (
 EXT_DECL TRDP_ERR_T  tlm_addListener (
     TRDP_APP_SESSION_T      appHandle,
     TRDP_LIS_T              *pListenHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_MD_CALLBACK_T      pfCbFunction,
     BOOL8                   comIdListener,
     UINT32                  comId,

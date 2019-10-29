@@ -42,6 +42,10 @@
 #include <errno.h>
 #include <string.h>
 
+#ifdef PIKEOS_POSIX
+#define POSIX
+#endif
+
 #ifdef POSIX
 #include <strings.h>
 #include <unistd.h>

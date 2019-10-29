@@ -44,24 +44,27 @@ public:
 	 *  The default constructor.
 	 *  Use @see load() (one-time initialization) and @see init() for further setup of the object.
 	 */
-	TAU_XSession() { lastErr=TRDP_NO_ERR; }
+	TAU_XSession() { our = NULL; lastErr=TRDP_NO_ERR; }
 
 	/**
 	 *  Session destructor
 	 *  Deleting the last remaining session will also undo the effects of load.
 	 */
-	~TAU_XSession() { tau_xsession_delete(&our); }
+	~TAU_XSession() { tau_xsession_delete( our ); }
 
 	/**
 	 *  @ brief Loads the configuration.
 	 *  It is a static method, must be called first, if no sessions pre-exist.
 	 *  @see tau_xsession_load().
-	 *  @param[in] xml    contains either a NULL-terminated filename or the xml-buffer itself with length @ref length
-	 *  @param[in] length Is 0 if xml contains a filename or describes the byte-length of the xml-config-buffer.
+	 *  @param[in] xml       contains either a NULL-terminated filename or the xml-buffer itself with @ref length
+	 *  @param[in] length    Is 0 if xml contains a filename or describes the byte-length of the xml-config-buffer.
+	 *  @param[in] dbg_print Pass in a function that writes out the two strings and a line break if requested
+	 *  @param[in] pXTypeMap is a translation table for application to TRDP types linking an alignment / size-map for
+	 *                         xmarshalling (no copy is made!)
 	 *  @return    returns a suitable TRDP_ERR. Any occurrence of an error will clean up resources.
 	 */
-	static TRDP_ERR_T load(const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print)
-		{ return tau_xsession_load(xml, length, dbg_print); }
+	static TRDP_ERR_T load(const char *xml, size_t length, TAU_XSESSION_PRINT dbg_print, UINT8 *pXTypeMap)
+		{ return tau_xsession_load(xml, length, dbg_print, pXTypeMap); }
 
 	/**
 	 *  initialize that specific bus interface for this session
@@ -73,12 +76,12 @@ public:
 	 *             XML file or initializing the session. Errors will lead to an unusable empty session.
 	 */
 	TRDP_ERR_T init     (const char *busInterfaceName, void *callbackRef)
-		{ return lastErr = tau_xsession_init(&our, busInterfaceName, callbackRef); }
+		{ return lastErr = tau_xsession_init( &our, busInterfaceName, callbackRef ); }
 
 	/**
 	 *  checks if the object is usable/setup for transmissions. Treat return value as boolean.
 	 */
-	int up() { return tau_xsession_up(&our); }
+	int up() { return tau_xsession_up( our ); }
 
 	/**
 	 *  Stringify the error for the passed TRDP-error
@@ -113,8 +116,8 @@ public:
 	 *                       NULL otherwise. If a destination was empty or the any-address, you must provide reply-to
 	 *                       source info. Only the replyIpAddr is used, if empty, srcIpAddr is the fall-back.
 	 */
-	TRDP_ERR_T publish  (UINT32 ComID, UINT32 *pubTelID, const UINT8 *data, UINT32 cap, const TRDP_PD_INFO_T *info)
-		{ return lastErr = tau_xsession_publish(&our, ComID, pubTelID, data, cap, info); }
+	TRDP_ERR_T publish  (UINT32 ComID, INT32 *pubTelID, UINT32 IDs, const UINT8 *data, UINT32 cap, const TRDP_PD_INFO_T *info)
+		{ return lastErr = tau_xsession_publish( our, ComID, pubTelID, IDs, data, cap, info ); }
 
 	/**
 	 *   Subscribe to receiving the telegram ComID.
@@ -127,18 +130,30 @@ public:
 	 *
 	 *  @return  TRDP_ERR
 	 */
-	TRDP_ERR_T subscribe(UINT32 ComID, UINT32 *subTelID, TRDP_PD_CALLBACK_T cb)
-		{ return lastErr = tau_xsession_subscribe(&our, ComID, subTelID, cb); }
+	TRDP_ERR_T subscribe(UINT32 ComID, INT32 *subTelID, UINT32 IDs, TRDP_PD_CALLBACK_T cb)
+		{ return lastErr = tau_xsession_subscribe( our, ComID, subTelID, IDs, cb ); }
 
 	/**
 	 *   Do the house-keeping of TRDP and packet transmission.
 	 *
-	 *  @param[out]  timeout_us  Timeout in micro seconds to fulfill the configured cycle period. If NULL, the call will
-	 *                           wait for the required time itself.
+	 *  @param[in]  deadline  unitil cycle can block for network I/O
+	 *  @return  TRDP_ERR from deeper processing.
+	 */
+	static TRDP_ERR_T cycle    ( VOS_TIMEVAL_T deadline )
+		{ return tau_xsession_cycle_until( deadline ); }
+
+	/**
+	 *   Do the house-keeping of TRDP and packet transmission.
+	 *
+	 *  @param[out] timeout_us  Timeout in micro seconds to fulfill the configured cycle period. If dismissed, the call
+	 *                          will wait for the required time itself.
 	 *  @return  TRDP_ERR from deeper processing.
 	 */
 	TRDP_ERR_T cycle    ( INT64 *timeout_us )
-		{ return lastErr = tau_xsession_cycle(&our, timeout_us); }
+		{ return lastErr = tau_xsession_cycle_loop( our, timeout_us ); }
+
+	TRDP_ERR_T cycle    ( void )
+		{ return lastErr = tau_xsession_cycle( our ); }
 
 	/**
 	 *   Set the payload of the telegram to be sent at next cycle deadline (as configured by XML)
@@ -149,8 +164,8 @@ public:
 	 *
 	 *  @return  TRDP_ERR
 	 */
-	TRDP_ERR_T setCom   (              UINT32  pubTelID, const UINT8 *data, UINT32 cap)
-		{ return lastErr = tau_xsession_setCom(&our, pubTelID, data,cap);	}
+	TRDP_ERR_T setCom   (              INT32  pubTelID, const UINT8 *data, UINT32 cap)
+		{ return lastErr = tau_xsession_setCom( our, pubTelID, data, cap );	}
 	/**
 	 *   Check for most recent data for the previously subscribed telegram.
 	 *
@@ -163,15 +178,15 @@ public:
 	 *  @return TRDP_ERR. May return TRDP_NODATA_ERR, which is not fatal, but indicates that no telegram has been
 	 *          received yet. May also return TRDP_TIMEOUT_ERR if the remote source stopped sending.
 	 */
-	TRDP_ERR_T getCom   (              UINT32  subTelID,       UINT8 *data, UINT32 cap, UINT32 *length, TRDP_PD_INFO_T *info)
-		{ return lastErr = tau_xsession_getCom(&our, subTelID, data, cap, length, info); }
+	TRDP_ERR_T getCom   (              INT32  subTelID,       UINT8 *data, UINT32 cap, UINT32 *length, TRDP_PD_INFO_T *info)
+		{ return lastErr = tau_xsession_getCom( our, subTelID, data, cap, length, info ); }
 
 	/**
 	 *   Send out a request for the previously subscribed telegram. Use the ID returned by
 	 *          @see tau_xsession_subscribe()
 	 */
-	TRDP_ERR_T request  (              UINT32  subTelID)
-		{ return lastErr = tau_xsession_request(&our, subTelID); }
+	TRDP_ERR_T request  (              INT32  subTelID)
+		{ return lastErr = tau_xsession_request( our, subTelID ); }
 
 	/**
 	 *  Fill a TRDP_DATASET_ELEMENT_T with information on element index within dataset dsId.
@@ -183,8 +198,8 @@ public:
 	 *
 	 *  @return     Any error occurred along the lookup. In case of an error, el is not changed.
 	 */
-	TRDP_ERR_T lookupVariable(UINT32 dsId, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
-		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, (const char*)0, index, el); }
+	static TRDP_ERR_T lookupVariable(UINT32 dsId, UINT32 index, TRDP_DATASET_ELEMENT_T **el) {
+		{ return tau_xsession_lookup_variable(dsId, (const char*)0, index, el); }
 	}
 
 	/**
@@ -192,12 +207,12 @@ public:
 	 *
 	 *  Overloaded function of @see lookupVariable(). Lookup the element by name.
 	 */
-	TRDP_ERR_T lookupVariable(UINT32 dsId, const CHAR8 *name, TRDP_DATASET_ELEMENT_T **el) {
-		{ return lastErr = tau_xsession_lookup_variable(&our, dsId, name, 0, el); }
+	static TRDP_ERR_T lookupVariable(UINT32 dsId, const CHAR8 *name, TRDP_DATASET_ELEMENT_T **el) {
+		{ return tau_xsession_lookup_variable(dsId, name, 0, el); }
 	}
 
 private:
-	TAU_XSESSION_T our;
+	TAU_XSESSION_T *our;
 	TRDP_ERR_T lastErr;
 
 };

@@ -443,7 +443,7 @@ EXT_DECL TRDP_ERR_T tlp_getRedundant (
 EXT_DECL TRDP_ERR_T tlp_publish (
     TRDP_APP_SESSION_T      appHandle,
     TRDP_PUB_T              *pPubHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_PD_CALLBACK_T      pfCbFunction,
     UINT32                  serviceId,
     UINT32                  comId,
@@ -1208,7 +1208,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
 EXT_DECL TRDP_ERR_T tlp_subscribe (
     TRDP_APP_SESSION_T      appHandle,
     TRDP_SUB_T              *pSubHandle,
-    const void              *pUserRef,
+    void                    *pUserRef,
     TRDP_PD_CALLBACK_T      pfCbFunction,
     UINT32                  serviceId,
     UINT32                  comId,

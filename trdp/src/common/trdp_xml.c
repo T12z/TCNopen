@@ -358,10 +358,11 @@ TRDP_ERR_T trdp_XMLMemOpen (
     if (pXML->infile != NULL)
     {
         /* Write to temp file */
-        fprintf(pXML->infile, "%s", pBuffer);
-        /* prepare for reading */
-        trdp_XMLRewind(pXML);
-        return TRDP_NO_ERR;
+    	if (fwrite(pBuffer, 1, bufSize, pXML->infile) == bufSize) {
+    		/* prepare for reading */
+    		trdp_XMLRewind (pXML);
+    		return TRDP_NO_ERR;
+    	}
     }
     vos_printLogStr(VOS_LOG_ERROR, "Temporary XML file could not be opened to write\n");
     return TRDP_IO_ERR;

@@ -120,7 +120,7 @@ typedef UINT8 VOS_THREAD_PRIORITY_T;
 #define VOS_THREAD_PRIORITY_HIGHEST     255
 
 /** Thread function definition    */
-typedef void (__cdecl * VOS_THREAD_FUNC_T)(void *pArg);
+typedef void *(__cdecl * VOS_THREAD_FUNC_T)(void *pArg);
 
 /** State of the semaphore    */
 typedef enum

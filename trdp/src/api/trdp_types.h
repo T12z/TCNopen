@@ -250,7 +250,7 @@ typedef struct
     UINT32              opTrnTopoCnt;   /**< received operational train directory topocount             */
     UINT32              replyComId;     /**< ComID for reply (request only)                             */
     TRDP_IP_ADDR_T      replyIpAddr;    /**< IP address for reply (request only)                        */
-    const void          *pUserRef;      /**< User reference given with the local subscribe              */
+    void                *pUserRef;      /**< User reference given with the local subscribe              */
     TRDP_ERR_T          resultCode;     /**< error code                                                 */
     TRDP_URI_HOST_T     srcHostURI;     /**< source URI host part (unused)                              */
     TRDP_URI_HOST_T     destHostURI;    /**< destination URI host part (unused)                         */
@@ -292,7 +292,7 @@ typedef struct
     TRDP_URI_HOST_T     destHostURI;        /**< destination URI host part (unused)         */
     UINT32              numExpReplies;      /**< number of expected replies, 0 if unknown   */
     UINT32              numReplies;         /**< actual number of replies for the request   */
-    const void          *pUserRef;          /**< User reference given with the local call   */
+    void                *pUserRef;          /**< User reference given with the local call   */
     TRDP_ERR_T          resultCode;         /**< error code                                 */
 } TRDP_MD_INFO_T;
 
@@ -575,7 +575,7 @@ typedef VOS_LOG_T TRDP_LOG_T;
 typedef TRDP_ERR_T (*TRDP_MARSHALL_T)(
     void            *pRefCon,
     UINT32          comId,
-    UINT8           *pSrc,
+    const UINT8     *pSrc,
     UINT32          srcSize,
     UINT8           *pDst,
     UINT32          *pDstSize,

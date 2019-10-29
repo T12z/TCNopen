@@ -27,11 +27,11 @@
  */
 
 #include <pthread.h>
+#include <vm.h>
 #include <sys/types.h>
 
 #include "vos_types.h"
 #include "vos_thread.h"
-#include "vos_sock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,11 +41,19 @@ extern "C" {
  * DEFINES
  */
 
+#if !defined(_POSIX_C_SOURCE) && defined(__POSIX_VISIBLE)
+#define _POSIX_C_SOURCE __POSIX_VISIBLE
+#endif
+
+#define PTHREAD_STACK_MIN 0x1000 // TODO may pull to 0x4000
+
+#define getpagesize() P4_PAGESIZE
+
 /* The VOS version can be predefined as CFLAG   */
 #ifndef VOS_VERSION
-#define VOS_VERSION            2u
+#define VOS_VERSION            1u
 #define VOS_RELEASE            0u
-#define VOS_UPDATE             0u
+#define VOS_UPDATE             3u
 #define VOS_EVOLUTION          2u
 #endif
 
@@ -72,7 +80,7 @@ struct VOS_SHRD
 VOS_ERR_T   vos_mutexLocalCreate (struct VOS_MUTEX *pMutex);
 void        vos_mutexLocalDelete (struct VOS_MUTEX *pMutex);
 
-#if (((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || defined(__APPLE__))
+#if (((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !defined(_GNU_SOURCE)) || defined(__APPLE__))
 #   define STRING_ERR(pStrBuf)  (void)strerror_r(errno, pStrBuf, VOS_MAX_ERR_STR_SIZE);
 #elif defined(INTEGRITY)
 #   define STRING_ERR(pStrBuf)                                 \
@@ -93,8 +101,6 @@ void        vos_mutexLocalDelete (struct VOS_MUTEX *pMutex);
         }                                                              \
     }
 #endif
-
-EXT_DECL    VOS_ERR_T   vos_sockSetBuffer (SOCKET sock);
 
 #ifdef __cplusplus
 }
