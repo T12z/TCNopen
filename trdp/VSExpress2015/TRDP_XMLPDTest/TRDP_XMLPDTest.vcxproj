@@ -156,11 +156,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Library Include="$(OutDir)\TRDP.lib" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\resources\windows\getopt\getopt.c" />
     <ClCompile Include="..\..\test\xml\trdp-xmlpd-test.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TRDP\TRDP.vcxproj">
+      <Project>{4e059552-03ff-4ee4-a868-c2253289e9f6}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

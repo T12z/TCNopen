@@ -1189,6 +1189,7 @@ int main (int argc, char *argv[])
 	                         0,                         /* Source IP filter2 : no used */
 	                         PD_COMID1_SUB_DST_IP1,     /* Default destination	(or MC Group) */
 	                         TRDP_FLAGS_DEFAULT,        /* Option */
+                             NULL,                      /*    default interface                    */
 	                         PD_COMID1_TIMEOUT,         /* Time out in us	*/
 	                         TRDP_TO_SET_TO_ZERO       /* delete invalid data on timeout */
 	                         );
@@ -1218,6 +1219,7 @@ int main (int argc, char *argv[])
 							 0,                         /* Source IP filter2 : no used  */
 							 PD_COMID2_SUB_DST_IP1,     /* Default destination	(or MC Group) */
 							 TRDP_FLAGS_DEFAULT,        /* Option */
+                             NULL,                      /*    default interface                    */
 							 PD_COMID2_TIMEOUT,         /* Time out in us	*/
 							 TRDP_TO_SET_TO_ZERO       /* delete invalid data on timeout */
 							 );
@@ -1254,6 +1256,7 @@ int main (int argc, char *argv[])
 								 0,                        	/* Source IP filter2 : no used */
 								 PD_COMID1_SUB_DST_IP2,    	/* Default destination	(or MC Group) */
 								 TRDP_FLAGS_DEFAULT,			/* Option */
+                                 NULL,                      /*    default interface                    */
 								 PD_COMID1_TIMEOUT,        	/* Time out in us	*/
 								 TRDP_TO_SET_TO_ZERO      	/* delete invalid data on timeout */
 								 );
@@ -1283,6 +1286,7 @@ int main (int argc, char *argv[])
 								 0,                        	/* Source IP filter2 : no used */
 								 PD_COMID2_SUB_DST_IP2,    	/* Default destination	(or MC Group) */
 								 TRDP_FLAGS_DEFAULT,			/* Option */
+                                 NULL,                      /*    default interface                    */
 								 PD_COMID2_TIMEOUT,        	/* Time out in us	*/
 								 TRDP_TO_SET_TO_ZERO     	/* delete invalid data on timeout */
 								 );

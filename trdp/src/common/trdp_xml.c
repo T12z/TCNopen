@@ -14,16 +14,16 @@
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
- /*
- * $Id$
- *
- *      BL 2019-01-29: Ticket #232: Write access to XML file
- *      BL 2019-01-23: Ticket #231: XML config from stream buffer
- *      SB 2018-11-07: Ticket #221 readXmlDatasets failed 
- *      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
- *      BL 2016-02-24: missing include (thanks to Robert)
- *      BL 2016-02-11: Ticket #102: Replacing libxml2
- */
+/*
+* $Id$
+*
+*      BL 2019-01-29: Ticket #232: Write access to XML file
+*      BL 2019-01-23: Ticket #231: XML config from stream buffer
+*      SB 2018-11-07: Ticket #221 readXmlDatasets failed
+*      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
+*      BL 2016-02-24: missing include (thanks to Robert)
+*      BL 2016-02-11: Ticket #102: Replacing libxml2
+*/
 
 /***********************************************************************************************************************
  * INCLUDES
@@ -71,7 +71,7 @@ static XML_TOKEN_T trdp_XMLNextToken (
     int     ch = 0;
     char    *p;
 
-    for (;;)
+    for (;; )
     {
         /* Skip whitespace */
         while (!feof(pXML->infile) && (ch = fgetc(pXML->infile)) <= ' ') /*lint !e160 Lint objects a GNU warning
@@ -339,6 +339,9 @@ TRDP_ERR_T trdp_XMLMemOpen (
     size_t          bufSize)
 {
 #ifdef HAS_FMEMOPEN
+#ifdef __APPLE__
+    if (__builtin_available(macOS 10.13, *))
+#endif
     if ((pXML->infile = fmemopen(pBuffer, bufSize, "rb")) == NULL)
     {
         vos_printLogStr(VOS_LOG_ERROR, "XML stream could not be opened for reading\n");
@@ -351,13 +354,13 @@ TRDP_ERR_T trdp_XMLMemOpen (
     return TRDP_NO_ERR;
 #else
     /* Create and open a temporary file */
-    pXML->infile =  tmpfile();              /* Note: Needs admin rights under VISTA!    */
+    pXML->infile = tmpfile();               /* Note: Needs admin rights under VISTA!    */
     if (pXML->infile != NULL)
     {
         /* Write to temp file */
         fprintf(pXML->infile, "%s", pBuffer);
         /* prepare for reading */
-        trdp_XMLRewind (pXML);
+        trdp_XMLRewind(pXML);
         return TRDP_NO_ERR;
     }
     vos_printLogStr(VOS_LOG_ERROR, "Temporary XML file could not be opened to write\n");

@@ -136,13 +136,14 @@ static void publishPD(
         err = tlp_publish(gAppHandle,                   /*    our application identifier    */
                           (TRDP_PUB_T*)&pdData->handle, /*    our publication identifier    */
                           NULL, NULL,
+                          0u,
                           pdData->comID,                /*    ComID to send                 */
-                          0,                            /*    etbTopoCnt local consist only */
-                          0,                            /*    opTrnTopoCnt                  */
-                          0,                            /*    default source IP             */
+                          0u,                           /*    etbTopoCnt local consist only */
+                          0u,                           /*    opTrnTopoCnt                  */
+                          0u,                           /*    default source IP             */
                           pdData->addr,                 /*    where to send to              */
                           pdData->time,                 /*    Cycle time in us              */
-                          0,                            /*    not redundant                 */
+                          0u,                           /*    not redundant                 */
                           TRDP_FLAGS_CALLBACK,          /*    Use callback for errors       */
                           NULL,                         /*    default qos and ttl           */
                           pdData->dataSize ? pdData->data : NULL,      /*    initial data   */
@@ -154,9 +155,9 @@ static void publishPD(
         printf("republish to %s\n", vos_ipDotted(pdData->addr));
         err = tlp_republish(gAppHandle,                 /*    our application identifier    */
                           (TRDP_PUB_T)pdData->handle,   /*    our publication identifier    */
-                          0,                            /*    etbTopoCnt local consist only */
-                          0,                            /*    opTrnTopoCnt                  */
-                          0,                            /*    default source IP             */
+                          0u,                           /*    etbTopoCnt local consist only */
+                          0u,                           /*    opTrnTopoCnt                  */
+                          0u,                           /*    default source IP             */
                           pdData->addr                  /*    where to send to              */
                           );
     }
@@ -179,12 +180,14 @@ static void subscribePD(
                             (TRDP_SUB_T*)&pdData->handle,   /*    our subscription identifier       */
                             NULL,                           /*    user reference                    */
                             NULL,                           /*    callback function                 */
+                            0u,
                             pdData->comID,                  /*    ComID                             */
-                            0,                              /*    etbTopoCnt: local consist only    */
-                            0,                              /*    opTrnTopoCnt                      */
-                            pdData->addr, 0,                /*    Source to expect packets from     */
-                            0,                              /*    Default destination (or MC Group) */
+                            0u,                             /*    etbTopoCnt: local consist only    */
+                            0u,                             /*    opTrnTopoCnt                      */
+                            pdData->addr, 0u,               /*    Source to expect packets from     */
+                            0u,                             /*    Default destination (or MC Group) */
                             TRDP_FLAGS_CALLBACK,            /*    packet flags                      */
+                            NULL,                           /*    default interface                    */
                             pdData->time,                   /*    Time out in us                    */
                             TRDP_TO_SET_TO_ZERO);           /*    delete invalid data on timeout    */
         
@@ -193,10 +196,10 @@ static void subscribePD(
     {
         err = tlp_resubscribe(gAppHandle,                   /*    our application identifier        */
                             (TRDP_SUB_T)pdData->handle,     /*    our subscription identifier       */
-                            0,                              /*    etbTopoCnt: local consist only    */
-                            0,                              /*    opTrnTopoCnt                      */
-                            pdData->addr, 0,                /*    Source to expect packets from     */
-                            0);                             /*    Default destination (or MC Group) */
+                            0u,                             /*    etbTopoCnt: local consist only    */
+                            0u,                             /*    opTrnTopoCnt                      */
+                            pdData->addr, 0u,               /*    Source to expect packets from     */
+                            0u);                            /*    Default destination (or MC Group) */
         printf("resubscribe to %s\n", vos_ipDotted(pdData->addr));
         
     }

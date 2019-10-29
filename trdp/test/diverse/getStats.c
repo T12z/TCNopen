@@ -354,12 +354,14 @@ int main (int argc, char * *argv)
                          &subHandle,                    /*    our subscription identifier            */
                          NULL,                          /*    user reference                         */
                          myPDcallBack,                  /*    callback function                      */
+                         0u,
                          TRDP_STATISTICS_PULL_COMID,    /*    ComID                                  */
                          0, 0,                          /*    topocount: local consist only          */
                          VOS_INADDR_ANY,                /*    source IP 1                           */
                          VOS_INADDR_ANY,                /*    Source IP filter                       */
                          replyIP,                       /*    Default destination    (or MC Group)   */
                          TRDP_FLAGS_DEFAULT,            /*    packet flags */
+                         NULL,                          /*    default interface                    */
                          PD_COMID1_TIMEOUT,             /*    Time out in us                         */
                          TRDP_TO_SET_TO_ZERO);          /*    delete invalid data    on timeout      */
 
@@ -373,6 +375,7 @@ int main (int argc, char * *argv)
     /*    Request statistics PD        */
     err = tlp_request(appHandle,
                       subHandle,
+                      0u,
                       TRDP_STATISTICS_PULL_COMID,
                       0,
                       0,

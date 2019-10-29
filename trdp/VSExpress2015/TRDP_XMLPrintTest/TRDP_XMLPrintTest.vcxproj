@@ -160,7 +160,9 @@
     <ClCompile Include="..\..\test\xml\trdp-xmlprint-test.c" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="$(OutDir)\TRDP.lib" />
+    <ProjectReference Include="..\TRDP\TRDP.vcxproj">
+      <Project>{4e059552-03ff-4ee4-a868-c2253289e9f6}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

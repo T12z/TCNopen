@@ -9,11 +9,12 @@
  * @note            Project: TRDP SPY
  *
  * @author          Florian Weispfenning, Bombardier Transportation
+ * @author          Thorsten Schulz, Universität Rostock
  *
- * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
- *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- *
+ * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
  * $Id: $
  *
  * @addtogroup Definitions
@@ -26,13 +27,15 @@
 /*******************************************************************************
  * INCLUDES
  */
-#include <QtGlobal>
+#include <glib.h>
 
 /*******************************************************************************
  * DEFINES
  */
 
 #define TRDP_BOOL8      1   /**< =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true) */
+#define TRDP_BITSET8    TRDP_BOOL8
+#define TRDP_ANTIVALENT8 TRDP_BOOL8
 #define TRDP_CHAR8		2	/**< char, can be used also as UTF8 */
 #define TRDP_UTF16		3	/**< Unicode UTF-16 character */
 #define TRDP_INT8		4	/**< Signed integer, 8 bit */
@@ -59,6 +62,7 @@
 #define PROTO_TAG_TRDP          "TRDP"
 #define PROTO_NAME_TRDP         "Train Real Time Data Protocol"
 #define PROTO_FILTERNAME_TRDP   "trdp"
+#define PROTO_FILTERNAME_TRDP_PDU PROTO_FILTERNAME_TRDP ".pdu"
 
 #define TRDP_HEADER_OFFSET_SEQCNT           0
 #define TRDP_HEADER_OFFSET_PROTOVER         4
@@ -91,14 +95,6 @@
 #define TRDP_FCS_LENGTH 4   /**< The CRC calculation results in a 32bit result so 4 bytes are necessary */
 
 /*******************************************************************************
- * TYPEDEFS
- */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*******************************************************************************
  * GLOBAL FUNCTIONS
  */
 
@@ -114,7 +110,7 @@ extern "C" {
  *
  * @return Calculated fcs value
  */
-quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs);
+guint32 trdp_fcs32(const guint8 buf[], guint32 len, guint32 fcs);
 
 /**@fn quint8 trdp_dissect_width(quint32 type);
  * @brief Lookup table for length of the standard types.
@@ -122,15 +118,9 @@ quint32 trdp_fcs32(const quint8 buf[], quint32 len, quint32 fcs);
  * Extracted from table3 at TCN-TRDP2-D-BOM-011-19.
  * @brief Calculate the width in bytes for a given type
  * @param type  the requested type, where the width shall be returned
- * @return <code>0</code>, on unkown types
+ * @return <code>-1</code>, on unkown types
  */
-quint8 trdp_dissect_width(quint32 type);
-
-
-#ifdef __cplusplus
-}
-#endif
-
+gint32 trdp_dissect_width(guint32 type);
 
 #endif
 

@@ -303,12 +303,14 @@ int main (int argc, char * *argv)
         err = tlp_subscribe(appHandle,                  /*    our application identifier           */
                             &gSubPackets[i].subHandle,  /*    our subscription identifier          */
                             NULL, NULL,
+                            0u,                         /* serviceId                                */
                             gSubPackets[i].comID,       /*    ComID                                */
                             0u,                         /*    topocount: local consist only        */
                             0u,
                             VOS_INADDR_ANY, VOS_INADDR_ANY,  /*    Source to expect packets from   */
                             gSubPackets[i].addr,        /*    Default destination    (or MC Group) */
                             TRDP_FLAGS_CALLBACK,        /*    packet flags                         */
+                            NULL,                       /*    default interface                    */
                             gSubPackets[i].time,        /*    Time out in us                       */
                             TRDP_TO_SET_TO_ZERO);       /*    delete invalid data on timeout       */
 
@@ -325,6 +327,7 @@ int main (int argc, char * *argv)
         err = tlp_publish(appHandle,                    /*    our application identifier    */
                           &gPubPackets[i].pubHandle,    /*    our pulication identifier     */
                           NULL, NULL,
+                          0u,                           /* serviceId                        */
                           gPubPackets[i].comID,         /*    ComID to send                 */
                           0u,                           /*    local consist only            */
                           0u,

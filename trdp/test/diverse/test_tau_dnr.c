@@ -169,7 +169,7 @@ static int test_tau_init(
         return 1;
     }
 
-    err = tau_initDnr (appHandle, dnsServerIP, 0, NULL /*PATH_TO_HOSTSFILE*/, TRDP_DNR_OWN_THREAD);
+    err = tau_initDnr (appHandle, dnsServerIP, 0, NULL /*PATH_TO_HOSTSFILE*/, TRDP_DNR_OWN_THREAD, FALSE);
 //    err = tau_initDnr (appHandle, 0, 0, PATH_TO_HOSTSFILE);
     if (err != TRDP_NO_ERR)
     {

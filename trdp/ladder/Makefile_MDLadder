@@ -1,0 +1,182 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION    trdp Makefile
+#//
+#// AUTHOR         Bernd Loehr, NewTec GmbH
+#//
+#// All rights reserved. Reproduction, modification, use or disclosure
+#// to third parties without express authority is forbidden.
+#// Copyright Bombardier Transportation GmbH, Germany, 2012.
+#//
+
+# Preliminary: Currently, posix support only
+# Check if configuration is present
+ifeq (config/config.mk,$(wildcard config/config.mk)) 
+# load target specific configuration
+include config/config.mk
+endif
+
+# --------------------------------------------------------------------
+
+VOS_PATH = src/vos/$(TARGET_VOS)
+
+vpath %.c src/common src/example src/vos/common test/udpmdcom $(VOS_PATH) test/laddermdtest
+vpath %.h src/api src/vos/api src/common src/vos/common
+
+INCPATH = src/api
+VOS_INCPATH = src/vos/api -I src/common
+BUILD_PATH = bld/$(TARGET_VOS)
+
+ifdef TARGET
+DIR_PATH=$(TARGET)/
+CROSS=$(TARGET)-
+
+CC=$(CROSS)gcc
+AR=$(CROSS)ar
+LD=$(CROSS)ld
+STRIP=$(CROSS)strip
+else
+CC = $(GNUPATH)gcc
+AR = $(GNUPATH)ar
+LD = $(GNUPATH)ld
+STRIP = $(GNUPATH)strip
+endif
+
+ECHO = echo
+RM = rm -f
+MD = mkdir -p
+CP = cp
+MV = mv
+
+DEBUG=1
+TRDP_OPTION_LADDER=1
+MD_SUPPORT=1
+
+ifeq ($(MD_SUPPORT),1)
+CFLAGS += -D_GNU_SOURCE -D_DARWIN_C_SOURCE -D_XOPEN_SOURCE=500 -pthread -fPIC -Wall -DMD_SUPPORT=1
+else
+CFLAGS += -D_GNU_SOURCE -D_DARWIN_C_SOURCE -D_XOPEN_SOURCE=500 -pthread -fPIC -Wall -DMD_SUPPORT=0
+endif
+
+ifeq ($(TRDP_OPTION_LADDER),1)
+CFLAGS += -DTRDP_OPTION_LADDER -DCLOCK_MONOTONIC
+CFLAGS += -I src/api -I src/vos/api -I src/common -I example/ladder
+endif
+
+SUBDIRS	= src
+INCLUDES = -I $(INCPATH) -I $(VOS_INCPATH) -I $(VOS_PATH)
+OUTDIR = $(BUILD_PATH)
+
+ifeq ($(TRDP_OPTION_LADDER),1)
+LDFLAGS = -lpthread -lrt -ltrdp -L $(OUTDIR)
+else
+LDFLAGS = -L $(OUTDIR)
+endif
+# files, all tests need to run 
+SRC_TEST = test/test_general.c
+
+ifeq ($(DEBUG),1)
+CFLAGS += -g -DDEBUG
+LDFLAGS += -g
+# Display the strip command and do not execut it
+STRIP = $(ECHO) "do NOT strip: " 
+else
+CFLAGS += -Os  -DNO_DEBUG
+endif
+
+VOS_OBJS = vos_utils.o vos_sock.o vos_mem.o vos_thread.o vos_shared_mem.o
+TRDP_OBJS = trdp_pdcom.o trdp_utils.o tlc_if.o tlp_if.o trdp_stats.o tau_marshall.o $(VOS_OBJS)
+MDTESTLADDER_OBJS = mdTestMain.o mdTestLog.o mdTestMdReceiveManager.o mdTestCaller.o mdTestReplier.o mdTestCommon.o
+MDTESTLADDER_SRC = mdTestMain.c mdTestLog.c mdTestMdReceiveManager.c mdTestCaller.c mdTestReplier.c mdTestCommon.c
+
+ifeq ($(MD_SUPPORT),1)
+TRDP_OBJS += trdp_mdcom.o
+endif
+
+all:		outdir libtrdp laddermdtest
+
+libtrdp:	outdir $(OUTDIR)/libtrdp.a
+laddermdtest:	test/laddermdtest/mdTestLadder
+
+doc:		doc/latex/refman.pdf
+
+$(OUTDIR)/vos_shared_mem.o:	vos_shared_mem.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c src/vos/posix/vos_shared_mem.c -o $(OUTDIR)/vos_shared_mem.o
+
+$(OUTDIR)/trdp_if.o:	trdp_if.c
+			$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(OUTDIR)/%.o: %.c %.h trdp_if_light.h trdp_types.h vos_types.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+
+$(OUTDIR)/libtrdp.a:	$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
+			@$(ECHO) ' ### Building the lib $(@F)'
+			$(RM) $@
+			$(AR) cq $@ $^
+			
+test/laddermdtest/mdTestLadder: mdTestMain.o mdTestLog.o mdTestMdReceiveManager.o mdTestCaller.o mdTestReplier.o mdTestCommon.o bld/posix/libtrdp.a
+					gcc -g -o mdTestLadder mdTestMain.o mdTestLog.o mdTestMdReceiveManager.o mdTestCaller.o mdTestReplier.o mdTestCommon.o bld/posix/libtrdp.a -lrt -lpthread
+		$(MV) *.o test/laddermdtest
+		$(MV) mdTestLadder test/laddermdtest
+					
+test/laddermdtest/mdTestMain.o:	mdTestMain.c
+			gcc -g -c test/laddermdtest/mdTestMain.c $(CFLAGS) $(INCLUDES) $(LDFLAGS)
+
+test/laddermdtest/mdTestLog.o:	mdTestLog.c
+			gcc -g -c test/laddermdtest/mdTestLog.c $(CFLAGS) $(INCLUDES) $(LDFLAGS)
+			
+test/laddermdtest/mdTestMdReceiveManager.o:	mdTestMdReceiveManager.c
+			gcc -g -c test/laddermdtest/mdTestMdReceiveManager.c $(CFLAGS) $(INCLUDES) $(LDFLAGS)
+
+test/laddermdtest/mdTestCaller.o:	mdTestCaller.c
+			gcc -g -c test/laddermdtest/mdTestCaller.c $(CFLAGS) $(INCLUDES) $(LDFLAGS)
+
+test/laddermdtest/mdTestReplier.o:	mdTestReplier.c
+			gcc -g -c test/laddermdtest/mdTestReplider.c $(CFLAGS) $(INCLUDES) $(LDFLAGS)
+
+test/laddermdtest/mdTestCommon.o:	mdTestCommon.c
+			gcc -g -c test/laddermdtest/mdTestCommon.c $(CFLAGS) $(INCLUDES) $(LDFLAGS)
+ 
+outdir:
+		$(MD) $(OUTDIR)
+
+
+doc/latex/refman.pdf: Doxyfile trdp_if_light.h trdp_types.h
+			@$(ECHO) ' ### Making the PDF document'
+			doxygen Doxyfile
+			make -C doc/latex
+			$(CP) doc/latex/refman.pdf doc
+
+
+
+help:
+	@echo " " >&2
+	@echo "BUILD TARGETS FOR TRDP" >&2
+	@echo "Edit the paths in the top part of this Makefile to suit your environment." >&2
+	@echo "Then call 'make' or 'make all' to build everything." >&2
+	@echo "To build debug binaries, append 'DEBUG=TRUE' to the make command " >&2
+	@echo "To include message data support, append 'MD_SUPPORT=1' to the make command " >&2
+	@echo " " >&2
+	@echo "Other builds:" >&2
+	@echo "  * make demo      - build the sample applications" >&2
+	@echo "  * make test      - build the test server application" >&2
+	@echo "  * make mdtest    - build the UDPMDcom test application" >&2
+	@echo "  * make example   - build the example for MD communication, but needs libuuid!" >&2
+	@echo "  * make clean     - remove all binaries and objects of the current target" >&2
+	@echo "  * make libtrdp	  - build the static library, only" >&2
+	@echo " " >&2
+	@echo "  * make doc	      - build the documentation (refman.pdf)" >&2
+	@echo "                   - (needs doxygen installed in executable path)" >&2
+	@echo " " >&2
+
+#########################################################################
+
+
+clean:
+	$(RM) -r bld/*
+	$(RM) -r doc/latex/*
+
+
+#########################################################################

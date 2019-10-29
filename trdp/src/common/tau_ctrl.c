@@ -12,11 +12,17 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2019-06-17: Ticket #264 Provide service oriented interface
+*      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
+*      BL 2019-06-17: Ticket #161 Increase performance
+*      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+*      V 2.0.0 --------- ^^^ -----------
+*      V 1.4.2 --------- vvv -----------
 *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
 *     AHW 2017-11-08: Ticket #179 Max. number of retries (part of sendParam) of a MD request needs to be checked
 *      BL 2017-04-28: Ticket #155: Kill trdp_proto.h - move definitions to iec61375-2-3.h
@@ -82,13 +88,14 @@ EXT_DECL TRDP_ERR_T tau_initEcspCtrl ( TRDP_APP_SESSION_T   appHandle,
     err = tlp_publish(  appHandle,                  /*    our application identifier        */
                         &priv_pubHandle,            /*    our pulication identifier         */
                         NULL, NULL,
+                        0u,                         /*    no serviceId                      */
                         TRDP_ECSP_CTRL_COMID,       /*    ComID to send                     */
-                        0,                          /*    ecnTopoCounter                    */
-                        0,                          /*    opTopoCounter                     */
+                        0u,                         /*    ecnTopoCounter                    */
+                        0u,                         /*    opTopoCounter                     */
                         appHandle->realIP,          /*    default source IP                 */
                         ecspIpAddr,                 /*    where to send to                  */
                         ECSP_CTRL_CYCLE,            /*    Cycle time in us                  */
-                        0,                          /*    not redundant                     */
+                        0u,                         /*    not redundant                     */
                         TRDP_FLAGS_MARSHALL,        /*    packet flags - UDP, no call back  */
                         NULL,                       /*    default qos and ttl               */
                         (UINT8 *)NULL,              /*    no initial data                   */
@@ -104,12 +111,14 @@ EXT_DECL TRDP_ERR_T tau_initEcspCtrl ( TRDP_APP_SESSION_T   appHandle,
                          &priv_subHandle,           /*    our subscription identifier           */
                          NULL,                      /*    user ref                              */
                          NULL,                      /*    callback function                     */
+                         0u,                        /*    no serviceId                          */
                          TRDP_ECSP_STAT_COMID,      /*    ComID                                 */
                          0,                         /*    ecnTopoCounter                        */
                          0,                         /*    opTopoCounter                         */
                          0, 0,                      /*    Source IP filter                      */
                          appHandle->realIP,         /*    Default destination    (or MC Group)  */
                          TRDP_FLAGS_MARSHALL,       /*    packet flags - UDP, no call back      */
+                         NULL,                      /*    default interface                     */
                          ECSP_STAT_TIMEOUT,         /*    Time out in us                        */
                          TRDP_TO_SET_TO_ZERO);      /*    delete invalid data on timeout        */
 

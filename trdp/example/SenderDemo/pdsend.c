@@ -281,7 +281,7 @@ void pd_updatePublisher (int active)
     }
     if (active)
     {
-        err = tlp_publish(gAppHandle, &gPubHandle, NULL, NULL, gComID, 0, 0, 0, vos_dottedIP(gTargetIP), gInterval, 0,
+        err = tlp_publish(gAppHandle, &gPubHandle, NULL, NULL, 0u, gComID, 0u, 0u, 0u, vos_dottedIP(gTargetIP), gInterval, 0,
                           TRDP_FLAGS_NONE, NULL, gDataBuffer, (UINT32) gDataSize);
         if (err != TRDP_NO_ERR)
         {
@@ -335,16 +335,18 @@ void pd_sub (
 
     TRDP_ERR_T err = tlp_subscribe(
             gAppHandle,                                 /*    our application identifier            */
-            &recPacket->subHandle,                      /*    our subscription identifier            */
+            &recPacket->subHandle,                      /*    our subscription identifier           */
             NULL, NULL,
-            recPacket->comID,                           /*    ComID                                */
-            0,                                          /*    topocount: local consist only        */
+            0u,                                         /*    serviceId                             */
+            recPacket->comID,                           /*    ComID                                 */
+            0,                                          /*    topocount: local consist only         */
             0,
             vos_dottedIP(recPacket->srcIP),             /*    Source IP filter 1                    */
             VOS_INADDR_ANY, 0,
-            0x0,                                        /*    Default destination    (or MC Group)   */
+            0x0,                                        /*    Default destination    (or MC Group)  */
+            NULL,                                       /*    default interface                     */
             recPacket->timeout,                         /*    Time out in us                        */
-            TRDP_TO_SET_TO_ZERO);                       /*  delete invalid data    on timeout      */
+            TRDP_TO_SET_TO_ZERO);                       /*  delete invalid data    on timeout       */
 
     if (err != TRDP_NO_ERR)
     {

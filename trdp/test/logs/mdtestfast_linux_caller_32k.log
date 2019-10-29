@@ -1,0 +1,1142 @@
+DBG vos_mem.c:376 vos_memAlloc() 0x948e80, size	28
+INF tlc_if.c:346 TRDP Stack Version 2.0.2.1: successfully initiated
+DBG vos_mem.c:376 vos_memAlloc() 0x949050, size	12152
+DBG vos_mem.c:376 vos_memAlloc() 0x948ec8, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x948ee8, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x948f08, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x948f28, size	28
+DBG vos_mem.c:376 vos_memAlloc() 0x94bfd0, size	1472
+DBG vos_mem.c:376 vos_memAlloc() 0x948f48, size	140
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=4 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 4
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = PD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 5, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+DBG vos_mem.c:376 vos_memAlloc() 0x94c598, size	420
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=5 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:17224
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 4
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = PD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 5, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:122 iface[1].sock = 5
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = PD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 5, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 1
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+DBG vos_mem.c:376 vos_memAlloc() 0x94c740, size	140
+DBG vos_mem.c:376 vos_memAlloc() 0x94c7d0, size	1472
+INF tlc_if.c:577 TRDP session opened successfully
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session '756a0e008a170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session '756a0e008a170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '87990e008b170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '87990e008b170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '1cc90e008c170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '1cc90e008c170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session 'd3f70e008d170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG vos_mem.c:376 vos_memAlloc() 0x954be8, size	212
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 6)
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+DBG vos_sock.c:1657 received 32000 bytes (Socket: 6)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mp' UUID: d3f70e008d170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session 'd3f70e008d170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '578e00008f170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: 578e00008f170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '578e00008f170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'ba98010090170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: ba98010090170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'ba98010090170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=6 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'f59e020091170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: f59e020091170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 6 usage = 1
+DBG vos_sock.c:748 vos_sockClose(6) okay
+DBG trdp_utils.c:1403 Closed socket 6
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'f59e020091170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session '6814030095170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 6)
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+DBG vos_sock.c:1657 received 32000 bytes (Socket: 6)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mq' UUID: 6814030095170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using TCP MD session '6814030095170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+INF trdp_mdcom.c:2263 Opened TCP connection to 10.0.1.1 (Socket: 6, Port: 17225)
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session '6814030095170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'da4a040096170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mq' UUID: da4a040096170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using UDP MD session 'da4a040096170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'da4a040096170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '5b1a050097170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mq' UUID: 5b1a050097170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using UDP MD session '5b1a050097170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '5b1a050097170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=6 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'f711060098170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mq' UUID: f711060098170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using UDP MD session 'f711060098170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+INF trdp_mdcom.c:449 UDP MD reply/confirm timeout
+DBG trdp_utils.c:1389 Decrement the socket 6 usage = 1
+DBG vos_sock.c:748 vos_sockClose(6) okay
+DBG trdp_utils.c:1403 Closed socket 6
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'f711060098170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session '303407009c170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session '303407009c170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '509207009d170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '509207009d170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'e1de07009e170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'e1de07009e170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session '5e2d08009f170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 6)
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+DBG vos_sock.c:1657 received 32000 bytes (Socket: 6)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mp' UUID: 5e2d08009f170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session '5e2d08009f170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'e6480900a0170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: e6480900a0170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'e6480900a0170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'ee3c0a00a1170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: ee3c0a00a1170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'ee3c0a00a1170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=6 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '4c070b00a2170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: 4c070b00a2170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 6 usage = 1
+DBG vos_sock.c:748 vos_sockClose(6) okay
+DBG trdp_utils.c:1403 Closed socket 6
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '4c070b00a2170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session 'b17c0b00a6170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 6)
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+DBG vos_sock.c:1657 received 32000 bytes (Socket: 6)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mq' UUID: b17c0b00a6170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using TCP MD session 'b17c0b00a6170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+INF trdp_mdcom.c:2263 Opened TCP connection to 10.0.1.1 (Socket: 6, Port: 17225)
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session 'b17c0b00a6170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '33c00c00a7170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mq' UUID: 33c00c00a7170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using UDP MD session '33c00c00a7170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '33c00c00a7170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '6ab70d00a8170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mq' UUID: 6ab70d00a8170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using UDP MD session '6ab70d00a8170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '6ab70d00a8170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=6 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'b2ae0e00a9170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mq' UUID: b2ae0e00a9170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+INF trdp_mdcom.c:3617 MD TRDP_MSG_MC
+INF trdp_mdcom.c:3664 Using UDP MD session 'b2ae0e00a9170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	116
+INF trdp_mdcom.c:3206 MD sender element state = 5, msgType=Mc
+INF trdp_mdcom.c:449 UDP MD reply/confirm timeout
+DBG trdp_utils.c:1389 Decrement the socket 6 usage = 1
+DBG vos_sock.c:748 vos_sockClose(6) okay
+DBG trdp_utils.c:1403 Closed socket 6
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'b2ae0e00a9170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session '64680000ae170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session '64680000ae170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'c4b20000af170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'c4b20000af170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'd8160100b0170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 1, msgType=Mn
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'd8160100b0170004'
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 65536
+INF vos_sock.c:259 Recv buffer limit = 87380
+INF vos_sock.c:723 vos_sockOpenTCP: socket()=6 success
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating TCP MD caller session '6b6f0100b1170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+WAR vos_sock.c:1527 connect() problem: Operation now in progress
+INF trdp_mdcom.c:2270 Socket connection for TCP not ready (Socket: 6, Port: 17225)
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_sock.c:1657 received 116 bytes (Socket: 6)
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+DBG vos_sock.c:1657 received 32000 bytes (Socket: 6)
+INF trdp_mdcom.c:2024 Received TCP MD packet (type: 'Mp' UUID: 6b6f0100b1170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1435 Decrement the socket 6 usage = 1
+INF trdp_utils.c:1448 The Socket (Num = 6 usage=0) ConnectionTimeout will be started
+INF trdp_mdcom.c:738 Freeing TCP MD caller session '6b6f0100b1170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session 'c6880200b2170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: c6880200b2170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session 'c6880200b2170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=7 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_TCP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 0
+DBG trdp_utils.c:122 iface[1].sock = 7
+DBG trdp_utils.c:123 iface[1].bindAddr = a000116
+DBG trdp_utils.c:126 iface[1].type = MD_UDP 
+DBG trdp_utils.c:131 iface[1].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[1].rcvMostly = 0
+DBG trdp_utils.c:133 iface[1].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '04670300b3170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: 04670300b3170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 7 usage = 1
+DBG vos_sock.c:748 vos_sockClose(7) okay
+DBG trdp_utils.c:1403 Closed socket 7
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '04670300b3170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+INF trdp_mdcom.c:2985 The socket (Num = 6) TIMEOUT
+INF trdp_utils.c:1348 The socket (Num = 6) will be closed
+DBG vos_sock.c:748 vos_sockClose(6) okay
+INF trdp_utils.c:1359 Deleting socket from the iface (Sock: 6, lIndex: 0)
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF vos_sock.c:246 Send buffer limit = 163840
+INF vos_sock.c:259 Recv buffer limit = 163840
+DBG vos_sock.c:672 vos_sockOpenUDP: socket()=6 success
+INF vos_sock.c:1352 trying to bind to: 10.0.1.22:0
+DBG trdp_utils.c:115 ------- Socket usage -------
+DBG trdp_utils.c:122 iface[0].sock = 6
+DBG trdp_utils.c:123 iface[0].bindAddr = a000116
+DBG trdp_utils.c:126 iface[0].type = MD_UDP 
+DBG trdp_utils.c:131 iface[0].sendParam.qos = 3, ttl = 64
+DBG trdp_utils.c:132 iface[0].rcvMostly = 0
+DBG trdp_utils.c:133 iface[0].usage = 1
+DBG trdp_utils.c:135 ----------------------------
+
+INF vos_sock.c:462 IP-Addr for 'lo': 127.0.0.1
+INF vos_sock.c:462 IP-Addr for 'eth0': 10.0.1.22
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF vos_sock.c:462 IP-Addr for 'eth0': 169.254.236.93
+INF vos_sock.c:472 Mac-Addr for 'eth0': b8:27:eb:36:a0:aa
+INF trdp_mdcom.c:251 Creating UDP MD caller session '1f2f0400b4170004'
+DBG vos_mem.c:376 vos_memAlloc() 0x94ce70, size	32116
+INF trdp_mdcom.c:3206 MD sender element state = 2, msgType=Mr
+DBG vos_mem.c:376 vos_memAlloc() 0x954cc0, size	1480
+DBG vos_mem.c:376 vos_memAlloc() 0x955290, size	32116
+DBG vos_mem.c:519 vos_memFree() 0x954cc0
+INF trdp_mdcom.c:2024 Received UDP MD packet (type: 'Mp' UUID: 1f2f0400b4170004 Data len: 32000)
+DBG vos_mem.c:519 vos_memFree() 0x94ce70
+DBG trdp_utils.c:1389 Decrement the socket 6 usage = 1
+DBG vos_sock.c:748 vos_sockClose(6) okay
+DBG trdp_utils.c:1403 Closed socket 6
+INF trdp_mdcom.c:738 Freeing UDP MD caller session '1f2f0400b4170004'
+DBG vos_mem.c:519 vos_memFree() 0x955290
+DBG vos_mem.c:519 vos_memFree() 0x94cd98
+DBG vos_mem.c:376 vos_memAlloc() 0x94cd98, size	212
+INF v

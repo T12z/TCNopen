@@ -300,12 +300,14 @@ int main (int argc, char * *argv)
     err = tlp_subscribe(appHandle,                     /*    our application identifier             */
                         &subHandle,                    /*    our subscription identifier            */
                         NULL, NULL,
+                        0u,
                         gComID,                        /*    ComID                                  */
                         0u,                            /*    topocounts: local consist only         */
                         0u,
                         VOS_INADDR_ANY, VOS_INADDR_ANY, /*    Source IP filter                       */
                         replyIP,                       /*    Default destination    (or MC Group)   */
                         TRDP_FLAGS_DEFAULT,            /*    packet flags */
+                        NULL,
                         0u,                            /*    Time out in us                         */
                         TRDP_TO_SET_TO_ZERO);          /*    delete invalid data    on timeout      */
 
@@ -317,7 +319,7 @@ int main (int argc, char * *argv)
     }
 
     /*    Request PD        */
-    err = tlp_request(appHandle, subHandle, gComID, 0u, 0u, VOS_INADDR_ANY, destIP,
+    err = tlp_request(appHandle, subHandle, 0u, gComID, 0u, 0u, VOS_INADDR_ANY, destIP,
                       0u, TRDP_FLAGS_NONE, 0u, NULL, 0u, gComID, replyIP);
 
     if (err != TRDP_NO_ERR)
@@ -426,6 +428,7 @@ int main (int argc, char * *argv)
             /*    Request PD        */
             err = tlp_request(appHandle,
                               subHandle,
+                              0u,
                               gComID,
                               0u,
                               0u,

@@ -23,6 +23,7 @@
     <RootNamespace>TRDP</RootNamespace>
     <Keyword>TRDPProj</Keyword>
     <ProjectName>TRDP</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -110,7 +111,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -152,12 +153,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
@@ -174,11 +175,15 @@
     <ClCompile Include="..\..\src\common\tau_ctrl.c" />
     <ClCompile Include="..\..\src\common\tau_dnr.c" />
     <ClCompile Include="..\..\src\common\tau_marshall.c" />
+    <ClCompile Include="..\..\src\common\tau_so_if.c" />
     <ClCompile Include="..\..\src\common\tau_tti.c" />
     <ClCompile Include="..\..\src\common\tau_xml.c" />
-    <ClCompile Include="..\..\src\common\trdp_if.c" />
+    <ClCompile Include="..\..\src\common\tlc_if.c" />
+    <ClCompile Include="..\..\src\common\tlm_if.c" />
+    <ClCompile Include="..\..\src\common\tlp_if.c" />
     <ClCompile Include="..\..\src\common\trdp_mdcom.c" />
     <ClCompile Include="..\..\src\common\trdp_pdcom.c" />
+    <ClCompile Include="..\..\src\common\trdp_pdindex.c" />
     <ClCompile Include="..\..\src\common\trdp_stats.c" />
     <ClCompile Include="..\..\src\common\trdp_utils.c" />
     <ClCompile Include="..\..\src\common\trdp_xml.c" />
@@ -193,11 +198,15 @@
     <ClInclude Include="..\..\src\api\tau_ctrl.h" />
     <ClInclude Include="..\..\src\api\tau_ctrl_types.h" />
     <ClInclude Include="..\..\src\api\tau_dnr.h" />
+    <ClInclude Include="..\..\src\api\tau_so_if.h" />
     <ClInclude Include="..\..\src\api\tau_tti.h" />
     <ClInclude Include="..\..\src\api\tau_tti_types.h" />
-    <ClInclude Include="..\..\src\common\trdp_if.h" />
+    <ClInclude Include="..\..\src\api\trdp_serviceRegistry.h" />
+    <ClInclude Include="..\..\src\api\trdp_tsn_def.h" />
+    <ClInclude Include="..\..\src\common\tlc_if.h" />
     <ClInclude Include="..\..\src\common\trdp_mdcom.h" />
     <ClInclude Include="..\..\src\common\trdp_pdcom.h" />
+    <ClInclude Include="..\..\src\common\trdp_pdindex.h" />
     <ClInclude Include="..\..\src\common\trdp_private.h" />
     <ClInclude Include="..\..\src\common\trdp_stats.h" />
     <ClInclude Include="..\..\src\common\trdp_utils.h" />

@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      BL 2019-08-27: Changed send failure from ERROR to WARNING
  *      BL 2019-02-22: lwip patch: recvfrom to return destIP
  *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
  *      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
@@ -28,6 +29,11 @@
 #ifndef ESP32
 #error \
     "You are trying to compile the ESP32 implementation of vos_sock.c - either define ESP32 or exclude this file!"
+#endif
+
+#ifdef TSN_SUPPORT
+#warning \
+    "To build a TSN capable TRDP library another vos_sock implementation is necessary. Sorry!"
 #endif
 
 /***********************************************************************************************************************
@@ -62,6 +68,63 @@ static int vosSockInitialised = FALSE;
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+
+#ifdef TSN_SUPPORT
+
+/* Unimplemented extensions for TSN & VLAN support */
+EXT_DECL VOS_ERR_T  vos_ifnameFromVlanId (UINT16    vlanId,
+                                          CHAR8     *pIFaceName)
+{
+    return VOS_NO_ERR;
+}
+
+EXT_DECL VOS_ERR_T  vos_createVlanIF (UINT16            vlanId,
+                                      CHAR8             *pIFaceName,
+                                      VOS_IP4_ADDR_T    ipAddr)
+{
+    return VOS_NO_ERR;
+}
+
+EXT_DECL VOS_ERR_T  vos_sockOpenTSN (SOCKET                 *pSock,
+                                     const VOS_SOCK_OPT_T   *pOptions)
+{
+    return VOS_NO_ERR;
+}
+
+EXT_DECL VOS_ERR_T  vos_sockSendTSN (SOCKET         sock,
+                                     const UINT8    *pBuffer,
+                                     UINT32         *pSize,
+                                     VOS_IP4_ADDR_T srcIpAddress,
+                                     VOS_IP4_ADDR_T dstIpAddress,
+                                     UINT16         port,
+                                     VOS_TIMEVAL_T  *pTxTime)
+{
+    return VOS_NO_ERR;
+}
+
+EXT_DECL VOS_ERR_T vos_sockReceiveTSN (SOCKET   sock,
+                                       UINT8    *pBuffer,
+                                       UINT32   *pSize,
+                                       UINT32   *pSrcIPAddr,
+                                       UINT16   *pSrcIPPort,
+                                       UINT32   *pDstIPAddr,
+                                       BOOL8    peek)
+{
+    return VOS_NO_ERR;
+}
+
+EXT_DECL VOS_ERR_T  vos_sockBind2IF (SOCKET         sock,
+                                     VOS_IF_REC_T   *pIFace,
+                                     BOOL8          doBind)
+{
+    return VOS_NO_ERR;
+}
+
+EXT_DECL void       vos_sockPrintOptions (SOCKET sock)
+{
+    return;
+}
+#endif
 
 /**********************************************************************************************************************/
 /** Byte swapping.
@@ -788,7 +851,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "sendto() to %s:%u failed (Err: %s)\n",
+        vos_printLog(VOS_LOG_WARNING, "sendto() to %s:%u failed (Err: %s)\n",
                      inet_ntoa(destAddr.sin_addr), port, buff);
         return VOS_IO_ERR;
     }

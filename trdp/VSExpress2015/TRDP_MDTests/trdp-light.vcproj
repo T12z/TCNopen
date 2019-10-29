@@ -147,7 +147,7 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			>
 			<File
-				RelativePath="..\..\src\common\trdp_if.c"
+				RelativePath="..\..\src\common\tlc_if.c"
 				>
 			</File>
 			<File
@@ -224,7 +224,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\common\trdp_if.h"
+				RelativePath="..\..\src\common\tlc_if.h"
 				>
 			</File>
 			<File

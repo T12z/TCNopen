@@ -9,6 +9,8 @@
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2018. All rights reserved.
 #//
+#//	SB 2019-08-09: Added new lib target including tti, marshalling, xml parsing etc. and added install option
+#//	BL 2019-06-18: V2 changes: dividing trdp_if.c into tlc_if.c, tlp_if.c and tlm_if.c
 #//	BL 2019-06-13: Helm's Deep 96Board configuration added
 #//	BL 2019-03-21: Prepared for TSN
 #//	BL 2019-01-24: Reduce noise
@@ -16,7 +18,7 @@
 #//	BL 2018-02-02: Example renamed: cmdLineSelect -> echoCallback
 #//	BL 2017-05-30: 64 bit Linux X86 config added
 #//	BL 2017-05-08: 64 bit OSX config added
-#// BL 2016-02-11: Ticket #88 Cleanup makefiles, remove dependencies on external libraries
+#//	BL 2016-02-11: Ticket #88 Cleanup makefiles, remove dependencies on external libraries
 
 MAKEFLAGS += --quiet
 
@@ -39,7 +41,7 @@ INCPATH += -I src/api
 VOS_PATH += -I src/vos/$(TARGET_VOS)
 VOS_INCPATH += -I src/vos/api -I src/common
 
-vpath %.c src/common src/vos/common test/udpmdcom src/vos/$(TARGET_VOS) test example test/diverse test/xml $(ADD_SRC)
+vpath %.c src/common src/vos/common test/udpmdcom src/vos/$(TARGET_VOS) test example example/TSN test/diverse test/xml $(ADD_SRC)
 vpath %.h src/api src/vos/api src/common src/vos/common $(ADD_INC)
 
 INCLUDES = $(INCPATH) $(VOS_INCPATH) $(VOS_PATH)
@@ -54,27 +56,21 @@ INCLUDES = $(INCPATH) $(VOS_INCPATH) $(VOS_PATH)
 FLINT = $(LINT_BINPATH)flint
 
 # Set Objects
-VOS_OBJS = vos_utils.o \
-	   vos_mem.o \
-	   vos_thread.o \
-	   vos_shared_mem.o
+VOS_OBJS += vos_utils.o \
+		vos_mem.o \
+		vos_sock.o \
+		vos_thread.o \
+		vos_shared_mem.o
 
-#include the TSN socket implementation, if needed
-ifneq (,$(findstring TSN,$(CFLAGS)))
-	VOS_OBJS += vos_sockTSN.o trdp_tsn.o # Found
-	INCLUDES += -I $(ADD_INC)
-else
-	VOS_OBJS += vos_sock.o # Not found
-endif
-
-TRDP_OBJS = trdp_pdcom.o \
-	    trdp_utils.o \
-	    trdp_if.o \
-	    trdp_stats.o \
-	    $(VOS_OBJS)
+TRDP_OBJS += trdp_pdcom.o \
+		trdp_utils.o \
+		tlp_if.o \
+		tlc_if.o \
+		trdp_stats.o \
+		$(VOS_OBJS)
 
 # Optional objects for full blown TRDP usage
-TRDP_OPT_OBJS = trdp_xml.o \
+TRDP_OPT_OBJS += trdp_xml.o \
 		tau_xml.o \
 		tau_marshall.o \
 		tau_dnr.o \
@@ -84,16 +80,18 @@ TRDP_OPT_OBJS = trdp_xml.o \
 
 # Set LINT Objects
 LINT_OBJECTS = trdp_stats.lob\
-           vos_utils.lob \
-	   vos_sock.lob \
-	   vos_mem.lob \
-	   vos_thread.lob \
-	   vos_shared_mem.lob \
-	   trdp_pdcom.lob \
-	   trdp_mdcom.lob \
-	   trdp_utils.lob \
-	   trdp_if.lob \
-	   trdp_stats.lob
+		vos_utils.lob \
+		vos_sock.lob \
+		vos_mem.lob \
+		vos_thread.lob \
+		vos_shared_mem.lob \
+		trdp_pdcom.lob \
+		trdp_mdcom.lob \
+		trdp_utils.lob \
+		tlc_if.lob \
+		tlp_if.lob \
+		tlm_if.lob \
+		trdp_stats.lob
 
 # Set LDFLAGS
 LDFLAGS += -L $(OUTDIR)
@@ -101,10 +99,11 @@ LDFLAGS += -L $(OUTDIR)
 # Enable / disable MD Support
 # by default MD_SUPPORT is always enabled (in current state)
 ifeq ($(MD_SUPPORT),0)
-CFLAGS += -DMD_SUPPORT=0
+	CFLAGS += -DMD_SUPPORT=0
 else
-TRDP_OBJS += trdp_mdcom.o
-CFLAGS += -DMD_SUPPORT=1
+	TRDP_OBJS += trdp_mdcom.o
+	TRDP_OBJS += tlm_if.o
+	CFLAGS += -DMD_SUPPORT=1
 endif
 
 ifeq ($(DEBUG), TRUE)
@@ -113,25 +112,56 @@ else
 	OUTDIR = bld/output/$(ARCH)-rel
 endif
 
+# Enable / Disable realtime scheduling (posix only)
+ifeq ($(RT_THREADS), 1)
+CFLAGS += -DRT_THREADS
+endif
+
 # Set LINT result outdir now after OUTDIR is known
 LINT_OUTDIR  = $(OUTDIR)/lint
   
 # Enable / disable Debug
 ifeq ($(DEBUG),TRUE)
-CFLAGS += -g3 -O -DDEBUG
-LDFLAGS += -g3
-# Display the strip command and do not execute it
-STRIP = @$(ECHO) "do NOT strip: "
+	CFLAGS += -g3 -O -DDEBUG
+	LDFLAGS += -g3
+	# Display the strip command and do not execute it
+	STRIP = @$(ECHO) "do NOT strip: "
 else
-CFLAGS += -Os  -DNO_DEBUG
+	CFLAGS += -Os  -DNO_DEBUG
 endif
 
 TARGETS = outdir libtrdp
 
 ifneq ($(TARGET_OS),VXWORKS)
-TARGETS += example test pdtest mdtest xml
+	TARGETS += example test pdtest mdtest xml marshall
 else
-TARGETS += vtests
+	TARGETS += vtests
+endif
+
+ifeq ($(SOA_SUPPORT),1)
+	TRDP_OPT_OBJS   += tau_so_if.o
+	CFLAGS += -DSOA_SUPPORT
+#	Option: Building with service orientation support!
+endif
+
+ifeq ($(TSN_SUPPORT),1)
+	TARGETS += tsn
+	# Additional sources for TSN support
+	VOS_OBJS += vos_sockTSN.o
+	CFLAGS += -DTSN_SUPPORT
+#	Option: Building with TSN support
+endif
+
+ifeq ($(HIGH_PERF_INDEXED),1)
+	TARGETS += highperf
+	TRDP_OBJS += trdp_pdindex.o
+	CFLAGS += -DHIGH_PERF_INDEXED -DPD_SPEED
+#	Option: Building high performance stack
+endif
+
+# Do a full build
+ifeq ($(FULL_BUILD), 1)
+	TRDP_OBJS += $(TRDP_OPT_OBJS)
 endif
 
 all:	$(TARGETS)
@@ -141,19 +171,25 @@ outdir:
 
 libtrdp:	outdir $(OUTDIR)/libtrdp.a
 
+libtrdpap: outdir $(OUTDIR)/libtrdpap.a
+
 example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
+
+tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
 
 test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
 
-pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_md_responder $(OUTDIR)/testSub
+pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_md_responder $(OUTDIR)/testSub 
 
-mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
+mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-test-fast $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
 
 vtests:		outdir $(OUTDIR)/vtest
 
 xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
 
+highperf:	outdir $(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2 $(OUTDIR)/trdp-pd-test-fast
 
+marshall:	$(OUTDIR)/test_marshalling
 
 %_config:
 	cp -f config/$@ config/config.mk
@@ -162,6 +198,11 @@ $(OUTDIR)/%.o: %.c trdp_if_light.h trdp_types.h vos_types.h vos_sock.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OUTDIR)/libtrdp.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
+			@$(ECHO) ' ### Building the lib $(@F)'
+			@$(RM) $@
+			$(AR) cq $@ $^
+			
+$(OUTDIR)/libtrdpap.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS))) $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building the lib $(@F)'
 			@$(RM) $@
 			$(AR) cq $@ $^
@@ -204,13 +245,29 @@ $(OUTDIR)/receiveHello: receiveHello.c  $(OUTDIR)/libtrdp.a
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
-						   
+
 $(OUTDIR)/sendHello:   sendHello.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) example/sendHello.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/receiveTSN: receiveTSN.c  $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) example/TSN/receiveTSN.c \
+			-ltrdp \
+			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			-o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/sendTSN:   sendTSN.c  $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) example/TSN/sendTSN.c \
+			-ltrdp \
+			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			-o $@
 			@$(STRIP) $@
 
 $(OUTDIR)/sendData:   sendData.c  $(OUTDIR)/libtrdp.a
@@ -252,7 +309,7 @@ $(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdp.a $(addpr
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^ \
 			$(CFLAGS) $(INCLUDES) -o $@ \
-			-ltrdp -lz \
+			-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
 
@@ -260,7 +317,15 @@ $(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a $(addprefix $
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
-			-ltrdp -lz \
+			-ltrdp \
+			$(LDFLAGS)
+			@$(STRIP) $@
+
+$(OUTDIR)/trdp-xmlpd-test-fast:  trdp-xmlpd-test-fast.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building application $(@F)'
+			$(CC) $^  \
+			$(CFLAGS) $(INCLUDES) -o $@\
+			-ltrdp \
 			$(LDFLAGS)
 			@$(STRIP) $@
 
@@ -297,9 +362,25 @@ $(OUTDIR)/trdp-pd-test: $(OUTDIR)/libtrdp.a
 			    -o $@
 			@$(STRIP) $@
 
+$(OUTDIR)/trdp-pd-test-fast: $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building PD test application $(@F)'
+			$(CC) test/pdpatterns/trdp-pd-test-fast.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@
+
 $(OUTDIR)/trdp-md-test: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD test application $(@F)'
 			$(CC) test/mdpatterns/trdp-md-test.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/trdp-md-test-fast: $(OUTDIR)/libtrdp.a
+			@$(ECHO) ' ### Building MD test application $(@F)'
+			$(CC) test/mdpatterns/trdp-md-test-fast.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
@@ -352,7 +433,7 @@ $(OUTDIR)/testSub: $(OUTDIR)/libtrdp.a subTest.c
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
-			
+
 $(OUTDIR)/pdPull: $(OUTDIR)/libtrdp.a pdPull.c
 			@$(ECHO) ' ### Building PD pull test application $(@F)'
 			$(CC) test/diverse/pdPull.c \
@@ -360,13 +441,29 @@ $(OUTDIR)/pdPull: $(OUTDIR)/libtrdp.a pdPull.c
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
-			
+
 $(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
-				-ltrdp -lz \
+				-ltrdp \
 				$(LDFLAGS)
+			@$(STRIP) $@
+
+$(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdp \
+			$(LDFLAGS)
+			@$(STRIP) $@
+
+$(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdp \
+			$(LDFLAGS)
 			@$(STRIP) $@
 
 $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
@@ -384,12 +481,12 @@ $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 ###############################################################################
 clean:
 	rm -f -r bld/*
-	rm -f -r doc/latex/*   
+	rm -f -r doc/latex/*
 
 unconfig:
 	-$(RM) config/config.mk
-	
-distclean:	clean unconfig	 		
+
+distclean:	clean unconfig
 
 ###############################################################################
 #                                                                      	
@@ -405,22 +502,22 @@ LINTFLAGS = +v -i$(LINT_RULE_DIR) $(LINT_RULE_DIR)co-gcc.lnt -i ./src/api -i ./s
 	-DMD_SUPPORT=1 -w3 -e655 -summary -u
 
 # VxWorks will be the single non POSIX OS right now, MS Win uses proprietary build
-# framework, so this condition will most likely fit also BSD/Unix targets     
+# framework, so this condition will most likely fit also BSD/Unix targets
 ifneq ($(TARGET_OS),VXWORKS)
 LINTFLAGS += -DPOSIX
 endif
-	
-	
+
+
 $(LINT_OUTDIR)/final.lint: $(addprefix $(LINT_OUTDIR)/,$(notdir $(LINT_OBJECTS)))
 	@$(ECHO) '### Lint Final'
 	@$(ECHO) '### Final Lint Stage - Verifying inter module / system wide stuff' > $@
-	$(FLINT) $(LINTFLAGS) $(SILENCE_LINT) -zero  $^ 1>>$@ 2>>$@  
+	$(FLINT) $(LINTFLAGS) $(SILENCE_LINT) -zero  $^ 1>>$@ 2>>$@
 
 # Partial lint for single C files
 $(LINT_OUTDIR)/%.lob : %.c
 	@$(ECHO) ' --- Lint $(^F)'
 	@$(ECHO) '### Lint file: $(^F)'  > $(LINT_OUTDIR)/$(^F).lint
-	$(FLINT) $(LINTFLAGS) -u -oo\($@\)  -zero $< 1>>$(LINT_OUTDIR)/$(^F).lint 2>>$(LINT_OUTDIR)/$(^F).lint	
+	$(FLINT) $(LINTFLAGS) -u -oo\($@\)  -zero $< 1>>$(LINT_OUTDIR)/$(^F).lint 2>>$(LINT_OUTDIR)/$(^F).lint
 
 ###############################################################################
 #
@@ -434,7 +531,17 @@ doc/latex/refman.pdf: Doxyfile trdp_if_light.h trdp_types.h
 			$(DOXYPATH)doxygen Doxyfile
 			make -C doc/latex
 			cp doc/latex/refman.pdf "doc/TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf"
-                                                 
+
+###############################################################################
+#
+# install complete library
+#
+###############################################################################
+ifdef INSTALLDIR
+install:
+	@$(MD) ../$(INSTALLDIR)
+	cp $(OUTDIR)/libtrdpap.a ../$(INSTALLDIR)/libtrdpap.a
+endif
 
 ###############################################################################
 #
@@ -449,13 +556,16 @@ help:
 	@$(ECHO) "  * LINUX_config                 - Native build for Linux (uses host gcc regardless of 32/64 bit)" >&2
 	@$(ECHO) "  * LINUX_X86_config             - Native build for Linux (Little Endian, uses host gcc 32Bit)" >&2
 	@$(ECHO) "  * LINUX_X86_64_config          - Native build for Linux (Little Endian, uses host gcc 64Bit)" >&2
+	@$(ECHO) "  * LINUX_X86_64_HP_config       - Native build for Linux as high performance library" >&2
 	@$(ECHO) "  * LINUX_PPC_config             - (experimental) Building for Linux on PowerPC using eglibc compiler (603 core)" >&2
 	@$(ECHO) "  * LINUX_imx7_config            - Building for Linux ARM7/imx7 using YOCTO toolchain" >&2
 	@$(ECHO) "  * LINUX_sama5d27_config        - Native build on NTSecureGateway HelmsDeep96" >&2
 	@$(ECHO) "  * LINUX_TSN_config             - (experimental) Native build for RTLinux with basic TSN support" >&2
 	@$(ECHO) "  * OSX_X86_config               - Native (X86) build for OS X 32Bit" >&2
 	@$(ECHO) "  * OSX_X86_64_config            - Native (X86) build for OS X 64Bit" >&2
+	@$(ECHO) "  * OSX_X86_64_HP_config         - Native (X86) build for OS X 64Bit as high performance library" >&2
 	@$(ECHO) "  * POSIX_X86_config             - Native build for POSIX compliant systems" >&2
+	@$(ECHO) "  * CENTOS_X86_64_config         - Native build for CentOS7 (Linux, little endian, 64Bit)" >&2
 	@$(ECHO) "  * QNX_X86_config               - (experimental) Native (X86) build for QNX" >&2
 	@$(ECHO) "  * VXWORKS_KMODE_PPC_config     - (experimental) Building for VXWORKS kernel mode for PowerPC" >&2
 	@$(ECHO) " " >&2
@@ -468,6 +578,7 @@ help:
 	@$(ECHO) "in the 'Other builds:' list with #" >&2
 	@$(ECHO) "To build debug binaries, append 'DEBUG=TRUE' to the make command " >&2
 	@$(ECHO) "To exclude message data support, append 'MD_SUPPORT=0' to the make command " >&2
+	@$(ECHO) "To include realtime scheduling support, append 'RT_THREADS=1' to the make command " >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Other builds:" >&2
 	@$(ECHO) "  * make test      # build the test server application" >&2
@@ -475,7 +586,10 @@ help:
 	@$(ECHO) "  * make mdtest    # build the UDPMDcom test application" >&2
 	@$(ECHO) "  * make example   # build the example for MD communication, but needs libuuid!" >&2
 	@$(ECHO) "  * make libtrdp   # build the static library, only" >&2
+	@$(ECHO) "  * make libtrdpap # build the static library including xml parsing, marshalling, dnr and tti" >&2
 	@$(ECHO) "  * make xml       # build the xml test applications" >&2
+	@$(ECHO) "  * make highperf  # build test applications for high performance (separate PD/MD threads)" >&2
+	@$(ECHO) "  * make install   # requires INSTALLDIR to be set and copies the libtrdpap.a lib there" >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Static analysis (currently in prototype state) " >&2
 	@$(ECHO) "  * make lint      - build LINT analysis files using the LINT binary under $FLINT" >&2
@@ -489,5 +603,4 @@ help:
 	@$(ECHO) "  * make doc       - build the documentation (refman.pdf)" >&2
 	@$(ECHO) "                   - (needs doxygen installed in executable path)" >&2
 	@$(ECHO) " " >&2
-
 

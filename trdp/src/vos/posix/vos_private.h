@@ -31,6 +31,7 @@
 
 #include "vos_types.h"
 #include "vos_thread.h"
+#include "vos_sock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,9 +43,9 @@ extern "C" {
 
 /* The VOS version can be predefined as CFLAG   */
 #ifndef VOS_VERSION
-#define VOS_VERSION            1u
+#define VOS_VERSION            2u
 #define VOS_RELEASE            0u
-#define VOS_UPDATE             3u
+#define VOS_UPDATE             0u
 #define VOS_EVOLUTION          2u
 #endif
 
@@ -92,6 +93,8 @@ void        vos_mutexLocalDelete (struct VOS_MUTEX *pMutex);
         }                                                              \
     }
 #endif
+
+EXT_DECL    VOS_ERR_T   vos_sockSetBuffer (SOCKET sock);
 
 #ifdef __cplusplus
 }

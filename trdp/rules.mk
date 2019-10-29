@@ -1,5 +1,5 @@
 #//
-#// $Id:  $
+#// $Id$
 #//
 #// DESCRIPTION    Basic Make Rules to create TRDP
 #//

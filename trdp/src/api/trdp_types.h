@@ -14,7 +14,15 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2019. All rights reserved.
  */
- /*
+/*
+ *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
+ *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
+ *      BL 2019-06-17: Ticket #264 Provide service oriented interface
+ *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
+ *      BL 2019-06-17: Ticket #161 Increase performance
+ *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+ *      V 2.0.0 --------- ^^^ -----------
+ *      V 1.4.2 --------- vvv -----------
  *      BL 2019-03-15: Ticket #244 Extend SendParameters to support VLAN Id and TSN
  *      BL 2019-03-15: Ticket #191 Ready for TSN (PD2 Header)
  *      SB 2019-03-05: Ticket #243 added TRDP_OPTION_NO_PD_STATS flag to TRDP_OPTION_T
@@ -50,8 +58,8 @@
 #include "vos_sock.h"
 #include "iec61375-2-3.h"
 
-#ifdef TRDP_TSN                         /**< For future real time extensions    */
-#include "trdp_tsn_def.h"
+#ifdef TSN_SUPPORT
+#include "trdp_tsn_def.h"   /**< Real time extensions (preliminary)    */
 #endif
 
 #ifdef __cplusplus
@@ -193,19 +201,19 @@ typedef enum
 
 /** Various flags for PD and MD packets    */
 
-#define TRDP_FLAGS_DEFAULT      0u        /**< Default value defined in tlc_openDession will be taken     */
-#define TRDP_FLAGS_NONE         0x01u     /**< No flags set                                               */
-#define TRDP_FLAGS_MARSHALL     0x02u     /**< Optional marshalling/unmarshalling in TRDP stack           */
-#define TRDP_FLAGS_CALLBACK     0x04u     /**< Use of callback function                                   */
-#define TRDP_FLAGS_TCP          0x08u     /**< Use TCP for message data                                   */
-#define TRDP_FLAGS_FORCE_CB     0x10u     /**< Force a callback for every received packet                 */
+#define TRDP_FLAGS_DEFAULT          0u    /**< Default value defined in tlc_openDession will be taken     */
+#define TRDP_FLAGS_NONE             0x01u /**< No flags set                                               */
+#define TRDP_FLAGS_MARSHALL         0x02u /**< Optional marshalling/unmarshalling in TRDP stack           */
+#define TRDP_FLAGS_CALLBACK         0x04u /**< Use of callback function                                   */
+#define TRDP_FLAGS_TCP              0x08u /**< Use TCP for message data                                   */
+#define TRDP_FLAGS_FORCE_CB         0x10u /**< Force a callback for every received packet                 */
 
-#define TRDP_FLAGS_TSN          0x20u     /**< Hard Real Time PD                                          */
-#define TRDP_FLAGS_TSN_SDT      0x40u     /**< SDT PD                                                     */
-#define TRDP_FLAGS_TSN_MSDT     0x80u     /**< Multi SDT PD                                               */
+#define TRDP_FLAGS_TSN              0x20u /**< Hard Real Time PD                                          */
+#define TRDP_FLAGS_TSN_SDT          0x40u /**< SDT PD                                                     */
+#define TRDP_FLAGS_TSN_MSDT         0x80u /**< Multi SDT PD                                               */
 
-#define TRDP_INFINITE_TIMEOUT   0xffffffffu /**< Infinite reply timeout                                   */
-#define TRDP_DEFAULT_PD_TIMEOUT 100000u     /**< Default PD timeout 100ms from 61375-2-3 Table C.7        */
+#define TRDP_INFINITE_TIMEOUT       0xffffffffu /**< Infinite reply timeout                               */
+#define TRDP_DEFAULT_PD_TIMEOUT     100000u /**< Default PD timeout 100ms from 61375-2-3 Table C.7        */
 
 typedef UINT8 TRDP_FLAGS_T;
 
@@ -232,21 +240,22 @@ typedef enum
  */
 typedef struct
 {
-    TRDP_IP_ADDR_T      srcIpAddr;  /**< source IP address for filtering                            */
-    TRDP_IP_ADDR_T      destIpAddr; /**< destination IP address for filtering                       */
-    UINT32              seqCount;   /**< sequence counter                                           */
-    UINT16              protVersion; /**< Protocol version                                           */
-    TRDP_MSG_T          msgType;    /**< Protocol ('PD', 'MD', ...)                                 */
-    UINT32              comId;      /**< ComID                                                      */
-    UINT32              etbTopoCnt; /**< received ETB topocount                                     */
-    UINT32              opTrnTopoCnt; /**< received operational train directory topocount             */
-    UINT32              replyComId; /**< ComID for reply (request only)                             */
-    TRDP_IP_ADDR_T      replyIpAddr; /**< IP address for reply (request only)                        */
-    const void          *pUserRef;  /**< User reference given with the local subscribe              */
-    TRDP_ERR_T          resultCode; /**< error code                                                 */
-    TRDP_URI_HOST_T     srcHostURI; /**< source URI host part (unused)                              */
-    TRDP_URI_HOST_T     destHostURI; /**< destination URI host part (unused)                         */
-    TRDP_TO_BEHAVIOR_T  toBehavior; /**< callback can decide about handling of data on timeout      */
+    TRDP_IP_ADDR_T      srcIpAddr;      /**< source IP address for filtering                            */
+    TRDP_IP_ADDR_T      destIpAddr;     /**< destination IP address for filtering                       */
+    UINT32              seqCount;       /**< sequence counter                                           */
+    UINT16              protVersion;    /**< Protocol version                                           */
+    TRDP_MSG_T          msgType;        /**< Protocol ('PD', 'MD', ...)                                 */
+    UINT32              comId;          /**< ComID                                                      */
+    UINT32              etbTopoCnt;     /**< received ETB topocount                                     */
+    UINT32              opTrnTopoCnt;   /**< received operational train directory topocount             */
+    UINT32              replyComId;     /**< ComID for reply (request only)                             */
+    TRDP_IP_ADDR_T      replyIpAddr;    /**< IP address for reply (request only)                        */
+    const void          *pUserRef;      /**< User reference given with the local subscribe              */
+    TRDP_ERR_T          resultCode;     /**< error code                                                 */
+    TRDP_URI_HOST_T     srcHostURI;     /**< source URI host part (unused)                              */
+    TRDP_URI_HOST_T     destHostURI;    /**< destination URI host part (unused)                         */
+    TRDP_TO_BEHAVIOR_T  toBehavior;     /**< callback can decide about handling of data on timeout      */
+    UINT32              serviceId;      /**< the reserved field of the PD header                        */
 } TRDP_PD_INFO_T;
 
 
@@ -288,15 +297,15 @@ typedef struct
 } TRDP_MD_INFO_T;
 
 
-/**    Quality/type of service and time to live    */
+/**    Quality/type of service, time to live , no. of retries, TSN flag and VLAN ID   */
 typedef struct
 {
-    UINT8   qos;        /**< Quality of service (default should be 2 for PD and 2 for MD, TSN priority >= 3)  */
-    UINT8   ttl;        /**< Time to live (default should be 64)    */
-    UINT8   retries;    /**< MD Retries from XML file               */
-    BOOL8   tsn;        /**< if TRUE, do not schedule packet but use TSN socket  */
-    UINT16  vlan;       /**< VLAN Id to be used                     */
-} TRDP_SEND_PARAM_T;
+    UINT8   qos;        /**< Quality of service (default should be 2 for PD and 2 for MD, TSN priority >= 3)    */
+    UINT8   ttl;        /**< Time to live (default should be 64)                                                */
+    UINT8   retries;    /**< MD Retries from XML file                                                           */
+    BOOL8   tsn;        /**< if TRUE, do not schedule packet but use TSN socket                                 */
+    UINT16  vlan;       /**< VLAN Id to be used                                                                 */
+} TRDP_COM_PARAM_T, TRDP_SEND_PARAM_T;
 
 
 /**********************************************************************************************************************/
@@ -348,17 +357,17 @@ typedef struct
 /**    Dataset definition    */
 typedef struct TRDP_DATASET
 {
-    UINT32                  id;           /**< dataset identifier > 1000                                */
-    UINT16                  reserved1;    /**< Reserved for future use, must be zero                    */
-    UINT16                  numElement;   /**< Number of elements                                       */
-    TRDP_DATASET_ELEMENT_T  pElement[];   /**< Pointer to a dataset element, used as array              */
+    UINT32                  id;         /**< dataset identifier > 1000                                  */
+    UINT16                  reserved1;  /**< Reserved for future use, must be zero                      */
+    UINT16                  numElement; /**< Number of elements                                         */
+    TRDP_DATASET_ELEMENT_T  pElement[]; /**< Pointer to a dataset element, used as array                */
 } TRDP_DATASET_T;
 
 /**    ComId - data set mapping element definition    */
 typedef struct
 {
-    UINT32  comId;                      /**< comId                                                    */
-    UINT32  datasetId;                  /**< corresponding dataset Id                                 */
+    UINT32  comId;                      /**< comId                                                      */
+    UINT32  datasetId;                  /**< corresponding dataset Id                                   */
 } TRDP_COMID_DSID_MAP_T;
 
 /**     Array of pointers to dataset  */
@@ -467,17 +476,17 @@ typedef struct
 /** Table containing particular PD subscription information. */
 typedef struct
 {
-    UINT32          comId;          /**< Subscribed ComId      */
-    TRDP_IP_ADDR_T  joinedAddr;     /**< Joined IP address   */
-    TRDP_IP_ADDR_T  filterAddr;     /**< Filter IP address, i.e IP address of the sender for this subscription, 0.0.0.0
+    UINT32                  comId;  /**< Subscribed ComId      */
+    TRDP_IP_ADDR_T          joinedAddr; /**< Joined IP address   */
+    TRDP_IP_ADDR_T          filterAddr; /**< Filter IP address, i.e IP address of the sender for this subscription, 0.0.0.0
                                             in case all senders. */
-    UINT32          callBack;       /**< call back function if used */
-    UINT32          userRef;        /**< User reference if used */
-    UINT32          timeout;        /**< Time-out value in us. 0 = No time-out supervision */
-    UINT32/*TRDP_ERR_T*/      status;         /**< Receive status information TRDP_NO_ERR, TRDP_TIMEOUT_ERR */
-    UINT32          toBehav;        /**< Behavior at time-out. Set data to zero / keep last value */
-    UINT32          numRecv;        /**< Number of packets received for this subscription */
-    UINT32          numMissed;      /**< number of packets skipped for this subscription */
+    UINT32                  callBack; /**< call back function if used */
+    UINT32                  userRef; /**< User reference if used */
+    UINT32                  timeout; /**< Time-out value in us. 0 = No time-out supervision */
+    UINT32 /*TRDP_ERR_T*/   status;           /**< Receive status information TRDP_NO_ERR, TRDP_TIMEOUT_ERR */
+    UINT32                  toBehav; /**< Behavior at time-out. Set data to zero / keep last value */
+    UINT32                  numRecv; /**< Number of packets received for this subscription */
+    UINT32                  numMissed; /**< number of packets skipped for this subscription */
 } GNU_PACKED TRDP_SUBS_STATISTICS_T;
 
 /** Table containing particular PD publishing information. */
@@ -712,6 +721,8 @@ typedef struct
                                                   Default: Don't wait                                       */
 #define TRDP_OPTION_NO_PD_STATS         0x40u   /**< Suppress PD statistics \
                                                   Default: Don't suppress                                   */
+#define TRDP_OPTION_DEFAULT_CONFIG      0x80u   /**< no XML process config, defaults were used              */
+
 typedef UINT8 TRDP_OPTION_T;
 
 /**********************************************************************************************************************/
@@ -726,12 +737,29 @@ typedef struct
     TRDP_OPTION_T   options;        /**< TRDP options */
 } TRDP_PROCESS_CONFIG_T;
 
+/**********************************************************************************************************************/
+/** Settings for pre-allocation of index tables for application session initialization
+ */
+typedef struct
+{
+    UINT32  maxNoOfLowCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <= 100ms  */
+    UINT32  maxNoOfMidCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <= 1000ms */
+    UINT32  maxNoOfHighCatSubscriptions;        /**< Max. number of expected subscriptions with intervals > 1000ms  */
+    UINT32  maxNoOfLowCatPublishers;            /**< Max. number of expected publishers with intervals <= 100ms     */
+    UINT32  maxDepthOfLowCatPublishers;         /**< depth / overlapped publishers with intervals <= 100ms          */
+    UINT32  maxNoOfMidCatPublishers;            /**< Max. number of expected publishers with intervals <= 1000ms    */
+    UINT32  maxDepthOfMidCatPublishers;         /**< depth / overlapped publishers with intervals <= 1000ms         */
+    UINT32  maxNoOfHighCatPublishers;           /**< Max. number of expected publishers with intervals <= 10000ms   */
+    UINT32  maxDepthOfHighCatPublishers;        /**< depth / overlapped publishers with intervals <= 10000ms        */
+    UINT32  maxNoOfExtPublishers;               /**< Max. number of expected publishers with intervals > 10000ms    */
+} TRDP_IDX_TABLE_T;
+
 
 #ifdef __cplusplus
 }
 #endif
 
-/*
+/**
    \mainpage The TRDP Light Library API Specification
 
    \image html TCNOpen.png
@@ -756,13 +784,14 @@ typedef struct
    \subsection document_sec Related documents
 
    TCN-TRDP2-D-BOM-004-01 IEC61375-2-3_CD_ANNEXA  Protocol definition of the TRDP standard
+   TCN-TRDP2-D-BOM-011-32 TRDP User's Manual
 
    \subsection abbreviation_sec Abbreviations and Definitions
 
-   -<em> API </em>    Application Programming Interface
-   -<em> ECN </em>    Ethernet Consist Network
-   -<em> TRDP </em> Train Real-time Data Protocol
-   -<em> TCMS </em>    Train Control Management System
+   -<em> API </em>      Application Programming Interface
+   -<em> ECN </em>      Ethernet Consist Network
+   -<em> TRDP </em>     Train Real-time Data Protocol
+   -<em> TCMS </em>     Train Control Management System
 
    \section terminology_sec Terminology
 
@@ -782,12 +811,33 @@ typedef struct
    abstraction layer which offers memory, networking, threading, queues and debug functions.
    The VOS API is documented here.
 
-   The following diagram shows how these pieces of software are
-   interrelated.
+    \section usecase_sec Use Cases
+    The following diagram shows how these pieces of software are
+    interrelated. Single threaded flow:
 
-   \image html SingleThreadedWorkflowPD.pdf "Sample client workflow"
-   \image latex SingleThreadedWorkflowPD.eps "Sample client workflow" height=15cm
+    \image html SingleThreadedWorkflowPD.pdf "Sample client workflow (Single Thread)"
+    \image latex SingleThreadedWorkflowPD.eps "Sample client workflow (Single Thread)" height=15cm
 
+    Usage of the separate process handling (separate threads for PD and MD):
+    \image html TRDPSpeedupFlowPDReceive.pdf "Multi-threaded processing of PD Reception"
+    \image latex TRDPSpeedupFlowPDReceive.pdf "Multi-threaded processing of PD Reception" height=15cm
+
+    \latexonly
+    \pagebreak
+    \endlatexonly
+    The transmit thread should be a cyclic thread. Cycle times down to 1ms are supported:
+    \image html TRDPSpeedupFlowPDTransmit.pdf "Multi-threaded processing of PD Transmit"
+    \image latex TRDPSpeedupFlowPDTransmit.pdf "Multi-threaded processing of PD Transmit" height=15cm
+
+    \latexonly
+    \pagebreak
+    \endlatexonly
+    If Message Data support is needed (MD_SUPPORT=1):
+    \image html TRDPSpeedupFlowMD.pdf "Multi-threaded processing of MD"
+    \image latex TRDPSpeedupFlowMD.pdf "Multi-threaded processing of MD" height=15cm
+
+    Note: Mixed usage of the single threaded call tlc_process() with the multi-threaded
+    calls tlm_process/tlp_processTransmit/tlp_processReceive is not supported!
 
    \section api_conventions_sec Conventions of the API
 
@@ -817,7 +867,8 @@ typedef struct
    application has to include individual headers for each feature set
    it wants to use.
 
-
+   Further description of the API and the usage of the TRDP protocol stack
+   can be found in the TCNOpen TRDP User's Manual (at tcnopen.eu).
 
 
  */

@@ -21,7 +21,7 @@
  */
 
 
-#ifdef (defined (WIN32) || defined (WIN64))
+#ifdef defined (WIN32) || defined (WIN64)
 // include also stuff, needed for window
 //#include "stdafx.h"
 #include <winsock2.h>
@@ -48,10 +48,6 @@
 /* We use dynamic memory */
 #define RESERVED_MEMORY  100000
 
-#ifndef _TCHAR
-#define _TCHAR char
-#endif
-
 #define PATH_TO_HOSTSFILE   "hosts_example"
 
 /**********************************************************************************************************************/
@@ -75,13 +71,13 @@ void dbgOut (
 {
     const char *catStr[] = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
     
-    if (category == VOS_LOG_ERROR || category == VOS_LOG_INFO)
+    //if (category == VOS_LOG_ERROR || category == VOS_LOG_INFO)
     {
         CHAR8 *pStr = (strrchr(pFile, '/') == NULL)? strrchr(pFile, '\\') + 1 : strrchr(pFile, '/') + 1;
         printf("%s %s %s:%d %s",
                pTime,
                catStr[category],
-               (pStr == NULL ? pFile : pStr + 1),
+               (pStr == NULL ? pFile : pStr),
                LineNumber,
                pMsgStr);
     }
@@ -105,15 +101,29 @@ void printSizes()
 
 int main(int argc, char *argv[])
 {
+    TRDP_APP_SESSION_T  appHandle;
+    TRDP_IP_ADDR_T      ecspIpAddr = vos_dottedIP("10.0.0.1");
+    CHAR8               *pHostsFileName = NULL;
+
+    if (argc > 1)
+    {
+        pHostsFileName = argv[1];
+    }
     printf("Starting test_tau_init\n");
-    printSizes();
-    
-//    if (test_tau_init())
+    //printSizes();
+
+    tlc_init(dbgOut, NULL, NULL);
+    tlc_openSession(&appHandle, 0u, 0u, NULL, NULL, NULL, NULL);
+
+    if (tau_initTTIaccess(appHandle, NULL, ecspIpAddr, pHostsFileName) != TRDP_NO_ERR)
     {
         printf("*** tau_init test failed\n");
         return 1;
     }
-    
+    tau_deInitTTI(appHandle);
+    tlc_closeSession(appHandle);
+    tlc_terminate();
+
     printf("All tests successfully finished.\n");
     return 0;
 }

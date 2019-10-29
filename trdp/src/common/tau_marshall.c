@@ -17,6 +17,8 @@
  /*
  * $Id$
  *
+ *      SB 2019-08-15: Compiler warning (pointer compared to integer)
+ *      SB 2019-08-14: Ticket #265: Incorrect alignment in nested datasets
  *      SB 2019-05-24: Ticket #252 Bug in unmarshalling/marshalling of TIMEDATE48 and TIMEDATE64
  *      BL 2018-11-08: Use B_ENDIAN from vos_utils.h in unpackedCopy64()
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
@@ -88,9 +90,6 @@ static UINT32 sNumComId = 0u;
 
 static TRDP_DATASET_T           * *sDataSets = NULL;
 static UINT32       sNumEntries = 0u;
-
-/** List of byte sizes for standard TCMS types */
-static const UINT8  cSizeOfBasicTypes[] = {1, 1, 1, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 4, 4, 4};
 
 /***********************************************************************************************************************
  * LOCAL FUNCTIONS
@@ -365,11 +364,12 @@ static TRDP_DATASET_T *findDs (
  *  @retval         1,2,4,8
  *
  */
-static UINT8 maxSizeOfDSMember (
+static UINT8 maxAlignOfDSMember (
     TRDP_DATASET_T *pDataset)
 {
     UINT16  lIndex;
     UINT8   maxSize = 1;
+    UINT8   elemSize = 1;
 
     if (pDataset != NULL)
     {
@@ -378,14 +378,59 @@ static UINT8 maxSizeOfDSMember (
         {
             if (pDataset->pElement[lIndex].type <= TRDP_TIMEDATE64)
             {
-                if (maxSize < cSizeOfBasicTypes[pDataset->pElement[lIndex].type])
+                switch (pDataset->pElement[lIndex].type)
                 {
-                    maxSize = cSizeOfBasicTypes[pDataset->pElement[lIndex].type];
+                   case TRDP_BOOL8:
+                   case TRDP_CHAR8:
+                   case TRDP_INT8:
+                   case TRDP_UINT8:
+                   {
+                       elemSize = 1;
+                       break;
+                   }
+                   case TRDP_UTF16:
+                   case TRDP_INT16:
+                   case TRDP_UINT16:
+                   {
+                       elemSize = ALIGNOF(UINT16);
+                       break;
+                   }
+                   case TRDP_INT32:
+                   case TRDP_UINT32:
+                   case TRDP_REAL32:
+                   case TRDP_TIMEDATE32:
+                   {
+                       elemSize = ALIGNOF(UINT32);
+                       break;
+                   }
+                   case TRDP_TIMEDATE64:
+                   {
+                       elemSize = ALIGNOF(TIMEDATE64_STRUCT_T);
+                       break;
+                   }
+                   case TRDP_TIMEDATE48:
+                   {
+                       elemSize = ALIGNOF(TIMEDATE48_STRUCT_T);
+                       break;
+                   }
+                   case TRDP_INT64:
+                   case TRDP_UINT64:
+                   case TRDP_REAL64:
+                   {
+                       elemSize = ALIGNOF(UINT64);
+                       break;
+                   }
+                   default:
+                       break;
                 }
             }
             else    /* recurse if nested dataset */
             {
-                maxSize = maxSizeOfDSMember(findDs(pDataset->pElement[lIndex].type));
+                elemSize = maxAlignOfDSMember(findDs(pDataset->pElement[lIndex].type));
+            }
+            if (maxSize < elemSize)
+            {
+                maxSize = elemSize;
             }
         }
     }
@@ -428,7 +473,7 @@ static TRDP_ERR_T marshallDs (
             "A struct is always aligned to the largest types alignment requirements"
         Only, at this point we do need to know the size of the largest member to follow! */
 
-    pSrc = alignePtr(pInfo->pSrc, maxSizeOfDSMember(pDataset));
+    pSrc = alignePtr(pInfo->pSrc, maxAlignOfDSMember(pDataset));
 
     /*    Loop over all datasets in the array    */
     for (lIndex = 0u; (lIndex < pDataset->numElement) && (pInfo->pSrcEnd > pInfo->pSrc); ++lIndex)
@@ -614,6 +659,8 @@ static TRDP_ERR_T marshallDs (
         }
     }
 
+    pInfo->pSrc = alignePtr(pInfo->pSrc, maxAlignOfDSMember(pDataset));
+
     if (pInfo->pSrc > pInfo->pSrcEnd ) /* Maybe one alignement bejond - do not erratically issue error! */
     {
         vos_printLogStr(VOS_LOG_WARNING, "Marshalling read beyond source area. Wrong Dataset size provided?\n");
@@ -656,7 +703,7 @@ static TRDP_ERR_T unmarshallDs (
         return TRDP_STATE_ERR;
     }
 
-    pDst = alignePtr(pInfo->pDst, maxSizeOfDSMember(pDataset));
+    pDst = alignePtr(pInfo->pDst, maxAlignOfDSMember(pDataset));
 
     /*    Loop over all datasets in the array    */
     for (lIndex = 0u; (lIndex < pDataset->numElement) && (pInfo->pSrcEnd > pInfo->pSrc); ++lIndex)
@@ -837,6 +884,8 @@ static TRDP_ERR_T unmarshallDs (
         }
     }
 
+    pInfo->pDst = alignePtr(pInfo->pDst, maxAlignOfDSMember(pDataset));
+
     if (pInfo->pSrc > pInfo->pSrcEnd)
     {
         return TRDP_MARSHALLING_ERR;
@@ -879,7 +928,7 @@ static TRDP_ERR_T size_unmarshall (
         return TRDP_STATE_ERR;
     }
 
-    pDst = alignePtr(pInfo->pDst, maxSizeOfDSMember(pDataset));
+    pDst = alignePtr(pInfo->pDst, maxAlignOfDSMember(pDataset));
 
     /*    Loop over all datasets in the array    */
     for (lIndex = 0u; (lIndex < pDataset->numElement) && (pInfo->pSrcEnd > pInfo->pSrc); ++lIndex)
@@ -1027,7 +1076,7 @@ static TRDP_ERR_T size_unmarshall (
         }
     }
 
-    pInfo->pDst = alignePtr(pDst, maxSizeOfDSMember(pDataset));
+    pInfo->pDst = alignePtr(pDst, maxAlignOfDSMember(pDataset));
 
     if (pInfo->pSrc > pInfo->pSrcEnd)
     {
@@ -1072,7 +1121,7 @@ EXT_DECL TRDP_ERR_T tau_initMarshall (
 
     ppRefCon = ppRefCon;
 
-    if ((pDataset == NULL) || (numDataSet == 0u) || (numComId == 0u) || (pComIdDsIdMap == 0u))
+    if ((pDataset == NULL) || (numDataSet == 0u) || (numComId == 0u) || (pComIdDsIdMap == NULL))
     {
         return TRDP_PARAM_ERR;
     }
