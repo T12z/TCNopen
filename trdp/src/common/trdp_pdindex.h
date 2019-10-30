@@ -79,7 +79,7 @@ typedef struct hp_slot
     UINT32          slotCycle;                          /**< cycle time with which each slot will be called (us)    */
     UINT8           noOfTxEntries;                      /**< no of slots == first array dimension                   */
     UINT8           depthOfTxEntries;                   /**< depth of slots == second array dimension               */
-    const PD_ELE_T  * *ppIdxCat;                        /**< pointer to an array of PD_ELE_T* (dim[depth][slot])    */
+    PD_ELE_T        * *ppIdxCat;                        /**< pointer to an array of PD_ELE_T* (dim[depth][slot])    */
     UINT32          allocatedTableSize;                 /**< real allocated size                                    */
 } TRDP_HP_CAT_SLOT_T;
 

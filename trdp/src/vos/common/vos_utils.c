@@ -451,7 +451,7 @@ static VOS_ERR_T vos_initRuntimeConsts (void)
  * GLOBAL FUNCTIONS
  */
 
-int vos_hostIsBigEndian ()
+int vos_hostIsBigEndian ( void )
 {
     /*  Compute endianess  */
     long one = 1;

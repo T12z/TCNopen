@@ -818,7 +818,7 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
  *  @retval         TRDP_PARAM_ERR      parameter error
  */
 EXT_DECL TRDP_ERR_T tlc_updateSession (
-    TRDP_APP_SESSION_T appHandle)
+    TRDP_APP_SESSION_T appHandle __unused)
 {
     TRDP_ERR_T ret = TRDP_NO_ERR;
 
@@ -837,10 +837,6 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
         }
         trdp_releaseAccess(appHandle);
     }
-
-#else
-
-    appHandle = appHandle;  /* lint !e550 return value not used */
 
 #endif
 
@@ -862,8 +858,8 @@ EXT_DECL TRDP_ERR_T tlc_updateSession (
  *  @retval         TRDP_PARAM_ERR      parameter error
  */
 EXT_DECL TRDP_ERR_T tlc_presetIndexSession (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_IDX_TABLE_T    *pIndexTableSizes)
+    TRDP_APP_SESSION_T  appHandle __unused,
+    TRDP_IDX_TABLE_T    *pIndexTableSizes __unused)
 {
     TRDP_ERR_T ret = TRDP_NO_ERR;
 
@@ -898,10 +894,6 @@ EXT_DECL TRDP_ERR_T tlc_presetIndexSession (
                                         localSizes.maxNoOfExtPublishers);
         trdp_releaseAccess(appHandle);
     }
-#else
-
-    appHandle = appHandle;  /* lint !e550 return value not used */
-
 #endif
 
     return ret;
@@ -1234,17 +1226,24 @@ EXT_DECL TRDP_ERR_T tlc_reinitSession (
  *  @retval         TRDP_NO_ERR        no error
  *  @retval         TRDP_NOINIT_ERR    handle invalid
  */
-EXT_DECL TRDP_ERR_T tlc_getInterval (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_TIME_T         *pInterval,
-    TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc)
-{
 #ifdef HIGH_PERF_INDEXED
+EXT_DECL TRDP_ERR_T tlc_getInterval (
+    TRDP_APP_SESSION_T  appHandle __unused,
+    TRDP_TIME_T         *pInterval __unused,
+    TRDP_FDS_T          *pFileDesc __unused,
+    INT32               *pNoDesc __unused)
+{
     vos_printLogStr(VOS_LOG_ERROR, "####   tlc_getInterval() is not supported when using HIGH_PERF_INDEXED!  ####\n");
     vos_printLogStr(VOS_LOG_ERROR, "####           Use tlp_getInterval()/tlm_getInterval() instead!          ####\n");
-    return TRDP_NOINIT_ERR; 
+    return TRDP_NOINIT_ERR;
+}
 #else
+EXT_DECL TRDP_ERR_T tlc_getInterval (
+	TRDP_APP_SESSION_T  appHandle,
+	TRDP_TIME_T         *pInterval,
+	TRDP_FDS_T          *pFileDesc,
+	INT32               *pNoDesc)
+{
     TRDP_TIME_T now;
     TRDP_ERR_T  ret = TRDP_NOINIT_ERR;
 
@@ -1302,8 +1301,8 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
         }
     }
     return ret;
-#endif
 }
+#endif
 
 /**********************************************************************************************************************/
 /** Work loop of the TRDP handler.
@@ -1326,16 +1325,22 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
  *  @retval         TRDP_NO_ERR        no error
  *  @retval         TRDP_NOINIT_ERR    handle invalid
  */
+#ifdef HIGH_PERF_INDEXED
+EXT_DECL TRDP_ERR_T tlc_process (
+    TRDP_APP_SESSION_T  appHandle __unused,
+    TRDP_FDS_T          *pRfds    __unused,
+    INT32               *pCount   __unused)
+{
+    vos_printLogStr(VOS_LOG_ERROR, "####   tlc_process() is not supported when using HIGH_PERF_INDEXED!  ####\n");
+    vos_printLogStr(VOS_LOG_ERROR, "#### Use tlp_processSend/tlp_processReceive()/tlm_process() instead! ####\n");
+    return TRDP_NOINIT_ERR;
+}
+#else
 EXT_DECL TRDP_ERR_T tlc_process (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_FDS_T          *pRfds,
     INT32               *pCount)
 {
-#ifdef HIGH_PERF_INDEXED
-    vos_printLogStr(VOS_LOG_ERROR, "####   tlc_process() is not supported when using HIGH_PERF_INDEXED!  ####\n");
-    vos_printLogStr(VOS_LOG_ERROR, "#### Use tlp_processSend/tlp_processReceive()/tlm_process() instead! ####\n");
-    return TRDP_NOINIT_ERR;
-#else
     TRDP_ERR_T  result = TRDP_NO_ERR;
     TRDP_ERR_T  err;
 
@@ -1433,8 +1438,8 @@ EXT_DECL TRDP_ERR_T tlc_process (
     }
 
     return result;
-#endif
 }
+#endif
 
 /**********************************************************************************************************************/
 /** Return a human readable version representation.

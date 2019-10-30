@@ -1293,8 +1293,8 @@ EXT_DECL TRDP_ERR_T tau_uri2Addr (
 }
 
 EXT_DECL TRDP_IP_ADDR_T tau_ipFromURI (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_URI_HOST_T     uri)
+    TRDP_APP_SESSION_T    appHandle,
+    const TRDP_URI_HOST_T uri)
 {
     TRDP_IP_ADDR_T ipAddr = VOS_INADDR_ANY;
 

@@ -110,7 +110,7 @@ static INLINE void setElement (
     TRDP_HP_CAT_SLOT_T  *pEntry,
     UINT32              slot,
     UINT32              depth,
-    const PD_ELE_T      *pAssign)
+    PD_ELE_T            *pAssign)
 {
     *(pEntry->ppIdxCat + slot * pEntry->depthOfTxEntries + depth) = pAssign;
 }
@@ -284,7 +284,7 @@ static PERF_TABLE_TYPE_T   perf_table_category (
  */
 static TRDP_ERR_T distribute (
     TRDP_HP_CAT_SLOT_T  *pCat,
-    const PD_ELE_T      *pElement)
+    PD_ELE_T            *pElement)
 {
     TRDP_ERR_T  err         = TRDP_NO_ERR;
     INT32       startIdx    = 0;
@@ -441,7 +441,7 @@ static TRDP_ERR_T indexCreatePubTable (
     /* first time allocation */
     if (pCat->ppIdxCat == NULL)
     {
-        pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+        pCat->ppIdxCat = (PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
 
         if (pCat->ppIdxCat == NULL)
         {
@@ -454,7 +454,7 @@ static TRDP_ERR_T indexCreatePubTable (
     {
         /* re-allocation is necessary, print warning! */
         vos_memFree(pCat->ppIdxCat);
-        pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+        pCat->ppIdxCat = (PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
 
         if (pCat->ppIdxCat == NULL)
         {
@@ -492,8 +492,8 @@ static TRDP_ERR_T indexCreatePubTable (
  */
 static int compareComIds (const void *pPDElement1, const void *pPDElement2)
 {
-    const PD_ELE_T  *p1 = *(const PD_ELE_T * *)pPDElement1;
-    const PD_ELE_T  *p2 = *(const PD_ELE_T * *)pPDElement2;
+    const PD_ELE_T  *p1 = *(PD_ELE_T * const *)pPDElement1;
+    const PD_ELE_T  *p2 = *(PD_ELE_T * const *)pPDElement2;
 
     if (p1->addr.comId > p2->addr.comId)
     {
@@ -514,8 +514,8 @@ static int compareComIds (const void *pPDElement1, const void *pPDElement2)
  */
 static int compareTimeouts (const void *pPDElement1, const void *pPDElement2)
 {
-    const PD_ELE_T  *p1 = *(const PD_ELE_T * *)pPDElement1;
-    const PD_ELE_T  *p2 = *(const PD_ELE_T * *)pPDElement2;
+    const PD_ELE_T  *p1 = *(PD_ELE_T * const *)pPDElement1;
+    const PD_ELE_T  *p2 = *(PD_ELE_T * const *)pPDElement2;
     return vos_cmpTime(&p1->interval, &p2->interval);
 }
 

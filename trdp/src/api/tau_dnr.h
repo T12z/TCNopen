@@ -172,7 +172,7 @@ EXT_DECL TRDP_ERR_T tau_uri2Addr (
 
 EXT_DECL TRDP_IP_ADDR_T tau_ipFromURI (
     TRDP_APP_SESSION_T  appHandle,
-    TRDP_URI_HOST_T     uri);
+    const TRDP_URI_HOST_T uri);
 
 /**********************************************************************************************************************/
 /**    Function to convert an IP address to a URI.

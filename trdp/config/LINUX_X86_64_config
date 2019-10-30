@@ -19,8 +19,9 @@ DOXYPATH = /usr/local/bin/
 
 # the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
 
-CFLAGS += -Wall -m64 -fstrength-reduce -fno-builtin -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX -DL_ENDIAN
-CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-address-of-packed-member 
+CFLAGS += -Wall -m64 -fstrength-reduce -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX -DL_ENDIAN
+#CFLAGS +=  -fno-builtin
+CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-address-of-packed-member
 LDFLAGS += -lrt
 
 LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
@@ -28,3 +29,6 @@ LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
 # Additional sources for TSN support
 #TSN_SUPPORT = 1
 #SOA_SUPPORT = 1
+
+# Use high-throughput optimization
+#HIGH_PERF_INDEXED = 1

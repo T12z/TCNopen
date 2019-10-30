@@ -1,13 +1,15 @@
 #//
 #// $Id$
 #//
-#// DESCRIPTION    Config file to cross-compile TRDP for POSIX_X86 target on armhf
+#// DESCRIPTION    Config file to cross-compile TRDP for POSIX target on armhf (eg RasPi)
 #//
 #// AUTHOR         Thorsten Schulz
 #//
 #// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
 #//
+#// The TC-Prefix assumes you installed Ubuntu's / Debian's cross-compile packages 'apt install gcc-arm-linux-gnueabihf'
+#// The prefix also works on the target itself for native compilation
 
 ARCH = linux-armhf
 TARGET_VOS = posix
@@ -20,7 +22,15 @@ DOXYPATH =
 # the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
 
 CFLAGS += -Wall -fstrength-reduce -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX -DL_ENDIAN
+#CFLAGS +=  -fno-builtin
 CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-address-of-packed-member
 LDFLAGS += -lrt
 
 LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
+
+# Additional sources for TSN support
+#TSN_SUPPORT = 1
+#SOA_SUPPORT = 1
+
+# Use high-throughput optimization
+#HIGH_PERF_INDEXED = 1
