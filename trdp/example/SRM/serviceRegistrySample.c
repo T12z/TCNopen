@@ -15,7 +15,7 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright NewTec GmbH, 2019. All rights reserved.
  *
- * $Id: $
+ * $Id$
  *
  */
 
@@ -71,8 +71,7 @@ TRDP_ERR_T  createSession (
                       TRDP_IP_ADDR_T      serverIP);
 
 TRDP_ERR_T listServiceRegistry (
-                      TRDP_APP_SESSION_T      appHandle,
-                      TRDP_IP_ADDR_T          serverIP);
+                      TRDP_APP_SESSION_T      appHandle);
 
 TRDP_ERR_T registerListener (
                              TRDP_APP_SESSION_T      appHandle,
@@ -160,7 +159,7 @@ static void *senderThread (void * arg)
 }
 
 /**********************************************************************************************************************/
-/** callback routine for receiving TRDP traffic
+/** callback routine for handling MD traffic
  *
  *  @param[in]      pRefCon         user supplied context pointer
  *  @param[in]      pMsg            pointer to header/packet infos
@@ -175,6 +174,7 @@ void myMDcallBack (
     UINT8                   *pData,
     UINT32                  dataSize)
 {
+    /* nothing to handle in this demo */
     ;
 }
 
@@ -200,11 +200,8 @@ void myPDcallBack (
     {
        case TRDP_NO_ERR:
            vos_printLog(VOS_LOG_USR, "> ComID %d received\n", pMsg->comId);
-           if (pData)
-           {
-           }
+           /* nothing to handle in this demo */
            break;
-
        case TRDP_TIMEOUT_ERR:
            /* The application can decide here if old data shall be invalidated or kept    */
            vos_printLog(VOS_LOG_USR, "> Packet timed out (ComID %d, SrcIP: %s)\n",
@@ -295,11 +292,9 @@ TRDP_ERR_T  createSession (
 /** Print the service list
  *
  *  @param[in]      appHandle          pointer to session handle
- *  @param[in]      serverIP            IP of the registry server
- */
+  */
 TRDP_ERR_T listServiceRegistry (
-    TRDP_APP_SESSION_T      appHandle,
-    TRDP_IP_ADDR_T          serverIP)
+    TRDP_APP_SESSION_T      appHandle)
 {
     TRDP_ERR_T              err;
     UINT32                  idx, noOfServices;
@@ -319,10 +314,10 @@ TRDP_ERR_T listServiceRegistry (
         return err;
     }
 
-    vos_printLogStr(VOS_LOG_USR, "[Idx]\tName\t%inst.type\tdevice\n");
+    vos_printLogStr(VOS_LOG_USR, "[Idx]          Name\tinst.type  host\n");
     for (idx = 0; idx < noOfServices; idx++)
     {
-        vos_printLog(VOS_LOG_USR, "[%3u]\t%s\t%hhu.%u\t%s\n",
+        vos_printLog(VOS_LOG_USR, "[%3u] %16s\t%4hhu.%u   %.16s\n",
                      idx,
                      pServicesListBuffer->serviceEntry[idx].srvName,
                      (UINT8) (pServicesListBuffer->serviceEntry[idx].serviceId >> 24),
@@ -485,7 +480,7 @@ int main (int argc, char * *argv)
 
     //  get and display the list from registry server
 
-    if (listServiceRegistry(appHandle, destIP) != TRDP_NO_ERR)
+    if (listServiceRegistry(appHandle) != TRDP_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_USR, "listServiceRegistry error\n");
         tlc_terminate();
@@ -513,7 +508,7 @@ int main (int argc, char * *argv)
 
     //  get and display the list from registry server again
 
-    if (listServiceRegistry(appHandle, destIP) != TRDP_NO_ERR)
+    if (listServiceRegistry(appHandle) != TRDP_NO_ERR)
     {
         vos_printLogStr(VOS_LOG_USR, "listServiceRegistry error\n");
         tlc_terminate();
