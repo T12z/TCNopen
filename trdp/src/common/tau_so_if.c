@@ -477,6 +477,11 @@ EXT_DECL TRDP_ERR_T tau_getServicesList (
         vos_threadDelay(100000);
     } while (count--) ;
 
+    if (serviceIp == VOS_INADDR_ANY)
+    {
+        err = TRDP_UNRESOLVED_ERR;
+        goto cleanup;
+    }
     if (pFilterEntry == NULL)
     {
         dataSize = 0;
