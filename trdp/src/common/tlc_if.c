@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2019-11-06: Ticket #289: Changed the max. returnedwait time of tlc_getInterval to 1s (instead of 1000s)
 *      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
 *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
 *      BL 2019-08-23: Ticket #162 Mutex handling in tlc_process corrected
@@ -1288,9 +1289,9 @@ EXT_DECL TRDP_ERR_T tlc_getInterval (
                     pInterval->tv_sec   = 0u;                               /* 0ms if time is over (were we delayed?) */
                     pInterval->tv_usec  = 0;                                /* Application should limit this    */
                 }
-                else    /* if no timeout set, set maximum time to 1000sec   */
+                else    /* if no timeout set, set maximum time to 1 sec   */
                 {
-                    pInterval->tv_sec   = 1000u;                            /* 1000s if no timeout is set      */
+                    pInterval->tv_sec   = 1u;                               /* 1000ms if no timeout is set      */
                     pInterval->tv_usec  = 0;                                /* Application should limit this    */
                 }
 
