@@ -17,7 +17,7 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019. All rights reserved.
  */
 /*
-* $Id: vos_sockTSN.c ????????????? $
+* $Id$
 *
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *

@@ -18,7 +18,7 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019. All rights reserved.
  */
 /*
-* $Id: vos_thread.c 2062 2019-08-30 07:39:23Z s-bender $
+* $Id$
 *
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
