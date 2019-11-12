@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
 *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
 */
@@ -57,7 +58,9 @@ extern "C" {
 /** Timeout value to wait forever for a semaphore */
 #define VOS_SEMA_WAIT_FOREVER  0xFFFFFFFFU
 
-#if (defined(WIN32) || defined(WIN64))
+#if defined(SIM)
+#include "SimSocket.h"
+#elif (defined(WIN32) || defined(WIN64))
 #include <winsock2.h>
 #else
 #ifndef timerisset
