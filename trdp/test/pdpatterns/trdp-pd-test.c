@@ -16,6 +16,7 @@
  *
  * $Id: trdp_reserved.c 898 2013-06-05 15:19:20Z 97025 $
  *
+ *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2017-06-30: Compiler warnings, local prototypes added
@@ -34,6 +35,8 @@
 #include <sys/ioctl.h>
 #include <time.h>
 #endif
+
+#include "vos_thread.h"
 
 /* --- globals ---------------------------------------------------------------*/
 
@@ -82,6 +85,9 @@ unsigned cycle = 0;
 
 Port ports[64];                     /* array of ports          */
 int nports = 0;                     /* number of ports         */
+
+//#define PORT_FLAGS TRDP_FLAGS_TSN
+#define PORT_FLAGS TRDP_FLAGS_NONE
 
 /***********************************************************************************************************************
  * PROTOTYPES
@@ -330,7 +336,7 @@ static void setup_ports()
                 p->dst,             /* destination address */
                 p->cycle,           /* cycle period   */
                 0,                  /* redundancy     */
-                TRDP_FLAGS_NONE,    /* flags          */
+                PORT_FLAGS,         /* flags          */
                 NULL,               /* default send parameters */
                 p->data,            /* data           */
                 p->size);           /* data size      */
@@ -352,7 +358,7 @@ static void setup_ports()
                 p->src,             /* source address */
                 p->dst,             /* destination address */
                 0,                  /* redundancy     */
-                TRDP_FLAGS_NONE,    /* flags          */
+                PORT_FLAGS,         /* flags          */
                 NULL,               /* default send parameters */
                 p->data,            /* data           */
                 p->size,            /* data size      */
@@ -378,7 +384,7 @@ static void setup_ports()
                 p->src,             /* source address   */
                 VOS_INADDR_ANY,
                 p->dst,             /* destination address    */
-                TRDP_FLAGS_NONE,    /* No flags set     */
+                PORT_FLAGS,         /* No flags set     */
                 NULL,                   /*    default interface */
                 p->timeout,             /* timeout [usec]   */
                 TRDP_TO_SET_TO_ZERO);   /* timeout behavior */
@@ -832,13 +838,27 @@ int main(int argc, char * argv[])
         printf("  <remoteip> .. remote peer IP address (ie. 10.2.24.2)\n");
         printf("  <mcast>    .. multicast group address (ie. 239.2.24.1)\n");
         printf("  <logfile>  .. file name for logging (ie. test.txt)\n");
-
+#ifdef SIM
+        printf("  <prefix>  .. instance prefix in simulation mode (ie. CCU1)\n");
+#endif
         return 1;
     }
 
     srcip = vos_dottedIP(argv[1]);
     dstip = vos_dottedIP(argv[2]);
     mcast = vos_dottedIP(argv[3]);
+
+#ifdef SIM
+    if (argc < 6)
+    {
+        printf("In simulation mode an extra last argument is required <Unike thread name>\n");
+        return 1;
+    }
+    vos_setTimeSyncPrefix(argv[5]);
+
+    if (!SimSetHostIp(argv[1]))
+        printf("Failed to set sim host IP.");
+#endif
 
     if (!srcip || !dstip || (mcast >> 28) != 0xE)
     {
@@ -865,7 +885,9 @@ int main(int argc, char * argv[])
         printf("tlc_init() failed, err: %d\n", err);
         return 1;
     }
-
+#ifdef SIM
+    vos_threadRegister("main", TRUE);
+#endif
     pdcfg.pfCbFunction = NULL;
     pdcfg.pRefCon = NULL;
     pdcfg.sendParam.qos = 5;
@@ -889,7 +911,7 @@ int main(int argc, char * argv[])
     gen_pull_ports_master(30000, 40000);
     gen_pull_ports_slave(30000, 40000);
     setup_ports();
-    _sleep_msec(2000);
+    vos_threadDelay(2000000);
     /* main test loop */
     while (1)
     {   /* drive TRDP communications */
@@ -900,7 +922,7 @@ int main(int argc, char * argv[])
         if (!(++tick % 50))
             process_data();
         /* wait 10 msec  */
-        _sleep_msec(10);
+        vos_threadDelay(10000);
     }
 
     return 0;
