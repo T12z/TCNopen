@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
  *      BL 2017-06-30: Compiler warnings, local prototypes added
