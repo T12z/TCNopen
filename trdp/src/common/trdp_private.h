@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      AÖ 2019-11-14: Ticket #293 Add version to TCNOpen dll
  *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
  *      BL 2019-06-17: Ticket #264 Provide service oriented interface
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -62,6 +63,9 @@
 #define TRDP_UPDATE     2u
 #define TRDP_EVOLUTION  2u              /* Evolution > 0 denotes trunk! */
 #endif
+
+/* Version as a string, this can also be for example 1.2.3.4.RC1 */
+#define TRDP_VERSION_STR "2.0.2.2"
 
 #ifdef HIGH_PERF_INDEXED
 #   define TRDP_TIMER_GRANULARITY          500u                     /**< granularity in us - we allow 0.5ms now!      */

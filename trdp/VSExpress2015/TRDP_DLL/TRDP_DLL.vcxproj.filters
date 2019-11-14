@@ -70,9 +70,13 @@
     <ClInclude Include="..\..\src\vos\windows\vos_private.h">
       <Filter>vos_windows</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="TRDP_DLL.rc2">
+      <Filter>Resource</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="vos_windowsSim">
@@ -81,5 +85,13 @@
     <Filter Include="vos_windows">
       <UniqueIdentifier>{5492f8a2-1247-4412-8615-9c0928efc84a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{c6b7a3dd-a23a-409f-867d-0bdcaae26d33}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TRDP_DLL.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
