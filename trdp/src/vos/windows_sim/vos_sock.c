@@ -20,6 +20,7 @@
 /*
 * $Id$*
 *
+*      AÖ 2019-11-18: Ticket #295 vos_sockSendUDP some times report err 183 in Windows Sim
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
 */
@@ -1054,11 +1055,14 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
             *pSize += sendSize;
         }
 
-        if (err == 0 && sendSize == 0)
+        if ((err == 0 || err == 183)  && sendSize == 0)
         {
             //Workaround, if the message is valid sent but there is no receiver
             //SimSocket will respond with sendSize = 0 event do the telegram was sent
+            //SimTimes SimSocket return error 183 even if the message was sent ok, but no destination available.
             *pSize += size;
+
+            return VOS_NO_ERR;
         }
 
         if (sendSize == SOCKET_ERROR && err == WSAEWOULDBLOCK)
