@@ -195,6 +195,12 @@ typedef double REAL64;
 #endif
 #endif
 
+#if MD_SUPPORT
+#define __mdused
+#else
+#define __mdused __unused
+#endif
+
 #ifndef __fallthrough
 #if defined( __GNUC__ ) && __GNUC__ >= 7
 #define __fallthrough __attribute__ ((fallthrough));

@@ -69,14 +69,20 @@ public:
 	/**
 	 *  initialize that specific bus interface for this session
 	 *  @param[in] busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute
+	 *  @param[in]  offset            time offset in microseconds from multiple of session cycle for telegram publications.
+	 *                                This param would be better placed in the config file. If set (ie, non negative), the session
+	 *                                start will also be rounded to a multiple of the process time. Essentially, this is to help
+	 *                                synchronocity of multiple distribute processes in a -yet- very simple, potentially
+	 *                                unreliable way. This is to be improved later.
+	 *                                It also silently assumes all clocks in the network a synchronized to millisecond quality.
 	 *  @param[in] callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
 	 *                               application's object instance that will handle the callbacks through static method
 	 *                               redirectors.
 	 *  @return    a suitable TRDP_ERR. TRDP_INIT_ERR if load was not called before. Otherwise issues from reading the
 	 *             XML file or initializing the session. Errors will lead to an unusable empty session.
 	 */
-	TRDP_ERR_T init     (const char *busInterfaceName, void *callbackRef)
-		{ return lastErr = tau_xsession_init( &our, busInterfaceName, callbackRef ); }
+	TRDP_ERR_T init     (const char *busInterfaceName, int offset, void *callbackRef)
+		{ return lastErr = tau_xsession_init( &our, busInterfaceName, offset, callbackRef ); }
 
 	/**
 	 *  checks if the object is usable/setup for transmissions. Treat return value as boolean.

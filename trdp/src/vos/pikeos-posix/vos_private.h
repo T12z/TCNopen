@@ -1,18 +1,26 @@
 /**********************************************************************************************************************/
 /**
- * @file            posix/vos_private.h
+ * @file            pikeos-posix/vos_private.h
  *
  * @brief           Private definitions for the OS abstraction layer
  *
- * @details
- *
  * @note            Project: TCNOpen TRDP prototype stack
  *
- * @author          Bernd Loehr, NewTec GmbH
+ * @author          Thorsten Schulz, Universität Rostock, derrived from work by Bernd Loehr, NewTec GmbH
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *
+ * @details This VOS-layer is using the POSIX personality of the PikeOS realtime hypervisor. The changes made compared
+ *          to the original POSIX abstraction are *minor*. However, compared to other architectures, POSIX threads are
+ *          implemented completely in "user space", ie., in a single OS-process. This has some implications, which can
+ *          all be read in its provided documentation. E.g., if you have to interact with other partitions or HW drv.,
+ *          do so through the POSIX API. Furthermore, the *default* time granularity is 20 / 10 ms. *All* time-related 
+ *          functions have this granularity: select(), *_sleep(), ... also clock_gettime(). Obviously, you can replace
+ *          the default timer with an own implementation at the cost of a higher (internal) scheduling overhead if the
+ *          rest of your real-time system can affort that. (Personal note, you should and I believe your system can.)
+ *          On the Up-Side, your POSIX-threads cannot interfere with your larger system architecture and scheduling.
  */
  /*
  * $Id$
@@ -32,6 +40,7 @@
 
 #include "vos_types.h"
 #include "vos_thread.h"
+#include "vos_sock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,9 +60,9 @@ extern "C" {
 
 /* The VOS version can be predefined as CFLAG   */
 #ifndef VOS_VERSION
-#define VOS_VERSION            1u
+#define VOS_VERSION            2u
 #define VOS_RELEASE            0u
-#define VOS_UPDATE             3u
+#define VOS_UPDATE             0u
 #define VOS_EVOLUTION          2u
 #endif
 
@@ -101,6 +110,8 @@ void        vos_mutexLocalDelete (struct VOS_MUTEX *pMutex);
         }                                                              \
     }
 #endif
+
+EXT_DECL    VOS_ERR_T   vos_sockSetBuffer (SOCKET sock);
 
 #ifdef __cplusplus
 }

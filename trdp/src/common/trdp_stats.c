@@ -525,6 +525,8 @@ void    trdp_UpdateStats (
             }
         }
     }
+
+#if MD_SUPPORT
     /* Count the joins on MD sockets, as well */
     for (lIndex = 0u; lIndex < trdp_getCurrentMaxSocketCnt(TRDP_SOCK_MD_UDP); lIndex++)
     {
@@ -536,6 +538,7 @@ void    trdp_UpdateStats (
             }
         }
     }
+#endif
 
 }
 

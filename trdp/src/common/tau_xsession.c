@@ -327,6 +327,16 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 				data, memLength);
 
 		if (result != TRDP_NO_ERR) {
+			if (our->sendOffset >= 0) {
+				pHnd->timeToGo.tv_usec -= pHnd->timeToGo.tv_usec % our->processConfig.cycleTime;
+				pHnd->timeToGo.tv_usec += our->sendOffset;
+				if (pHnd->timeToGo.tv_usec < 0) {
+					pHnd->timeToGo.tv_usec += 1000000;
+					pHnd->timeToGo.tv_sec--;
+				}
+			}
+			/* TODO note, if a major delay occurs (more than one period), a telegram will be rescheduled, though out of
+			 * sync. */
 			vos_printLog(VOS_LOG_ERROR, "tlp_publish for comID %d, destID %d failed: %s",
 					pExchgPar->comId, pDest.id, tau_getResultString(result));
 			return result;
@@ -584,7 +594,7 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length, TAU_XSESSION_PRINT 
 	return result;
 }
 
-TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName, void *callbackRef) {
+TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName, INT32 sendOffset, void *callbackRef) {
 	TRDP_ERR_T result = TRDP_INIT_ERR;
 
 	/*  Log configuration   */
@@ -619,6 +629,14 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName,
 		_.session = s;
 		s->initialized = _.use; /* something non-0 */
 		vos_getTime ( &s->lastTime );
+		if (sendOffset >= 0 && sendOffset < s->processConfig.cycleTime) {
+			s->lastTime.tv_usec -= s->lastTime.tv_usec % s->processConfig.cycleTime;
+			if (s->lastTime.tv_usec < 0) {
+				s->lastTime.tv_usec += 1000000;
+				s->lastTime.tv_sec--;
+			}
+		}
+		s->sendOffset = sendOffset;
 		if (our) *our = s;
 	} else {
 		vos_memFree(s);
@@ -633,7 +651,7 @@ TRDP_ERR_T tau_xsession_publish(TAU_XSESSION_T *our, UINT32 ComID, INT32 *pubTel
 		if ((our->pExchgPar[tlgIdx].destCnt || info) && our->pExchgPar[tlgIdx].comId == ComID) {
 			/*  Destinations defined - publish the telegram */
 			result = publishTelegram(our, &our->pExchgPar[tlgIdx], pubTelID, IDs, data, length, info);
-			/* our should only match one telegram */
+			/* this should only match one telegram */
 			break;
 		}
 	}
@@ -677,7 +695,8 @@ TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
 	if ( _.use <= 0 ) return result;
 
 	const VOS_TIMEVAL_T zero = {0,0};
-	VOS_TIMEVAL_T now, now2;
+	VOS_TIMEVAL_T now;
+//	VOS_TIMEVAL_T now2;
 	vos_getTime( &now );
 
 	do {
@@ -695,50 +714,105 @@ TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
 		}
 
 		if (timercmp( &max_tv, &zero, <)) max_tv = zero;  /* max_tv must not be negative */
-		vos_printLog(VOS_LOG_INFO, "CYCLE-select: %d++%ld -> %d++%ld\n", now.tv_sec, now.tv_usec/1000, max_tv.tv_sec, max_tv.tv_usec/1000);
+//		vos_printLog(VOS_LOG_INFO, "CYCLE-select: %d++%ld -> %d++%ld\n", now.tv_sec, now.tv_usec/1000, max_tv.tv_sec, max_tv.tv_usec/1000);
 		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_tv);
 
 		vos_getTime( &now );
-		vos_printLog(VOS_LOG_INFO, "CYCLE-process: %d++%ld\n", now.tv_sec, now.tv_usec/1000);
+//		vos_printLog(VOS_LOG_INFO, "CYCLE-process: %d++%ld\n", now.tv_sec, now.tv_usec/1000);
 		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
 			result = tlc_process(s->sessionhandle, &rfds, &rv);
 			s->lastTime = now;
 		}
-		vos_getTime( &now2 );
-		vos_printLog(VOS_LOG_INFO, "\\\\CYCLE-process: %d++%ld\n", now2.tv_sec, now2.tv_usec/1000);
+//		vos_getTime( &now2 );
+//		vos_printLog(VOS_LOG_INFO, "\\\\CYCLE-process: %d++%ld\n", now2.tv_sec, now2.tv_usec/1000);
 
 	} while ( timercmp( &now, &deadline, <) );
 
 	return result;
 }
 
-TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
-	if (_.use <= 0 || !tau_xsession_up(our) || !timeout_us) return TRDP_INIT_ERR;
+TRDP_ERR_T tau_xsession_cycle_all( void ) {
+	if ( _.use <= 0 ) return TRDP_INIT_ERR;
 
-	TRDP_ERR_T result;
+	VOS_TIMEVAL_T ct = { .tv_usec = _.session->processConfig.cycleTime };
+	for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
+		if ( ct.tv_usec != s->processConfig.cycleTime) {
+			vos_printLog(VOS_LOG_ERROR, "Process cycle times differ (%d != %d). FAILING!", ct.tv_usec, s->processConfig.cycleTime);
+			return TRDP_PARAM_ERR;
+		} else {
+			vos_addTime(&s->lastTime, &ct);
+		}
+	}
+
 	const VOS_TIMEVAL_T zero = {0,0};
 	VOS_TIMEVAL_T now;
 	vos_getTime( &now );
+	TRDP_ERR_T err = TRDP_NO_ERR;
+	do {
+		INT32 noOfDesc = 0;
+		VOS_FDS_T rfds;
+		FD_ZERO(&rfds);
+		VOS_TIMEVAL_T min_to = _.session->lastTime;
 
-	VOS_TIMEVAL_T deadline = {0, our->processConfig.cycleTime};
-	vos_addTime( &deadline, &our->lastTime); /* last-deadline + cycle-period */
-	if (timercmp(&deadline, &now, <=)) {
-		our->lastTime = deadline; /* store the new upcoming deadline */
-		deadline = now; /* don't have a future marker in the past */
+		vos_subTime( &min_to, &now); /* min_to starts with the remaining sleep time */
+
+		for (TAU_XSESSION_T *s = _.session; s && !err; s = s->next ) {
+			VOS_TIMEVAL_T tv;
+			err = tlc_getInterval(s->sessionhandle, &tv, &rfds, &noOfDesc);
+			if (timercmp( &tv, &zero, >) && timercmp( &tv, &min_to, <)) min_to = tv;
+		}
+
+		if (timercmp( &min_to, &zero, <)) min_to = zero;  /* min_tv must not be negative */
+//		vos_printLog(VOS_LOG_INFO, "CYCLE-select: %d++%ld -> %d++%ld\n", now.tv_sec, now.tv_usec/1000, max_tv.tv_sec, max_tv.tv_usec/1000);
+		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &min_to);
+
+//		vos_printLog(VOS_LOG_INFO, "CYCLE-process: %d++%ld\n", now.tv_sec, now.tv_usec/1000);
+		for (TAU_XSESSION_T *s = _.session; s && !err; s = s->next )
+			err = tlc_process(s->sessionhandle, &rfds, &rv);
+
+		vos_getTime( &now );
+//		vos_printLog(VOS_LOG_INFO, "\\\\CYCLE-process: %d++%ld\n", now2.tv_sec, now2.tv_usec/1000);
+
+	} while ( timercmp( &now, &_.session->lastTime, <) && !err);
+
+	return err;
+}
+
+TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
+	if (_.use <= 0 || !tau_xsession_up(our)) return TRDP_INIT_ERR;
+	if ( !timeout_us ) return TRDP_PARAM_ERR;
+
+	TRDP_ERR_T result;
+	const VOS_TIMEVAL_T zero = {0,0};
+	VOS_TIMEVAL_T max_tv; /* relative time */
+	VOS_TIMEVAL_T now;
+	vos_getTime( &now );
+
+	VOS_TIMEVAL_T ct = {0, our->processConfig.cycleTime};
+	vos_addTime( &our->lastTime, &ct); /* last-deadline + cycle-period */
+	if (timercmp(&our->lastTime, &now, <)) {
+		max_tv = zero; /* don't have a future marker in the past */
+		our->lastTime = now; /* store the new upcoming deadline */
+		if (our->sendOffset >= 0) {
+			our->lastTime.tv_usec -= our->lastTime.tv_usec % our->processConfig.cycleTime;
+			if (our->lastTime.tv_usec < 0) {
+				our->lastTime.tv_usec += 1000000;
+				our->lastTime.tv_usec--;
+			}
+		}
+	} else {
+		max_tv = our->lastTime;
+		vos_subTime( &max_tv, &now );
 	}
 
 	INT32 noOfDesc = 0;
 	VOS_FDS_T rfds;
 	FD_ZERO(&rfds);
-	VOS_TIMEVAL_T max_tv = deadline;
-
-	vos_subTime( &max_tv, &now); /* max_tv now contains the remaining max sleep time */
 
 	VOS_TIMEVAL_T tv;
 	tlc_getInterval(our->sessionhandle, &tv, &rfds, &noOfDesc);
-	if (timercmp( &tv, &zero, >) && timercmp( &tv, &max_tv, <)) max_tv = tv;
+	if (timercmp( &tv, &max_tv, <)) max_tv = tv;
 
-	if (timercmp( &max_tv, &zero, <)) max_tv = zero;  /* max_tv must not be negative */
 	tv = zero;
 	int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &tv);
 

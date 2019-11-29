@@ -1074,7 +1074,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
         }
         else
         {
-            vos_printLog(VOS_LOG_INFO,
+            vos_printLog(VOS_LOG_DBG,
                          "PD Request (comId: %u) getting new element %p\n",
                          comId,
                          (void *)pReqElement);

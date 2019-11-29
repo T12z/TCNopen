@@ -64,6 +64,8 @@ typedef struct TAU_XML_SESSION {
 	TRDP_MD_CONFIG_T        mdConfig;       /**< XML parameters from md-com-parameter block */
 	TRDP_PROCESS_CONFIG_T   processConfig;  /**< XML parameters from trdp-process block */
 
+	INT32               sendOffset;         /**< the sending deadline of pub-tels is delay by this us */
+
 	UINT32              numExchgPar;        /**< number of elements to follow */
 	TRDP_EXCHG_PAR_T    *pExchgPar;         /**< XML telegrams from bus-interface block */
 
@@ -88,16 +90,22 @@ TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_P
 /**
  *  Initialize that specific bus interface for this session
  *
- *  @param[out] our              session state. A pointer to the internal buffer is returned on success.
- *  @param[in] busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute, case ignored
- *  @param[in] callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
- *                               application's object instance that will handle the callbacks through static method
- *                               redirectors.
+ *  @param[out] our               session state. A pointer to the internal buffer is returned on success.
+ *  @param[in]  busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute, case ignored
+ *  @param[in]  offset            time offset in microseconds from multiple of session cycle for telegram publications.
+ *                                This param would be better placed in the config file. If set (ie, non negative), the session
+ *                                start will also be rounded to a multiple of the process time. Essentially, this is to help
+ *                                synchronocity of multiple distribute processes in a -yet- very simple, potentially
+ *                                unreliable way. This is to be improved later.
+ *                                It also silently assumes all clocks in the network a synchronized to millisecond quality.
+ *  @param[in]  callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
+ *                                application's object instance that will handle the callbacks through static method
+ *                                redirectors.
  *  @return    a suitable TRDP_ERR. TRDP_INIT_ERR if load was not called before. Otherwise issues from reading the
  *             XML file or initializing the session. Errors will lead to an unusable empty session.
  */
 
-TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T**our, const char *busInterfaceName, void *callbackRef);
+TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T**our, const char *busInterfaceName, INT32 sendOffset, void *callbackRef);
 
 /**
  *  Destructor.
@@ -166,7 +174,7 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
 TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline );
 
 /**
- *   Do the house-keeping of TRDP and packet transmission.
+ *   Do the house-keeping of TRDP and packet transmission. Will return a timeout in micro-secs when it should be called again latest.
  *
  *  Call this function regularly between your application cycles, e.g., after all getCom and request calls.
  *
@@ -187,7 +195,18 @@ TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us );
  *
  *  @return  TRDP_ERR from deeper processing.
  */
-TRDP_ERR_T tau_xsession_cycle    (TAU_XSESSION_T *our );
+TRDP_ERR_T tau_xsession_cycle    ( TAU_XSESSION_T *our );
+
+/**
+ *  Do housekeeping for all sessions combined.
+ *
+ *  Call this function at least once per your application cycle, e.g., after all getCom and request calls. Do NOT use
+ *  this approach for sessions with different intervals. (An error will be returned w/o any processing). Only the first
+ *  session's deadline will be honored for all.
+ *
+ *  @return  TRDP_ERR
+ */
+TRDP_ERR_T tau_xsession_cycle_all( void );
 
 /**
  *   Set the payload of the telegram to be sent at next cycle deadline (as configured by XML)

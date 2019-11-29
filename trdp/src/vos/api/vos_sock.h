@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      Tz 2019-11-24: added headers for PikeOS-Posix
  *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
  *      V 2.0.0 --------- ^^^ -----------
@@ -50,16 +51,16 @@
 #include "string.h"
 #include "ioLib.h"
 #include "stdio.h"
-#elif defined(POSIX)
-#include <sys/select.h>
-#include <netinet/in.h>
-#elif defined(ESP32)
-#include "lwip/sockets.h"
 #elif defined(PIKEOS_POSIX) && defined(POSIX_LWIP)
 #include "lwipopts.h"
 #include "lwip/sockets.h"
 #include "lwip/inet.h"
 #include "lwip/netdb.h"
+#elif defined(POSIX)
+#include <sys/select.h>
+#include <netinet/in.h>
+#elif defined(ESP32)
+#include "lwip/sockets.h"
 #endif
 
 #ifdef __cplusplus
