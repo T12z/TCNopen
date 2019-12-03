@@ -56,7 +56,7 @@ typedef struct TAU_XML_SESSION {
 
 	TRDP_IF_CONFIG_T       *pIfConfig;      /**< General parameters from xml configuration file */
 
-	VOS_TIMEVAL_T           lastTime;       /**< timestamp used by @see tau_xsession_cycle() */
+	VOS_TIMEVAL_T           timeToGo;       /**< timestamp used by @see tau_xsession_cycle() */
 
 	/*  Session configurations  */
 	TRDP_APP_SESSION_T      sessionhandle;  /**< reference from trdp functions */
@@ -91,13 +91,15 @@ TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_P
  *  Initialize that specific bus interface for this session
  *
  *  @param[out] our               session state. A pointer to the internal buffer is returned on success.
- *  @param[in]  busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute, case ignored
+ *  @param[in]  busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute, case
+ *                                ignored
  *  @param[in]  offset            time offset in microseconds from multiple of session cycle for telegram publications.
- *                                This param would be better placed in the config file. If set (ie, non negative), the session
- *                                start will also be rounded to a multiple of the process time. Essentially, this is to help
- *                                synchronocity of multiple distribute processes in a -yet- very simple, potentially
- *                                unreliable way. This is to be improved later.
- *                                It also silently assumes all clocks in the network a synchronized to millisecond quality.
+ *                                This param would be better placed in the config file. If set (ie, non negative), the
+ *                                session start will also be rounded to a multiple of the process time. Essentially,
+ *                                this is to help synchronocity of multiple distribute processes in a -yet- very simple,
+ *                                potentially unreliable way. This is to be improved later.
+ *                                It also silently assumes all clocks in the network are synchronized to millisecond
+ *                                quality.
  *  @param[in]  callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
  *                                application's object instance that will handle the callbacks through static method
  *                                redirectors.
@@ -174,17 +176,20 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
 TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline );
 
 /**
- *   Do the house-keeping of TRDP and packet transmission. Will return a timeout in micro-secs when it should be called again latest.
+ *   Do the house-keeping of TRDP and packet transmission. Will return a timeout in micro-secs when it should be called
+ *   again latest.
  *
  *  Call this function regularly between your application cycles, e.g., after all getCom and request calls.
  *
  *  @param[in,out] our       session state.
- *  @param[out]  timeout_us  Timeout when this function should be called again. If it returns zero, it is time for the
- *                           application cycle (ie. the configured process cycle time).
+ *  @param[out]  timeout_us  Timeout when this function should be called again. May return 0, requesting the shortest
+ *                           timeout. Does not return negative.
  *
- *  @return  TRDP_ERR from deeper processing.
+ *  @return  May return TRDP_BLOCK_ERR at the beginning of a process cycle, otherwise TRDP_NO_ERR or TRDP_ERR from
+ *           deeper processing respectively. Returning TRDP_BLOCK_ERR is thus not an error. However, the current
+ *           behaviour runs house-keeping nevertheless.
  */
-TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us );
+TRDP_ERR_T tau_xsession_cycle_check( TAU_XSESSION_T *our,  INT64 *timeout_us );
 
 /**
  *   Do the house-keeping of TRDP and packet transmission.

@@ -628,15 +628,15 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName,
 		s->next = _.session;
 		_.session = s;
 		s->initialized = _.use; /* something non-0 */
-		vos_getTime ( &s->lastTime );
+		vos_getTime ( &s->timeToGo );
 		if (sendOffset >= 0 && sendOffset < s->processConfig.cycleTime) {
-			s->lastTime.tv_usec -= s->lastTime.tv_usec % s->processConfig.cycleTime;
-			if (s->lastTime.tv_usec < 0) {
-				s->lastTime.tv_usec += 1000000;
-				s->lastTime.tv_sec--;
-			}
-		}
-		s->sendOffset = sendOffset;
+			VOS_TIMEVAL_T TO = { .tv_usec = s->processConfig.cycleTime};
+			TO.tv_usec -= s->timeToGo.tv_usec % s->processConfig.cycleTime;
+			timeradd( &s->timeToGo, &TO, &s->timeToGo );
+			s->sendOffset = sendOffset;
+		} else
+			s->sendOffset = -1;
+
 		if (our) *our = s;
 	} else {
 		vos_memFree(s);
@@ -691,44 +691,40 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
  */
 
 TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
-	TRDP_ERR_T result = TRDP_INIT_ERR;
-	if ( _.use <= 0 ) return result;
+	if ( _.use <= 0 ) return TRDP_INIT_ERR;
 
 	const VOS_TIMEVAL_T zero = {0,0};
 	VOS_TIMEVAL_T now;
-//	VOS_TIMEVAL_T now2;
 	vos_getTime( &now );
-
+	TRDP_ERR_T err = TRDP_NO_ERR;
 	do {
 		INT32 noOfDesc = 0;
 		VOS_FDS_T rfds;
 		FD_ZERO(&rfds);
-		VOS_TIMEVAL_T max_tv = deadline;
+		VOS_TIMEVAL_T max_to = deadline;
 
-		vos_subTime( &max_tv, &now); /* max_tv now contains the remaining max sleep time */
+		vos_subTime( &max_to, &now); /* max_tv now contains the remaining max sleep time */
 
-		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
-			VOS_TIMEVAL_T tv;
-			tlc_getInterval(s->sessionhandle, &tv, &rfds, &noOfDesc);
-			if (timercmp( &tv, &zero, >) && timercmp( &tv, &max_tv, <)) max_tv = tv;
+		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) if (tau_xsession_up(s)) {
+			VOS_TIMEVAL_T to;
+			tlc_getInterval(s->sessionhandle, &to, &rfds, &noOfDesc);
+			if (timercmp( &to, &zero, >) && timercmp( &to, &max_to, <)) max_to = to;
 		}
 
-		if (timercmp( &max_tv, &zero, <)) max_tv = zero;  /* max_tv must not be negative */
-//		vos_printLog(VOS_LOG_INFO, "CYCLE-select: %d++%ld -> %d++%ld\n", now.tv_sec, now.tv_usec/1000, max_tv.tv_sec, max_tv.tv_usec/1000);
-		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_tv);
+		if (timercmp( &max_to, &zero, <)) max_to = zero;  /* max_to must not be negative */
+		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_to);
 
 		vos_getTime( &now );
-//		vos_printLog(VOS_LOG_INFO, "CYCLE-process: %d++%ld\n", now.tv_sec, now.tv_usec/1000);
-		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
-			result = tlc_process(s->sessionhandle, &rfds, &rv);
-			s->lastTime = now;
+		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) if (tau_xsession_up(s)) {
+			err = tlc_process(s->sessionhandle, &rfds, &rv);
+
+			if (timercmp( &s->timeToGo, &now, <=))
+				vos_addTime( &s->timeToGo, &((VOS_TIMEVAL_T){.tv_usec=s->processConfig.cycleTime}) );
 		}
-//		vos_getTime( &now2 );
-//		vos_printLog(VOS_LOG_INFO, "\\\\CYCLE-process: %d++%ld\n", now2.tv_sec, now2.tv_usec/1000);
 
-	} while ( timercmp( &now, &deadline, <) );
+	} while ( timercmp( &now, &deadline, <) && (err == TRDP_NO_ERR) );
 
-	return result;
+	return err;
 }
 
 TRDP_ERR_T tau_xsession_cycle_all( void ) {
@@ -739,11 +735,56 @@ TRDP_ERR_T tau_xsession_cycle_all( void ) {
 		if ( ct.tv_usec != s->processConfig.cycleTime) {
 			vos_printLog(VOS_LOG_ERROR, "Process cycle times differ (%d != %d). FAILING!", ct.tv_usec, s->processConfig.cycleTime);
 			return TRDP_PARAM_ERR;
-		} else {
-			vos_addTime(&s->lastTime, &ct);
 		}
 	}
 
+	return tau_xsession_cycle_until( _.session->timeToGo );
+}
+
+TRDP_ERR_T tau_xsession_cycle_check( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
+	if (_.use <= 0 || !tau_xsession_up(our)) return TRDP_INIT_ERR;
+	if ( !timeout_us ) return TRDP_PARAM_ERR;
+
+	const VOS_TIMEVAL_T zero = {0,0};
+	VOS_TIMEVAL_T now;
+	vos_getTime( &now );
+	TRDP_ERR_T err = TRDP_NO_ERR;
+
+	INT32 noOfDesc = 0;
+	VOS_FDS_T rfds;
+	FD_ZERO(&rfds);
+	VOS_TIMEVAL_T max_to = our->timeToGo;
+
+	vos_subTime( &max_to, &now ); /* max_tv now contains the remaining max sleep time */
+
+	if (timercmp(&max_to, &zero, <=)) { /* then the process should be running */
+		err = TRDP_BLOCK_ERR; /* signal indirectly that the cycle should run */
+
+		our->timeToGo = now;
+		if (our->sendOffset >= 0)
+			our->timeToGo.tv_usec -= our->timeToGo.tv_usec % our->processConfig.cycleTime;
+
+		vos_addTime( &our->timeToGo, &((VOS_TIMEVAL_T){ .tv_usec = our->processConfig.cycleTime, }));
+		timersub( &our->timeToGo, &now, &max_to );
+	}
+
+	{
+		VOS_TIMEVAL_T to; /* helper */
+		tlc_getInterval(our->sessionhandle, &to, &rfds, &noOfDesc);
+		if (timercmp( &to, &zero, >) && timercmp( &to, &max_to, <)) max_to = to;
+	}
+	*timeout_us = max_to.tv_usec;
+	max_to = zero;
+	int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_to);
+
+	TRDP_ERR_T err_p = tlc_process(our->sessionhandle, &rfds, &rv);
+
+	return (err_p != TRDP_NO_ERR) ? err_p : err;
+}
+
+TRDP_ERR_T tau_xsession_cycle( TAU_XSESSION_T *our ) {
+	if ( _.use <= 0 || !tau_xsession_up(our) ) return TRDP_INIT_ERR;
+	VOS_TIMEVAL_T deadline = our->timeToGo;
 	const VOS_TIMEVAL_T zero = {0,0};
 	VOS_TIMEVAL_T now;
 	vos_getTime( &now );
@@ -752,118 +793,31 @@ TRDP_ERR_T tau_xsession_cycle_all( void ) {
 		INT32 noOfDesc = 0;
 		VOS_FDS_T rfds;
 		FD_ZERO(&rfds);
-		VOS_TIMEVAL_T min_to = _.session->lastTime;
+		VOS_TIMEVAL_T max_to = deadline;
 
-		vos_subTime( &min_to, &now); /* min_to starts with the remaining sleep time */
+		vos_subTime( &max_to, &now); /* max_tv now contains the remaining max sleep time */
 
-		for (TAU_XSESSION_T *s = _.session; s && !err; s = s->next ) {
-			VOS_TIMEVAL_T tv;
-			err = tlc_getInterval(s->sessionhandle, &tv, &rfds, &noOfDesc);
-			if (timercmp( &tv, &zero, >) && timercmp( &tv, &min_to, <)) min_to = tv;
+		{
+			VOS_TIMEVAL_T to;
+			tlc_getInterval(our->sessionhandle, &to, &rfds, &noOfDesc);
+			if (timercmp( &to, &zero, >) && timercmp( &to, &max_to, <)) max_to = to;
 		}
 
-		if (timercmp( &min_to, &zero, <)) min_to = zero;  /* min_tv must not be negative */
-//		vos_printLog(VOS_LOG_INFO, "CYCLE-select: %d++%ld -> %d++%ld\n", now.tv_sec, now.tv_usec/1000, max_tv.tv_sec, max_tv.tv_usec/1000);
-		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &min_to);
-
-//		vos_printLog(VOS_LOG_INFO, "CYCLE-process: %d++%ld\n", now.tv_sec, now.tv_usec/1000);
-		for (TAU_XSESSION_T *s = _.session; s && !err; s = s->next )
-			err = tlc_process(s->sessionhandle, &rfds, &rv);
+		if (timercmp( &max_to, &zero, <)) max_to = zero;  /* max_to must not be negative */
+		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_to);
 
 		vos_getTime( &now );
-//		vos_printLog(VOS_LOG_INFO, "\\\\CYCLE-process: %d++%ld\n", now2.tv_sec, now2.tv_usec/1000);
+		{
+			err = tlc_process(our->sessionhandle, &rfds, &rv);
 
-	} while ( timercmp( &now, &_.session->lastTime, <) && !err);
+			if (timercmp( &our->timeToGo, &now, <=))
+				vos_addTime( &our->timeToGo, &((VOS_TIMEVAL_T){.tv_usec=our->processConfig.cycleTime}) );
+
+		}
+
+	} while ( timercmp( &now, &deadline, <) && (err == TRDP_NO_ERR) );
 
 	return err;
-}
-
-TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
-	if (_.use <= 0 || !tau_xsession_up(our)) return TRDP_INIT_ERR;
-	if ( !timeout_us ) return TRDP_PARAM_ERR;
-
-	TRDP_ERR_T result;
-	const VOS_TIMEVAL_T zero = {0,0};
-	VOS_TIMEVAL_T max_tv; /* relative time */
-	VOS_TIMEVAL_T now;
-	vos_getTime( &now );
-
-	VOS_TIMEVAL_T ct = {0, our->processConfig.cycleTime};
-	vos_addTime( &our->lastTime, &ct); /* last-deadline + cycle-period */
-	if (timercmp(&our->lastTime, &now, <)) {
-		max_tv = zero; /* don't have a future marker in the past */
-		our->lastTime = now; /* store the new upcoming deadline */
-		if (our->sendOffset >= 0) {
-			our->lastTime.tv_usec -= our->lastTime.tv_usec % our->processConfig.cycleTime;
-			if (our->lastTime.tv_usec < 0) {
-				our->lastTime.tv_usec += 1000000;
-				our->lastTime.tv_usec--;
-			}
-		}
-	} else {
-		max_tv = our->lastTime;
-		vos_subTime( &max_tv, &now );
-	}
-
-	INT32 noOfDesc = 0;
-	VOS_FDS_T rfds;
-	FD_ZERO(&rfds);
-
-	VOS_TIMEVAL_T tv;
-	tlc_getInterval(our->sessionhandle, &tv, &rfds, &noOfDesc);
-	if (timercmp( &tv, &max_tv, <)) max_tv = tv;
-
-	tv = zero;
-	int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &tv);
-
-	result = tlc_process(our->sessionhandle, &rfds, &rv);
-
-	*timeout_us = max_tv.tv_sec*1000000+max_tv.tv_usec;
-
-	return result;
-}
-
-TRDP_ERR_T tau_xsession_cycle( TAU_XSESSION_T *our ) {
-	TRDP_ERR_T result = TRDP_INIT_ERR;
-	if ( _.use <= 0 || !tau_xsession_up(our) ) return result;
-
-	const VOS_TIMEVAL_T zero = {0,0};
-	VOS_TIMEVAL_T now;
-	vos_getTime( &now );
-
-	VOS_TIMEVAL_T deadline = {0, our->processConfig.cycleTime};
-	vos_addTime( &deadline, &our->lastTime); /* last-deadline + cycle-period */
-	if (timercmp(&deadline, &now, <=)) {
-		our->lastTime = deadline; /* store the upcoming deadline */
-		deadline = now; /* don't have a future marker in the past */
-	}
-
-	do {
-		INT32 noOfDesc = 0;
-		VOS_FDS_T rfds;
-		FD_ZERO(&rfds);
-		VOS_TIMEVAL_T max_tv = deadline;
-
-		vos_subTime( &max_tv, &now); /* max_tv now contains the remaining max sleep time */
-
-		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
-			VOS_TIMEVAL_T tv;
-			tlc_getInterval(s->sessionhandle, &tv, &rfds, &noOfDesc);
-			if (timercmp( &tv, &zero, >) && timercmp( &tv, &max_tv, <)) max_tv = tv;
-		}
-
-		if (timercmp( &max_tv, &zero, <)) max_tv = zero;  /* max_tv must not be negative */
-		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_tv);
-
-		vos_getTime( &now );
-		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
-			result = tlc_process(s->sessionhandle, &rfds, &rv);
-			s->lastTime = now;
-		}
-
-	} while ( timercmp( &now, &deadline, <) );
-
-	return result;
 }
 
 TRDP_ERR_T tau_xsession_setCom(TAU_XSESSION_T *our, INT32 pubTelID, const UINT8 *data, UINT32 cap) {
