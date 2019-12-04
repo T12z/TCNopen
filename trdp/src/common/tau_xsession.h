@@ -65,6 +65,8 @@ typedef struct TAU_XML_SESSION {
 	TRDP_PROCESS_CONFIG_T   processConfig;  /**< XML parameters from trdp-process block */
 
 	INT32               sendOffset;         /**< the sending deadline of pub-tels is delay by this us */
+	INT32               requestOffset;      /**< for the tau_xsession_cycle_check approach, an extra timeout is
+	                                             added to answer requests before the end of the cycle. */
 
 	UINT32              numExchgPar;        /**< number of elements to follow */
 	TRDP_EXCHG_PAR_T    *pExchgPar;         /**< XML telegrams from bus-interface block */
@@ -72,6 +74,7 @@ typedef struct TAU_XML_SESSION {
 
 	UINT32              numTelegrams;       /**< number of elements to follow */
 	TLG_T               aTelegrams[MAX_TELEGRAMS]; /**<  Array of published/subscribed telegram descriptors */
+	UINT32              numNonCyclic;       /**< number of pure request-based telegrams */
 } TAU_XSESSION_T;
 
 /**
@@ -95,8 +98,8 @@ TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_P
  *                                ignored
  *  @param[in]  offset            time offset in microseconds from multiple of session cycle for telegram publications.
  *                                This param would be better placed in the config file. If set (ie, non negative), the
- *                                session start will also be rounded to a multiple of the process time. Essentially,
- *                                this is to help synchronocity of multiple distribute processes in a -yet- very simple,
+ *                                session start will also be aligned to a multiple of the process time. Essentially,
+ *                                this is to help synchronocity of multiple distributed processes in a -yet- very simple,
  *                                potentially unreliable way. This is to be improved later.
  *                                It also silently assumes all clocks in the network are synchronized to millisecond
  *                                quality.
@@ -107,7 +110,7 @@ TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_P
  *             XML file or initializing the session. Errors will lead to an unusable empty session.
  */
 
-TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T**our, const char *busInterfaceName, INT32 sendOffset, void *callbackRef);
+TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T**our, const char *busInterfaceName, INT32 sendOffset, INT32 requestOffset, void *callbackRef);
 
 /**
  *  Destructor.
@@ -173,7 +176,7 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
  *
  *  @return  TRDP_ERR from deeper processing.
  */
-TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline );
+TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline );
 
 /**
  *   Do the house-keeping of TRDP and packet transmission. Will return a timeout in micro-secs when it should be called

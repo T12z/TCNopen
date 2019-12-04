@@ -321,27 +321,25 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 		/* for variable sized datasets, I am in trouble, because I need to set their length based on data */
 		TRDP_PUB_T pHnd;
 		result = tlp_publish(
-				our->sessionhandle, &pHnd, NULL /* user ref for filler */, NULL /* set data filler here*/,
+				our->sessionhandle, &pHnd, NULL /* user ref */, NULL /* callback handler */,
 				0, pExchgPar->comId,
 				0, 0, 0, destIP, interval, redId, flags, pSendParam,
 				data, memLength);
 
 		if (result != TRDP_NO_ERR) {
-			if (our->sendOffset >= 0) {
-				pHnd->timeToGo.tv_usec -= pHnd->timeToGo.tv_usec % our->processConfig.cycleTime;
-				pHnd->timeToGo.tv_usec += our->sendOffset;
-				if (pHnd->timeToGo.tv_usec < 0) {
-					pHnd->timeToGo.tv_usec += 1000000;
-					pHnd->timeToGo.tv_sec--;
-				}
-			}
-			/* TODO note, if a major delay occurs (more than one period), a telegram will be rescheduled, though out of
-			 * sync. */
 			vos_printLog(VOS_LOG_ERROR, "tlp_publish for comID %d, destID %d failed: %s",
 					pExchgPar->comId, pDest.id, tau_getResultString(result));
 			return result;
 		} else {
 			vos_printLog(VOS_LOG_INFO, "Published telegram: ComId %d, DestId %d", pExchgPar->comId, pDest.id);
+
+			/* round down time, if cycle-alignment is used */
+			if (our->sendOffset >= 0) {
+				pHnd->timeToGo.tv_usec -= pHnd->timeToGo.tv_usec % our->processConfig.cycleTime;
+				pHnd->timeToGo.tv_usec += our->sendOffset;
+			}
+			/* TODO note, if a major delay occurs (more than one period), a telegram will be rescheduled, though out of
+			 * sync. */
 
 			/*  Initialize telegram descriptor  */
 			pTlg = &our->aTelegrams[our->numTelegrams];
@@ -351,11 +349,13 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 			}
 			our->numTelegrams++;
 			pTlg->handle = pHnd;
+			pTlg->result = TRDP_NO_ERR;
 		}
 	}
 	/* Also check if we need to subscribe to requests. */
 	/* TODO There maybe unexpected behaviour for mixed configurations. Revise some time. */
-	if (!interval) subscribeTelegram(our, pExchgPar, NULL, 0, NULL);
+	if ( !interval && (TRDP_NO_ERR == subscribeTelegram(our, pExchgPar, NULL, 0, NULL)))
+		our->numNonCyclic++;
 
 	return TRDP_NO_ERR;
 }
@@ -398,6 +398,8 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 		else                              destMCIP = 0;
 	}
 
+	if (!pExchgPar->srcCnt) return TRDP_NOSUB_ERR;
+
 	/*  Iterate over all sources   */
 	for (i = 0; i < pExchgPar->srcCnt; i++) {
 		/* Get free subscribed telegram descriptor   */
@@ -437,11 +439,21 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 		result = tlp_subscribe(
 				our->sessionhandle, &pTlg->handle, pTlg, cb, 0, pExchgPar->comId,
 				0, 0, srcIP1, srcIP2, destMCIP, flags, NULL, timeout, toBehav);
+
 		if (result != TRDP_NO_ERR) {
 			vos_printLog(VOS_LOG_ERROR, "tlp_subscribe for comID %d, srcID %d failed: %s",
 					pExchgPar->comId, pExchgPar->pSrc[i].id, tau_getResultString(result));
 			return result;
 		}
+		if ((our->sendOffset >= 0) || (our->requestOffset >= 0)) { /* if cycle-alignment for const-send-offset is used */
+			pTlg->handle->timeToGo.tv_usec -= pTlg->handle->timeToGo.tv_usec % our->processConfig.cycleTime;
+			pTlg->handle->timeToGo.tv_usec += our->processConfig.cycleTime;
+			if (pTlg->handle->timeToGo.tv_usec >= 1000000) {
+				pTlg->handle->timeToGo.tv_usec -= 1000000;
+				pTlg->handle->timeToGo.tv_sec++;
+			}
+		}
+
 		vos_printLog(VOS_LOG_INFO, "Subscribed telegram: ComId %d, SrcId %d",
 				pExchgPar->comId, pExchgPar->pSrc[i].id);
 	}
@@ -594,7 +606,7 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length, TAU_XSESSION_PRINT 
 	return result;
 }
 
-TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName, INT32 sendOffset, void *callbackRef) {
+TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName, INT32 sendOffset, INT32 requestOffset, void *callbackRef) {
 	TRDP_ERR_T result = TRDP_INIT_ERR;
 
 	/*  Log configuration   */
@@ -629,13 +641,17 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName,
 		_.session = s;
 		s->initialized = _.use; /* something non-0 */
 		vos_getTime ( &s->timeToGo );
-		if (sendOffset >= 0 && sendOffset < s->processConfig.cycleTime) {
+		if ((sendOffset >= 0 && sendOffset < s->processConfig.cycleTime)
+				|| (requestOffset >= 0 && requestOffset < s->processConfig.cycleTime)){
 			VOS_TIMEVAL_T TO = { .tv_usec = s->processConfig.cycleTime};
 			TO.tv_usec -= s->timeToGo.tv_usec % s->processConfig.cycleTime;
 			timeradd( &s->timeToGo, &TO, &s->timeToGo );
 			s->sendOffset = sendOffset;
-		} else
+			s->requestOffset = requestOffset;
+		} else {
 			s->sendOffset = -1;
+			s->requestOffset = -1;
+		}
 
 		if (our) *our = s;
 	} else {
@@ -690,8 +706,12 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
  * multiple ifaces.
  */
 
-TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
+TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline ) {
 	if ( _.use <= 0 ) return TRDP_INIT_ERR;
+
+	int toes[16];
+	uint16_t rs[16];
+	int n = 0;
 
 	const VOS_TIMEVAL_T zero = {0,0};
 	VOS_TIMEVAL_T now;
@@ -701,9 +721,10 @@ TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
 		INT32 noOfDesc = 0;
 		VOS_FDS_T rfds;
 		FD_ZERO(&rfds);
-		VOS_TIMEVAL_T max_to = deadline;
+		VOS_TIMEVAL_T max_to;
 
-		vos_subTime( &max_to, &now); /* max_tv now contains the remaining max sleep time */
+		timersub( &deadline, &now, &max_to); /* max_to now contains the remaining max sleep time */
+		toes[n] = max_to.tv_usec;
 
 		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) if (tau_xsession_up(s)) {
 			VOS_TIMEVAL_T to;
@@ -712,7 +733,11 @@ TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
 		}
 
 		if (timercmp( &max_to, &zero, <)) max_to = zero;  /* max_to must not be negative */
+		toes[n+1] = max_to.tv_usec;
+
 		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_to);
+		rs[n+1] = __FDS_BITS(&rfds)[0];
+		n+=2;
 
 		vos_getTime( &now );
 		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) if (tau_xsession_up(s)) {
@@ -724,6 +749,10 @@ TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline ) {
 
 	} while ( timercmp( &now, &deadline, <) && (err == TRDP_NO_ERR) );
 
+	for (int i=0; i<n; i+=2) {
+		printf(":%d::%d/%02hx: ",toes[i]/100, rs[i], toes[i+1]/100, rs[i+1]);
+	}
+	fflush(stdout);
 	return err;
 }
 
@@ -753,28 +782,42 @@ TRDP_ERR_T tau_xsession_cycle_check( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 	INT32 noOfDesc = 0;
 	VOS_FDS_T rfds;
 	FD_ZERO(&rfds);
-	VOS_TIMEVAL_T max_to = our->timeToGo;
+	VOS_TIMEVAL_T max_to;
 
-	vos_subTime( &max_to, &now ); /* max_tv now contains the remaining max sleep time */
+	timersub( &our->timeToGo, &now, &max_to); /* max_to now contains the remaining max sleep time */
 
-	if (timercmp(&max_to, &zero, <=)) { /* then the process should be running */
+	if (timercmp(&max_to, &zero, <=)) { /* then the external process should be running */
 		err = TRDP_BLOCK_ERR; /* signal indirectly that the cycle should run */
 
 		our->timeToGo = now;
-		if (our->sendOffset >= 0)
+		if ((our->sendOffset >= 0) || (our->requestOffset >= 0))
 			our->timeToGo.tv_usec -= our->timeToGo.tv_usec % our->processConfig.cycleTime;
 
 		vos_addTime( &our->timeToGo, &((VOS_TIMEVAL_T){ .tv_usec = our->processConfig.cycleTime, }));
 		timersub( &our->timeToGo, &now, &max_to );
 	}
+	/* getInterval() silently assumes, that vos_select will be blocking. This only makes a difference for non-cyclic
+	 * telegrams, eg, request/replies. In such a case we must add a trigger for processing of requests before the end
+	 * of the cycle period. This is only required, if request packets are expected.
+	 */
+	if ( our->numNonCyclic && (our->requestOffset >= 0) ) {
+		VOS_TIMEVAL_T to;
+		//max_tv = our->timeToGo -requestOffset -now
+	}
 
+	/* When the application-process is due, in theory, there is no explicit need to do the TRDP-processing */
 	{
 		VOS_TIMEVAL_T to; /* helper */
 		tlc_getInterval(our->sessionhandle, &to, &rfds, &noOfDesc);
-		if (timercmp( &to, &zero, >) && timercmp( &to, &max_to, <)) max_to = to;
+		if (timercmp( &to, &max_to, <)) max_to = to;
 	}
+	/* TODO this is again bullshit:
+	 * if packet-handling is (over)due (to=0) then I have no timeout for the next event :/
+	 */
 	*timeout_us = max_to.tv_usec;
-	max_to = zero;
+	if (err == TRDP_BLOCK_ERR && timerisset(&max_to)) return TRDP_BLOCK_ERR; /* no packets due, skip processing */
+
+	max_to = zero; /* do not block in select, only check socket status */
 	int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_to);
 
 	TRDP_ERR_T err_p = tlc_process(our->sessionhandle, &rfds, &rv);
