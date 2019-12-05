@@ -709,9 +709,9 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
 TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline ) {
 	if ( _.use <= 0 ) return TRDP_INIT_ERR;
 
-	int toes[16];
-	uint16_t rs[16];
-	int n = 0;
+//	int toes[16];
+//	uint16_t rs[16];
+//	int n = 0;
 
 	const VOS_TIMEVAL_T zero = {0,0};
 	VOS_TIMEVAL_T now;
@@ -724,7 +724,7 @@ TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline ) {
 		VOS_TIMEVAL_T max_to;
 
 		timersub( &deadline, &now, &max_to); /* max_to now contains the remaining max sleep time */
-		toes[n] = max_to.tv_usec;
+//		toes[n] = max_to.tv_usec;
 
 		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) if (tau_xsession_up(s)) {
 			VOS_TIMEVAL_T to;
@@ -733,11 +733,11 @@ TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline ) {
 		}
 
 		if (timercmp( &max_to, &zero, <)) max_to = zero;  /* max_to must not be negative */
-		toes[n+1] = max_to.tv_usec;
+//		toes[n+1] = max_to.tv_usec;
 
 		int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_to);
-		rs[n+1] = __FDS_BITS(&rfds)[0];
-		n+=2;
+//		rs[n+1] = __FDS_BITS(&rfds)[0];
+//		n+=2;
 
 		vos_getTime( &now );
 		for (TAU_XSESSION_T *s = _.session; s; s = s->next ) if (tau_xsession_up(s)) {
@@ -749,10 +749,9 @@ TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline ) {
 
 	} while ( timercmp( &now, &deadline, <) && (err == TRDP_NO_ERR) );
 
-	for (int i=0; i<n; i+=2) {
-		printf(":%d::%d/%02hx: ",toes[i]/100, rs[i], toes[i+1]/100, rs[i+1]);
-	}
-	fflush(stdout);
+//	for (int i=0; i<n; i+=2) printf(":%d::%d/%04hx: ",toes[i]/100, toes[i+1]/100, rs[i+1]);
+//	fflush(stdout);
+
 	return err;
 }
 
@@ -774,55 +773,69 @@ TRDP_ERR_T tau_xsession_cycle_check( TAU_XSESSION_T *our,  INT64 *timeout_us ) {
 	if (_.use <= 0 || !tau_xsession_up(our)) return TRDP_INIT_ERR;
 	if ( !timeout_us ) return TRDP_PARAM_ERR;
 
-	const VOS_TIMEVAL_T zero = {0,0};
-	VOS_TIMEVAL_T now;
-	vos_getTime( &now );
+	VOS_TIMEVAL_T zero = {0,0};
 	TRDP_ERR_T err = TRDP_NO_ERR;
 
-	INT32 noOfDesc = 0;
-	VOS_FDS_T rfds;
-	FD_ZERO(&rfds);
+	/* If there is no packet handling required in this event, skip */
+	if ( our->runProcessing ) {
+		/* to = zero : do not block in select, only check socket status */
+		int rv = vos_select( our->noOfDesc+1, &our->rfds, NULL, NULL, &zero);
+
+		if ( TRDP_NO_ERR != (err = tlc_process(our->sessionhandle, &our->rfds, &rv)) ) return err;
+	}
+
+	VOS_TIMEVAL_T now;
+	vos_getTime( &now );
+
 	VOS_TIMEVAL_T max_to;
 
-	timersub( &our->timeToGo, &now, &max_to); /* max_to now contains the remaining max sleep time */
+	timersub( &our->timeToGo, &now, &max_to); /* max_to now contains the remaining time of this cycle */
+	our->runProcessing = FALSE;
+	err = TRDP_NODATA_ERR;
 
-	if (timercmp(&max_to, &zero, <=)) { /* then the external process should be running */
-		err = TRDP_BLOCK_ERR; /* signal indirectly that the cycle should run */
-
+	if (timercmp(&max_to, &zero, <=)) { /* extend the app cycle if necessary */
 		our->timeToGo = now;
-		if ((our->sendOffset >= 0) || (our->requestOffset >= 0))
+		if ((our->sendOffset >= 0) || (our->requestOffset >= 0)) /* re-align if configured */
 			our->timeToGo.tv_usec -= our->timeToGo.tv_usec % our->processConfig.cycleTime;
-
+		/* shift to the next cycle */
 		vos_addTime( &our->timeToGo, &((VOS_TIMEVAL_T){ .tv_usec = our->processConfig.cycleTime, }));
 		timersub( &our->timeToGo, &now, &max_to );
 	}
-	/* getInterval() silently assumes, that vos_select will be blocking. This only makes a difference for non-cyclic
+	/* getInterval() silently assumes, that vos_select will be blocking. This makes a difference for non-cyclic
 	 * telegrams, eg, request/replies. In such a case we must add a trigger for processing of requests before the end
 	 * of the cycle period. This is only required, if request packets are expected.
 	 */
 	if ( our->numNonCyclic && (our->requestOffset >= 0) ) {
 		VOS_TIMEVAL_T to;
-		//max_tv = our->timeToGo -requestOffset -now
+		timersub( &our->timeToRequests, &now, &to);
+		if (timercmp(&to, &zero, <=)) {
+			our->timeToRequests = now;
+			/* realign */
+			our->timeToRequests.tv_usec -= our->timeToRequests.tv_usec % our->processConfig.cycleTime;
+			/* shift to the next cycle end */
+			vos_addTime( &our->timeToRequests, &((VOS_TIMEVAL_T){ .tv_usec = 2*our->processConfig.cycleTime-our->requestOffset, }));
+			timersub( &our->timeToRequests, &now, &to );
+		}
+		if (timercmp( &to, &max_to, <)) {
+			max_to = to;
+			our->runProcessing = TRUE;
+			err = TRDP_NO_ERR;
+		}
 	}
 
-	/* When the application-process is due, in theory, there is no explicit need to do the TRDP-processing */
 	{
+		our->noOfDesc = 0; /* revert select data for next call */
+		FD_ZERO(&our->rfds);
 		VOS_TIMEVAL_T to; /* helper */
-		tlc_getInterval(our->sessionhandle, &to, &rfds, &noOfDesc);
-		if (timercmp( &to, &max_to, <)) max_to = to;
+		tlc_getInterval(our->sessionhandle, &to, &our->rfds, &our->noOfDesc);
+		if (timercmp( &to, &max_to, <)) {
+			max_to = to;
+			our->runProcessing = TRUE;
+			err = TRDP_NO_ERR;
+		}
 	}
-	/* TODO this is again bullshit:
-	 * if packet-handling is (over)due (to=0) then I have no timeout for the next event :/
-	 */
 	*timeout_us = max_to.tv_usec;
-	if (err == TRDP_BLOCK_ERR && timerisset(&max_to)) return TRDP_BLOCK_ERR; /* no packets due, skip processing */
-
-	max_to = zero; /* do not block in select, only check socket status */
-	int rv = vos_select( noOfDesc+1, &rfds, NULL, NULL, &max_to);
-
-	TRDP_ERR_T err_p = tlc_process(our->sessionhandle, &rfds, &rv);
-
-	return (err_p != TRDP_NO_ERR) ? err_p : err;
+	return err;
 }
 
 TRDP_ERR_T tau_xsession_cycle( TAU_XSESSION_T *our ) {

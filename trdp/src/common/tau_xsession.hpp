@@ -81,8 +81,8 @@ public:
 	 *  @return    a suitable TRDP_ERR. TRDP_INIT_ERR if load was not called before. Otherwise issues from reading the
 	 *             XML file or initializing the session. Errors will lead to an unusable empty session.
 	 */
-	TRDP_ERR_T init     (const char *busInterfaceName, int offset, void *callbackRef)
-		{ return lastErr = tau_xsession_init( &our, busInterfaceName, offset, callbackRef ); }
+	TRDP_ERR_T init     (const char *busInterfaceName, int offset, int requestgap, void *callbackRef)
+		{ return lastErr = tau_xsession_init( &our, busInterfaceName, offset, requestgap, callbackRef ); }
 
 	/**
 	 *  checks if the object is usable/setup for transmissions. Treat return value as boolean.
@@ -155,12 +155,13 @@ public:
 	/**
 	 *   Do the house-keeping of TRDP and packet transmission.
 	 *
-	 *   If you passed a reasonable offset for sending to init, these calls will try to align its cycle to the process
-	 *   period.
+	 *  If you passed a reasonable offset for sending to init, these calls will align its cycle to the process period.
+	 *  It is recommended to call cycle(to) after your processing.
 	 *
 	 *  @param[out] timeout_us  Timeout in micro seconds to fulfill the configured cycle period. If dismissed, the call
-	 *                          will wait for the required time itself.
-	 *  @return  TRDP_ERR from deeper processing.
+	 *                          will wait for the required time itself. (Passing a NULL pointer is an error.)
+	 *  @return  TRDP_ERR from deeper processing. Returning TRDP_NODATA_ERR is no error, but an indication the next
+	 *           timeout is the beginning of the process cycle.
 	 */
 	TRDP_ERR_T cycle    ( INT64 *timeout_us )
 		{ return lastErr = tau_xsession_cycle_check( our, timeout_us ); }

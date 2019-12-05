@@ -57,6 +57,11 @@ typedef struct TAU_XML_SESSION {
 	TRDP_IF_CONFIG_T       *pIfConfig;      /**< General parameters from xml configuration file */
 
 	VOS_TIMEVAL_T           timeToGo;       /**< timestamp used by @see tau_xsession_cycle() */
+	VOS_TIMEVAL_T           timeToRequests; /**< timestamp used by @see tau_xsession_cycle-check() */
+	BOOL8                   runProcessing;  /**< set by *_cycle_check() if the next event needs tlc_processing */
+	VOS_FDS_T               rfds;           /**< for the tau_xsession_cycle_check approach, we need to save the fds
+	                                             between calls. */
+	INT32                   noOfDesc;       /**< and the max fd */
 
 	/*  Session configurations  */
 	TRDP_APP_SESSION_T      sessionhandle;  /**< reference from trdp functions */
@@ -75,6 +80,8 @@ typedef struct TAU_XML_SESSION {
 	UINT32              numTelegrams;       /**< number of elements to follow */
 	TLG_T               aTelegrams[MAX_TELEGRAMS]; /**<  Array of published/subscribed telegram descriptors */
 	UINT32              numNonCyclic;       /**< number of pure request-based telegrams */
+
+
 } TAU_XSESSION_T;
 
 /**
@@ -179,18 +186,19 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
 TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline );
 
 /**
- *   Do the house-keeping of TRDP and packet transmission. Will return a timeout in micro-secs when it should be called
- *   again latest.
+ *   Do the house-keeping of TRDP in an event-based environment (eg QT, GTK, ...) without blocking
  *
- *  Call this function regularly between your application cycles, e.g., after all getCom and request calls.
+ *  This call also takes care of packet transmission. It will return a timeout in micro-seconds when it should be
+ *  called again the latest. Call this function you your timer handler. When this functions returns TRDP_NODATA_ERR,
+ *  at the end of the returned timeout, a new application process cycle will start and you may execute *your* specific
+ *  processing. After processing you still have to call this function again for the next timeout.
  *
  *  @param[in,out] our       session state.
  *  @param[out]  timeout_us  Timeout when this function should be called again. May return 0, requesting the shortest
  *                           timeout. Does not return negative.
  *
- *  @return  May return TRDP_BLOCK_ERR at the beginning of a process cycle, otherwise TRDP_NO_ERR or TRDP_ERR from
- *           deeper processing respectively. Returning TRDP_BLOCK_ERR is thus not an error. However, the current
- *           behaviour runs house-keeping nevertheless.
+ *  @return  May return TRDP_NODATA_ERR to indicate the next beginning of a process cycle, otherwise TRDP_NO_ERR or
+ *           TRDP_ERR from deeper processing respectively. Returning TRDP_NODATA_ERR is thus not an error.
  */
 TRDP_ERR_T tau_xsession_cycle_check( TAU_XSESSION_T *our,  INT64 *timeout_us );
 
