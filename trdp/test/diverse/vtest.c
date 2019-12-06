@@ -2155,6 +2155,9 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_write(void* arguments)
    {
       retVal = VOS_UNKNOWN_ERR;
       vos_printLogStr(VOS_LOG_ERROR, "[SHMEM Write] vos_sharedOpen() ERROR\n");
+       vos_terminate();
+       return 0;
+
    }
    vos_printLog(VOS_LOG_USR, "handle = %llx\n", *(long long *)handle);
    vos_printLog(VOS_LOG_USR, "pMemArea = %llx\n", (long long)pMemArea);

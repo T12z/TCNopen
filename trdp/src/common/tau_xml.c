@@ -827,7 +827,7 @@ static TRDP_ERR_T readMappedTelegramDef(
                     vos_strncpy((char *)pSrc->pUriHost2, p, (UINT32)strlen(p) + 1u);
                 }
             }
-            //if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE)
+            /*if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE)*/
             if (token == TOK_CLOSE_EMPTY)
             {
             }
@@ -921,7 +921,7 @@ static TRDP_ERR_T readMappedTelegramDef(
                     vos_strncpy((char *)pDest->pUriHost, p, (UINT32)strlen(p) + 1u);
                 }
             }
-            //if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE)
+            /*if (token == TOK_CLOSE_EMPTY || token == TOK_CLOSE) */
             if (token == TOK_CLOSE_EMPTY)
             {
             }

@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
  *      BL 2019-08-19: LINT warnings
  *      BL 2019-08-12: Ticket #274 Cyclic thread parameters must not use stack
  *      BL 2019-08-02: SCHEDULE_DEADLINE option: interval * 1000 (-> nanosec)
@@ -1121,6 +1122,10 @@ EXT_DECL void vos_getUuid (
     pUuID[5]    = (current.tv_sec & 0xFF00u) >> 8u;
     pUuID[6]    = (current.tv_sec & 0xFF0000u) >> 16u;
     pUuID[7]    = ((current.tv_sec & 0x0F000000u) >> 24u) | 0x4u; /*  pseudo-random version   */
+
+    /* We are using the Unix epoch here instead of UUID epoch (gregorian), until this is fixed
+        we issue a warning */
+    vos_printLogStr(VOS_LOG_WARNING, "UUID generation is based on Unix epoch, instead of UUID epoch. #define HAS_UUID!\n");
 
     /* we always increment these values, this definitely makes the UUID unique */
     pUuID[8]    = (UINT8) (count & 0xFFu);
