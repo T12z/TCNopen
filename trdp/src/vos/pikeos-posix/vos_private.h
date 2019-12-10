@@ -19,7 +19,7 @@
  *          do so through the POSIX API. Furthermore, the *default* time granularity is 20 / 10 ms. *All* time-related 
  *          functions have this granularity: select(), *_sleep(), ... also clock_gettime(). Obviously, you can replace
  *          the default timer with an own implementation at the cost of a higher (internal) scheduling overhead if the
- *          rest of your real-time system can affort that. (Personal note, you should and I believe your system can.)
+ *          rest of your real-time system can accomodate for that.
  *          On the Up-Side, your POSIX-threads cannot interfere with your larger system architecture and scheduling.
  */
  /*

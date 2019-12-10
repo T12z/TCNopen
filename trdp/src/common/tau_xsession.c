@@ -534,7 +534,7 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length, TAU_XSESSION_PRINT 
 		/*  Prepare XML document    */
 		result = length ? tau_prepareXmlMem(xml,  length,  &_.devDocHnd) : tau_prepareXmlDoc(xml, &_.devDocHnd);
 		if (result != TRDP_NO_ERR) {
-			vos_printLog(VOS_LOG_ERROR, "Failed to prepare XML document (%s/%ld): %s", xml, length, tau_getResultString(result));
+			vos_printLog(VOS_LOG_ERROR, "Failed to prepare XML document (%s/%zu): %s", xml, length, tau_getResultString(result));
 		} else {
 
 			/*  Read general parameters from XML configuration*/
@@ -547,15 +547,15 @@ TRDP_ERR_T tau_xsession_load(const char *xml, size_t length, TAU_XSESSION_PRINT 
 				vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: ""%s", tau_getResultString(result));
 			} else {
 				if (_.numIfConfig > MAX_INTERFACES) {
-					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more interfaces available (%d) than expected (%d)",
+					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more interfaces available (%u) than expected (%d)",
 							_.numIfConfig, MAX_INTERFACES);
 					result = TRDP_PARAM_ERR;
 				} else if (_.numComPar > MAX_COMPAR) {
-					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more com-parameter available (%d) than expected (%d)",
+					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: There were more com-parameter available (%u) than expected (%d)",
 							_.numComPar, MAX_COMPAR);
 					result = TRDP_PARAM_ERR;
 				} else if (_.memConfig.size > SANE_MEMSIZE) {
-					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: Memory requirement unusually large (%d).", _.memConfig.size);
+					vos_printLog(VOS_LOG_ERROR, "Failed to parse general parameters: Memory requirement unusually large (%u).", _.memConfig.size);
 					result = TRDP_PARAM_ERR;
 				} else {
 					if (pTempIfConfig && _.numIfConfig) memcpy(_.ifConfig, pTempIfConfig, sizeof(TRDP_IF_CONFIG_T)*_.numIfConfig); else _.numIfConfig = 0;
@@ -761,7 +761,7 @@ TRDP_ERR_T tau_xsession_cycle_all( void ) {
 	VOS_TIMEVAL_T ct = { .tv_usec = _.session->processConfig.cycleTime };
 	for (TAU_XSESSION_T *s = _.session; s; s = s->next ) {
 		if ( ct.tv_usec != s->processConfig.cycleTime) {
-			vos_printLog(VOS_LOG_ERROR, "Process cycle times differ (%d != %d). FAILING!", ct.tv_usec, s->processConfig.cycleTime);
+			vos_printLog(VOS_LOG_ERROR, "Process cycle times differ (%ld != %u). FAILING!", ct.tv_usec, s->processConfig.cycleTime);
 			return TRDP_PARAM_ERR;
 		}
 	}

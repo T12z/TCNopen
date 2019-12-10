@@ -492,13 +492,14 @@ $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 #
 ###############################################################################
 clean:
-	rm -f -r bld/*
-	rm -f -r doc/latex/*
+	rm -f -r $(OUTDIR)
 
 unconfig:
 	-$(RM) config/config.mk
 
 distclean:	clean unconfig
+	rm -f -r bld/*
+	rm -f -r doc/latex/*
 
 ###############################################################################
 #                                                                      	

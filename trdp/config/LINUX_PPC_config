@@ -11,7 +11,7 @@
 #//
 
 # path to compiler incl. the trailing slash
-TCPATH = /scm/gbe/repository/toolchain/nrtos/1.0.0.0/x86-linux2/bin/
+TCPATH = 
 
 # verbose description for the target
 # ARCH controls the output path for the binaries
@@ -26,8 +26,9 @@ TCPOSTFIX =
 DOXYPATH = /usr/local/bin/
 
 # path to sysroot includes also the trailing slash
-CFLAGS += -Wall -DPOSIX -D_GNU_SOURCE -DB_ENDIAN --sysroot=/scm/gbe/repository/sysroot/nrtos/2.4.0.1/sysroot/
-
+CFLAGS += -Wall -fstrength-reduce -fsigned-char -pthread -fPIC -DPOSIX -D_GNU_SOURCE -DB_ENDIAN
+CFLAGS += -Wno-unknown-pragmas -Wno-address-of-packed-member
+#CFLAGS += -Wno-format
 LDFLAGS += -lrt
 
 #LINT section  
