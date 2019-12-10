@@ -51,7 +51,7 @@
 #include "string.h"
 #include "ioLib.h"
 #include "stdio.h"
-#elif defined(PIKEOS_POSIX) && defined(POSIX_LWIP)
+#elif defined(POSIX_LWIP)
 #include "lwipopts.h"
 #include "lwip/sockets.h"
 #include "lwip/inet.h"
