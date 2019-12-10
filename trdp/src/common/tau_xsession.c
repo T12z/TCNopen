@@ -641,8 +641,8 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName,
 		_.session = s;
 		s->initialized = _.use; /* something non-0 */
 		vos_getTime ( &s->timeToGo );
-		if ((sendOffset >= 0 && sendOffset < s->processConfig.cycleTime)
-				|| (requestOffset >= 0 && requestOffset < s->processConfig.cycleTime)){
+		if ((sendOffset >= 0 && sendOffset < (INT32)s->processConfig.cycleTime)
+				|| (requestOffset >= 0 && requestOffset < (INT32)s->processConfig.cycleTime)){
 			VOS_TIMEVAL_T TO = { .tv_usec = s->processConfig.cycleTime};
 			TO.tv_usec -= s->timeToGo.tv_usec % s->processConfig.cycleTime;
 			timeradd( &s->timeToGo, &TO, &s->timeToGo );
