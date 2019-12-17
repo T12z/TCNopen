@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows, copy from windows VOS
 */
 
@@ -52,6 +53,9 @@ extern "C" {
 #if (defined (WIN32) || defined (WIN64))
 
 #define MAX_SEM_COUNT  10
+
+#define TS_POLLING_TIME_US 100000
+#define INF_TIMEOUT 0xffffffffu
 
 struct VOS_MUTEX
 {

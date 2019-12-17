@@ -20,7 +20,8 @@
 /*
 * $Id$*
 *
-*      AÖ 2019-11-18: Ticket #295 vos_sockSendUDP some times report err 183 in Windows Sim
+*      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
+*      AÖ 2019-12-18: Ticket #295: vos_sockSendUDP some times report err 183 in Windows Sim
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
 */
@@ -46,6 +47,7 @@
 #include "vos_sock.h"
 #include "vos_thread.h"
 #include "vos_mem.h"
+#include "vos_private.h"
 #include "SimSocket.h"
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -549,41 +551,68 @@ EXT_DECL BOOL8 vos_netIfUp (
  *  @retval         number of ready file descriptors
  */
 
-EXT_DECL INT32 vos_select (
+EXT_DECL INT32 vos_select(
     SOCKET           highDesc,
-    VOS_FDS_T       *pReadableFD,
-    VOS_FDS_T       *pWriteableFD,
-    VOS_FDS_T       *pErrorFD,
-    VOS_TIMEVAL_T   *pTimeOut)
+    VOS_FDS_T* pReadableFD,
+    VOS_FDS_T* pWriteableFD,
+    VOS_FDS_T* pErrorFD,
+    VOS_TIMEVAL_T* pTimeOut)
 {
     int ret = -1;
     sim_fd_set readFds;
     sim_fd_set writeFds;
     sim_fd_set errorFds;
-    sim_fd_set *pReadFds = &readFds;
-    sim_fd_set *pWriteFds = &writeFds;
-    sim_fd_set *pErrorFds = &errorFds;
+    sim_fd_set* pReadFds = &readFds;
+    sim_fd_set* pWriteFds = &writeFds;
+    sim_fd_set* pErrorFds = &errorFds;
 
     /* Copy to sim_fd_set */
-    if (vosFdsToSimFds(pReadableFD, &pReadFds) != 0)
+    //In simulation use polling
     {
-        return -1;
-    }
-    if(vosFdsToSimFds(pWriteableFD, &pWriteFds) != 0)
-    {
-        return -1;
-    }
-    if(vosFdsToSimFds(pErrorFD, &pErrorFds) != 0)
-    {
-        return -1;
-    }
+        VOS_TIMEVAL_T delyTime;
+        delyTime.tv_sec = 0;
+        delyTime.tv_usec = TS_POLLING_TIME_US;
+        VOS_TIMEVAL_T remTime = *pTimeOut;
+        VOS_TIMEVAL_T delyNull;
+        delyNull.tv_sec = 0;
+        delyNull.tv_usec = 0;
 
-    ret = SimSelect((int)highDesc, pReadFds, pWriteFds,
-                        pErrorFds, (struct timeval *) pTimeOut);
+        do
+        {
+            /* Copy to sim_fd_set */
+            if (vosFdsToSimFds(pReadableFD, &pReadFds) != 0)
+            {
+                return -1;
+            }
+            if (vosFdsToSimFds(pWriteableFD, &pWriteFds) != 0)
+            {
+                return -1;
+            }
+            if (vosFdsToSimFds(pErrorFD, &pErrorFds) != 0)
+            {
+                return -1;
+            }
+
+            ret = SimSelect((int)highDesc, pReadFds, pWriteFds,
+                pErrorFds, (struct timeval*) &delyNull);
+
+            if (vos_cmpTime(&remTime, &delyTime) == -1)
+            {
+                //remTime < delyTime
+                vos_threadDelay(remTime.tv_usec);
+                vos_subTime(&remTime, &remTime);
+            }
+            else
+            {
+                vos_threadDelay(delyTime.tv_usec);
+                vos_subTime(&remTime, &delyTime);
+            }
+        } while (ret == 0 && (remTime.tv_sec != 0 || remTime.tv_usec != 0));
+    }
 
     if (ret == -1)
     {
-        int err = GetLastError();        
+        int err = GetLastError();
         vos_printLog(VOS_LOG_ERROR, "SimSelect() failed (Err: %d)\n", err);
     }
 
@@ -1261,11 +1290,12 @@ EXT_DECL VOS_ERR_T vos_sockBind (
 
     /* Dynamic ports not supported in SimSocket, we have to try
        until we find a free port.*/
+
     if (port == 0)
     {
         srcAddress.sin_port = vos_htons(dynPortNr++);
     }
-    
+   
     ret = VOS_NO_ERR;
     
     do

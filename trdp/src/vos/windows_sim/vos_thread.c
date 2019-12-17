@@ -20,6 +20,8 @@
 /*
 * $Id$
 *
+*      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
+*      AÖ 2019-12-17: Ticket #306: Improve TerminateThread in SIM 
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
 */
@@ -62,6 +64,8 @@ const UINT32    cMutextMagic        = 0x1234FEDC;
 
 #define MAX_TIMESYNC_PREFIX_STRING 20
 
+#define TS_MAX_DELAY_TIME_US 1000000
+
 /* This define holds the max amount of seconds to get stored in 32bit holding micro seconds        */
 /* It is the result when using the common time struct with tv_sec and tv_usec as on a 32 bit value */
 /* so far 0..999999 gets used for the tv_usec field as per definition, then 0xFFF0BDC0 usec        */
@@ -82,7 +86,7 @@ const UINT32    cMutextMagic        = 0x1234FEDC;
 static BOOL8 vosThreadInitialised = FALSE;
 static DWORD dwVosTimeSyncTLSIndex = TLS_OUT_OF_INDEXES;
 static char vosTimeSyncPrefix[MAX_TIMESYNC_PREFIX_STRING];
-static VOS_MUTEX_T vosThreadListMutex = 0;
+static HANDLE vosThreadListMutex = 0;
 static int vosThreadCount = 0;
 
 typedef struct
@@ -104,6 +108,7 @@ typedef struct
 typedef struct
 {
     TIMESYNCHANDLE    handle;
+    HANDLE            terminateSemaphore;
 } VOS_TIMESYNC_TLS_T;
 
 typedef struct
@@ -111,6 +116,7 @@ typedef struct
     DWORD threadId;
     TIMESYNCHANDLE tsHandle;
     CHAR8 threadName[MAX_THREAD_NAME];
+    HANDLE hTerminateSema;
 } VOS_THREAD_LIST_T;
 
 static VOS_THREAD_LIST_T listOfThreads[MAX_NR_OF_THREADS];
@@ -133,6 +139,7 @@ EXT_DECL VOS_ERR_T vos_threadRegisterPrivate(const CHAR* pName, VOS_THREAD_T thr
         {
             listOfThreads[i].threadId = GetThreadId(thread);
             listOfThreads[i].tsHandle = -1;
+            listOfThreads[i].hTerminateSema = NULL;
             strcpy_s(listOfThreads[i].threadName, MAX_THREAD_NAME, pName);
 
             vosThreadCount++;
@@ -160,6 +167,7 @@ EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart)
     VOS_THREAD_T self;
     DWORD threadId;
     TIMESYNCHANDLE tsHandel;
+    HANDLE hTerminateSema;
     VOS_ERR_T ret;
     char timeSyncName[UNITMAXNAME];
     ret = VOS_THREAD_ERR;
@@ -187,9 +195,9 @@ EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart)
     pTimeSyncTLS->handle = -1;
 
     /* Enter critical section */
-    if (vos_mutexLock(vosThreadListMutex) != VOS_NO_ERR)
+    if (WaitForSingleObject(vosThreadListMutex, INFINITE) != WAIT_OBJECT_0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegisterLocal failed (vos_mutexLock).\n");
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegisterLocal failed (mutexLock).\n");
         return VOS_THREAD_ERR;
     }
 
@@ -211,6 +219,22 @@ EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart)
                     break;
                 }
 
+                hTerminateSema = CreateSemaphore(
+                                                NULL,           // default security attributes
+                                                0,              // initial count
+                                                1,              // maximum count
+                                                NULL);          // unnamed semaphore
+
+                if (hTerminateSema == NULL)
+                {
+                    vos_printLog(VOS_LOG_ERROR,
+                        "vos_threadRegister() failed (CreateSemaphore error)\n");
+                    ret = VOS_INIT_ERR;
+                    break;
+                }
+
+                listOfThreads[i].hTerminateSema = hTerminateSema;
+                pTimeSyncTLS->terminateSemaphore = hTerminateSema;
                 listOfThreads[i].tsHandle = tsHandel;
                 pTimeSyncTLS->handle = tsHandel;
 
@@ -220,9 +244,9 @@ EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart)
         }
 
     /* Enter critical section */
-    if (vos_mutexUnlock(vosThreadListMutex) != VOS_NO_ERR)
+    if (ReleaseMutex(vosThreadListMutex) == 0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (vos_mutexUnlock).\n");
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (mutexUnlock).\n");
         return VOS_THREAD_ERR;
     }
 
@@ -250,8 +274,11 @@ EXT_DECL VOS_ERR_T vos_threadGetTimeSyncTLS(VOS_TIMESYNC_TLS_T** ppTimeSyncTLS)
     *ppTimeSyncTLS = TlsGetValue(dwVosTimeSyncTLSIndex);
     if ((*ppTimeSyncTLS == 0) || (GetLastError() != ERROR_SUCCESS))
     {
+        //This is OK for main thread
+        /*
         vos_printLog(VOS_LOG_WARNING,
            "vos_threadGetTimeSyncTLS() failed (TlsGetValue error)\n");
+        */
         return VOS_NODATA_ERR;
     }
 
@@ -261,26 +288,24 @@ EXT_DECL VOS_ERR_T vos_threadGetTimeSyncTLS(VOS_TIMESYNC_TLS_T** ppTimeSyncTLS)
 /**********************************************************************************************************************/
 /** Unregister a thread from timesync and remove from list of threads.
 *
-*  @param[in]      thread                 Thread to remove
 *  @param[in]      bTerminate             True if thread shall be terminated
 *
 *  @retval         none
 */
-void vos_threadUnregister(VOS_THREAD_T thread, BOOL bTerminate)
+void vos_threadUnregister(BOOL bTerminate)
 {
-    DWORD threadId = GetThreadId(thread);
+    DWORD threadId;
     int i;
+    VOS_THREAD_T self;
 
-    if (vos_mutexLock(vosThreadListMutex) != VOS_NO_ERR)
+    vos_threadSelf(&self);
+    threadId = GetThreadId(self);
+
+    if (WaitForSingleObject(vosThreadListMutex, INFINITE) != WAIT_OBJECT_0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadUnregister failed (vos_mutexLock).\n");
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadUnregister failed (mutexLock).\n");
         return;
     }
-
-        if (bTerminate)
-        {
-            TerminateThread((HANDLE)thread, 0);
-        }
 
         /* Remove handle */
         for (i = 0; i < MAX_NR_OF_THREADS; i++)
@@ -296,8 +321,11 @@ void vos_threadUnregister(VOS_THREAD_T thread, BOOL bTerminate)
                     }
                 }
 
+                CloseHandle(listOfThreads[i].hTerminateSema);
+
                 listOfThreads[i].threadId = 0;
                 listOfThreads[i].tsHandle = 0;
+                listOfThreads[i].hTerminateSema = NULL;
                 memset(listOfThreads[i].threadName, 0, MAX_THREAD_NAME);
 
                 vosThreadCount--;
@@ -306,10 +334,15 @@ void vos_threadUnregister(VOS_THREAD_T thread, BOOL bTerminate)
             }
         }
 
-    if (vos_mutexUnlock(vosThreadListMutex) != VOS_NO_ERR)
+    if (ReleaseMutex(vosThreadListMutex) == 0)
     {
         vos_printLogStr(VOS_LOG_ERROR, "vos_threadUnregister failed (vos_mutexUnlock).\n");
         return;
+    }
+
+    if (bTerminate)
+    {
+        ExitThread(0);
     }
 }
 
@@ -325,7 +358,6 @@ static void vos_startThread(VOS_THREAD_START_T* pParameters)
 {
     VOS_ERR_T ret = VOS_NO_ERR;
     LPVOID lpvData;
-    VOS_THREAD_T self;
     void* pArguments = pParameters->pArguments;
     VOS_THREAD_FUNC_T   pFunction = pParameters->pFunction;
 
@@ -345,8 +377,7 @@ static void vos_startThread(VOS_THREAD_START_T* pParameters)
     }
 
     /* Unregister timesync */
-    vos_threadSelf(&self);
-    vos_threadUnregister(self, FALSE);
+    vos_threadUnregister(FALSE);
 
     /* Free memory */
     lpvData = TlsGetValue(dwVosTimeSyncTLSIndex);
@@ -385,14 +416,12 @@ static void vos_runCyclicThread (
     if (vos_threadRegisterLocal(TRUE) != VOS_NO_ERR)
     {
         LPVOID lpvData;
-        VOS_THREAD_T self;
 
         vos_printLog(VOS_LOG_ERROR,
             "vos_startThread() failed (vos_threadCreateTimeSyncTLS error)\n");
         
         /* Unregister timesync */
-        vos_threadSelf(&self);
-        vos_threadUnregister(self, FALSE);
+        vos_threadUnregister(FALSE);
 
         /* Free memory */
         lpvData = TlsGetValue(dwVosTimeSyncTLSIndex);
@@ -430,7 +459,9 @@ EXT_DECL VOS_ERR_T vos_threadInit (void)
             "vos_threadInit() failed TlsAlloc out if indexes!\n");
     }
 
-    if (vos_mutexCreate(&vosThreadListMutex) != VOS_NO_ERR)
+    vosThreadListMutex = CreateMutex(NULL, FALSE, NULL);
+
+    if (vosThreadListMutex == VOS_NO_ERR)
     {
         vos_printLog(VOS_LOG_WARNING,
             "vos_threadInit() failed to create thread list mutex!\n");
@@ -516,9 +547,9 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     }
 
     /* Look critical section */
-    if (vos_mutexLock(vosThreadListMutex) != VOS_NO_ERR)
+    if (WaitForSingleObject(vosThreadListMutex, INFINITE) != WAIT_OBJECT_0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadCreateSync failed (vos_mutexLock).\n");
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadCreateSync failed (mutexLock).\n");
         return VOS_THREAD_ERR;
     }
 
@@ -607,9 +638,9 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
             }
         }
 
-    if (vos_mutexUnlock(vosThreadListMutex) != VOS_NO_ERR)
+    if (ReleaseMutex(vosThreadListMutex) == 0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadCreateSync failed (vos_mutexÚnlock).\n");
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadCreateSync failed (mutexUnlock).\n");
         ret = VOS_THREAD_ERR;
     }
 
@@ -705,6 +736,7 @@ EXT_DECL VOS_ERR_T vos_setTimeSyncPrefix(const CHAR* pPrefix)
     }
 
     strcpy_s(vosTimeSyncPrefix, MAX_TIMESYNC_PREFIX_STRING, pPrefix);
+    strcat_s(vosTimeSyncPrefix, MAX_TIMESYNC_PREFIX_STRING, ".");
 
     return VOS_NO_ERR;
 }
@@ -739,9 +771,9 @@ EXT_DECL VOS_ERR_T vos_threadRegister(const CHAR* pName, BOOL bStart)
     }
 
     /* Enter critical section */
-    if (vos_mutexLock(vosThreadListMutex) != VOS_NO_ERR)
+    if (WaitForSingleObject(vosThreadListMutex, INFINITE) != WAIT_OBJECT_0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (vos_mutexLock).\n");
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (mutexLock).\n");
         return VOS_THREAD_ERR;
     }
 
@@ -780,9 +812,9 @@ EXT_DECL VOS_ERR_T vos_threadRegister(const CHAR* pName, BOOL bStart)
         }
 
     /* Leave critical section */
-    if (vos_mutexUnlock(vosThreadListMutex) != VOS_NO_ERR)
+    if (ReleaseMutex(vosThreadListMutex) == 0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (vos_mutexUnlock).\n");
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (mutexUnlock).\n");
         return VOS_THREAD_ERR;
     }
 
@@ -815,14 +847,39 @@ EXT_DECL VOS_ERR_T vos_threadRegister(const CHAR* pName, BOOL bStart)
 
 EXT_DECL VOS_ERR_T vos_threadTerminate (VOS_THREAD_T thread)
 {
+    DWORD threadId = GetThreadId(thread);
+    int i;
+
     if (!vosThreadInitialised)
     {
         return VOS_INIT_ERR;
+    }    
+
+    if (WaitForSingleObject(vosThreadListMutex, INFINITE) != WAIT_OBJECT_0)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadUnregister failed (mutexLock).\n");
+        return VOS_THREAD_ERR;
     }
 
-    vos_printLog(VOS_LOG_DBG, "***Terminate thread %d\n", GetThreadId(thread));
+    /* Find handle */
+    for (i = 0; i < MAX_NR_OF_THREADS; i++)
+    {
+        if (listOfThreads[i].threadId == threadId)
+        {
+            ReleaseSemaphore(
+                listOfThreads[i].hTerminateSema,    // handle to semaphore
+                1,                                  // increase count by one
+                NULL);
 
-    vos_threadUnregister(thread, TRUE);
+            break;
+        }
+    }
+
+    if (ReleaseMutex(vosThreadListMutex) == 0)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadUnregister failed (mutexUnlock).\n");
+        return VOS_THREAD_ERR;
+    }
 
     return VOS_NO_ERR;
 }
@@ -895,7 +952,8 @@ EXT_DECL VOS_ERR_T vos_threadDelay (
 {
     VOS_ERR_T ret = VOS_NO_ERR;
     VOS_TIMESYNC_TLS_T* pTimeSyncTLS;
-    TIMESYNCTIME tsDelay;
+    TIMESYNCTIME delyTime;
+    TIMESYNCTIME remTime;
 
     /* Get time sync handle from TLS */
     ret = vos_threadGetTimeSyncTLS(&pTimeSyncTLS);
@@ -914,14 +972,41 @@ EXT_DECL VOS_ERR_T vos_threadDelay (
         return VOS_NO_ERR;
     }
 
-    tsDelay = delay * TIMESYNC_OFFSET_US;
+    //Do not break for to long, take peaces of TS_MAX_DELAY_TIME_US
+    remTime = delay * TIMESYNC_OFFSET_US;
+    delyTime = TS_MAX_DELAY_TIME_US * TIMESYNC_OFFSET_US;
 
-    // ttimeused and ttimestop are defined in TimeSync.h.
-    if(TimeSyncWait(pTimeSyncTLS->handle, tsDelay, &ttimeused, &ttimestop) == -1)
-    {  
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadDelay error (TimeSyncWait failed)\n");
-        return VOS_UNKNOWN_ERR;
-    }
+    do
+    {
+        if (WaitForSingleObject(pTimeSyncTLS->terminateSemaphore, 0) == WAIT_OBJECT_0)
+        {
+            //Terminate thread
+            vos_threadUnregister(TRUE);
+        }
+
+        if (remTime == 0)
+        {
+            break;
+        }
+        else if (remTime < delyTime)
+        {
+            //remTime < delyTime
+            delyTime = remTime;
+            remTime = 0;
+        }
+        else
+        {
+            remTime -= delyTime;
+        }
+
+        // ttimeused and ttimestop are defined in TimeSync.h.
+        if (TimeSyncWait(pTimeSyncTLS->handle, delyTime, &ttimeused, &ttimestop) == -1)
+        {
+            vos_printLogStr(VOS_LOG_ERROR, "vos_threadDelay error (TimeSyncWait failed)\n");
+            return VOS_UNKNOWN_ERR;
+        }
+
+    } while (TRUE);
 
     return ret;
 }
@@ -946,7 +1031,7 @@ EXT_DECL void vos_getTime (
     if (ret != VOS_NO_ERR)
     {
         /* No time sync handle use normal time */
-
+        /*
         struct __timeb32 curTime1;
 
         if (_ftime32_s(&curTime1) == 0)
@@ -958,6 +1043,13 @@ EXT_DECL void vos_getTime (
         {
             pTime->tv_sec = 0;
             pTime->tv_usec = 0;
+        }
+        */
+        curTime = TimeSyncGetLastTargetTime();
+
+        {
+            pTime->tv_sec = (long)(curTime / TIMESYNC_OFFSET_S);
+            pTime->tv_usec = (long)((curTime % TIMESYNC_OFFSET_S) / TIMESYNC_OFFSET_US);
         }
         return;
     }
@@ -972,7 +1064,7 @@ EXT_DECL void vos_getTime (
 
         {
             pTime->tv_sec   = (long)(curTime / TIMESYNC_OFFSET_S);
-            pTime->tv_usec  = (long)((curTime % TIMESYNC_OFFSET_S) / TIMESYNC_OFFSET_MS);
+            pTime->tv_usec  = (long)((curTime % TIMESYNC_OFFSET_S) / TIMESYNC_OFFSET_US);
         }
     }
 
@@ -1421,21 +1513,30 @@ EXT_DECL VOS_ERR_T vos_mutexLock (VOS_MUTEX_T pMutex)
     }
     else
     {
-        DWORD dwWaitResult = WaitForSingleObject(pMutex->mutexId, INFINITE); /* no time-out interval */
+        VOS_TIMEVAL_T delyTime;
+        delyTime.tv_sec = 0;
+        delyTime.tv_usec = TS_POLLING_TIME_US;
 
-        switch (dwWaitResult)
+        do
         {
+            DWORD dwWaitResult = WaitForSingleObject(pMutex->mutexId, 0);
+
+            switch (dwWaitResult)
+            {
             case WAIT_OBJECT_0:
-                break;
+                return VOS_NO_ERR;
             case WAIT_TIMEOUT:
+                vos_threadDelay(delyTime.tv_usec);
+                break;
             case WAIT_ABANDONED:
                 res = VOS_INUSE_ERR;
                 break;
             case WAIT_FAILED:
             default:
                 vos_printLog(VOS_LOG_ERROR, "vos_mutexLock() ERROR %d\n", GetLastError());
-                res = VOS_MUTEX_ERR;
-        }
+                return VOS_MUTEX_ERR;
+            }
+        } while (TRUE);
     }
 
     return res;
@@ -1478,6 +1579,7 @@ EXT_DECL VOS_ERR_T vos_mutexTryLock (
                 res = VOS_MUTEX_ERR;
                 break;
         }
+
     }
 
     return res;
@@ -1609,7 +1711,6 @@ EXT_DECL void vos_semaDelete (VOS_SEMA_T sema)
 EXT_DECL VOS_ERR_T vos_semaTake (VOS_SEMA_T sema, UINT32 timeout)
 {
     VOS_ERR_T retVal = VOS_SEMA_ERR;
-
     /* Check parameter */
     if (sema == NULL)
     {
@@ -1618,27 +1719,53 @@ EXT_DECL VOS_ERR_T vos_semaTake (VOS_SEMA_T sema, UINT32 timeout)
     }
     else
     {
-        DWORD dwWaitResult = WaitForSingleObject(sema->semaphore, timeout / USECS_PER_MSEC);     /* no time-out interval
-                                                                                                   */
+        VOS_TIMEVAL_T delyTime;
+        VOS_TIMEVAL_T remTime;
+        remTime.tv_sec = timeout/1000000;
+        remTime.tv_usec = timeout%1000000;
+        delyTime.tv_sec = 0;
+        delyTime.tv_usec = TS_POLLING_TIME_US;
 
-        switch (dwWaitResult)
+        do
         {
+            DWORD dwWaitResult = WaitForSingleObject(sema->semaphore, 0);
+
+            switch (dwWaitResult)
+            {
             case WAIT_OBJECT_0:
-                retVal = VOS_NO_ERR;
-                break;
+                return VOS_NO_ERR;
             case WAIT_TIMEOUT:
-                retVal = VOS_SEMA_ERR;
+                if (remTime.tv_sec == 0 && remTime.tv_usec == 0)
+                {
+                    return VOS_SEMA_ERR;
+                }
                 break;
             case WAIT_FAILED:
             default:
-            {
-                DWORD err = GetLastError();
+                {
+                    DWORD err = GetLastError();
 
-                vos_printLog(VOS_LOG_ERROR, "vos_SemaTake() ERROR %d)\n", err);
-                retVal = VOS_SEMA_ERR;
-                break;
+                    vos_printLog(VOS_LOG_ERROR, "vos_SemaTake() ERROR %d)\n", err);
+                    return VOS_SEMA_ERR;
+                }
             }
-        }
+            
+            if (vos_cmpTime(&remTime, &delyTime) == -1)
+            {
+                //remTime < delyTime
+                vos_threadDelay(remTime.tv_usec);
+                vos_subTime(&remTime, &remTime);
+            }
+            else
+            {
+                vos_threadDelay(delyTime.tv_usec);
+                if (timeout != INF_TIMEOUT)
+                {
+                    vos_subTime(&remTime, &delyTime);
+                }
+            }
+
+        } while (TRUE);
     }
 
     return retVal;
