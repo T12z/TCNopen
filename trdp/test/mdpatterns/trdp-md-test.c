@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API
  *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
@@ -754,7 +755,7 @@ int main (int argc, char *argv[])
 
 #ifdef SIM
 	SimSetHostIp(argv[2]);
-	vos_threadRegister(argv[1]);
+	vos_threadRegister(argv[1], TRUE);
 #endif
 
     /* prepare default md configuration */
