@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2019-12-19: Bugfix where ComIds from service definition were cast to 16 bit
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
  *      SB 2019-09-03: Added parsing for service time to live
  *      SB 2019-08-29: Added parsing of debug info
@@ -2569,7 +2570,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     }
                                     else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
                                     {
-                                        pEvent->comId = (UINT16) valueInt;
+                                        pEvent->comId = (UINT32) valueInt;
                                     }
                                 }
                                 pEvent++;
@@ -2584,7 +2585,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     }
                                     else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
                                     {
-                                        pField->comId = (UINT16) valueInt;
+                                        pField->comId = (UINT32) valueInt;
                                     }
                                 }
                                 pField++;                               
@@ -2599,11 +2600,11 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     }
                                     else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
                                     {
-                                        pMethod->comId = (UINT16) valueInt;
+                                        pMethod->comId = (UINT32) valueInt;
                                     }
                                     else if (vos_strnicmp(attribute, "reply-com-id", MAX_TOK_LEN) == 0)
                                     {
-                                        pMethod->replyComId = (UINT16) valueInt;
+                                        pMethod->replyComId = (UINT32) valueInt;
                                     }
                                     else if (vos_strnicmp(attribute, "confirm", MAX_TOK_LEN) == 0)
                                     {
