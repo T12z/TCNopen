@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-01-07: Ticket #284: Parsing Unsigned Values from Config XML
 *      BL 2019-01-29: Ticket #232: Write access to XML file
 *      BL 2019-01-23: Ticket #231: XML config from stream buffer
 *      SB 2018-11-07: Ticket #221 readXmlDatasets failed
@@ -32,6 +33,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+
 #include <sys/types.h>
 
 #include "trdp_xml.h"
@@ -567,8 +570,18 @@ XML_TOKEN_T trdp_XMLGetAttribute (
 
             if (token == TOK_ID)
             {
+                unsigned long   uIntValue;
                 vos_strncpy(value, pXML->tokenValue, MAX_TOK_LEN - 1u);
-                *pValueInt  = (UINT32) strtol(value, NULL, 10); /* atoi(value); */
+                errno = 0;
+                uIntValue  = (UINT32) strtoul(value, NULL, 10); /* we expect unsigned values mostly */
+                if ((value[0] == '-') || (uIntValue == ULONG_MAX ) || (errno == EINVAL) || (errno == ERANGE))
+                {
+                    *pValueInt  = 0u;       /* Return zero if out of range or negative */
+                }
+                else
+                {
+                    *pValueInt = (UINT32) uIntValue;
+                }
                 token       = TOK_ATTRIBUTE;
             }
         }

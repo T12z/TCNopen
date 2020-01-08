@@ -45,6 +45,7 @@
 #include "tau_dnr.h"
 #include "tau_tti.h"
 
+#include "trdp_xml.h"
 #include "tau_xml.h"
 #include "vos_shared_mem.h"
 
@@ -108,7 +109,7 @@ TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 1, 0, 0, 0};
     TRDP_APP_SESSION_T appHandle1 = NULL, appHandle2 = NULL;                    \
     {                                                                           \
         gFullLog = FALSE;                                                       \
-        fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
+        fprintf(gFp, "\n---- Preparing %s     ---------\n\n", __FUNCTION__);    \
         appHandle1 = test_init(dbgOut, &gSession1, (b), 10000u);                \
         if (appHandle1 == NULL)                                                 \
         {                                                                       \
@@ -121,6 +122,7 @@ TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 1, 0, 0, 0};
             gFailed = 1;                                                        \
             goto end;                                                           \
         }                                                                       \
+        fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
     }
 
 /**********************************************************************************************************************/
@@ -132,13 +134,14 @@ TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 1, 0, 0, 0};
     TRDP_APP_SESSION_T appHandle1 = NULL;                                       \
     {                                                                           \
         gFullLog = FALSE;                                                       \
-        fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
+        fprintf(gFp, "\n---- Preparing %s     ---------\n\n", __FUNCTION__);    \
         appHandle1 = test_init(dbgOut, &gSession1, "", 10000u);                 \
         if (appHandle1 == NULL)                                                 \
         {                                                                       \
             gFailed = 1;                                                        \
             goto end;                                                           \
         }                                                                       \
+        fprintf(gFp, "\n---- Start of %s (%s) ---------\n\n", __FUNCTION__, a); \
     }
 
 
@@ -550,7 +553,7 @@ static int test1 ()
         vos_printLogStr(VOS_LOG_USR, "Getting list of all services.\n");
 
         /* list the services */
-        err = tau_getServicesList(appHandle1, &pServicesToList, &noOfServices);
+        err = tau_getServicesList(appHandle1, &pServicesToList, &noOfServices, NULL);
         IF_ERROR("tau_getServiceList");
 
         if ((pServicesToList != NULL) && (noOfServices != pServicesToList->noOfEntries))
@@ -590,7 +593,7 @@ static int test1 ()
         /* list the services again */
 
         vos_printLogStr(VOS_LOG_USR, "There should be one less listed, now:\n");
-        err = tau_getServicesList(appHandle1, &pServicesToList, &noOfServices);
+        err = tau_getServicesList(appHandle1, &pServicesToList, &noOfServices, NULL);
         IF_ERROR("tau_getServiceList");
 
         if ((pServicesToList == NULL) || (noOfServices == 0))
@@ -626,6 +629,133 @@ static int test1 ()
     CLEANUP;
 }
 
+/**********************************************************************************************************************/
+/** test2 XML signed unsigned test
+ *
+ *  @retval         0        no error
+ *  @retval         1        some error
+ */
+
+static TRDP_DATA_TYPE_T string2type (const CHAR8 *pTypeStr)
+{
+    CHAR8       *p;
+    const CHAR8 tokenList[] =
+    "01 BITSET8 01 BOOL8 01 ANTIVALENT8 02 CHAR8 02 UTF8 03 UTF16 04 INT8 05 INT16 06 INT32 07 INT64 08 UINT8"
+    " 09 UINT16 10 UINT32 11 UINT64 12 REAL32 13 REAL64 14 TIMEDATE32 15 TIMEDATE48 16 TIMEDATE64";
+
+    p = (CHAR8 *) strstr(tokenList, pTypeStr);
+    if (p != NULL)
+    {
+        return (TRDP_DATA_TYPE_T) strtol(p - 3u, NULL, 10);
+    }
+    return TRDP_INVALID;
+}
+
+static int test2 ()
+{
+    PREPARE1("Ticket #284 XML signed/unsigned parsing"); /* allocates appHandle1, failed = 0, err */
+
+    /* ------------------------- test code starts here --------------------------- */
+
+    {
+#define TEST2_OFF1 -200
+#define TEST2_OFF1_STR "-200"
+#define TEST2_OFF2 -100000000
+#define TEST2_OFF2_STR "-100000000"
+#define TEST2_OFF3 4026531840
+#define TEST2_OFF3_STR "4026531840"
+#define TEST2_OFF4 -4294967296
+#define TEST2_OFF4_STR "-4294967296"
+#define TEST2_OFF5 200
+#define TEST2_OFF5_STR "200"
+#define TEST2_NO_OF_ELEMENTS    5
+
+        XML_HANDLE_T    XMLhandle, *pXML = &XMLhandle;
+        CHAR8           attribute[MAX_TOK_LEN];
+        CHAR8           value[MAX_TOK_LEN];
+        UINT32          valueInt;
+        INT32           valueSInt;
+        const char      xml_buffer[] =
+            "<data-set name=\"test2\">\n"
+            "<element name=\"1\" utype=\""TEST2_OFF1_STR"\" unit=\"Kilo\" scale=\"0.1\" offset=\""TEST2_OFF1_STR"\" />\n"
+            "<element name=\"2\" utype=\""TEST2_OFF2_STR"\" unit=\"Kilo\" scale=\"0.1\" offset=\""TEST2_OFF2_STR"\" />\n"
+            "<element name=\"3\" utype=\""TEST2_OFF3_STR"\" unit=\"Kilo\" scale=\"0.1\" offset=\""TEST2_OFF3_STR"\" />\n"
+            "<element name=\"4\" utype=\""TEST2_OFF4_STR"\" unit=\"Kilo\" scale=\"0.1\" offset=\""TEST2_OFF4_STR"\" />\n"
+            "<element name=\"5\" utype=\""TEST2_OFF5_STR"\" unit=\"Kilo\" scale=\"0.1\" offset=\""TEST2_OFF5_STR"\" >\n/"
+            "</data-set>\n";
+
+        UINT32  utype[TEST2_NO_OF_ELEMENTS];
+        REAL32  scale[TEST2_NO_OF_ELEMENTS];
+        INT32   offset[TEST2_NO_OF_ELEMENTS];
+        UINT32  i = 0u;
+
+        fprintf(gFp, "%s\n", xml_buffer);
+
+        err = trdp_XMLMemOpen (pXML, (char*) xml_buffer, strlen(xml_buffer));
+        IF_ERROR("trdp_XMLMemOpen");
+
+        trdp_XMLRewind(pXML);
+
+        trdp_XMLEnter(pXML);
+
+        if (trdp_XMLSeekStartTag(pXML, "data-set") == 0)
+        {
+
+            trdp_XMLEnter(pXML);
+
+            while (trdp_XMLSeekStartTag(pXML, "element") == 0)
+            {
+                while (trdp_XMLGetAttribute(pXML, attribute, &valueInt, value) == TOK_ATTRIBUTE)
+                {
+                    if (vos_strnicmp(attribute, "utype", MAX_TOK_LEN) == 0)
+                    {
+                        if (valueInt == 0u)
+                        {
+                            utype[i] = string2type(value);
+                        }
+                        else
+                        {
+                            utype[i] = valueInt;
+                        }
+                    }
+                    else if (vos_strnicmp(attribute, "array-size", MAX_TOK_LEN) == 0)
+                    {
+                    }
+                    else if (vos_strnicmp(attribute, "unit", MAX_TOK_LEN) == 0)
+                    {
+                    }
+                    else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                    {
+                    }
+                    else if (vos_strnicmp(attribute, "scale", MAX_TOK_LEN) == 0)
+                    {
+                        scale[i] = (REAL32) strtod(value, NULL);
+                    }
+                    else if (vos_strnicmp(attribute, "offset", MAX_TOK_LEN) == 0)
+                    {
+                        offset[i] = (INT32) strtol(value, NULL, 10);
+                    }
+                }
+                fprintf(gFp, "element[%d] utype = %u scale = %f offset = %d\n",
+                        i + 1, utype[i], scale[i], offset[i]);
+                i++;
+            }
+            trdp_XMLLeave(pXML);
+        }
+//        for (i = 0; i < TEST2_NO_OF_ELEMENTS; i++)
+//        {
+//            fprintf(gFp, "element[%d] utype = %u scale = %f offset = %d\n",
+//                    i, utype[i], scale[i], offset[i]);
+//        }
+
+        trdp_XMLClose(pXML);
+    }
+
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+}
+
 
 /**********************************************************************************************************************/
 /* This array holds pointers to the m-th test (m = 1 will execute test1...)                                           */
@@ -633,7 +763,8 @@ static int test1 ()
 test_func_t *testArray[] =
 {
     NULL,
-    test1,  /* SRM test 1 */
+    //test1,  /* SRM test 1 */
+    test2,  /* ticket #284 */
     NULL
 };
 

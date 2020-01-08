@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright NewTec GmbH, 2016-2019. All rights reserved.
+ *          Copyright NewTec GmbH, 2016-2020. All rights reserved.
  */
  /*
  * $Id$
  *
+ *      BL 2020-01-08: Ticket #284: Parsing of UINT32 fixed
  *      SB 2019-12-19: Bugfix where ComIds from service definition were cast to 16 bit
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
  *      SB 2019-09-03: Added parsing for service time to live
@@ -1165,7 +1166,14 @@ static TRDP_ERR_T readXmlDatasets (
                         }
                         else if (vos_strnicmp(attribute, "offset", MAX_TOK_LEN) == 0)
                         {
-                            (*papDataset)[idx]->pElement[i].offset = (INT32) valueInt;
+                            errno = 0;
+                            (*papDataset)[idx]->pElement[i].offset = (INT32) strtol(value, NULL, 10);
+                            /* Note: The behaviour of strtol in case of overflow depends on the data model (32/64).
+                                    We check the errno for overflow and set the offset to zero, anyway */
+                            if ((errno == EINVAL) || (errno == ERANGE))
+                            {
+                                (*papDataset)[idx]->pElement[i].offset = 0;
+                            }
                         }
                     }
                     (*papDataset)[idx]->numElement++;
