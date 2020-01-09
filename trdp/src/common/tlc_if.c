@@ -901,7 +901,8 @@ EXT_DECL TRDP_ERR_T tlc_presetIndexSession (
     }
 #else
 
-    appHandle = appHandle;  /* lint !e550 return value not used */
+    appHandle = appHandle;  /* lint !e550 parameter not used */
+    pIndexTableSizes = pIndexTableSizes;  /* lint !e550 parameter not used */
 
 #endif
 
@@ -1445,11 +1446,11 @@ EXT_DECL TRDP_ERR_T tlc_process (
  */
 EXT_DECL const char *tlc_getVersionString (void)
 {
-    static CHAR8 version[16];
+    static CHAR8 version[32];
 
     (void) vos_snprintf(version,
                         sizeof(version),
-                        "%d.%d.%d.%d",
+                        "%d.%d.%d.%d $Rev$",
                         TRDP_VERSION,
                         TRDP_RELEASE,
                         TRDP_UPDATE,
