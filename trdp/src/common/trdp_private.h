@@ -17,7 +17,7 @@
 /*
  * $Id$
  *
- *      BL 2020-01-09: Ticket #293 Rejected! Use the function in tlc_if.c & add SVN Rev.
+ *      BL 2020-01-10: Ticket #293 Avoid having version numbering in different places! Makro for version string (DLL) changed.
  *      AÖ 2019-11-14: Ticket #293 Add version to TCNOpen dll <-- !!! should be rejected! Use the function in tlc_if.c !!!
  *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
  *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -59,16 +59,19 @@
 
 /* The TRDP version can be predefined as CFLAG   */
 #ifndef TRDP_VERSION
-#define TRDP_VERSION    2u
-#define TRDP_RELEASE    1u
-#define TRDP_UPDATE     0u
-#define TRDP_EVOLUTION  1u              /* Evolution > 0 denotes trunk! */
+#define TRDP_VERSION    2
+#define TRDP_RELEASE    1
+#define TRDP_UPDATE     0
+#define TRDP_EVOLUTION  1              /* Evolution > 0 denotes trunk! */
 #endif
 
 /* Version as a string, this can also be for example 1.2.3.4.RC1 */
-EXT_DECL const CHAR8 *tlc_getVersionString (void);
 
-#define TRDP_VERSION_STR tlc_getVersionStr()
+#define STR_EXP(vers) #vers
+#define STR_EXPAND(vers) STR_EXP(vers)
+
+#define TRDP_VERSION_STR    STR_EXPAND(TRDP_VERSION)"."STR_EXPAND(TRDP_RELEASE)"." \
+                            STR_EXPAND(TRDP_UPDATE)"."STR_EXPAND(TRDP_EVOLUTION)" $Rev$"
 
 #ifdef HIGH_PERF_INDEXED
 #   define TRDP_TIMER_GRANULARITY          500u                     /**< granularity in us - we allow 0.5ms now!      */
