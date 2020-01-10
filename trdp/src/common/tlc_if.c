@@ -1450,7 +1450,7 @@ EXT_DECL const char *tlc_getVersionString (void)
 
     (void) vos_snprintf(version,
                         sizeof(version),
-                        "%d.%d.%d.%d $Rev$",
+                        "%d.%d.%d.%d",
                         TRDP_VERSION,
                         TRDP_RELEASE,
                         TRDP_UPDATE,

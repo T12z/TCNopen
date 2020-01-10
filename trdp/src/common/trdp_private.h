@@ -71,7 +71,7 @@
 #define STR_EXPAND(vers) STR_EXP(vers)
 
 #define TRDP_VERSION_STR    STR_EXPAND(TRDP_VERSION)"."STR_EXPAND(TRDP_RELEASE)"." \
-                            STR_EXPAND(TRDP_UPDATE)"."STR_EXPAND(TRDP_EVOLUTION)" $Rev$"
+                            STR_EXPAND(TRDP_UPDATE)"."STR_EXPAND(TRDP_EVOLUTION)
 
 #ifdef HIGH_PERF_INDEXED
 #   define TRDP_TIMER_GRANULARITY          500u                     /**< granularity in us - we allow 0.5ms now!      */
