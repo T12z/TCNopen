@@ -12,6 +12,10 @@ You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols-
 
 N E W S
 =======
+2020-01 Thorsten <thorsten.schulz@uni-rostock.de>
+
+ * Build for Wireshark 3.2 added. Sources compile w/o any changes.
+ 
 2019-06 Thorsten <thorsten.schulz@uni-rostock.de>
 
  * Update on time types representation.
@@ -44,10 +48,11 @@ U S A G E
 On Linux, use your distribution's package manager to install wireshark or wireshark-qt.
 On Windows, download from [1].
 (Compared to earlier releases, you don't need the QtXML library any more.)
-If Wireshark happens to be a version of 2.6.* or 3.0.*, you may be lucky with the pre-compiled plugin-libraries, go (Linux):
+If Wireshark happens to be a version of 2.6.*, 3.0.* or 3.2.*, you may be lucky with the pre-compiled plugin-libraries, go (Linux):
 
 cp   plugins/2.6/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/2.6/epan/
 cp   plugins/3.0/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/3.0/epan/
+cp   plugins/3.2/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/3.2/epan/
 
 Or copy with a file manager of your choice.
 On Windows, obviously, take the *.dll files instead. The folder path for user plugins can be found when running Wireshark, go into [Help]->About Wireshark->Folders and check where "Personal Plugins" should go. You can double click on the path to open your platform's file-manager. Then put it into the sub-folder "epan" and restart Wireshark.
@@ -160,11 +165,13 @@ Open the VS2017 prompt (search Start menu for "x64 Native Tools [..]") and chang
 [2] https://www.wireshark.org/docs/wsdg_html_chunked/ChSetupWin32.html#ChWin32Build
 [3] https://sourceforge.net/projects/winflexbison/files/
 
-Last modified by Thorsten, 2019-April
+Last modified by Thorsten, 2020-Jan
 
 --
 notes to self for rebuilding:
 Windows:
+# Does not build on net-share anymore (as of 2020-01), must make local copy for building. Otherwise same thing.
+
 set QT5_BASE_DIR=C:\Qt\5.12.2\msvc2017_64
 P:
 cd P:\build\wireshark-3.0*
@@ -179,12 +186,15 @@ msbuild /m /p:Configuration=RelWithDebInfo Wireshark.sln
 Linux:
 cd ~/Projekte/build/wireshark-2.6*/obj-x86_64-linux-gnu && make trdp_spy
 cd ~/Projekte/build/wireshark-3.0*/obj-x86_64-linux-gnu && make trdp_spy
+cd ~/Projekte/build/wireshark-3.2*/obj-x86_64-linux-gnu && make trdp_spy
 
 cd ~/Projekte/tcnopen-trdp/trdp/spy
 cp ~/Projekte/build/wireshark-2.6*/obj-x86_64-linux-gnu/run/plugins/*/epan/trdp_spy.so plugins/2.6/epan/
 cp ~/Projekte/build/wireshark-2.6*/obj-x86_64-win/run/RelWithDebInfo/plugins/*/epan/trdp_spy.dll plugins/2.6/epan/
 cp ~/Projekte/build/wireshark-3.0*/obj-x86_64-linux-gnu/run/plugins/*/epan/trdp_spy.so plugins/3.0/epan/
 cp ~/Projekte/build/wireshark-3.0*/obj-x86_64-win/run/RelWithDebInfo/plugins/*/epan/trdp_spy.dll plugins/3.0/epan/
+cp ~/Projekte/build/wireshark-3.2*/obj-x86_64-linux-gnu/run/plugins/*/epan/trdp_spy.so plugins/3.2/epan/
+cp ~/Projekte/build/wireshark-3.3*/obj-x86_64-win/run/RelWithDebInfo/plugins/*/epan/trdp_spy.dll plugins/3.2/epan/
 
 cd ~/Projekte/tcnopen-trdp/
 # git commit -a trdp/spy
