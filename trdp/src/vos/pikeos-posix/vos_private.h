@@ -8,6 +8,10 @@
  *
  * @author          Thorsten Schulz, Universität Rostock, derrived from work by Bernd Loehr, NewTec GmbH
  *
+ * @remarks **Disclaimer**:
+ *          This VOS-port for PIKEOS-POSIX is not endorsed, nor supported by Sysgo.
+ *          It may be of low quality or using a suboptimal approach.
+ *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
