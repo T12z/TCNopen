@@ -17,6 +17,8 @@
 /*
 * $Id$
 *
+*      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API 
+*      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
 *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
 */
@@ -57,7 +59,9 @@ extern "C" {
 /** Timeout value to wait forever for a semaphore */
 #define VOS_SEMA_WAIT_FOREVER  0xFFFFFFFFU
 
-#if (defined(WIN32) || defined(WIN64))
+#if defined(SIM)
+#include "SimSocket.h"
+#elif (defined(WIN32) || defined(WIN64))
 #include <winsock2.h>
 #else
 #ifndef timerisset
@@ -262,7 +266,32 @@ EXT_DECL VOS_ERR_T vos_threadTerminate (
 EXT_DECL VOS_ERR_T vos_threadIsActive (
     VOS_THREAD_T thread);
 
+#ifdef SIM
+/**********************************************************************************************************************/
+/** Register a thread.
+*  All threads has to be registered in TimeSync for proper timing handeling.
+*  Only main thread has to call this funciton all other threads handle this internaly
+*
+*  @param[in]      pName           Pointer to name of the thread (optional)
+*  @param[in]      bStart          Start TimeSync, if false the main tread has to perform start
+*  @retval         VOS_NO_ERR      no error
+*  @retval         VOS_INIT_ERR    failed to init
+*/
+EXT_DECL VOS_ERR_T vos_threadRegister(
+    const CHAR* pName,
+    BOOL bStart);
 
+/**********************************************************************************************************************/
+/** Set a instance prefix string.
+*  The instance prefix string is used as a prefix for shared simulation resources.
+*
+*  @param[in]      pPrefix         Instance prefix name
+*  @retval         VOS_NO_ERR      no error
+*  @retval         VOS_INIT_ERR    failed to init
+*/
+EXT_DECL VOS_ERR_T vos_setTimeSyncPrefix(
+    const CHAR* pPrefix);
+#endif
 /**********************************************************************************************************************/
 /*    Timers
                                                                                                                */

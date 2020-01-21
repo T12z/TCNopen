@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <stddef.h> /*lint !e451 standard include guard missing */
+#include <errno.h>
 #include "vos_types.h"
 
 #ifdef __cplusplus
