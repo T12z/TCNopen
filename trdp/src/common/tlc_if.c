@@ -609,7 +609,7 @@ EXT_DECL TRDP_ERR_T tlc_configSession (
     TRDP_APP_SESSION_T              appHandle,
     const TRDP_MARSHALL_CONFIG_T    *pMarshall,
     const TRDP_PD_CONFIG_T          *pPdDefault,
-    const TRDP_MD_CONFIG_T          *pMdDefault,
+    const TRDP_MD_CONFIG_T          *pMdDefault __mdused,
     const TRDP_PROCESS_CONFIG_T     *pProcessConfig)
 {
     TRDP_SESSION_PT pSession = appHandle;

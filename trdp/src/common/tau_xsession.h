@@ -56,7 +56,12 @@ typedef struct TAU_XML_SESSION {
 
 	TRDP_IF_CONFIG_T       *pIfConfig;      /**< General parameters from xml configuration file */
 
-	VOS_TIMEVAL_T           lastTime;       /**< timestamp used by @see tau_xsession_cycle() */
+	VOS_TIMEVAL_T           timeToGo;       /**< timestamp used by @see tau_xsession_cycle() */
+	VOS_TIMEVAL_T           timeToRequests; /**< timestamp used by @see tau_xsession_cycle-check() */
+	BOOL8                   runProcessing;  /**< set by *_cycle_check() if the next event needs tlc_processing */
+	VOS_FDS_T               rfds;           /**< for the tau_xsession_cycle_check approach, we need to save the fds
+	                                             between calls. */
+	INT32                   noOfDesc;       /**< and the max fd */
 
 	/*  Session configurations  */
 	TRDP_APP_SESSION_T      sessionhandle;  /**< reference from trdp functions */
@@ -64,12 +69,19 @@ typedef struct TAU_XML_SESSION {
 	TRDP_MD_CONFIG_T        mdConfig;       /**< XML parameters from md-com-parameter block */
 	TRDP_PROCESS_CONFIG_T   processConfig;  /**< XML parameters from trdp-process block */
 
+	INT32               sendOffset;         /**< the sending deadline of pub-tels is delay by this us */
+	INT32               requestOffset;      /**< for the tau_xsession_cycle_check approach, an extra timeout is
+	                                             added to answer requests before the end of the cycle. */
+
 	UINT32              numExchgPar;        /**< number of elements to follow */
 	TRDP_EXCHG_PAR_T    *pExchgPar;         /**< XML telegrams from bus-interface block */
 
 
 	UINT32              numTelegrams;       /**< number of elements to follow */
 	TLG_T               aTelegrams[MAX_TELEGRAMS]; /**<  Array of published/subscribed telegram descriptors */
+	UINT32              numNonCyclic;       /**< number of pure request-based telegrams */
+
+
 } TAU_XSESSION_T;
 
 /**
@@ -88,16 +100,24 @@ TRDP_ERR_T tau_xsession_load     (const char *xml, size_t length, TAU_XSESSION_P
 /**
  *  Initialize that specific bus interface for this session
  *
- *  @param[out] our              session state. A pointer to the internal buffer is returned on success.
- *  @param[in] busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute, case ignored
- *  @param[in] callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
- *                               application's object instance that will handle the callbacks through static method
- *                               redirectors.
+ *  @param[out] our               session state. A pointer to the internal buffer is returned on success.
+ *  @param[in]  busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute, case
+ *                                ignored
+ *  @param[in]  offset            time offset in microseconds from multiple of session cycle for telegram publications.
+ *                                This param would be better placed in the config file. If set (ie, non negative), the
+ *                                session start will also be aligned to a multiple of the process time. Essentially,
+ *                                this is to help synchronocity of multiple distributed processes in a -yet- very simple,
+ *                                potentially unreliable way. This is to be improved later.
+ *                                It also silently assumes all clocks in the network are synchronized to millisecond
+ *                                quality.
+ *  @param[in]  callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
+ *                                application's object instance that will handle the callbacks through static method
+ *                                redirectors.
  *  @return    a suitable TRDP_ERR. TRDP_INIT_ERR if load was not called before. Otherwise issues from reading the
  *             XML file or initializing the session. Errors will lead to an unusable empty session.
  */
 
-TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T**our, const char *busInterfaceName, void *callbackRef);
+TRDP_ERR_T tau_xsession_init     (TAU_XSESSION_T**our, const char *busInterfaceName, INT32 sendOffset, INT32 requestOffset, void *callbackRef);
 
 /**
  *  Destructor.
@@ -163,20 +183,24 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
  *
  *  @return  TRDP_ERR from deeper processing.
  */
-TRDP_ERR_T tau_xsession_cycle_until( VOS_TIMEVAL_T deadline );
+TRDP_ERR_T tau_xsession_cycle_until( const VOS_TIMEVAL_T deadline );
 
 /**
- *   Do the house-keeping of TRDP and packet transmission.
+ *   Do the house-keeping of TRDP in an event-based environment (eg QT, GTK, ...) without blocking
  *
- *  Call this function regularly between your application cycles, e.g., after all getCom and request calls.
+ *  This call also takes care of packet transmission. It will return a timeout in micro-seconds when it should be
+ *  called again the latest. Call this function you your timer handler. When this functions returns TRDP_NODATA_ERR,
+ *  at the end of the returned timeout, a new application process cycle will start and you may execute *your* specific
+ *  processing. After processing you still have to call this function again for the next timeout.
  *
  *  @param[in,out] our       session state.
- *  @param[out]  timeout_us  Timeout when this function should be called again. If it returns zero, it is time for the
- *                           application cycle (ie. the configured process cycle time).
+ *  @param[out]  timeout_us  Timeout when this function should be called again. May return 0, requesting the shortest
+ *                           timeout. Does not return negative.
  *
- *  @return  TRDP_ERR from deeper processing.
+ *  @return  May return TRDP_NODATA_ERR to indicate the next beginning of a process cycle, otherwise TRDP_NO_ERR or
+ *           TRDP_ERR from deeper processing respectively. Returning TRDP_NODATA_ERR is thus not an error.
  */
-TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us );
+TRDP_ERR_T tau_xsession_cycle_check( TAU_XSESSION_T *our,  INT64 *timeout_us );
 
 /**
  *   Do the house-keeping of TRDP and packet transmission.
@@ -187,7 +211,18 @@ TRDP_ERR_T tau_xsession_cycle_loop( TAU_XSESSION_T *our,  INT64 *timeout_us );
  *
  *  @return  TRDP_ERR from deeper processing.
  */
-TRDP_ERR_T tau_xsession_cycle    (TAU_XSESSION_T *our );
+TRDP_ERR_T tau_xsession_cycle    ( TAU_XSESSION_T *our );
+
+/**
+ *  Do housekeeping for all sessions combined.
+ *
+ *  Call this function at least once per your application cycle, e.g., after all getCom and request calls. Do NOT use
+ *  this approach for sessions with different intervals. (An error will be returned w/o any processing). Only the first
+ *  session's deadline will be honored for all.
+ *
+ *  @return  TRDP_ERR
+ */
+TRDP_ERR_T tau_xsession_cycle_all( void );
 
 /**
  *   Set the payload of the telegram to be sent at next cycle deadline (as configured by XML)

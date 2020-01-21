@@ -69,14 +69,20 @@ public:
 	/**
 	 *  initialize that specific bus interface for this session
 	 *  @param[in] busInterfaceName  Load configuration specific to this bus-interface with matching name-attribute
+	 *  @param[in]  offset            time offset in microseconds from multiple of session cycle for telegram publications.
+	 *                                This param would be better placed in the config file. If set (ie, non negative), the session
+	 *                                start will also be rounded to a multiple of the process time. Essentially, this is to help
+	 *                                synchronocity of multiple distribute processes in a -yet- very simple, potentially
+	 *                                unreliable way. This is to be improved later.
+	 *                                It also silently assumes all clocks in the network a synchronized to millisecond quality.
 	 *  @param[in] callbackRef       Object reference that is passed in by callback-handlers. E.g., your main
 	 *                               application's object instance that will handle the callbacks through static method
 	 *                               redirectors.
 	 *  @return    a suitable TRDP_ERR. TRDP_INIT_ERR if load was not called before. Otherwise issues from reading the
 	 *             XML file or initializing the session. Errors will lead to an unusable empty session.
 	 */
-	TRDP_ERR_T init     (const char *busInterfaceName, void *callbackRef)
-		{ return lastErr = tau_xsession_init( &our, busInterfaceName, callbackRef ); }
+	TRDP_ERR_T init     (const char *busInterfaceName, int offset, int requestgap, void *callbackRef)
+		{ return lastErr = tau_xsession_init( &our, busInterfaceName, offset, requestgap, callbackRef ); }
 
 	/**
 	 *  checks if the object is usable/setup for transmissions. Treat return value as boolean.
@@ -136,23 +142,31 @@ public:
 	/**
 	 *   Do the house-keeping of TRDP and packet transmission.
 	 *
-	 *  @param[in]  deadline  unitil cycle can block for network I/O
+	 *  @param[in]  deadline  until cycle can block for network I/O. If dismissed, the deadline of the first session is
+	 *                        used.
 	 *  @return  TRDP_ERR from deeper processing.
 	 */
 	static TRDP_ERR_T cycle    ( VOS_TIMEVAL_T deadline )
 		{ return tau_xsession_cycle_until( deadline ); }
 
+	static TRDP_ERR_T cycle    ( void )
+		{ return tau_xsession_cycle_all( ); }
+
 	/**
 	 *   Do the house-keeping of TRDP and packet transmission.
 	 *
+	 *  If you passed a reasonable offset for sending to init, these calls will align its cycle to the process period.
+	 *  It is recommended to call cycle(to) after your processing.
+	 *
 	 *  @param[out] timeout_us  Timeout in micro seconds to fulfill the configured cycle period. If dismissed, the call
-	 *                          will wait for the required time itself.
-	 *  @return  TRDP_ERR from deeper processing.
+	 *                          will wait for the required time itself. (Passing a NULL pointer is an error.)
+	 *  @return  TRDP_ERR from deeper processing. Returning TRDP_NODATA_ERR is no error, but an indication the next
+	 *           timeout is the beginning of the process cycle.
 	 */
 	TRDP_ERR_T cycle    ( INT64 *timeout_us )
-		{ return lastErr = tau_xsession_cycle_loop( our, timeout_us ); }
+		{ return lastErr = tau_xsession_cycle_check( our, timeout_us ); }
 
-	TRDP_ERR_T cycle    ( void )
+	TRDP_ERR_T cycle_block ( void )
 		{ return lastErr = tau_xsession_cycle( our ); }
 
 	/**
@@ -187,6 +201,16 @@ public:
 	 */
 	TRDP_ERR_T request  (              INT32  subTelID)
 		{ return lastErr = tau_xsession_request( our, subTelID ); }
+
+	/**
+	 *   Return a configuration value ( Device->Process->cycle )
+	 *
+	 *  @param[out] period_us The configured process cycle period. (Default in iec61375-2-3 is 10ms)
+	 *
+	 *  @return TRDP_ERR.
+	 */
+	TRDP_ERR_T getConfigProcessCycle( INT64 *period_us )
+		{ return lastErr = (up() && period_us) ? ((our->processConfig.cycleTime > 0) ? ((*period_us = our->processConfig.cycleTime), TRDP_NO_ERR) : TRDP_PARAM_ERR) : TRDP_INIT_ERR; }
 
 	/**
 	 *  Fill a TRDP_DATASET_ELEMENT_T with information on element index within dataset dsId.

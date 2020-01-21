@@ -915,7 +915,7 @@ EXT_DECL void vos_getNanoTime (
 
 EXT_DECL const CHAR8 *vos_getTimeStamp (void)
 {
-    static char     pTimeString[32] = {0};
+    static char     pTimeString[64] = {0};
     struct timeval  curTime;
     struct tm       *curTimeTM;
 

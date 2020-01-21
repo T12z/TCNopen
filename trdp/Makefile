@@ -73,8 +73,6 @@ TRDP_OBJS += trdp_pdcom.o \
 TRDP_OPT_OBJS += trdp_xml.o \
 		tau_xml.o \
 		tau_marshall.o \
-		tau_dnr.o \
-		tau_tti.o \
 		tau_ctrl.o \
 		tau_xsession.o \
 		tau_xmarshall.o
@@ -103,8 +101,9 @@ LDFLAGS += -L $(OUTDIR)
 ifeq ($(MD_SUPPORT),0)
 	CFLAGS += -DMD_SUPPORT=0
 else
-	TRDP_OBJS += trdp_mdcom.o
-	TRDP_OBJS += tlm_if.o
+	TRDP_OBJS += trdp_mdcom.o tlm_if.o
+	TRDP_OPT_OBJS += tau_dnr.o tau_tti.o
+
 	CFLAGS += -DMD_SUPPORT=1
 endif
 
@@ -140,10 +139,12 @@ else
 	TARGETS += vtests
 endif
 
+ifeq ($(MD_SUPPORT),1)
 ifeq ($(SOA_SUPPORT),1)
 	TRDP_OPT_OBJS   += tau_so_if.o
 	CFLAGS += -DSOA_SUPPORT
 #	Option: Building with service orientation support!
+endif
 endif
 
 ifeq ($(TSN_SUPPORT),1)
@@ -173,7 +174,7 @@ outdir:
 
 libtrdp:	outdir $(OUTDIR)/libtrdp.a
 
-libtrdpap: outdir $(OUTDIR)/libtrdpap.a
+libtrdpap:  outdir $(OUTDIR)/libtrdpap.a
 
 example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
 
@@ -491,13 +492,14 @@ $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 #
 ###############################################################################
 clean:
-	rm -f -r bld/*
-	rm -f -r doc/latex/*
+	rm -f -r $(OUTDIR)
 
 unconfig:
 	-$(RM) config/config.mk
 
 distclean:	clean unconfig
+	rm -f -r bld/*
+	rm -f -r doc/latex/*
 
 ###############################################################################
 #                                                                      	

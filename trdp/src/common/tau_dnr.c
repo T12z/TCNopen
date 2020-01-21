@@ -460,7 +460,7 @@ static void parseResponse (
             }
 
             *pIP_addr = (TRDP_IP_ADDR_T) ((pReader[0] << 24u) | (pReader[1] << 16u) | (pReader[2] << 8u) | pReader[3]);
-            vos_printLog(VOS_LOG_INFO, "%s -> 0x%08x\n", name, *pIP_addr);
+            vos_printLog(VOS_LOG_INFO, "%.240s -> 0x%08x\n", name, *pIP_addr);
 
             pReader = pReader + vos_ntohs(answers[i].resource->data_len);
 

@@ -1019,10 +1019,12 @@ TRDP_ERR_T  trdp_requestSocket (
     case  TRDP_SOCK_PD_TSN:
         sockMax = TRDP_MAX_PD_SOCKET_CNT;
         break;
+#if MD_SUPPORT
     case  TRDP_SOCK_MD_TCP:
     case  TRDP_SOCK_MD_UDP:
         sockMax = TRDP_MAX_MD_SOCKET_CNT;
         break;
+#endif
     default:
         sockMax = 0;
     }
@@ -1327,8 +1329,8 @@ err_exit:
 void  trdp_releaseSocket (
     TRDP_SOCKETS_T  iface[],
     INT32           lIndex,
-    UINT32          connectTimeout,
-    BOOL8           checkAll,
+    UINT32          connectTimeout __mdused,
+    BOOL8           checkAll __mdused,
     TRDP_IP_ADDR_T  mcGroupUsed)
 {
     TRDP_ERR_T err = TRDP_PARAM_ERR;

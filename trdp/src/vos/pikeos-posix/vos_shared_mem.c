@@ -1,6 +1,6 @@
 /**********************************************************************************************************************/
 /**
- * @file            posix/vos_shared_mem.c
+ * @file            posix-pikeos/vos_shared_mem.c
  *
  * @brief           Shared Memory functions
  *
@@ -25,7 +25,7 @@
 
 #ifndef PIKEOS_POSIX
 #error \
-    "You are trying to compile the POSIX implementation of vos_shared_mem.c - either define POSIX or exclude this file!"
+    "You are trying to compile the PIKEOS_POSIX implementation of vos_shared_mem.c - either define PIKEOS_POSIX or exclude this file!"
 #endif
 
 /***********************************************************************************************************************

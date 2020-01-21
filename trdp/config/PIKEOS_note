@@ -1,0 +1,15 @@
+notes on targeting the PikeOS Posix VOS
+
+Disclaimer: This port is not endorsed, nor supported by Sysgo. It may be of low quality or using a suboptimal approach.
+
+Sysgo PikeOS has a slightly different build-structure. It could be realized also in this context, but I don't see any good use now. Update: I must not publish, but I may can provide a build-project setup on request.
+
+The Sysgo PikeOS Posix personality package comes with a version of lwIP. It contains few additions / patches to interface nicely with the PikeOS Posix environment (also see a comment in src/vos/pikeos-posix/vos_private.h about this Posix approach).
+I also provide a patch to return the destination address through recvfrom() without changing the socket API, as the API has a thin redirection layer as part of Sysgo's adaptations. In fact, I made recvfrom() return an additional address structure, so 2 instead of 1, if socklen hints that there is enough space.
+
+Steps:
+ (1) compile lwIP as a custom library, (2) compile trdp as a library, (3) compile your Posix application, linking those two libraries.
+
+
+Thorsten Schulz, Universität Rostock, 2019 <thorsten.schulz@uni-rostock.de> (or use other contact paths, such as github)
+December 2019

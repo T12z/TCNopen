@@ -242,13 +242,14 @@ EXT_DECL TRDP_ERR_T tau_getEcspStat ( TRDP_APP_SESSION_T    appHandle,
  *  @retval         TRDP_PARAM_ERR  Parameter error
  *
  */
-EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandle,
-                                             void                       *pUserRef,
-                                             TRDP_MD_CALLBACK_T         pfCbFunction,
-                                             TRDP_ECSP_CONF_REQUEST_T   *pEcspConfRequest)
+EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandle __mdused,
+                                             void                       *pUserRef __mdused,
+                                             TRDP_MD_CALLBACK_T         pfCbFunction __mdused,
+                                             TRDP_ECSP_CONF_REQUEST_T   *pEcspConfRequest __mdused)
 {
     if (priv_ecspCtrlInitialised == TRUE)
     {
+#if MD_SUPPORT
         TRDP_UUID_T sessionId;                 /*    Our session ID for sending MD                             */
 
         return tlm_request( appHandle,                      /* appHandle */
@@ -268,6 +269,7 @@ EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandl
                             sizeof(TRDP_ECSP_CONF_REQUEST_T),
                             NULL,                           /* srcUri */
                             NULL);                          /* destUri */
+#endif
     }
 
     return TRDP_NOINIT_ERR;

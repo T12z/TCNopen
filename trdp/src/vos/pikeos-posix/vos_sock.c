@@ -1,6 +1,6 @@
 /**********************************************************************************************************************/
 /**
- * @file            posix/vos_sock.c
+ * @file            pikeos-posix/vos_sock.c
  *
  * @brief           Socket functions
  *
@@ -8,29 +8,38 @@
  *
  * @note            Project: TCNOpen TRDP prototype stack
  *
- * @author          Bernd Loehr, NewTec GmbH
+ * @author          Thorsten Schulz, Universität Rostock, based on work by Bernd Loehr, NewTec GmbH
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- */
- /*
- * $Id$
+ *          Copyright Universität Rostock, 2019.
  *
- *      SB 2019-02-18: Ticket #227: vos_sockGetMAC() not name dependant anymore
- *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
- *      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
- *      BL 2018-07-13: Ticket #208: VOS socket options: QoS/ToS field priority handling needs update
- *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
- *      BL 2018-05-03: Ticket #194: Platform independent format specifiers in vos_printLog
- *      BL 2018-03-06: 64Bit endian swap added
- *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
- *      BL 2017-05-08: Compiler warnings
- *      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
- *      BL 2015-11-20: Compiler warnings fixed (lines 392 + 393)
- *      BL 2014-08-25: Ticket #51: change underlying function for vos_dottedIP
- *
+ *          I tried to stay as close to the original posix variant as reasonable, so future changes can be forwarded.
  */
+/*
+* $Id$
+*
+*      Tz 2019-11-24: Modified posix/vos_sock.c to fit PikeOS' posix variant
+*      BL 2019-08-27: Changed send failure from ERROR to WARNING
+*      SB 2019-07-11: Added includes linux/if_vlan.h and linux/sockios.h
+*      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
+*      V 2.0.0 --------- ^^^ -----------
+*      V 1.4.2 --------- vvv -----------
+*      SB 2019-02-18: Ticket #227: vos_sockGetMAC() not name dependant anymore
+*      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
+*      BL 2018-11-26: Ticket #208: Mapping corrected after complaint (Bit 2 was set for prio 2 & 4)
+*      BL 2018-07-13: Ticket #208: VOS socket options: QoS/ToS field priority handling needs update
+*      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+*      BL 2018-05-03: Ticket #194: Platform independent format specifiers in vos_printLog
+*      BL 2018-03-06: 64Bit endian swap added
+*      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
+*      BL 2017-05-08: Compiler warnings
+*      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
+*      BL 2015-11-20: Compiler warnings fixed (lines 392 + 393)
+*      BL 2014-08-25: Ticket #51: change underlying function for vos_dottedIP
+*
+*/
 
 #ifndef PIKEOS_POSIX
 #error \
@@ -64,7 +73,9 @@
 #ifdef __linux
 #   include <linux/if.h>
 #   include <byteswap.h>
-#elif defined(PIKEOS_POSIX) && defined(POSIX_LWIP)
+#   include <linux/if_vlan.h>
+#   include <linux/sockios.h>
+#elif defined(POSIX_LWIP)
 #include "lwipopts.h"
 #include "lwip/sockets.h"
 #include "lwip/inet.h"
@@ -82,13 +93,13 @@
 
 #else
 #   include <net/if.h>
+#   include <net/if_types.h>
 #endif
 
-#if defined(PIKEOS_POSIX) && defined(POSIX_LWIP)
-//#include "lwip/"
-
+#if defined(PIKEOS_POSIX)
 #include <sys/types.h>
 #else
+#include <netinet/ip.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -117,7 +128,9 @@ const CHAR8 *cDefaultIface = "eth0";
 
 BOOL8           vosSockInitialised = FALSE;
 
-//struct ifreq    gIfr;
+#if !defined(POSIX_LWIP)
+struct ifreq    gIfr;
+#endif
 
 /***********************************************************************************************************************
  * LOCAL FUNCTIONS
@@ -125,7 +138,6 @@ BOOL8           vosSockInitialised = FALSE;
 
 BOOL8       vos_getMacAddress (UINT8        *pMacAddr,
                                const char   *pIfName);
-VOS_ERR_T   vos_sockSetBuffer (SOCKET sock);
 
 /**********************************************************************************************************************/
 /** Get the MAC address for a named interface.
@@ -139,12 +151,110 @@ BOOL8 vos_getMacAddress (
     UINT8       *pMacAddr,
     const char  *pIfName)
 {
+#ifdef __linux
+    struct ifreq    ifinfo;
+    int             sd;
+    int             result = -1;
+
+    if (pIfName == NULL)
+    {
+        strcpy(ifinfo.ifr_name, cDefaultIface);
+    }
+    else
+    {
+        strcpy(ifinfo.ifr_name, pIfName);
+    }
+    sd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sd != -1)
+    {
+        result = ioctl(sd, SIOCGIFHWADDR, &ifinfo);
+        close(sd);
+    }
+    if ((result == 0) && (ifinfo.ifr_hwaddr.sa_family == 1))
+    {
+        memcpy(pMacAddr, ifinfo.ifr_hwaddr.sa_data, IFHWADDRLEN);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+
+#elif defined(__APPLE__)
+#   define LLADDR_OFF  11
+
+    struct ifaddrs  *pIfList;
+    BOOL8           found   = FALSE;
+    const char      *pName  = cDefaultIface;
+
+    if (pIfName != NULL)
+    {
+        pName = pIfName;
+    }
+
+    if (getifaddrs(&pIfList) == 0)
+    {
+        struct ifaddrs *cur;
+
+        for (cur = pIfList; pName != NULL && cur != NULL; cur = cur->ifa_next)
+        {
+            if ((cur->ifa_addr->sa_family == AF_LINK) &&
+                (strcmp(cur->ifa_name, pName) == 0) &&
+                cur->ifa_addr)
+            {
+                UINT8 *p = (UINT8 *)cur->ifa_addr;
+                memcpy(pMacAddr, p + LLADDR_OFF, VOS_MAC_SIZE);
+                found = TRUE;
+                break;
+            }
+        }
+
+        freeifaddrs(pIfList);
+    }
+
+    return found;
+
+#elif defined(INTEGRITY)
+    struct ifreq    ifinfo;
+    int             sd;
+    int             result = -1;
+
+    if (pIfName == NULL)
+    {
+        strcpy(ifinfo.ifr_name, cDefaultIface);
+    }
+    else
+    {
+        strcpy(ifinfo.ifr_name, pIfName);
+    }
+    sd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sd != -1)
+    {
+        result = ioctl(sd, SIOCGIFHWADDR, &ifinfo);
+        close(sd);
+    }
+    if ((result == 0) && (ifinfo.ifr_hwaddr.sa_family == 1))
+    {
+        memcpy(pMacAddr, ifinfo.ifr_hwaddr.sa_data, ifinfo.ifr_hwaddr.sa_len);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+
+#elif defined(__QNXNTO__)
+#   warning "no definition for get_mac_address() on this platform!"
+#elif defined(POSIX_LWIP)
 	struct netif *nif = netif_find(pIfName);
 	if (nif && (nif->hwaddr_len == VOS_MAC_SIZE)) {
 		memcpy(pMacAddr, nif->hwaddr, VOS_MAC_SIZE);
 		return TRUE;
 	} else
 		return FALSE;
+#else
+#   error no definition for get_mac_address() on this platform!
+#endif
 }
 
 /**********************************************************************************************************************/
@@ -155,7 +265,7 @@ BOOL8 vos_getMacAddress (
  *  @retval         VOS_NO_ERR       no error
  *  @retval         VOS_SOCK_ERR     buffer size can't be set
  */
-VOS_ERR_T vos_sockSetBuffer (SOCKET sock)
+EXT_DECL VOS_ERR_T vos_sockSetBuffer (SOCKET sock)
 {
 	int         err;
     int         optval      = 0;
@@ -164,7 +274,17 @@ VOS_ERR_T vos_sockSetBuffer (SOCKET sock)
     err = getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (int *)&optval, &option_len);
     if (!err && optval < TRDP_SOCKBUF_SIZE)
     {
+#ifdef POSIX_LWIP
         vos_printLog(VOS_LOG_INFO, "Send buffer limit = %d\n", optval);
+#else
+        optval = TRDP_SOCKBUF_SIZE;
+        if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (int *)&optval, option_len) == -1)
+        {
+            (void)getsockopt(sock, SOL_SOCKET, SO_SNDBUF, (int *)&optval, &option_len);
+            vos_printLog(VOS_LOG_WARNING, "Send buffer size out of limit (max: %d)\n", optval);
+            return VOS_SOCK_ERR;
+        }
+#endif
     }
 
     err = getsockopt(sock, SOL_SOCKET, SO_RCVBUF, (int *)&optval, &option_len);
@@ -347,6 +467,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
     UINT32          *pAddrCnt,
     VOS_IF_REC_T    ifAddrs[])
 {
+#ifdef POSIX_LWIP
     unsigned int count = 0;
 
     if (!pAddrCnt || !*pAddrCnt || !ifAddrs || !netif_list) return VOS_PARAM_ERR;
@@ -387,7 +508,74 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
 			count++;
 		}
 	}
+#else
+    int success;
+    struct ifaddrs  *addrs;
+    struct ifaddrs  *cursor;
+    unsigned int    count = 0;
 
+    if (pAddrCnt == NULL ||
+        *pAddrCnt == 0 ||
+        ifAddrs == NULL)
+    {
+        return VOS_PARAM_ERR;
+    }
+
+    success = getifaddrs(&addrs) == 0;
+    if (success)
+    {
+        cursor = addrs;
+        while (cursor != 0 && count < *pAddrCnt)
+        {
+            if (cursor->ifa_addr != NULL && cursor->ifa_addr->sa_family == AF_INET)
+            {
+                memcpy(&ifAddrs[count].ipAddr, &cursor->ifa_addr->sa_data[2], 4);
+                ifAddrs[count].ipAddr = vos_ntohl(ifAddrs[count].ipAddr);
+                memcpy(&ifAddrs[count].netMask, &cursor->ifa_netmask->sa_data[2], 4);
+                ifAddrs[count].netMask = vos_ntohl(ifAddrs[count].netMask);
+                if (cursor->ifa_name != NULL)
+                {
+                    strncpy((char *) ifAddrs[count].name, cursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
+                    ifAddrs[count].name[VOS_MAX_IF_NAME_SIZE - 1] = 0;
+                }
+                vos_printLog(VOS_LOG_INFO, "IP-Addr for '%s': %u.%u.%u.%u\n",
+                             ifAddrs[count].name,
+                             (unsigned int)(ifAddrs[count].ipAddr >> 24) & 0xFF,
+                             (unsigned int)(ifAddrs[count].ipAddr >> 16) & 0xFF,
+                             (unsigned int)(ifAddrs[count].ipAddr >> 8)  & 0xFF,
+                             (unsigned int)(ifAddrs[count].ipAddr        & 0xFF));
+                if (vos_getMacAddress(ifAddrs[count].mac, ifAddrs[count].name) == TRUE)
+                {
+                    vos_printLog(VOS_LOG_INFO, "Mac-Addr for '%s': %02x:%02x:%02x:%02x:%02x:%02x\n",
+                                 ifAddrs[count].name,
+                                 (unsigned int)ifAddrs[count].mac[0],
+                                 (unsigned int)ifAddrs[count].mac[1],
+                                 (unsigned int)ifAddrs[count].mac[2],
+                                 (unsigned int)ifAddrs[count].mac[3],
+                                 (unsigned int)ifAddrs[count].mac[4],
+                                 (unsigned int)ifAddrs[count].mac[5]);
+                }
+                if (cursor->ifa_flags & IFF_RUNNING)
+                {
+                    ifAddrs[count].linkState = TRUE;
+                }
+                else
+                {
+                    ifAddrs[count].linkState = FALSE;
+                }
+                count++;
+            }
+            cursor = cursor->ifa_next;
+        }
+
+        freeifaddrs(addrs);
+    }
+    else
+    {
+        return VOS_PARAM_ERR;
+    }
+
+#endif
     *pAddrCnt = count;
     return VOS_NO_ERR;
 }
@@ -402,7 +590,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
  *                  FALSE           interface is down / not ready
  */
 EXT_DECL BOOL8 vos_netIfUp (VOS_IP4_ADDR_T ifAddress) {
-
+#ifdef POSIX_LWIP
 	for (struct netif *nif = netif_list; nif; nif = nif->next) {
 		if (netif_is_up(nif) &&	(ip_addr_isany_val(nif->ip_addr) || ( (IP_IS_V4_VAL(nif->ip_addr) && (ifAddress == vos_ntohl(nif->ip_addr.u_addr.ip4.addr))) ))	) {
 			//vos_printLog(VOS_LOG_INFO, "nif->flags = 0x%x\n", nif->flags);
@@ -410,7 +598,43 @@ EXT_DECL BOOL8 vos_netIfUp (VOS_IP4_ADDR_T ifAddress) {
 		}
     }
     return FALSE;
+#else
+    struct ifaddrs  *addrs;
+    struct ifaddrs  *cursor;
+    VOS_IF_REC_T    ifAddrs;
+
+    ifAddrs.linkState = FALSE;
+
+    if (getifaddrs(&addrs) == 0)
+    {
+        cursor = addrs;
+        while (cursor != 0)
+        {
+            if (cursor->ifa_addr != NULL && cursor->ifa_addr->sa_family == AF_INET)
+            {
+                memcpy(&ifAddrs.ipAddr, &cursor->ifa_addr->sa_data[2], 4);
+                ifAddrs.ipAddr = vos_ntohl(ifAddrs.ipAddr);
+                /* Exit if first (default) interface matches */
+                if (ifAddress == VOS_INADDR_ANY || ifAddress == ifAddrs.ipAddr)
+                {
+                    if (cursor->ifa_flags & IFF_UP)
+                    {
+                        ifAddrs.linkState = TRUE;
+                    }
+                    /* vos_printLog(VOS_LOG_INFO, "cursor->ifa_flags = 0x%x\n", cursor->ifa_flags); */
+                    break;
+                }
+            }
+            cursor = cursor->ifa_next;
+        }
+
+        freeifaddrs(addrs);
+
+    }
+    return ifAddrs.linkState;
+#endif
 }
+
 
 /*    Sockets    */
 
@@ -424,10 +648,13 @@ EXT_DECL BOOL8 vos_netIfUp (VOS_IP4_ADDR_T ifAddress) {
 
 EXT_DECL VOS_ERR_T vos_sockInit (void)
 {
-//    memset(&gIfr, 0, sizeof(gIfr));
+#ifdef POSIX_LWIP
 	vosSockInitialised = _lwip_init() == 0;
-
-    return vosSockInitialised?VOS_NO_ERR:VOS_SOCK_ERR;
+#else
+    memset(&gIfr, 0, sizeof(gIfr));
+    vosSockInitialised = TRUE;
+#endif
+    return vosSockInitialised ? VOS_NO_ERR : VOS_SOCK_ERR;
 }
 
 /**********************************************************************************************************************/
@@ -460,10 +687,10 @@ EXT_DECL VOS_ERR_T vos_sockGetMAC (
         return VOS_PARAM_ERR;
     }
 
-    UINT32 i;
-    UINT32 AddrCount = VOS_MAX_NUM_IF;
-    VOS_IF_REC_T ifAddrs[VOS_MAX_NUM_IF];
-    VOS_ERR_T err;
+    UINT32          i;
+    UINT32          AddrCount = VOS_MAX_NUM_IF;
+    VOS_IF_REC_T    ifAddrs[VOS_MAX_NUM_IF];
+    VOS_ERR_T       err;
 
     err = vos_getInterfaces(&AddrCount, ifAddrs);
 
@@ -538,7 +765,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
 
     *pSock = (SOCKET) sock;
 
-    vos_printLog(VOS_LOG_INFO, "vos_sockOpenUDP: socket()=%d success\n", (int)sock);
+    vos_printLog(VOS_LOG_DBG, "vos_sockOpenUDP: socket()=%d success\n", (int)sock);
     return VOS_NO_ERR;
 }
 
@@ -642,13 +869,21 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
         if (1 == pOptions->reuseAddrPort)
         {
             sockOptValue = 1;
-#ifdef SO_REUSE
+#ifdef SO_REUSEPORT
+            if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &sockOptValue,
+                           sizeof(sockOptValue)) == -1)
+            {
+                char buff[VOS_MAX_ERR_STR_SIZE];
+                STRING_ERR(buff);
+                vos_printLog(VOS_LOG_WARNING, "setsockopt() SO_REUSEPORT failed (Err: %s)\n", buff);
+            }
+#elif SO_REUSEADDR
             if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &sockOptValue,
                            sizeof(sockOptValue)) == -1)
             {
                 char buff[VOS_MAX_ERR_STR_SIZE];
                 STRING_ERR(buff);
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() SO_REUSEADDR failed (Err: %s)\n", buff);
+                vos_printLog(VOS_LOG_WARNING, "setsockopt() SO_REUSEADDR failed (Err: %s)\n", buff);
             }
 #endif
         }
@@ -658,7 +893,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
             {
                 char buff[VOS_MAX_ERR_STR_SIZE];
                 STRING_ERR(buff);
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() O_NONBLOCK failed (Err: %s)\n", buff);
+                vos_printLog(VOS_LOG_WARNING, "setsockopt() O_NONBLOCK failed (Err: %s)\n", buff);
                 return VOS_SOCK_ERR;
             }
         }
@@ -724,6 +959,16 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
                 STRING_ERR(buff);
                 vos_printLog(VOS_LOG_WARNING, "setsockopt() SO_PRIORITY failed (Err: %s)\n", buff);
             }
+            {
+                struct vlan_ioctl_args vlan_args;
+                vlan_args.cmd = SET_VLAN_EGRESS_PRIORITY_CMD;
+                vlan_args.u.skb_priority    = sockOptValue;
+                vlan_args.vlan_qos          = pOptions->qos;
+                vlan_args.u.name_type       = VLAN_NAME_TYPE_RAW_PLUS_VID;
+                strcpy(vlan_args.device1, pOptions->ifName);
+
+                (void) ioctl(sock, SIOCSIFVLAN, &vlan_args);
+            }
 #endif
         }
         if (pOptions->ttl > 0)
@@ -734,7 +979,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
             {
                 char buff[VOS_MAX_ERR_STR_SIZE];
                 STRING_ERR(buff);
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_TTL failed (Err: %s)\n", buff);
+                vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_TTL failed (Err: %s)\n", buff);
             }
         }
         if (pOptions->ttl_multicast > 0)
@@ -745,7 +990,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
             {
                 char buff[VOS_MAX_ERR_STR_SIZE];
                 STRING_ERR(buff);
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_MULTICAST_TTL failed (Err: %s)\n", buff);
+                vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_MULTICAST_TTL failed (Err: %s)\n", buff);
             }
         }
         if (pOptions->no_mc_loop > 0)
@@ -757,10 +1002,11 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
             {
                 char buff[VOS_MAX_ERR_STR_SIZE];
                 STRING_ERR(buff);
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_MULTICAST_LOOP failed (Err: %s)\n", buff);
+                vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_MULTICAST_LOOP failed (Err: %s)\n", buff);
             }
         }
 #ifdef SO_NO_CHECK
+        /* Default behavior is ON * / */
         if (pOptions->no_udp_crc > 0)
         {
             sockOptValue = 1;
@@ -769,7 +1015,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
             {
                 char buff[VOS_MAX_ERR_STR_SIZE];
                 STRING_ERR(buff);
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() SO_NO_CHECK failed (Err: %s)\n", buff);
+                vos_printLog(VOS_LOG_WARNING, "setsockopt() SO_NO_CHECK failed (Err: %s)\n", buff);
             }
         }
 #endif
@@ -782,20 +1028,21 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_RECVDSTADDR failed (Err: %s)\n", buff);
+        vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_RECVDSTADDR failed (Err: %s)\n", buff);
     }
 #elif defined(IP_PKTINFO)
     if (setsockopt(sock, IPPROTO_IP, IP_PKTINFO, &sockOptValue, sizeof(sockOptValue)) == -1)
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_PKTINFO failed (Err: %s)\n", buff);
+        vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_PKTINFO failed (Err: %s)\n", buff);
     }
+#else
+    vos_printLogStr(VOS_LOG_WARNING, "setsockopt() Source address filtering is not available on platform!\n");
 #endif
 
     return VOS_NO_ERR;
 }
-
 
 /**********************************************************************************************************************/
 /** Join a multicast group.
@@ -1014,7 +1261,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "sendto() to %s:%u failed (Err: %s)\n",
+        vos_printLog(VOS_LOG_WARNING, "sendto() to %s:%u failed (Err: %s)\n",
                      inet_ntoa(destAddr.sin_addr), (unsigned int)port, buff);
         return VOS_IO_ERR;
     }
@@ -1054,8 +1301,9 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pDstIPAddr,
     BOOL8   peek)
 {
-    struct sockaddr_in si[2];
-    int     slen    = sizeof(si), rcvSize;
+    struct sockaddr_in  srcAddr[2];
+    socklen_t           sockLen = sizeof(srcAddr);
+    ssize_t rcvSize = 0;
     char    *buf    = (char *) pBuffer;
 
     if (sock == -1 || pBuffer == NULL || pSize == NULL)
@@ -1070,23 +1318,25 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
          The original recvfrom version does not provide such a call, neither does it provide the recvmsg() function!
          This one also provides the dst-addr in a second element of sockaddr, if provided.
          */
-        rcvSize = recvfrom(sock, buf, *pSize, peek ? MSG_PEEK|MSG_DONTWAIT : MSG_DONTWAIT, (struct sockaddr *) si, (socklen_t *)&slen);
+        rcvSize = recvfrom(sock, buf, *pSize, peek ? MSG_PEEK|MSG_DONTWAIT : MSG_DONTWAIT, (struct sockaddr *) srcAddr, &sockLen);
 
         if (rcvSize != -1)
         {
             if (pDstIPAddr != NULL)
             {
-                *pDstIPAddr = (UINT32)vos_ntohl(si[1].sin_addr.s_addr);
+                *pDstIPAddr = (UINT32)vos_ntohl(srcAddr[1].sin_addr.s_addr);
             }
+
 
             if (pSrcIPAddr != NULL)
             {
-                *pSrcIPAddr = (uint32_t) vos_ntohl(si[0].sin_addr.s_addr);
+                *pSrcIPAddr = (uint32_t) vos_ntohl(srcAddr[0].sin_addr.s_addr);
+                /* vos_printLog(VOS_LOG_DBG, "udp message source IP: %s\n", vos_ipDotted(*pSrcIPAddr)); */
             }
 
             if (pSrcIPPort != NULL)
             {
-                *pSrcIPPort = (UINT16) vos_ntohs(si[0].sin_port);
+                *pSrcIPPort = (UINT16) vos_ntohs(srcAddr[0].sin_port);
             }
         }
 
@@ -1106,7 +1356,9 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
         }
         else
         {
-            vos_printLog(VOS_LOG_ERROR, "recvfrom() failed (Errno: %d)\n", errno);
+            char buff[VOS_MAX_ERR_STR_SIZE];
+            STRING_ERR(buff);
+            vos_printLog(VOS_LOG_ERROR, "recvfrom() failed (Err: %s)\n", buff);
             return VOS_IO_ERR;
         }
     }
@@ -1117,11 +1369,9 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     else
     {
         *pSize = (UINT32) rcvSize;  /* We will not expect larger packets (max. size is 64k anyway!) */
+        return VOS_NO_ERR;
     }
-    return VOS_NO_ERR;
-
 }
-
 
 /**********************************************************************************************************************/
 /** Bind a socket to an address and port.
@@ -1157,17 +1407,28 @@ EXT_DECL VOS_ERR_T vos_sockBind (
     srcAddress.sin_addr.s_addr  = vos_htonl(ipAddress);
     srcAddress.sin_port         = vos_htons(port);
 
-    vos_printLog(VOS_LOG_INFO, "binding to: %s:%hu\n",
+    vos_printLog(VOS_LOG_INFO, "trying to bind to: %s:%hu\n",
                  inet_ntoa(srcAddress.sin_addr), port);
 
     /*  Try to bind the socket to the PD port. */
     if (bind(sock, (struct sockaddr *)&srcAddress, sizeof(srcAddress)) == -1)
     {
-        char buff[VOS_MAX_ERR_STR_SIZE];
-        STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "binding to %s:%hu failed (Err: %s)\n",
-                     inet_ntoa(srcAddress.sin_addr), port, buff);
-        return VOS_SOCK_ERR;
+        switch (errno)
+        {
+            case EADDRINUSE:
+            case EINVAL:
+                /* Already bound, we keep silent */
+                vos_printLogStr(VOS_LOG_WARNING, "already bound!\n");
+                break;
+            default:
+            {
+                char buff[VOS_MAX_ERR_STR_SIZE];
+                STRING_ERR(buff);
+                vos_printLog(VOS_LOG_ERROR, "binding to %s:%hu failed (Err: %s)\n",
+                             inet_ntoa(srcAddress.sin_addr), port, buff);
+                return VOS_SOCK_ERR;
+            }
+        }
     }
     return VOS_NO_ERR;
 }
