@@ -516,8 +516,8 @@ PD_ELE_T *trdp_findSubAddr (
             break;
         }
         /*  We match if src/dst/mc address is zero or matches */
-       // if ((iterPD->addr.comId == addr->comId)
-       //     && SOA_SAME_SERVICEID_OR0(addr->serviceId, iterPD->addr.serviceId))
+       /* if ((iterPD->addr.comId == addr->comId)
+              && SOA_SAME_SERVICEID_OR0(addr->serviceId, iterPD->addr.serviceId)) */
         if (SAME_SERVICE_COM_ID(iterPD->addr, *addr)) /*lint !e506 meant to be true, if service support is off */
         {
             /* if srcIP filter matches AND destIP matches THEN this is a direct hit */

@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      AÖ 2019-11-12: Ticket #290: Add support for Virtualization on Windows, changed thread names to unique ones
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
  */
 
@@ -562,7 +563,7 @@ THREAD_ERR_T L3_test_thread_init()
    /************************/
    vos_printLogStr(VOS_LOG_USR, "[THREAD_INIT] Second run start\n");
 
-   res = vos_threadCreate(&thread1, "Thread2", THREAD_POLICY, 0, 0, 0, (void*)testThread1, (void*)&arg1);
+   res = vos_threadCreate(&thread1, "Thread1", THREAD_POLICY, 0, 0, 0, (void*)testThread1, (void*)&arg1);
    if ((res != VOS_NO_ERR) || (thread1 == 0))
    {
       retVal = THREAD_INIT_ERR;
@@ -2154,6 +2155,9 @@ VOS_THREAD_FUNC_T L3_test_sharedMem_write(void* arguments)
    {
       retVal = VOS_UNKNOWN_ERR;
       vos_printLogStr(VOS_LOG_ERROR, "[SHMEM Write] vos_sharedOpen() ERROR\n");
+       vos_terminate();
+       return 0;
+
    }
    vos_printLog(VOS_LOG_USR, "handle = %llx\n", *(long long *)handle);
    vos_printLog(VOS_LOG_USR, "pMemArea = %llx\n", (long long)pMemArea);
@@ -2859,7 +2863,9 @@ int main(int argc, char *argv[])
       printf("  <remoteip> .. remote IP address (ie. 10.2.24.2)\n");
       printf("  <mcast>    .. multicast group address (ie. 239.2.24.1)\n");
       printf("  <logfile>  .. file name for logging (ie. test.txt)\n");
-
+#ifdef SIM
+      printf("  <prefix>  .. instance prefix in simulation mode (ie. CCU1)\n");
+#endif
       return 1;
    }
 
@@ -2884,6 +2890,18 @@ int main(int argc, char *argv[])
    {
       pLogFile = NULL;
    }
+
+#ifdef SIM
+   if (!SimSetHostIp(argv[1]))
+	   printf("Failed to set sim host IP.");
+
+   if (argc < 5)
+   {
+       printf("In simulation mode an extra last argument is required <Unike thread prefix>\n");
+       return 1;
+   }
+   vos_setTimeSyncPrefix(argv[5]);
+#endif
 
    for (testCnt = 0; testCnt < N_ITERATIONS; testCnt++)
    {

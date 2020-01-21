@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      BL 2019-12-06: Ticket #299 ComId 100 shall be subscribed from two sources but only one needs to be received
 *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -185,6 +186,7 @@ static void ttiPDCallback (
 {
     int         changed         = 0;
     VOS_SEMA_T  waitForInaug    = (VOS_SEMA_T) pMsg->pUserRef;
+    static      TRDP_IP_ADDR_T  sDestMC = VOS_INADDR_ANY;
 
     pRefCon = pRefCon;
 
@@ -250,22 +252,28 @@ static void ttiPDCallback (
                 changed++;
                 (void) tlc_setOpTrainTopoCount(appHandle, appHandle->pTTDB->opTrnState.state.opTrnTopoCnt);
             }
-
+            /* remember the received telegram's destination (MC)    */
+            sDestMC = pMsg->destIpAddr;
         }
         else if (pMsg->resultCode == TRDP_TIMEOUT_ERR )
         {
-            vos_printLog(VOS_LOG_WARNING, "---> Operational status info timed out! Invalidating topocounts on %p!\n",
-                         (void *)appHandle);
+            /* clear the topocounts only if the timeout came from the active subscription */
 
-            if (appHandle->etbTopoCnt != 0u)
+            if ((sDestMC == VOS_INADDR_ANY) || (sDestMC == pMsg->destIpAddr))
             {
-                changed++;
-                (void) tlc_setETBTopoCount(appHandle, 0u);
-            }
-            if (appHandle->opTrnTopoCnt != 0u)
-            {
-                changed++;
-                (void) tlc_setOpTrainTopoCount(appHandle, 0u);
+                vos_printLog(VOS_LOG_WARNING, "---> Operational status info timed out! Invalidating topocounts on %p!\n",
+                             (void *)appHandle);
+
+                if (appHandle->etbTopoCnt != 0u)
+                {
+                    changed++;
+                    (void) tlc_setETBTopoCount(appHandle, 0u);
+                }
+                if (appHandle->opTrnTopoCnt != 0u)
+                {
+                    changed++;
+                    (void) tlc_setOpTrainTopoCount(appHandle, 0u);
+                }
             }
         }
         else

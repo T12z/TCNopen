@@ -182,7 +182,7 @@ EXT_DECL TRDP_ERR_T tlc_getSubsStatistics (
         return TRDP_PARAM_ERR;
     }
     /*  Loop over our subscriptions, but do not exceed user supplied buffers!    */
-    for (lIndex = 0, iter = appHandle->pRcvQueue; lIndex < *pNumSubs && iter != NULL; lIndex++, iter = iter->pNext)
+    for ((void)(lIndex = 0), iter = appHandle->pRcvQueue; lIndex < *pNumSubs && iter != NULL; (void)(lIndex++), iter = iter->pNext)
     {
         pStatistics[lIndex].comId       = iter->addr.comId;     /* Subscribed ComId            */
         pStatistics[lIndex].joinedAddr  = iter->addr.mcGroup;   /* Joined IP address           */
@@ -236,7 +236,7 @@ EXT_DECL TRDP_ERR_T tlc_getPubStatistics (
     }
 
     /*  Loop over our subscriptions, but do not exceed user supplied buffers!    */
-    for (lIndex = 0, iter = appHandle->pSndQueue; lIndex < *pNumPub && iter != NULL; lIndex++, iter = iter->pNext)
+    for ((void)(lIndex = 0), iter = appHandle->pSndQueue; (lIndex < *pNumPub) && (iter != NULL); (void)(lIndex++), iter = iter->pNext)
     {
         pStatistics[lIndex].comId       = iter->addr.comId;         /* Published ComId                                */
         pStatistics[lIndex].destAddr    = iter->addr.destIpAddr;    /* IP address of destination for this publishing. */
@@ -384,7 +384,7 @@ EXT_DECL TRDP_ERR_T tlc_getRedStatistics (
     }
 
     /*    Search the redundancy flag for every PD  */
-    for (lIndex = 0, iterPD = appHandle->pSndQueue; lIndex < *pNumRed && NULL != iterPD; iterPD = iterPD->pNext)
+    for ((void)(lIndex = 0), iterPD = appHandle->pSndQueue; (lIndex < *pNumRed) && (NULL != iterPD); iterPD = iterPD->pNext)
     {
         if (iterPD->redId != 0)         /* redundant ID set?    */
         {
@@ -438,7 +438,7 @@ EXT_DECL TRDP_ERR_T tlc_getJoinStatistics (
     }
 
     /*  Loop over our subscriptions, but do not exceed user supplied buffers!    */
-    for (lIndex = 0, iter = appHandle->pRcvQueue; lIndex < *pNumJoin && iter != NULL; lIndex++, iter = iter->pNext)
+    for ((void)(lIndex = 0), iter = appHandle->pRcvQueue; (lIndex < *pNumJoin) && (iter != NULL); (void)(lIndex++), iter = iter->pNext)
     {
         *pIpAddr++ = iter->addr.mcGroup;                        /* Subscribed MC address.                       */
     }
@@ -498,7 +498,7 @@ void    trdp_UpdateStats (
     appHandle->stats.pd.numMissed = 0u;
 
     /*  Count our subscriptions */
-    for (lIndex = 0u, iter = appHandle->pRcvQueue; iter != NULL; lIndex++, iter = iter->pNext)
+    for ((void)(lIndex = 0u), iter = appHandle->pRcvQueue; iter != NULL; (void)(lIndex++), iter = iter->pNext)
     {
         appHandle->stats.pd.numMissed += iter->numMissed;
     }
@@ -506,7 +506,7 @@ void    trdp_UpdateStats (
     appHandle->stats.pd.numSubs = lIndex;
 
     /*  Count our publishers */
-    for (lIndex = 0u, iter = appHandle->pSndQueue; iter != NULL; lIndex++, iter = iter->pNext)
+    for ((void)(lIndex = 0u), iter = appHandle->pSndQueue; iter != NULL; (void)(lIndex++), iter = iter->pNext)
     {
         ;
     }

@@ -17,6 +17,7 @@
  /*
  * $Id$*
  *
+ *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
  *      BL 2019-06-12: Ticket #260: Error in vos_threadCreate() not handled properly (vxworks)
  *      BL 2018-10-29: Ticket #215: use CLOCK_MONOTONIC if available
  *      BL 2018-06-25: Ticket #202: vos_mutexTrylock return value
@@ -605,6 +606,10 @@ EXT_DECL void vos_getUuid (
     pUuID[5]    = (current.tv_sec & 0xFF00) >> 8;
     pUuID[6]    = (current.tv_sec & 0xFF0000) >> 16;
     pUuID[7]    = ((current.tv_sec & 0x0F000000) >> 24) | 0x4; /*  pseudo-random version   */
+
+    /* We are using the Unix epoch here instead of UUID epoch (gregorian), until this is fixed
+     we issue a warning */
+    vos_printLogStr(VOS_LOG_WARNING, "UUID generation is based on Unix epoch, instead of UUID epoch!\n");
 
     /* we always increment these values, this definitely makes the UUID unique */
     pUuID[8]    = (UINT8) (count & 0xFF);

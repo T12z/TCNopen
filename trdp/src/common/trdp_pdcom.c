@@ -1582,7 +1582,7 @@ TRDP_ERR_T  trdp_pdDistribute (
                  (unsigned int)tNull.tv_usec);
     vos_printLog(VOS_LOG_INFO, "trdp_pdDistribute: noOfPackets = %d\n", noOfPackets);
 
-    for (packetIndex = 0, pPacket = pSndQueue; packetIndex < noOfPackets && pPacket != NULL; )
+    for ((void)(packetIndex = 0), pPacket = pSndQueue; packetIndex < noOfPackets && pPacket != NULL; )
     {
         /*  Ignore PULL-only packets!  */
         if ((pPacket->interval.tv_sec != 0u) ||

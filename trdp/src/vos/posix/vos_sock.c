@@ -585,16 +585,16 @@ EXT_DECL void vos_sockTerm (void)
 EXT_DECL VOS_ERR_T vos_sockGetMAC (
     UINT8 pMAC[VOS_MAC_SIZE])
 {
+    UINT32          i;
+    UINT32          AddrCount = VOS_MAX_NUM_IF;
+    VOS_IF_REC_T    ifAddrs[VOS_MAX_NUM_IF];
+    VOS_ERR_T       err;
+
     if (pMAC == NULL)
     {
         vos_printLogStr(VOS_LOG_ERROR, "Parameter error\n");
         return VOS_PARAM_ERR;
     }
-
-    UINT32          i;
-    UINT32          AddrCount = VOS_MAX_NUM_IF;
-    VOS_IF_REC_T    ifAddrs[VOS_MAX_NUM_IF];
-    VOS_ERR_T       err;
 
     err = vos_getInterfaces(&AddrCount, ifAddrs);
 

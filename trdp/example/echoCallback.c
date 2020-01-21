@@ -41,6 +41,7 @@
 #include "trdp_if_light.h"
 #include "vos_thread.h"
 #include "vos_utils.h"
+#include "vos_sock.h"
 
 /* Some sample comId definitions    */
 

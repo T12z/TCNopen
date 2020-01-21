@@ -8,4 +8,8 @@
     <LocalDebuggerCommandArguments>10.0.2.101 10.0.2.100 239.2.24.1 pdtestfast1.log</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugSim|x64'">
+    <LocalDebuggerCommandArguments>10.0.2.101 10.0.2.100 239.2.24.1 pdtestfast1.log</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

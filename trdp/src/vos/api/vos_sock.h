@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+*       AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
  *      V 2.0.0 --------- ^^^ -----------
@@ -36,8 +37,9 @@
  */
 
 #include "vos_types.h"
-
-#if (defined (WIN32) || defined (WIN64))
+#if defined(SIM)
+#include "SimSocket.h"
+#elif (defined (WIN32) || defined (WIN64))
 #include <winsock2.h>
 #elif defined(VXWORKS)
 #include "netinet/in.h"
