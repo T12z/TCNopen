@@ -239,6 +239,17 @@
           <xs:documentation>Service's time to live</xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute name="dummyService" default="off" use="optional">
+         <xs:annotation>
+            <xs:documentation>Defines whether the Service is a real Autosar Service or not.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="on"/>
+            <xs:enumeration value="off"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>     
     </xs:complexType>
   </xs:element>  
   
@@ -971,7 +982,7 @@
           <xs:documentation>ID for exchange parameter. Required for TRDP telegrams.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="data-set-id" type="uint32" use="required">
+      <xs:attribute name="data-set-id" type="uint32" use="optional">
         <xs:annotation>
           <xs:documentation>ID for dataset to bve exchanged.</xs:documentation>
         </xs:annotation>
