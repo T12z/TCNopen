@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions
  *      BL 2020-01-08: Ticket #284: Parsing of UINT32 fixed
  *      SB 2019-12-19: Bugfix where ComIds from service definition were cast to 16 bit
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
@@ -2463,6 +2464,8 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                         UINT32 deviceCount;
                         UINT32 telegramRefCount;
 
+                        /* Default value */
+                        (*ppServiceDefs)[i].dummyService = FALSE;
                         while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt,
                                                     value) == TOK_ATTRIBUTE)
                         {
@@ -2477,6 +2480,13 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                             else if (vos_strnicmp(attribute, "ttl", MAX_TOK_LEN) == 0)
                             {
                                 (*ppServiceDefs)[i].serviceTTL = (UINT32) valueInt;
+                            }
+                            else if (vos_strnicmp(attribute, "dummyService", MAX_TOK_LEN) == 0)
+                            {
+                                if (vos_strnicmp(value, "on", MAX_TOK_LEN) == 0)
+                                {
+                                    (*ppServiceDefs)[i].dummyService = TRUE;
+                                }
                             }
                         }
 

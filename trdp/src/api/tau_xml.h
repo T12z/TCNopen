@@ -19,6 +19,7 @@
  /*
  * $Id$
  *
+ *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
  *      SB 2019-09-03: Added parsing for service time to live
  *      SB 2018-07-10: Ticket #264: Added structures for parsing of service definitions for service oriented interface
@@ -193,6 +194,7 @@ typedef struct
     TRDP_URI_USER_T         serviceName;    /**< Service Type/Name */
     UINT32                  serviceId;      /**< Service Id (24 bits) */
     UINT32                  serviceTTL;     /**< Service's time to live in seconds */
+    BOOL8                   dummyService;   /**< Defines whether the Service is a dummy Service or not. */
     UINT32                  eventCnt;       /**< Number of Events in Service */
     TRDP_EVENT_T            *pEvent;        /**< Pointer to the Service's Events */
     UINT32                  fieldCnt;       /**< Number of Fields in Service */
