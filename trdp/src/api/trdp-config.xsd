@@ -288,6 +288,17 @@
           <xs:documentation>ComId of telegram used for Event</xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute name="type" default="PD" use="optional">
+         <xs:annotation>
+            <xs:documentation>Defines whether the Event uses Process Data or Message Data.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="PD"/>
+            <xs:enumeration value="MD"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>        
     </xs:complexType>
   </xs:element>
   

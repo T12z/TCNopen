@@ -17,7 +17,7 @@
  /*
  * $Id$
  *
- *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions
+ *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions and MD option for events
  *      BL 2020-01-08: Ticket #284: Parsing of UINT32 fixed
  *      SB 2019-12-19: Bugfix where ComIds from service definition were cast to 16 bit
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
@@ -2579,7 +2579,8 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                         {
                             if (vos_strnicmp(tag, "event", MAX_TAG_LEN) == 0 && pEvent != NULL)
                             {
-
+                                /* default value */
+                                pEvent->usesPd = TRUE;
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
                                     if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
@@ -2589,6 +2590,13 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
                                     {
                                         pEvent->comId = (UINT32) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "type", MAX_TOK_LEN) == 0)
+                                    {
+                                        if (vos_strnicmp(value, "MD", MAX_TOK_LEN) == 0)
+                                        {
+                                            pEvent->usesPd = FALSE;
+                                        }
                                     }
                                 }
                                 pEvent++;
