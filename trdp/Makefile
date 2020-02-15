@@ -9,6 +9,7 @@
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2018. All rights reserved.
 #//
+#// Tz 2020-01-21: Adding support for shared library building
 #//	SB 2019-08-09: Added new lib target including tti, marshalling, xml parsing etc. and added install option
 #//	BL 2019-06-18: V2 changes: dividing trdp_if.c into tlc_if.c, tlp_if.c and tlm_if.c
 #//	BL 2019-06-13: Helm's Deep 96Board configuration added
@@ -94,7 +95,7 @@ LINT_OBJECTS = trdp_stats.lob\
 		trdp_stats.lob
 
 # Set LDFLAGS
-LDFLAGS += -L $(OUTDIR)
+LDFLAGS += -L$(OUTDIR)
 
 # Enable / disable MD Support
 # by default MD_SUPPORT is always enabled (in current state)
@@ -108,9 +109,11 @@ else
 endif
 
 ifeq ($(DEBUG), TRUE)
-	OUTDIR = bld/output/$(ARCH)-dbg
+	OUTDIR    = bld/output/$(ARCH)-dbg
+	OUTDIR_HP = bld/output/$(ARCH)-hp-dbg
 else
 	OUTDIR = bld/output/$(ARCH)-rel
+	OUTDIR_HP = bld/output/$(ARCH)-hp-rel
 endif
 
 # Enable / Disable realtime scheduling (posix only)
@@ -131,7 +134,7 @@ else
 	CFLAGS += -Os  -DNO_DEBUG
 endif
 
-TARGETS = outdir libtrdp
+TARGETS = libtrdp
 
 ifneq ($(TARGET_OS),VXWORKS)
 	TARGETS += example test pdtest mdtest xml marshall
@@ -167,38 +170,46 @@ ifeq ($(FULL_BUILD), 1)
 	TRDP_OBJS += $(TRDP_OPT_OBJS)
 endif
 
-all:	$(TARGETS)
+CPPFLAGS += $(INCLUDES)
+.PHONY: all libtrdp libtrdpap example tsn test pdtest mdtest vtests xml highperf marshall clean unconfig distclean lint doc help
 
-outdir:
-	@$(MD) $(OUTDIR)
+# define some trivial shortcuts
 
-libtrdp:	outdir $(OUTDIR)/libtrdp.a
+all:		$(TARGETS)
 
-libtrdpap:  outdir $(OUTDIR)/libtrdpap.a
+$(OUTDIR) $(OUTDIR_HP):
+	@$(MD)  $@
+
+libtrdp:	$(OUTDIR)/libtrdp.a
+
+libtrdpap:  $(OUTDIR)/libtrdpap.a
 
 example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
 
 tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
 
-test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull $(OUTDIR)/localtest2 $(OUTDIR)/localtest3  
+test:		$(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
 
-pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_responder $(OUTDIR)/testSub
+pdtest:		$(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_responder $(OUTDIR)/testSub
 
-mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-test-fast $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
+mdtest:		$(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-test-fast $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
 
-vtests:		outdir $(OUTDIR)/vtest
+vtests:		$(OUTDIR)/vtest
 
-xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
+xml:		$(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
 
-highperf:	outdir $(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2 $(OUTDIR)/trdp-pd-test-fast
+highperf:	$(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2 $(OUTDIR)/trdp-pd-test-fast
 
 marshall:	$(OUTDIR)/test_marshalling
 
 %_config:
 	cp -f config/$@ config/config.mk
 
-$(OUTDIR)/%.o: %.c trdp_if_light.h trdp_types.h vos_types.h vos_sock.h
+$(OUTDIR)/%.o: %.c trdp_if_light.h trdp_types.h vos_types.h vos_sock.h   | $(OUTDIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(OUTDIR_HP)/%.o: %.c trdp_if_light.h trdp_types.h vos_types.h vos_sock.h   | $(OUTDIR_HP)
+	$(CC) $(CFLAGS) $(INCLUDES) -DHIGH_PERF_INDEXED -c $< -o $@
 
 $(OUTDIR)/libtrdp.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
 			@$(ECHO) ' ### Building the lib $(@F)'
@@ -210,19 +221,75 @@ $(OUTDIR)/libtrdpap.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS))) $(addpref
 			@$(RM) $@
 			$(AR) cq $@ $^
 
+###############################################################################
+#
+# rules for building a shared library
+#
+###############################################################################
+## note
+# We build both versions of TRDP (simple / HIGHPERF) separately, so both are
+# available later (ie. in a package). It would be nice, if the opt sources,
+# (tau_*) were the same for both packet handling versions. However, there are
+# subtle differences in the headers / interfaces that were not designed to be
+# used this way. Play it safe for now and have two versions of libtau, too.
+
+# A shared library needs a proper name, and, by convention, this includes the 
+# major version number. The debian packaging script passes SO_VER_MAJ. If that
+# is not available or empty, provide some sane default.
+ifeq ($(strip $(SO_VER_MAJ)),)
+SO_VER_MAJ = 2
+endif
+
+# If the whole SO_VER is known, we also "prepare" (copy) the versioned libs, as
+# it is easier done here, than later.
+
+ifneq ($(strip $(SO_VER)),)
+
+%.so.$(SO_VER) : %.so
+	@cp $< $@
+
+shared: $(OUTDIR)/libtrdp.so.$(SO_VER) $(OUTDIR_HP)/libtrdp-hp.so.$(SO_VER) \
+        $(OUTDIR)/libtau.so.$(SO_VER) $(OUTDIR_HP)/libtau-hp.so.$(SO_VER)
+
+else
+
+shared: $(OUTDIR)/libtau.so $(OUTDIR_HP)/libtau-hp.so
+
+endif
+
+
+$(OUTDIR)/libtrdp.so:	$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
+			@$(ECHO) ' ### Building the lib $(@F)'
+			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtrdp.so.$(SO_VER_MAJ) \
+				-shared -o "$@" $^ $(LDLIBS) 
+
+$(OUTDIR)/libtau.so:	$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS))) $(OUTDIR)/libtrdp.so
+			@$(ECHO) ' ### Building the lib $(@F)'
+			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtau.so.$(SO_VER_MAJ) \
+				-shared -o "$@" $^ $(LDLIBS) -ltrdp
+
+$(OUTDIR_HP)/libtrdp-hp.so:	$(addprefix $(OUTDIR_HP)/,$(notdir $(TRDP_OBJS) trdp_pdindex.o))
+			@$(ECHO) ' ### Building the lib $(@F)'
+			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtrdp-hp.so.$(SO_VER_MAJ) \
+				-shared -o "$@" $^ $(LDLIBS) 
+
+$(OUTDIR_HP)/libtau-hp.so:	$(addprefix $(OUTDIR_HP)/,$(notdir $(TRDP_OPT_OBJS))) $(OUTDIR_HP)/libtrdp-hp.so
+			@$(ECHO) ' ### Building the lib $(@F)'
+			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -L$(OUTDIR_HP) -Wl,-soname,libtau-hp.so.$(SO_VER_MAJ) \
+				-shared -o "$@" $^ $(LDLIBS) -ltrdp-hp
 
 ###############################################################################
 #
 # rules for the demos
 #
 ###############################################################################
-				  
+
 $(OUTDIR)/echoCallback:  echoCallback.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) example/echoCallback.c \
 				$(CFLAGS) $(INCLUDES) -o $@\
 				-ltrdp \
-			    $(LDFLAGS)
+				$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 				  
@@ -231,7 +298,7 @@ $(OUTDIR)/echoTrackside:  echoTrackside.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/echoTrackside.c \
 				$(CFLAGS) $(INCLUDES) -o $@\
 				-ltrdp \
-				$(LDFLAGS) 
+				$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/sourceFiltering:  sourceFilter/sourceFiltering.c  $(OUTDIR)/libtrdp.a
@@ -239,7 +306,7 @@ $(OUTDIR)/sourceFiltering:  sourceFilter/sourceFiltering.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/sourceFilter/sourceFiltering.c \
 			$(CFLAGS) $(INCLUDES) -o $@\
 				-ltrdp \
-				$(LDFLAGS)
+				$(LDFLAGS) $(LDLIBS)
 				@$(STRIP) $@
 
 $(OUTDIR)/receivePolling:  echoPolling.c  $(OUTDIR)/libtrdp.a
@@ -247,7 +314,7 @@ $(OUTDIR)/receivePolling:  echoPolling.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/echoPolling.c \
 				$(CFLAGS) $(INCLUDES) -o $@\
 				-ltrdp \
-			    $(LDFLAGS)> /dev/null
+				$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/receiveHello: receiveHello.c  $(OUTDIR)/libtrdp.a
@@ -255,6 +322,7 @@ $(OUTDIR)/receiveHello: receiveHello.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/receiveHello.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+                $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -263,6 +331,7 @@ $(OUTDIR)/sendHello:   sendHello.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/sendHello.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -271,6 +340,7 @@ $(OUTDIR)/receiveTSN: receiveTSN.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/TSN/receiveTSN.c \
 			-ltrdp \
 			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+            $(LDLIBS) \
 			-o $@
 			@$(STRIP) $@
 
@@ -279,6 +349,7 @@ $(OUTDIR)/sendTSN:   sendTSN.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/TSN/sendTSN.c \
 			-ltrdp \
 			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+            $(LDLIBS) \
 			-o $@
 			@$(STRIP) $@
 
@@ -287,6 +358,7 @@ $(OUTDIR)/sendData:   sendData.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/sendData.c \
 				-ltrdp \
 				$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+                $(LDLIBS) \
 				-o $@
 			@$(STRIP) $@
 
@@ -295,6 +367,7 @@ $(OUTDIR)/getStats:   diverse/getStats.c  $(OUTDIR)/libtrdp.a
 			$(CC) test/diverse/getStats.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+                $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -307,7 +380,9 @@ $(OUTDIR)/mdManager: mdManager.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building example MD application $(@F)'
 			$(CC) example/mdManager.c \
 			    -ltrdp \
+			    -luuid \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+                $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -321,7 +396,7 @@ $(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdp.a $(addpr
 			$(CC) $^ \
 			$(CFLAGS) $(INCLUDES) -o $@ \
 			-ltrdp \
-			$(LDFLAGS)
+			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
@@ -329,7 +404,7 @@ $(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a $(addprefix $
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
 			-ltrdp \
-			$(LDFLAGS)
+			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/trdp-xmlpd-test-fast:  trdp-xmlpd-test-fast.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
@@ -337,14 +412,14 @@ $(OUTDIR)/trdp-xmlpd-test-fast:  trdp-xmlpd-test-fast.c  $(OUTDIR)/libtrdp.a $(a
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
 			-ltrdp \
-			$(LDFLAGS)
+			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/mdTest4: mdTest4.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building UDPMDCom test application $(@F)'
 			$(CC) test/udpmdcom/mdTest4.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -352,7 +427,7 @@ $(OUTDIR)/test_mdSingle: test_mdSingle.c $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD single test application $(@F)'
 			$(CC) test/diverse/test_mdSingle.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -360,7 +435,7 @@ $(OUTDIR)/inaugTest:   diverse/inaugTest.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building republish test $(@F)'
 			$(CC) test/diverse/inaugTest.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -368,7 +443,7 @@ $(OUTDIR)/trdp-pd-test: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building PD test application $(@F)'
 			$(CC) test/pdpatterns/trdp-pd-test.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -376,7 +451,7 @@ $(OUTDIR)/trdp-pd-test-fast: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building PD test application $(@F)'
 			$(CC) test/pdpatterns/trdp-pd-test-fast.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -384,7 +459,7 @@ $(OUTDIR)/trdp-md-test: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD test application $(@F)'
 			$(CC) test/mdpatterns/trdp-md-test.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -392,7 +467,7 @@ $(OUTDIR)/trdp-md-test-fast: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD test application $(@F)'
 			$(CC) test/mdpatterns/trdp-md-test-fast.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -400,7 +475,7 @@ $(OUTDIR)/trdp-md-reptestcaller: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD test Caller application $(@F)'
 			$(CC) test/mdpatterns/rep-testcaller.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -408,7 +483,7 @@ $(OUTDIR)/trdp-md-reptestreplier: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MD test Replier application $(@F)'
 			$(CC) test/mdpatterns/rep-testreplier.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -416,7 +491,7 @@ $(OUTDIR)/vtest: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building vtest application $(@F)'
 			$(CC) test/diverse/vtest.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -424,7 +499,7 @@ $(OUTDIR)/vostest: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building VOS test application $(@F)'
 			$(CC) test/diverse/LibraryTests.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -432,7 +507,7 @@ $(OUTDIR)/pd_responder: $(OUTDIR)/libtrdp.a pd_responder.c
 			@$(ECHO) ' ### Building PD test application $(@F)'
 			$(CC) test/diverse/pd_responder.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -440,7 +515,7 @@ $(OUTDIR)/testSub: $(OUTDIR)/libtrdp.a subTest.c
 			@$(ECHO) ' ### Building subscribe PD test application $(@F)'
 			$(CC) test/diverse/subTest.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -448,7 +523,7 @@ $(OUTDIR)/pdPull: $(OUTDIR)/libtrdp.a pdPull.c
 			@$(ECHO) ' ### Building PD pull test application $(@F)'
 			$(CC) test/diverse/pdPull.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -457,7 +532,7 @@ $(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a $(addprefix $(O
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
 				-ltrdp \
-				$(LDFLAGS)
+				$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
@@ -465,7 +540,7 @@ $(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdp.a $(addprefix 
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
 				-ltrdp \
-			$(LDFLAGS)
+            $(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/localtest3:   localtest/api_test_3.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
@@ -473,7 +548,7 @@ $(OUTDIR)/localtest3:   localtest/api_test_3.c  $(OUTDIR)/libtrdp.a $(addprefix 
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
 				-ltrdp \
-			$(LDFLAGS)
+            $(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
@@ -481,14 +556,14 @@ $(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdp.
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
 				-ltrdp \
-			$(LDFLAGS)
+			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building MC joiner application $(@F)'
 			$(CC) test/diverse/MCreceiver.c \
 				-ltrdp \
-				$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+				$(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 				-o $@
 			@$(STRIP) $@
 
@@ -498,24 +573,27 @@ $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 #
 ###############################################################################
 clean:
-	rm -f -r $(OUTDIR)
+	-$(RM) -r $(OUTDIR) $(OUTDIR_HP)
 
 unconfig:
 	-$(RM) config/config.mk
 
 distclean:	clean unconfig
-	rm -f -r bld/*
-	rm -f -r doc/latex/*
+	-$(RM) -r bld/*
+	-$(RM) -r doc/latex/*
+	-$(RM)   'doc/TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf'
+	-$(RM) -r doc/html/*
+	$(MAKE) -C spy/src/trdp_spy $@
 
 ###############################################################################
 #                                                                      	
 # Common lint for the whole system
 #
 ############################################################################### 
-lint:   loutdir $(LINT_OUTDIR)/final.lint
+lint:   $(LINT_OUTDIR)/final.lint | $(LINT_OUTDIR)
 
-loutdir:
-	@$(MD) $(LINT_OUTDIR)
+$(LINT_OUTDIR):
+	@$(MD) $@
 
 LINTFLAGS = +v -i$(LINT_RULE_DIR) $(LINT_RULE_DIR)co-gcc.lnt -i ./src/api -i ./src/vos/api -i ./src/common -D$(TARGET_OS) $(LINT_SYSINCLUDE_DIRECTIVES)\
 	-DMD_SUPPORT=1 -w3 -e655 -summary -u
@@ -561,6 +639,12 @@ install:
 	@$(MD) ../$(INSTALLDIR)
 	cp $(OUTDIR)/libtrdpap.a ../$(INSTALLDIR)/libtrdpap.a
 endif
+
+dist: distclean
+	# remove debuild artifacts, if they exist
+	$(RM) debian/libtrdp2 debian/tmp debian/libtrdp-dev debian/libtrdp-wireshark debian/files debian/debhelper-build-stamp debian/*.substvars debian/*.debhelper.log debian/.debhelper 
+	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="resources" --exclude-vcs-ignores -c -J -f ../libtrdp_2.0.orig.tar.xz ../trdp
+
 
 ###############################################################################
 #

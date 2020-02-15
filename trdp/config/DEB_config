@@ -1,0 +1,58 @@
+#//
+#// $Id$
+#//
+#// DESCRIPTION    Config file to make TRDP for deb-packaging
+#//
+#// AUTHOR         Thorsten Schulz <thorsten.schulz@uni-rostock.de>
+#//
+#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
+#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
+#// Copyright Universität Rostock, 2020. All rights reserved.
+#//
+
+# fallback if run w/o dh
+DEB_HOST_MULTIARCH ?= x86_64-linux-gnu
+
+ARCH = $(DEB_HOST_MULTIARCH)
+TARGET_VOS = posix
+TARGET_OS = LINUX
+
+# This stuff with TC* and rules.mk seriously breakes common use of the CC variable in a GNU environment. Just saying.
+ifdef DEB_HOST_GNU_TYPE
+TCPREFIX = $(DEB_HOST_GNU_TYPE)-
+endif
+
+#TCPOSTFIX = 
+#DOXYPATH = 
+
+# the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
+CPPFLAGS += -D_GNU_SOURCE -DPOSIX -DL_ENDIAN -pthread
+
+# be mildly annoying
+CFLAGS   += -Wall -Werror -fstrength-reduce -fsigned-char -fPIC 
+CFLAGS   += -Wno-unknown-pragmas -Wno-unused-label -Wno-unused-function -Wno-address-of-packed-member
+
+LDFLAGS += 
+LDLIBS += -lrt
+
+# debhelper potentially already does this for us, need to check
+ifeq ($(DEB_HOST_ARCH), i386)
+	CFLAGS += -m32
+endif
+
+ifeq ($(DEB_HOST_ARCH), amd64)
+	CFLAGS += -m64
+endif
+
+LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
+
+# Additional sources for TSN support
+#TSN_SUPPORT = 1
+
+#include by default
+SOA_SUPPORT = 1
+
+# Currently, there are multiple libs being build, partially with HP enabled.
+# Do not uncomment this for this configuration.
+#HIGH_PERF_INDEXED = 1
+

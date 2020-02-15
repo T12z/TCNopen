@@ -1,0 +1,41 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/architecture.mk
+
+#export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_HOST_MULTIARCH
+export DEB_HOST_ARCH
+
+#needs to be updated on new releases
+export SO_VER = $(strip $(file < debian/version))
+export SO_VER_MAJ = $(firstword $(subst ., ,$(SO_VER)))
+
+# In case you want to add more flags to the defaults, use something like this
+#export DEB_CFLAGS_MAINT_APPEND  = -Os -Wall -pedantic
+#export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+libs = $(addsuffix $(SO_VER),$(wildcard bld/output/${DEB_HOST_MULTIARCH}*-rel/*.so))
+
+%:
+	dh $@ --sourcedirectory=src --builddirectory=bld
+
+override_dh_auto_clean:
+	$(MAKE) distclean
+	$(MAKE) -C spy/src/trdp_spy distclean
+
+# produce a lib-build-config for a Debian-system
+# Does it cross-build or non-x86-build? Only the brave know.
+override_dh_auto_configure:
+	$(MAKE) DEB_config
+
+override_dh_auto_build:
+	$(MAKE) libtrdp libtrdpap shared
+	$(MAKE) -C spy/src/trdp_spy trdp_spy.so doc-html
+
+override_dh_auto_install:
+	# this has no real effect: the main make does not define an install target
+	dh_auto_install -- prefix=/usr
+	# call make-spy explicitly, since it is hidden in a sub-directory 
+	make -C spy/src/trdp_spy install install-html DESTDIR=$(CURDIR)/debian/tmp
+

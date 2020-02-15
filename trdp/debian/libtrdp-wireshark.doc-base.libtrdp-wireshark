@@ -1,0 +1,15 @@
+Document: libtrdp-wireshark
+Title: TRDP SPY Wireshark Dissector User Manual
+Author: Florian Weispfenning, Thorsten Schulz, e.a.
+Abstract: The TCNopen TRDP Wireshark dissector aims to assist
+ development of libtrdp applications, as well as debugging of TRDP based
+ network traffic. TRDP is the Train Realtime Data Protocol described in 
+ IEC61375. This documentation contains information on general (non-dpkg
+ based) installation, source code documentation (Doxygen) and usage guide
+ within Wireshark.
+Section: System/Administration
+
+Format: HTML
+Index: /usr/share/doc/libtrdp-wireshark/html-ref/index.html
+Files: /usr/share/doc/libtrdp-wireshark/html-ref/*.html
+

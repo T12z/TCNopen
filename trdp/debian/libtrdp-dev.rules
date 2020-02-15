@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+%:
+	dh $@ --sourcedirectory=trdp --builddirectory=trdp/bld
+
+override_dh_auto_configure:
+	$(MAKE) LINUX_X86_64_config
+
+override_dh_auto_build:
+	$(MAKE) libtrdp libtrdpap
+
+override_dh_auto_install:
+	$(MAKE) INSTALLDIR=$$(pwd)/debian/libtrdp prefix=/usr install
