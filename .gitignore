@@ -1,8 +1,10 @@
 trdp/bld/
 trdp/doc/html/
 trdp/doc/latex/
+trdp/doc/TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf
 *.o
 .settings
 .project
 .cproject
 trdp/config/config.mk
+/libtrdp*

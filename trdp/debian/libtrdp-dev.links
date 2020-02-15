@@ -1,0 +1,5 @@
+usr/lib/${DEB_HOST_MULTIARCH}/libtrdp.so.${env:SO_VER_MAJ}       usr/lib/${DEB_HOST_MULTIARCH}/libtrdp.so
+usr/lib/${DEB_HOST_MULTIARCH}/libtau.so.${env:SO_VER_MAJ}        usr/lib/${DEB_HOST_MULTIARCH}/libtau.so
+usr/lib/${DEB_HOST_MULTIARCH}/libtrdp-hp.so.${env:SO_VER_MAJ}    usr/lib/${DEB_HOST_MULTIARCH}/libtrdp-hp.so
+usr/lib/${DEB_HOST_MULTIARCH}/libtau-hp.so.${env:SO_VER_MAJ}     usr/lib/${DEB_HOST_MULTIARCH}/libtau-hp.so
+

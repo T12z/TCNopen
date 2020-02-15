@@ -1,0 +1,62 @@
+Source: libtrdp
+Maintainer: Thorsten Schulz <thorsten.schulz@uni-rostock.de>
+Section: libs
+Priority: optional
+Standards-Version: 4.4.1
+Build-Depends: debhelper (>= 12.8), doxygen, libwireshark-dev (>= 2.6)
+Homepage: https://tcnopen.eu
+
+Package: libtrdp2
+Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends} 
+Depends:  ${shlibs:Depends}, ${misc:Depends}
+Description: TCNOpen Library for IEC61375 standardised communication 
+ TCN (Train Communication Network) is a series of international standards 
+ (IEC61375) developed by Working Group 43 of the IEC, specifying a 
+ communication system for the data communication within and between vehicles 
+ of a train. It is currently in use on many thousands of trains in the world 
+ in order to allow electronic devices to exchange information while operating 
+ aboard the same train.
+ .
+ TCNOpen is an open source initiative which the partner railway industries
+ created with the aim to build in collaboration some key parts of new or
+ upcoming railway standards, commonly known under the name TCN.
+ .
+ This package contains the shared runtime library.
+
+Package: libtrdp-dev
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Depends: libtrdp2 (= ${binary:Version}), ${misc:Depends}
+Description: TCNOpen Library development files for IEC61375 communication
+ TCN (Train Communication Network) is a series of international standards
+ (IEC61375) developed by Working Group 43 of the IEC, specifying a
+ communication system for the data communication within and between vehicles
+ of a train. It is currently in use on many thousands of trains in the world
+ in order to allow electronic devices to exchange information while operating 
+ aboard the same train.
+ .
+ TCNOpen is an open source initiative which the partner railway industries
+ created with the aim to build in collaboration some key parts of new or
+ upcoming railway standards, commonly known under the name TCN.
+ .
+ This package contains the static library and headers for development.
+
+Package: libtrdp-wireshark
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Description: Wireshark dissector for IEC61375 communication
+ TCN (Train Communication Network) is a series of international standards
+ (IEC61375) developed by Working Group 43 of the IEC, specifying a
+ communication system for the data communication within and between vehicles
+ of a train. The Train Realtime Data Protocol (TRDP) is implemented by the 
+ libtrdp library.
+ .
+ This package contains the wireshark dissector.
+

@@ -1,0 +1,2 @@
+bld/output/${DEB_HOST_MULTIARCH}*-rel/lib*.so.* usr/lib/${DEB_HOST_MULTIARCH}
+
