@@ -111,7 +111,7 @@ extern "C" {
                                    TRDP_HP_CAT_SLOT_T  *pEntry,
                                    UINT32              slot,
                                    UINT32              depth,
-                                   const PD_ELE_T      *pAssign)
+                                   PD_ELE_T            *pAssign)
     {
         *(pEntry->ppIdxCat + slot * pEntry->depthOfTxEntries + depth) = pAssign;
     }
@@ -285,7 +285,7 @@ extern "C" {
      */
     static TRDP_ERR_T distribute (
                                   TRDP_HP_CAT_SLOT_T  *pCat,
-                                  const PD_ELE_T      *pElement)
+                                  PD_ELE_T            *pElement)
     {
         TRDP_ERR_T  err         = TRDP_NO_ERR;
         INT32       startIdx    = 0;
@@ -442,7 +442,7 @@ extern "C" {
         /* first time allocation */
         if (pCat->ppIdxCat == NULL)
         {
-            pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+            pCat->ppIdxCat = (PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
 
             if (pCat->ppIdxCat == NULL)
             {
@@ -455,7 +455,7 @@ extern "C" {
         {
             /* re-allocation is necessary, print warning! */
             vos_memFree(pCat->ppIdxCat);
-            pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+            pCat->ppIdxCat = (PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
 
             if (pCat->ppIdxCat == NULL)
             {
