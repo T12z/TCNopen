@@ -12,6 +12,14 @@ You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols-
 
 N E W S
 =======
+2020-02 Thorsten <thorsten.schulz@uni-rostock.de>
+
+ * Added deb/dpkg based packaging for Linux.
+ 
+ * Added Makefile for Linux building. Needs libwireshark-dev as dependency and doxygen for HTML-docs.
+ 
+ * Doxygen PDF generation repaired. However, only the HTML output is included in the packaging to minimize build-dep.
+
 2020-01 Thorsten <thorsten.schulz@uni-rostock.de>
 
  * Build for Wireshark 3.2 added. Sources compile w/o any changes.
@@ -21,7 +29,6 @@ N E W S
  * Update on time types representation.
  
  * Time display can be fine-tuned in the TRDP-Spy preferences.
- 
  
 2019-04 Thorsten <thorsten.schulz@uni-rostock.de>
 
