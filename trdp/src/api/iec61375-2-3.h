@@ -14,6 +14,7 @@
  /*
  * $Id$
  *
+ *      BL 2020-02-26: Ticket #320 Wrong ETB_CTRL_TO_US value
  *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
  *      BL 2019-08-15: Ticket #273 Units for certain standard timeout values inconsistent
  *      BL 2019-02-01: Ticket #234 Correcting Statistics ComIds
@@ -179,7 +180,7 @@
 
 #define ETB_CTRL_COMID                      1u
 #define ETB_CTRL_CYCLE                      500000u                                 /**< [us] 0.5s                  */
-#define ETB_CTRL_TO_US                      300000u                                 /**< [us] 3s                    */
+#define ETB_CTRL_TO_US                      3000000u                                /**< [us] 3s                    */
 #define ETB_CTRL_DEST_URI                   "grpECSP.anyVeh.aCst.aClTrn.lTrn"
 #define ETB_CTRL_DEST_IP                    "239.193.0.1"
 #define ETB_CTRL_DS                         "ETBCTRL_TELEGRAM"
