@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
  *      AÖ 2020-01-10: Ticket #293 Minor fix in the macro, added spaces to avoid " to be part of the final string.
  *      BL 2020-01-10: Ticket #293 Avoid having version numbering in different places! Makro for version string (DLL) changed.
  *      AÖ 2019-11-14: Ticket #293 Add version to TCNOpen dll <-- !!! should be rejected! Use the function in tlc_if.c !!!
@@ -107,8 +108,11 @@
 
 #define TRDP_IF_WAIT_FOR_READY          120u        /**< 120 seconds (120 tries each second to bind to an IP address) */
 
-#undef  TRDP_PROTO_VER
-#define TRDP_PROTO_VER                  0x0101u                     /**< compatible protocol version with service Id  */
+#ifdef SOA_SUPPORT
+#define TRDP_PROTO_VER      0x0101u             /**< compatible protocol version using reserved field as serviceId    */
+#else
+#define TRDP_PROTO_VER      0x0100u             /**< standard protocol version                                        */
+#endif
 
 /***********************************************************************************************************************
  * TYPEDEFS
