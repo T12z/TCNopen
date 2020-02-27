@@ -1,15 +1,18 @@
 #!/usr/bin/make -f
 
-include /usr/share/dpkg/architecture.mk
+DPKG_EXPORT_BUILDFLAGS = 1
+DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+include /usr/share/dpkg/default.mk
 
 #export DH_VERBOSE = 1
-export DEB_BUILD_MAINT_OPTIONS = hardening=+all
-export DEB_HOST_MULTIARCH
-export DEB_HOST_ARCH
+export DEB_BUILD_MAINT_OPTIONS DEB_HOST_MULTIARCH DEB_HOST_ARCH
 
 #needs to be updated on new releases
-export SO_VER = $(strip $(file < debian/version))
-export SO_VER_MAJ = $(firstword $(subst ., ,$(SO_VER)))
+#check above includes, DH might provide stuff to help with this
+SO_VER = $(strip $(file < debian/version))
+SO_VER_MAJ = $(firstword $(subst ., ,$(SO_VER)))
+export SO_VER SO_VER_MAJ
 
 # In case you want to add more flags to the defaults, use something like this
 #export DEB_CFLAGS_MAINT_APPEND  = -Os -Wall -pedantic
@@ -38,4 +41,7 @@ override_dh_auto_install:
 	dh_auto_install -- prefix=/usr
 	# call make-spy explicitly, since it is hidden in a sub-directory 
 	make -C spy/src/trdp_spy install install-html DESTDIR=$(CURDIR)/debian/tmp
+
+# No tests
+override_dh_auto_test:
 
