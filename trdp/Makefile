@@ -634,9 +634,10 @@ install:
 endif
 
 dist: distclean
+	@$(ECHO) "Building a source archive w/o project artifacts in the top-level folder."
 	# remove debuild artifacts, if they exist
-	$(RM) debian/libtrdp2 debian/tmp debian/libtrdp-dev debian/libtrdp-wireshark debian/files debian/debhelper-build-stamp debian/*.substvars debian/*.debhelper.log debian/.debhelper 
-	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="resources" --exclude-vcs-ignores -c -J -f ../libtrdp_2.0.orig.tar.xz ../trdp
+	$(RM) -r debian/libtrdp2 debian/tmp debian/libtrdp-dev debian/libtrdp-wireshark debian/files debian/debhelper-build-stamp debian/*.substvars debian/*.debhelper.log debian/.debhelper 
+	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_2.0.orig.tar.xz ../trdp
 
 
 ###############################################################################
