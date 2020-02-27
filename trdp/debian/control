@@ -3,7 +3,7 @@ Maintainer: Thorsten Schulz <thorsten.schulz@uni-rostock.de>
 Section: libs
 Priority: optional
 Standards-Version: 4.4.1
-Build-Depends: debhelper (>= 12.8), doxygen, libwireshark-dev (>= 2.6)
+Build-Depends: debhelper (>= 12.8), doxygen, libwireshark-dev (>= 2.6), libglib2.0-dev, graphviz
 Homepage: https://tcnopen.eu
 
 Package: libtrdp2
