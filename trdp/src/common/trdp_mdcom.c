@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      SB 2020-03-20: Ticket #324 mutexMD added to reply and confirm functions
  *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-08-16: Ticket #267 Incorrect values for fields WireError, CRCError and Topo...
  *      BL 2019-06-11: Possible NULL pointer access
@@ -3258,6 +3259,11 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
     {
         return TRDP_MUTEX_ERR;
     }
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        (void) vos_mutexUnlock(appHandle->mutex);
+        return TRDP_MUTEX_ERR;
+    }
 
     if ( pSessionId )
     {
@@ -3349,6 +3355,10 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
     }
 
     /* Release mutex */
+    if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
+    }
     if ( vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR )
     {
         vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
@@ -3613,6 +3623,11 @@ TRDP_ERR_T trdp_mdConfirm (
     {
         return TRDP_MUTEX_ERR;
     }
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        (void) vos_mutexUnlock(appHandle->mutex);
+        return TRDP_MUTEX_ERR;
+    }
 
     vos_printLogStr(VOS_LOG_INFO, "MD TRDP_MSG_MC\n");
 
@@ -3699,6 +3714,10 @@ TRDP_ERR_T trdp_mdConfirm (
         errv = TRDP_PARAM_ERR;
     }
     /* Release mutex */
+    if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
+    }
     if ( vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR )
     {
         vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
