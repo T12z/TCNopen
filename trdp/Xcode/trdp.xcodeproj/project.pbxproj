@@ -829,6 +829,7 @@
 		733615AA165BF91200A70D3D /* mdTest4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mdTest4.c; sourceTree = "<group>"; };
 		7340919E1765CD2000CFCE5B /* subTest.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; name = subTest.c; path = ../test/diverse/subTest.c; sourceTree = SOURCE_ROOT; tabWidth = 4; };
 		734091B91765D8A100CFCE5B /* testSub */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testSub; sourceTree = BUILT_PRODUCTS_DIR; };
+		734233B6242E488A00B5C266 /* afl */ = {isa = PBXFileReference; lastKnownFileType = folder; path = afl; sourceTree = "<group>"; };
 		734721F7169C272E00EC18C6 /* ladderApplication_publisher.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ladderApplication_publisher.c; path = ../test/ladderpdtest/ladderApplication_publisher.c; sourceTree = "<group>"; };
 		734721F8169C272E00EC18C6 /* ladderApplication_subscriber.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ladderApplication_subscriber.c; path = ../test/ladderpdtest/ladderApplication_subscriber.c; sourceTree = "<group>"; };
 		73517C4216BBFD5300DB5208 /* receiveHello */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = receiveHello; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1461,6 +1462,7 @@
 		7366AC6E16B68C920068A893 /* xml */ = {
 			isa = PBXGroup;
 			children = (
+				734233B6242E488A00B5C266 /* afl */,
 				7366AC6F16B68C920068A893 /* device1.xml */,
 				7366AC7016B68C920068A893 /* device2.xml */,
 				08E446BD22B27B65009C6D0E /* speedtest1.xml */,
