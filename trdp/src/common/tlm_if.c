@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2020-03-30: Ticket #313 Added topoCount check for notifications
 *      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
 *      SB 2019-10-02: Ticket #280 Moved assignment of iterMD after the mutex lock in tlm_abortSession
 *      SB 2019-07-12: Removing callback during tlm_abortSession to prevent it from being called with deleted pUserRef
@@ -235,6 +236,13 @@ EXT_DECL TRDP_ERR_T tlm_notify (
     if (((pData == NULL) && (dataSize != 0u)) || (dataSize > TRDP_MAX_MD_DATA_SIZE))
     {
         return TRDP_PARAM_ERR;
+    }
+    if (!trdp_validTopoCounters(appHandle->etbTopoCnt,
+        appHandle->opTrnTopoCnt,
+        etbTopoCnt,
+        opTrnTopoCnt))
+    {
+        return TRDP_TOPO_ERR;
     }
     return trdp_mdCall(
                TRDP_MSG_MN,                                    /* notify without reply */
