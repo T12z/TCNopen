@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
  *      SB 2020-03-20: Ticket #324 mutexMD added to reply and confirm functions
  *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-08-16: Ticket #267 Incorrect values for fields WireError, CRCError and Topo...
@@ -1719,6 +1720,7 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
             iterMD->addr.etbTopoCnt     = iterListener->addr.etbTopoCnt;
             iterMD->addr.opTrnTopoCnt   = iterListener->addr.opTrnTopoCnt;
             iterMD->pktFlags            = iterListener->pktFlags;           /* BL: This was missing! */
+            iterMD->pListener           = iterListener;
 
 
             /* Count this Request/Notification as new session */

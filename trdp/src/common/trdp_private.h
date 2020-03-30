@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
  *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
  *      AÖ 2020-01-10: Ticket #293 Minor fix in the macro, added spaces to avoid " to be part of the final string.
  *      BL 2020-01-10: Ticket #293 Avoid having version numbering in different places! Makro for version string (DLL) changed.
@@ -397,6 +398,7 @@ typedef struct MD_ELE
     TRDP_MD_CALLBACK_T  pfCbFunction;           /**< Pointer to MD callback function                        */
     MD_PACKET_T         *pPacket;               /**< Packet header in network byte order                    */
                                                 /**< data ready to be sent (with CRCs)                      */
+    MD_LIS_ELE_T        *pListener;             /**< Pointer to the Session's associated Listener           */
 } MD_ELE_T;
 
 /**    TCP file descriptor parameters   */

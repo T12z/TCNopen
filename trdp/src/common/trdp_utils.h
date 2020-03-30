@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2020-03-30: Ticket #311: removed trdp_getSeqCnt() because redundant publisher should not run on the same interface
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -181,11 +182,6 @@ UINT32  trdp_packetSizePD2 (
 
 UINT32  trdp_packetSizeMD (
     UINT32 dataSize);
-
-UINT32  trdp_getSeqCnt (
-    UINT32          comId,
-    TRDP_MSG_T      msgType,
-    TRDP_IP_ADDR_T  srcIpAddr);
 
 int trdp_checkSequenceCounter (
     PD_ELE_T        *pElement,
