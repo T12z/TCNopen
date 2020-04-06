@@ -576,6 +576,9 @@ distclean:	clean unconfig
 	-$(RM) -r doc/latex/*
 	-$(RM)   'doc/TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf'
 	-$(RM) -r doc/html/*
+	# remove debuild artifacts, if they remained
+	-$(RM) -r debian/libtrdp2 debian/tmp debian/libtrdp-dev debian/libtrdp-wireshark debian/files debian/debhelper-build-stamp debian/*.substvars debian/*.debhelper.log debian/.debhelper 
+	#debclean --cleandebs
 	$(MAKE) -C spy/src/trdp_spy $@
 
 ###############################################################################
@@ -635,9 +638,7 @@ endif
 
 dist: distclean
 	@$(ECHO) "Building a source archive w/o project artifacts in the top-level folder."
-	# remove debuild artifacts, if they exist
-	$(RM) -r debian/libtrdp2 debian/tmp debian/libtrdp-dev debian/libtrdp-wireshark debian/files debian/debhelper-build-stamp debian/*.substvars debian/*.debhelper.log debian/.debhelper 
-	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_2.0.orig.tar.xz ../trdp
+	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="test" --exclude="resources" --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_2.0.orig.tar.xz ../trdp
 
 
 ###############################################################################

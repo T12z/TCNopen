@@ -4,7 +4,7 @@ Section: libs
 Priority: optional
 Standards-Version: 4.4.1
 Build-Depends: debhelper (>= 12.8), doxygen, libwireshark-dev (>= 2.6), libglib2.0-dev, graphviz
-Homepage: https://tcnopen.eu
+Homepage: https://github.com/T12z/TCNopen
 
 Package: libtrdp2
 Architecture: any
