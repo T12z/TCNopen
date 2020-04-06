@@ -1,6 +1,11 @@
-libtrdp (2.0-1) UNRELEASED; urgency=low
+libtrdp (2.0-111) UNRELEASED; urgency=low
 
+  [ Thorsten Schulz ]
   local package
   * Preparing deb packaging.
 
- -- Thorsten Schulz <thorsten.schulz@uni-rostock.de>  Tue, 21 Jan 2020 18:05:20 +0100
+  [ Thorsten ]
+  * added getRxTime() for measurements
+  * fixed WS-plugin building
+
+ -- Thorsten <thorsten@Cody>  Mon, 06 Apr 2020 23:13:47 +0200
