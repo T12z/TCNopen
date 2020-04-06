@@ -14,7 +14,7 @@
 
 PKGCNF_EXISTS = $(shell pkg-config wireshark --cflags)
 IFLAGS    = $(shell pkg-config wireshark --cflags-only-I)
-CFLAGS   += $(shell pkg-config wireshark --cflags-only-other) -fPIC
+CFLAGS   += $(shell pkg-config wireshark --cflags-only-other) -fPIC -O2
 LDFLAGS  += $(shell pkg-config wireshark --libs-only-other)
 LIBS     += $(shell pkg-config wireshark --libs-only-l)
 PLUGINDIR = $(shell pkg-config wireshark --variable=plugindir)
@@ -31,6 +31,10 @@ endif
 
 HFILES = $(addsuffix /cfile.h,$(subst -I,,$(IFLAGS)))
 CFILE_EXISTS = $(strip $(foreach hdr,$(HFILES),$(file <$(hdr))))
+
+CPPFLAGS += -DPLUGIN_VERSION=\"2.1.0.0\"
+CPPFLAGS += -Wall -W -Wextra -Wendif-labels -Wpointer-arith -Warray-bounds -Wformat-security -fwrapv -fno-strict-overflow -fno-delete-null-pointer-checks -Wvla -Waddress -Wattributes -Wdiv-by-zero -Wignored-qualifiers -Wpragmas -Wno-overlength-strings -Wwrite-strings -Wno-long-long -fexcess-precision=fast -Wc++-compat -Wshadow -Wno-pointer-sign -Wold-style-definition -Wstrict-prototypes -Wlogical-op -Wjump-misses-init -fvisibility=hidden
+LDFLAGS  += -Wl,--as-needed -pie -Wl,-soname,trdp_spy.so
 
 # There is probably a way to automate checking for that header and going for the fall-back pull
 
@@ -51,20 +55,20 @@ all: trdp_spy.so
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-trdp_spy.so: trdpDict.o trdp_env.o packet-trdp_spy.o
+trdp_spy.so: trdpDict.o trdp_env.o packet-trdp_spy.o plugin.o
 	$(CC) $(CPPFLAGS) $(LDFLAGS) -shared -o "$@" $^ $(LIBS)
 	
 cfile.h:
 	wget https://raw.githubusercontent.com/wireshark/wireshark/master-3.2/cfile.h
 	
 clean: doc-clean
-	$(RM) trdpDict.o trdp_env.o packet-trdp_spy.o
+	$(RM) trdpDict.o trdp_env.o packet-trdp_spy.o plugin.o
 
 distclean: clean
 	$(RM) trdp_spy.so cfile.h
 
 install: trdp_spy.so
-	$(INSTALL) $(DESTDIR)$(PLUGINDIR) trdp_spy.so
+	$(INSTALL) $(DESTDIR)$(PLUGINDIR)/epan trdp_spy.so
 
 install-html: doc-html
 	$(INSTALL) $(DESTDIR)/html-ref doc/html/*.html doc/html/*.png doc/html/*.js doc/html/*.map doc/html/*.css
