@@ -135,7 +135,7 @@ TRDP_ERR_T tau_xsession_delete   (TAU_XSESSION_T *our);
  *
  *  @param[in,out] our    session state.
  */
-int        tau_xsession_up       (TAU_XSESSION_T *our);
+int        tau_xsession_up       (const TAU_XSESSION_T *our);
 
 /**
  *  Stringify the error for the passed TRDP-error.
@@ -261,9 +261,19 @@ TRDP_ERR_T tau_xsession_getCom   (TAU_XSESSION_T *our,               INT32  subT
 TRDP_ERR_T tau_xsession_request  (TAU_XSESSION_T *our,               INT32  subTelID);
 
 /**
+ *   Return the last RX-time of the COM. Use the ID returned by
+ *          @see tau_xsession_subscribe()
+ *
+ *  @param[in]  our       session state.
+ *  @param[in]  subTelID  The ID returned by @see tau_xsession_subscribe()
+ *  @param[out] time      Latest RX time. Must not be NULL, may return zero-time if not yet received.
+ */
+TRDP_ERR_T tau_xsession_getRxTime(const TAU_XSESSION_T *our,         INT32  subTelID, VOS_TIMEVAL_T * const tv);
+
+/**
  *  Lookup the corresponding datasetID for given ComID
  */
-TRDP_ERR_T tau_xsession_ComId2DatasetId(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *datasetId);
+TRDP_ERR_T tau_xsession_ComId2DatasetId(const TAU_XSESSION_T *our, UINT32 ComID, UINT32 * const datasetId);
 
 /**
  *  get a dataset description for a related Com-ID
@@ -278,7 +288,6 @@ TRDP_ERR_T tau_xsession_lookup_dataset(UINT32 datasetId, TRDP_DATASET_T **ds);
 /**
  *  get information on a dataset variable
  *
- *  @param our     xsession handle
  *  @param dsId    the dataset ID to search for
  *  @param name    name of the element to lookup, or NULL if the index is used instead
  *  @param index   number of element in dataset, set to 0 if name is used, first element is == 1
