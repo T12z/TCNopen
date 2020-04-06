@@ -68,6 +68,7 @@ libtau-hp.so.2 libtrdp2 #MINVER#
  tau_xsession_cycle_until@Base 2.0
  tau_xsession_delete@Base 2.0
  tau_xsession_getCom@Base 2.0
+ tau_xsession_getRxTime@Base 2.0
  tau_xsession_init@Base 2.0
  tau_xsession_load@Base 2.0
  tau_xsession_lookup_dataset@Base 2.0
@@ -158,6 +159,7 @@ libtau.so.2 libtrdp2 #MINVER#
  tau_xsession_cycle_until@Base 2.0
  tau_xsession_delete@Base 2.0
  tau_xsession_getCom@Base 2.0
+ tau_xsession_getRxTime@Base 2.0
  tau_xsession_init@Base 2.0
  tau_xsession_load@Base 2.0
  tau_xsession_lookup_dataset@Base 2.0

@@ -243,7 +243,7 @@ static TRDP_ERR_T findDataset(UINT32 datasetId, TRDP_DATASET_T **pDatasetDesc) {
 }
 
 
-int tau_xsession_up(TAU_XSESSION_T *our) {
+int tau_xsession_up(const TAU_XSESSION_T *our) {
 	return our && our->initialized;
 }
 
@@ -987,7 +987,23 @@ TRDP_ERR_T tau_xsession_delete(TAU_XSESSION_T *our) {
 	return result;
 }
 
-TRDP_ERR_T tau_xsession_ComId2DatasetId(TAU_XSESSION_T *our, UINT32 ComID, UINT32 *datasetId) {
+#include "trdp_private.h" /* needed to reference TRDP_SUB_T into struct PD_ELE */
+
+TRDP_ERR_T tau_xsession_getRxTime(const TAU_XSESSION_T *our, INT32 subTelID, VOS_TIMEVAL_T * const tv) {
+	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
+	TRDP_ERR_T result;
+	if ((subTelID >= 0) && (subTelID < MAX_TELEGRAMS) && tv) {
+		TRDP_SUB_T sub = our->aTelegrams[subTelID].handle;
+		timersub(&sub->timeToGo, &sub->interval, tv);
+	} else {
+		vos_printLog(VOS_LOG_ERROR, "Invalid TelID or retval (%d / %d) to get_rxtime.", subTelID, !!tv);
+		result = TRDP_PARAM_ERR;
+	}
+
+	return result;
+}
+
+TRDP_ERR_T tau_xsession_ComId2DatasetId(const TAU_XSESSION_T *our, UINT32 ComID, UINT32 * const datasetId) {
 	if (!tau_xsession_up(our)) return TRDP_INIT_ERR;
 	if (!datasetId) return TRDP_PARAM_ERR;
 	TRDP_ERR_T result = TRDP_COMID_ERR;
