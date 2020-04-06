@@ -1,7 +1,10 @@
 # TCNopen fork
 This is a "private" fork of TCNopen (Components for IEC61375 standardised communication)
 
-**Now awesome**: I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Compiled binaries are available for versions [2.6](trdp/spy/plugins/2.6/epan) and [3.0](trdp/spy/plugins/3.0/epan). It now really works for Datasets, Arrays, Strings and filtering on names. Try it out! Create an issue if it doesn't work for you. Please be verbose if I misinterpreted the standard somewhere.
+**Now awesome**: 
+Debian packaging is there! See below for news on 2020.
+
+I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Compiled binaries are available for versions [2.6](trdp/spy/plugins/2.6/epan), [3.0](trdp/spy/plugins/3.0/epan) and [3.2](trdp/spy/plugins/3.2/epan). It now really works for Datasets, Arrays, Strings and filtering on names. Try it out! Create an issue if it doesn't work for you. Please be verbose if I misinterpreted the standard somewhere.
 
 ## Goal of fork
  - The [master](https://github.com/T12z/TCNopen/tree/master) for me to play around.
@@ -21,6 +24,13 @@ This is a "private" fork of TCNopen (Components for IEC61375 standardised commun
  - I built a TRDP application that uses a wrapper around the XML stuff, partially based on the original example.
  - This wrapper is again lightly cling-wrapped to be usable from C++/Qt. Planning to publish it a.s.a.p. (As of writing, it still has too many dependencies on other stuff.)
  - Finally, I also use [Ansys SCADE](https://www.ansys.com/de-de/products/embedded-software/ansys-scade-suite), a lot, and have it working with TRDP nicely. However, if you are not using SCADE, you're in for pain. Currently, I am trying to trim a middle way, please hold on for a few weeks or drop me line.
+
+## In 2020
+ Some more Linux features:
+ - Debian packaging and shared libraries added for Linux. See branch  [debian](https://github.com/T12z/TCNopen/tree/debian).
+ - You now can build the Wireshark plugin on Linux w/o the Wireshark source - just from the spy tree via make or from the root with debuild.
+ - How build the Debian packages? Install the build-dependencies (Build-Depends: debhelper (>= 12.8), doxygen, libwireshark-dev (>= 2.6), libglib2.0-dev, graphviz), go into tcnopen-trdp/trdp and run "debuild -us -uc -b -i -I" to build the lib and the wireshark plugin packages. Install them with "sudo dpkg -i ../*.deb". Wireshark will find its plugin automatically and your Linux compiler should find the headers also. Only need to add -ltrdp -ltau or -ltrdp-hp -ltau-hp to the linker of your applications.
+ With this, I will not pre-build the Wireshark plugins anymore. Please checkout the upstream branch for older pre-build plugin binaries 2.6, 3.0 and 3.2.
  
 ## Missing
  - Regular Updates. This is NOT in sync nor latest update from original sourceforge SVN
