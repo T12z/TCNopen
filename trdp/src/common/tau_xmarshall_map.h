@@ -22,8 +22,15 @@
 #ifndef SRC_COMMON_TAU_XMARSHALL_MAP_H_
 #define SRC_COMMON_TAU_XMARSHALL_MAP_H_
 
-#ifndef ALIGNOF
-#define ALIGNOF(type)   __alignof__(type)
+#include <stddef.h>
+
+/** Copy from vos_utils.h, to avoid redefinition issues */
+#if (defined (WIN32) || defined (WIN64))
+    #define XALIGNOF(type)  __alignof(type)
+#elif defined(__clang__)
+    #define XALIGNOF(type)   __alignof__(type)
+#else
+    #define XALIGNOF(type)  ((uint8_t)offsetof(struct { char c; type member; }, member))
 #endif
 
 /**********************************************************************************************************************/
@@ -64,12 +71,12 @@
 		sizeof(f32), sizeof(f64), sizeof(sec), \
 		sizeof(__TAU_XTYPE_TIME48), sizeof(__TAU_XTYPE_TIME64), \
 		sizeof(tick), sizeof(us), 0, \
-		0, ALIGNOF(bit8), ALIGNOF(c8), ALIGNOF(c16), \
-		ALIGNOF(i8), ALIGNOF(i16), ALIGNOF(i32), ALIGNOF(i64),  \
-		ALIGNOF(u8), ALIGNOF(u16), ALIGNOF(u32), ALIGNOF(u64),  \
-		ALIGNOF(f32), ALIGNOF(f64), ALIGNOF(sec), \
-		ALIGNOF(__TAU_XTYPE_TIME48), ALIGNOF(__TAU_XTYPE_TIME64), \
-		ALIGNOF(tick), ALIGNOF(us), 0, \
+		0, XALIGNOF(bit8), XALIGNOF(c8), XALIGNOF(c16), \
+		XALIGNOF(i8), XALIGNOF(i16), XALIGNOF(i32), XALIGNOF(i64),  \
+		XALIGNOF(u8), XALIGNOF(u16), XALIGNOF(u32), XALIGNOF(u64),  \
+		XALIGNOF(f32), XALIGNOF(f64), XALIGNOF(sec), \
+		XALIGNOF(__TAU_XTYPE_TIME48), XALIGNOF(__TAU_XTYPE_TIME64), \
+		XALIGNOF(tick), XALIGNOF(us), 0, \
 	}
 
 #define __TRDP_TIMEDATE48_TICK 17
