@@ -16,11 +16,11 @@
  *
  * $Id: trdp_reserved.c 898 2013-06-05 15:19:20Z 97025 $
  *
+ *      AÖ 2020-05-04: Ticket #330: Extend TRDP_PDTest with TSN support
  *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2017-06-30: Compiler warnings, local prototypes added
- *      AÖ 2020-05-04: Ticket #330: Extend TRDP_PDTest with TSN support
  *
  */
 
