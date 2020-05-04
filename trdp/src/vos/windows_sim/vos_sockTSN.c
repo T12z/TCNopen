@@ -19,6 +19,7 @@
 /*
 * $Id$
 *
+*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, Requires SimTecc from 2020 or later
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
 */
@@ -94,7 +95,6 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
     {
         if (pOptions->vlanId > 0)
         {
-            /*
             //If SimTecc support VLANs as string
             char optValue[MAX_NAME_LEN];
             sprintf(optValue, "%s.%d", cVlanPrefix, pOptions->vlanId);
@@ -105,20 +105,6 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
 
                 err = err;
                 vos_printLog(VOS_LOG_ERROR, "setsockopt() SO_BINDTODEVICE  failed on %s  (Err: %d)\n", optValue, err);
-                res = VOS_SOCK_ERR;
-
-                (void)SimCloseSocket(simSock);
-            }
-            */
-
-            UINT32 optValue = pOptions->vlanId;
-
-            if (SimSetSockOpt(simSock, SOL_SOCKET, SO_BINDTODEVICE, (char*)&optValue, sizeof(optValue)) == SOCKET_ERROR)
-            {
-                int err = GetLastError();
-
-                err = err;
-                vos_printLog(VOS_LOG_ERROR, "setsockopt() SO_BINDTODEVICE failed with option %d  (Err: %d)\n", optValue, err);
                 res = VOS_SOCK_ERR;
 
                 (void)SimCloseSocket(simSock);

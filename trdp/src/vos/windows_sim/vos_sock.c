@@ -20,7 +20,7 @@
 /*
 * $Id$*
 *
-*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, removed old SimTecc workarounds, Requiers SimTecc from 2020 or later
+*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, removed old SimTecc workarounds, Requires SimTecc from 2020 or later
 *      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
 *      AÖ 2019-12-18: Ticket #295: vos_sockSendUDP some times report err 183 in Windows Sim
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
