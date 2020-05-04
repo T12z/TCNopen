@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim
 *      SB 2020-03-30: Ticket #311: removed trdp_getSeqCnt() because redundant publisher should not run on the same interface
 *      SB 2019-08-20: Fixed lint errors and warnings
 *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
@@ -51,7 +52,6 @@
 *      BL 2016-03-01: Setting correct multicast TTL for PDs
 *      BL 2014-08-25: Ticket #57+58: Padding / zero bytes trailing MD & PD packets fixed
 *      BL 2014-06-02: Ticket #41: Sequence counter handling fixed
-*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim
 */
 
 /***********************************************************************************************************************
