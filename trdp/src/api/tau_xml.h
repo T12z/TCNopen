@@ -148,29 +148,33 @@ typedef struct
 
 typedef struct
 {
-    UINT32  comId;      /**< ComId of telegram used for event */
-    UINT16  eventId;    /**< Event identifier */
-    BOOL8   usesPd;     /**< TRUE: Uses PD, FALSE: uses MD. default: PD */
+	TRDP_URI_USER_T eventName;  /**< Event Name */
+    UINT32          comId;      /**< ComId of telegram used for event */
+    UINT16          eventId;    /**< Event identifier */
+    BOOL8           usesPd;     /**< TRUE: Uses PD, FALSE: uses MD. default: PD */
 }TRDP_EVENT_T;
 
 typedef struct
 {
-    UINT32  comId;      /**< ComId of telegram used for field */
-    UINT16  fieldId;    /**< Field identifier */
+	TRDP_URI_USER_T fieldName;  /**< Field Name */
+    UINT32          comId;      /**< ComId of telegram used for field */
+    UINT16          fieldId;    /**< Field identifier */
 }TRDP_FIELD_T;
 
 typedef struct
 {
-    UINT32  comId;      /**< ComId of telegram used for calling method */
-    UINT32  replyComId; /**< ComId of telegram used for method reply */
-    UINT16  methodId;   /**< Method identifier */
-    BOOL8   confirm;    /**< Confirmation has to be sent */
+    TRDP_URI_USER_T methodName; /**< Method Name */
+    UINT32          comId;      /**< ComId of telegram used for calling method */
+    UINT32          replyComId; /**< ComId of telegram used for method reply */
+    UINT16          methodId;   /**< Method identifier */
+    BOOL8           confirm;    /**< Confirmation has to be sent */
 }TRDP_METHOD_T;
 
 typedef struct
 {
-    TRDP_URI_T  dstUri;         /**< Destination URI of the instance */
-    UINT8       instanceId;     /**< Instance identifier */
+	TRDP_URI_USER_T instanceName;   /**< Instance Name */
+    TRDP_URI_T      dstUri;         /**< Destination URI of the instance */
+    UINT8           instanceId;     /**< Instance identifier */
 }TRDP_INSTANCE_T;
 
 typedef struct

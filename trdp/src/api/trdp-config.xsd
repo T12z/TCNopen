@@ -299,6 +299,11 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>        
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Event name</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
   
@@ -312,6 +317,11 @@
       <xs:attribute name="com-id" type="uint32" use="required">
         <xs:annotation>
           <xs:documentation>ComId of telegram used for field</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Field name</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
@@ -342,6 +352,11 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Method name</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
   
@@ -355,6 +370,11 @@
       <xs:attribute name="dst-uri" type="xs:string" use="required">
         <xs:annotation>
           <xs:documentation>Destination identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Instance name</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>

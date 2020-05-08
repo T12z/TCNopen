@@ -2598,6 +2598,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                             pEvent->usesPd = FALSE;
                                         }
                                     }
+                                    else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                    {
+                                        vos_strncpy(pEvent->eventName, value, TRDP_MAX_URI_USER_LEN);
+                                    }
                                 }
                                 pEvent++;
                             }
@@ -2612,6 +2616,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
                                     {
                                         pField->comId = (UINT32) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                    {
+                                        vos_strncpy(pField->fieldName, value, TRDP_MAX_URI_USER_LEN);
                                     }
                                 }
                                 pField++;                               
@@ -2638,6 +2646,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                         {
                                             pMethod->confirm = TRUE;
                                         }
+                                    }
+                                    else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                    {
+                                        vos_strncpy(pMethod->methodName, value, TRDP_MAX_URI_USER_LEN);
                                     }
                                 }
                                 pMethod++;
@@ -2689,6 +2701,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                                 else if (vos_strnicmp(attribute, "dst-uri", MAX_TOK_LEN) == 0)
                                                 {
                                                     vos_strncpy(pInstance->dstUri, value, TRDP_MAX_URI_HOST_LEN);
+                                                }
+                                                else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                                {
+                                                    vos_strncpy(pInstance->instanceName, value, TRDP_MAX_URI_USER_LEN);
                                                 }
                                             }
                                             if (pInstance != NULL)
