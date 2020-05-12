@@ -15,11 +15,12 @@
 #
 #  ABSTRACT      : XML Schema for TRDP configuration configuration
 #
-#  VERSION       : 1.14.0.0
+#  VERSION       : 1.15.0.0
 #
 #  SVN           : $Id$
 #
 #  HISTORY       :
+#                            1.15.0.0  Added optional attribute 'name' to event, method, field and instance for service oriented interface
 #                            1.14.0.0  IPTCom references removed
 #                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
 #                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)

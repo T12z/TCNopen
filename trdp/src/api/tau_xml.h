@@ -19,6 +19,7 @@
  /*
  * $Id$
  *
+ *      AR 2020-05-08: Added attribute 'name' to event, method, field and instance structures used for service oriented interface
  *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions and MD option for events
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
  *      SB 2019-09-03: Added parsing for service time to live
