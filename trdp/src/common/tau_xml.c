@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2020-06-29: Ticket #338: Attribute Callback always does not work
  *      AR 2020-05-08: Added parsing for attribute 'name' of event, method, field and instance elements used in service oriented interface
  *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions and MD option for events
  *      BL 2020-01-08: Ticket #284: Parsing of UINT32 fixed
@@ -364,6 +365,7 @@ static TRDP_ERR_T readTelegramDef (
                         else if (vos_strnicmp("always", value, TRDP_MAX_LABEL_LEN) == 0)
                         {
                             pExchgParam->pMdPar->flags  |= TRDP_FLAGS_FORCE_CB;
+                            pExchgParam->pMdPar->flags  |= TRDP_FLAGS_CALLBACK;
                             pExchgParam->pMdPar->flags  &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                         }
                     }
@@ -419,6 +421,7 @@ static TRDP_ERR_T readTelegramDef (
                         else if (vos_strnicmp("always", value, TRDP_MAX_LABEL_LEN) == 0)
                         {
                             pExchgParam->pPdPar->flags  |= TRDP_FLAGS_FORCE_CB;
+                            pExchgParam->pPdPar->flags  |= TRDP_FLAGS_CALLBACK;
                             pExchgParam->pPdPar->flags  &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                         }
                     }
@@ -1467,6 +1470,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlInterfaceConfig (
                                     else if (vos_strnicmp("always", value, TRDP_MAX_LABEL_LEN) == 0)
                                     {
                                         pPdConfig->flags    |= TRDP_FLAGS_FORCE_CB;
+                                        pPdConfig->flags    |= TRDP_FLAGS_CALLBACK;
                                         pPdConfig->flags    &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                                     }
                                 }
