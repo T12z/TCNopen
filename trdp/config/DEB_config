@@ -1,25 +1,31 @@
 #//
 #// $Id$
 #//
-#// DESCRIPTION    Config file to make TRDP for deb-packaging
+#// DESCRIPTION    Config file to make TRDP for deb-packaging or ELinOS building
 #//
 #// AUTHOR         Thorsten Schulz <thorsten.schulz@uni-rostock.de>
 #//
-#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
-#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
-#// Copyright Universität Rostock, 2020. All rights reserved.
+#// SPDX-License-Identifier: Apache-2.0
+#// Copyright 2020 Universität Rostock
 #//
 
 # fallback if run w/o dh
 DEB_HOST_MULTIARCH ?= x86_64-linux-gnu
 
+ifdef ELINOS_TARGET
+ARCH = $(ELINOS_TARGET)
+else
 ARCH = $(DEB_HOST_MULTIARCH)
+endif
+
 TARGET_VOS = posix
 TARGET_OS = LINUX
 
 # This stuff with TC* and rules.mk seriously breakes common use of the CC variable in a GNU environment. Just saying.
 ifdef DEB_HOST_GNU_TYPE
 TCPREFIX = $(DEB_HOST_GNU_TYPE)-
+else
+TCPREFIX = $(CROSS_COMPILE)
 endif
 
 #TCPOSTFIX = 
