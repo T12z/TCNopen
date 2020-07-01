@@ -37,6 +37,9 @@ MD = mkdir -p
 	
 CPPFLAGS += -D$(TARGET_OS)
 
+#overwrite this via make call param
+BUILD = bld/output
+
 # Set paths
 INCPATH += -I src/api
 VOS_PATH += -I src/vos/$(TARGET_VOS)
@@ -109,11 +112,11 @@ else
 endif
 
 ifeq ($(DEBUG), TRUE)
-	OUTDIR    = bld/output/$(ARCH)-dbg
-	OUTDIR_HP = bld/output/$(ARCH)-hp-dbg
+	OUTDIR    = $(BUILD)/$(ARCH)-dbg
+	OUTDIR_HP = $(BUILD)/$(ARCH)-hp-dbg
 else
-	OUTDIR = bld/output/$(ARCH)-rel
-	OUTDIR_HP = bld/output/$(ARCH)-hp-rel
+	OUTDIR    = $(BUILD)/$(ARCH)-rel
+	OUTDIR_HP = $(BUILD)/$(ARCH)-hp-rel
 endif
 
 # Enable / Disable realtime scheduling (posix only)
@@ -183,7 +186,7 @@ $(OUTDIR) $(OUTDIR_HP):
 
 libtrdp:	$(OUTDIR)/libtrdp.a
 
-libtrdpap:  $(OUTDIR)/libtrdpap.a
+libtrdpap:	$(OUTDIR)/libtrdpap.a
 
 example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
 
@@ -571,15 +574,14 @@ clean:
 unconfig:
 	-$(RM) config/config.mk
 
+# remove debuild artifacts, if they exist
 distclean:	clean unconfig
 	-$(RM) -r bld/*
 	-$(RM) -r doc/latex/*
 	-$(RM)   'doc/TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf'
 	-$(RM) -r doc/html/*
-	# remove debuild artifacts, if they remained
 	-$(RM) -r debian/libtrdp2 debian/tmp debian/libtrdp-dev debian/libtrdp-wireshark debian/files debian/debhelper-build-stamp debian/*.substvars debian/*.debhelper.log debian/.debhelper 
-	#debclean --cleandebs
-	$(MAKE) -C spy/src/trdp_spy $@
+	-$(MAKE) -C spy/src/trdp_spy $@
 
 ###############################################################################
 #                                                                      	
@@ -640,6 +642,17 @@ dist: distclean
 	@$(ECHO) "Building a source archive w/o project artifacts in the top-level folder."
 	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="test" --exclude="resources" --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_2.0.orig.tar.xz ../trdp
 
+#these are just a shortcuts for those like me, that always forget
+bindeb-pkg:
+	debuild -us -uc -i -I -b
+	@$(MD) "$(BUILD)/pkg"
+	@mv ../libtrdp* "$(BUILD)/pkg"
+	@echo "|=============================================================================="
+	@echo "| Find the packages here: '$(BUILD)/pkg'"
+	@echo "|=============================================================================="
+
+deb-pkg: bindeb-pkg
+	@echo "Building the source pkg is not yet available."
 
 ###############################################################################
 #
