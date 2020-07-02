@@ -17,6 +17,9 @@
 /*
  * $Id$
  *
+ *      CK 2020-04-06: Ticket #318 Added pointer to list of seqCnt used per comId for PD Requests in TRDP_SESSION_T
+ *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
+ *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
  *      AÖ 2020-01-10: Ticket #293 Minor fix in the macro, added spaces to avoid " to be part of the final string.
  *      BL 2020-01-10: Ticket #293 Avoid having version numbering in different places! Makro for version string (DLL) changed.
  *      AÖ 2019-11-14: Ticket #293 Add version to TCNOpen dll <-- !!! should be rejected! Use the function in tlc_if.c !!!
@@ -107,8 +110,11 @@
 
 #define TRDP_IF_WAIT_FOR_READY          120u        /**< 120 seconds (120 tries each second to bind to an IP address) */
 
-#undef  TRDP_PROTO_VER
-#define TRDP_PROTO_VER                  0x0101u                     /**< compatible protocol version with service Id  */
+#ifdef SOA_SUPPORT
+#define TRDP_PROTO_VER      0x0101u             /**< compatible protocol version using reserved field as serviceId    */
+#else
+#define TRDP_PROTO_VER      0x0100u             /**< standard protocol version                                        */
+#endif
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -189,6 +195,14 @@ typedef struct
     UINT16                  curNoOfEntries;             /**< Current no of entries in array             */
     TRDP_SEQ_CNT_ENTRY_T    seq[1];                     /**< list of used sequence no.                  */
 } TRDP_SEQ_CNT_LIST_T;
+
+/** Tuple of last used sequence counter for PD Request (PR) per comId  */
+typedef struct TRDP_PR_SEQ_CNT_ELE
+{
+    struct TRDP_PR_SEQ_CNT_ELE   *pNext;                 /**< pointer to next element or NULL            */
+    UINT32                       comId;                  /**< comId for PR to send                       */
+    UINT32                       lastSeqCnt;             /**< Sequence counter value for comId           */
+} TRDP_PR_SEQ_CNT_LIST_T;
 
 /** TCP parameters    */
 typedef struct TRDP_SOCKET_TCP
@@ -393,6 +407,7 @@ typedef struct MD_ELE
     TRDP_MD_CALLBACK_T  pfCbFunction;           /**< Pointer to MD callback function                        */
     MD_PACKET_T         *pPacket;               /**< Packet header in network byte order                    */
                                                 /**< data ready to be sent (with CRCs)                      */
+    MD_LIS_ELE_T        *pListener;             /**< Pointer to the Session's associated Listener           */
 } MD_ELE_T;
 
 /**    TCP file descriptor parameters   */
@@ -427,6 +442,7 @@ typedef struct TRDP_SESSION
     PD_ELE_T                *pSndQueue;         /**< pointer to first element of send queue                 */
     PD_ELE_T                *pRcvQueue;         /**< pointer to first element of rcv queue                  */
     PD_PACKET_T             *pNewFrame;         /**< pointer to received PD frame                           */
+    TRDP_PR_SEQ_CNT_LIST_T  *pSeqCntList4PDReq; /**< pointer to list of sequence counters for PR per comId  */
     TRDP_TIME_T             initTime;           /**< initialization time of session                         */
     TRDP_STATISTICS_T       stats;              /**< statistics of this session                             */
 #ifdef HIGH_PERF_INDEXED

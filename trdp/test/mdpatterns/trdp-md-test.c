@@ -771,11 +771,7 @@ int main (int argc, char *argv[])
     mdcfg.confirmTimeout    = 1000 * opts.tmo;
     mdcfg.connectTimeout    = 1000 * opts.tmo;
 	mdcfg.udpPort = 17225;
-#ifdef SIM
-	mdcfg.tcpPort = 17226;
-#else
-    mdcfg.tcpPort = 17225;
-#endif
+	mdcfg.tcpPort = 17225;
     mdcfg.maxNumSessions    = 64;
 
     /* open session */

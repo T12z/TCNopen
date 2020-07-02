@@ -19,6 +19,8 @@
  /*
  * $Id$
  *
+ *      AR 2020-05-08: Added attribute 'name' to event, method, field and instance structures used for service oriented interface
+ *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions and MD option for events
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
  *      SB 2019-09-03: Added parsing for service time to live
  *      SB 2018-07-10: Ticket #264: Added structures for parsing of service definitions for service oriented interface
@@ -147,28 +149,33 @@ typedef struct
 
 typedef struct
 {
-    UINT32  comId;      /**< ComId of telegram used for event */
-    UINT16  eventId;    /**< Event identifier */
+	TRDP_URI_USER_T eventName;  /**< Event Name */
+    UINT32          comId;      /**< ComId of telegram used for event */
+    UINT16          eventId;    /**< Event identifier */
+    BOOL8           usesPd;     /**< TRUE: Uses PD, FALSE: uses MD. default: PD */
 }TRDP_EVENT_T;
 
 typedef struct
 {
-    UINT32  comId;      /**< ComId of telegram used for field */
-    UINT16  fieldId;    /**< Field identifier */
+	TRDP_URI_USER_T fieldName;  /**< Field Name */
+    UINT32          comId;      /**< ComId of telegram used for field */
+    UINT16          fieldId;    /**< Field identifier */
 }TRDP_FIELD_T;
 
 typedef struct
 {
-    UINT32  comId;      /**< ComId of telegram used for calling method */
-    UINT32  replyComId; /**< ComId of telegram used for method reply */
-    UINT16  methodId;   /**< Method identifier */
-    BOOL8   confirm;    /**< Confirmation has to be sent */
+    TRDP_URI_USER_T methodName; /**< Method Name */
+    UINT32          comId;      /**< ComId of telegram used for calling method */
+    UINT32          replyComId; /**< ComId of telegram used for method reply */
+    UINT16          methodId;   /**< Method identifier */
+    BOOL8           confirm;    /**< Confirmation has to be sent */
 }TRDP_METHOD_T;
 
 typedef struct
 {
-    TRDP_URI_T  dstUri;         /**< Destination URI of the instance */
-    UINT8       instanceId;     /**< Instance identifier */
+	TRDP_URI_USER_T instanceName;   /**< Instance Name */
+    TRDP_URI_T      dstUri;         /**< Destination URI of the instance */
+    UINT8           instanceId;     /**< Instance identifier */
 }TRDP_INSTANCE_T;
 
 typedef struct
@@ -193,6 +200,7 @@ typedef struct
     TRDP_URI_USER_T         serviceName;    /**< Service Type/Name */
     UINT32                  serviceId;      /**< Service Id (24 bits) */
     UINT32                  serviceTTL;     /**< Service's time to live in seconds */
+    BOOL8                   dummyService;   /**< Defines whether the Service is a dummy Service or not. */
     UINT32                  eventCnt;       /**< Number of Events in Service */
     TRDP_EVENT_T            *pEvent;        /**< Pointer to the Service's Events */
     UINT32                  fieldCnt;       /**< Number of Fields in Service */

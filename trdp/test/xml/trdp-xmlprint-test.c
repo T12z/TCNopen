@@ -25,6 +25,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <dirent.h>
+
 #include "tau_xml.h"
 #include "vos_sock.h"
 
@@ -283,12 +286,64 @@ static void printTelegrams(
     }
 }
 
+int main2(int argc, char * argv[]);
 
+/***********************************************************************************************************************
+ Test XML configuration file parsing
+ ***********************************************************************************************************************/
+int main(int argc, char * argv[])
+{
+    DIR *dp;
+    struct dirent *ep;
+    char    *args[2];
+    char    path[1024];
+
+    if (argc != 2)
+    {
+        printf("usage: %s <xml filename path | directory path>\n", argv[0]);
+        return 1;
+    }
+
+    /* iterate over directory */
+
+    dp = opendir (argv[1]);
+    if (dp != NULL)
+    {
+        args[0] = argv[0];
+        while ((ep = readdir (dp)))
+        {
+            if ((strcmp(ep->d_name,".") != 0) &&
+                (strcmp(ep->d_name,"..") != 0))
+            {
+                strcpy(path, argv[1]);
+                strcat(path, "/");
+                strcat(path, ep->d_name);
+                args[1] = path;
+
+                if (main2 (2, args) != 0)
+                {
+                    printf ("### error reading/parsing file %s\n", ep->d_name);
+                }
+                else
+                {
+                    printf ("+++ no error reading/parsing file %s\n", ep->d_name);
+                }
+            }
+        }
+        (void) closedir (dp);
+    }
+    else
+    {
+        /* single file entry */
+        return main2 (argc, argv);
+    }
+    return 0;
+}
 
 /***********************************************************************************************************************
     Test XML configuration file parsing
 ***********************************************************************************************************************/
-int main(int argc, char * argv[])
+int main2(int argc, char * argv[])
 {
     const char * pFileName;
     TRDP_XML_DOC_HANDLE_T   docHandle;

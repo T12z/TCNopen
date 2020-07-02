@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-01-10: Undoing svn revision output, would reflect file revision, only.
 *      BL 2019-11-06: Ticket #289: Changed the max. returnedwait time of tlc_getInterval to 1s (instead of 1000s)
 *      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
 *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
@@ -1446,7 +1447,7 @@ EXT_DECL TRDP_ERR_T tlc_process (
  */
 EXT_DECL const char *tlc_getVersionString (void)
 {
-    static CHAR8 version[32];
+    static CHAR8 version[16];
 
     (void) vos_snprintf(version,
                         sizeof(version),

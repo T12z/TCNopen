@@ -16,6 +16,7 @@
  *
  * $Id: trdp_reserved.c 898 2013-06-05 15:19:20Z 97025 $
  *
+ *      AÖ 2020-05-04: Ticket #330: Extend TRDP_PDTest with TSN support
  *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
@@ -52,14 +53,15 @@ TRDP_IP_ADDR_T mcast;
 
 typedef enum
 {
-    PORT_PUSH,                      /* outgoing port ('Pd'/push)   */
+    PORT_PUSH,                      /* outgoing port ('Pd'/push)   (TSN suppport)*/
     PORT_PULL,                      /* outgoing port ('Pp'/pull)   */
     PORT_REQUEST,                   /* outgoing port ('Pr'/request)*/
     PORT_SINK,                      /* incoming port               */
+    PORT_SINK_PUSH,                 /* incoming port for pushed messages (TSN suppport)*/
 } Type;
 
 static const char * types[] =
-    { "Pd ->", "Pp ->", "Pr ->", "   <-" };
+    { "Pd ->", "Pp ->", "Pr ->", "   <-", "   <-" };
 
 typedef struct
 {
@@ -86,8 +88,11 @@ unsigned cycle = 0;
 Port ports[64];                     /* array of ports          */
 int nports = 0;                     /* number of ports         */
 
-//#define PORT_FLAGS TRDP_FLAGS_TSN
-#define PORT_FLAGS TRDP_FLAGS_NONE
+#ifdef TSN_SUPPORT
+    #define PORT_FLAGS TRDP_FLAGS_TSN
+#else
+    #define PORT_FLAGS TRDP_FLAGS_NONE
+#endif
 
 /***********************************************************************************************************************
  * PROTOTYPES
@@ -110,7 +115,7 @@ void gen_push_ports_master(UINT32 comid, UINT32 echoid)
     memset(&snk, 0, sizeof(snk));
 
     src.type = PORT_PUSH;
-    snk.type = PORT_SINK;
+    snk.type = PORT_SINK_PUSH;
     snk.timeout = 4000000;         /* 4 secs timeout*/
 
     /* for unicast/multicast address */
@@ -161,7 +166,7 @@ void gen_push_ports_slave(UINT32 comid, UINT32 echoid)
     memset(&snk, 0, sizeof(snk));
 
     src.type = PORT_PUSH;
-    snk.type = PORT_SINK;
+    snk.type = PORT_SINK_PUSH;
     snk.timeout = 4000000;         /* 4 secs timeout */
 
     /* for unicast/multicast address */
@@ -315,6 +320,11 @@ static void setup_ports()
     for (i = 0; i < nports; ++i)
     {
         Port * p = &ports[i];
+        TRDP_COM_PARAM_T comPrams = TRDP_PD_DEFAULT_SEND_PARAM;
+#if PORT_FLAGS == TRDP_FLAGS_TSN
+        comPrams.vlan = 1;
+        comPrams.tsn = TRUE;
+#endif
 
         printf("  %3d: <%d> / %s / %4d / %3d ... ",
             i, p->comid, types[p->type], p->size, p->cycle / 1000);
@@ -323,6 +333,28 @@ static void setup_ports()
         switch (p->type)
         {
         case PORT_PUSH:
+            p->err = tlp_publish(
+                apph,               /* session handle */
+                &p->ph,             /* publish handle */
+                NULL, NULL,
+                0u,                 /* serviceId        */
+                p->comid,           /* comid            */
+                0,                  /* topo counter     */
+                0,
+                p->src,             /* source address   */
+                p->dst,             /* destination address */
+                p->cycle,           /* cycle period   */
+                0,                  /* redundancy     */
+                PORT_FLAGS,         /* flags          */
+                &comPrams,          /* default send parameters */
+                p->data,            /* data           */
+                p->size);           /* data size      */
+
+            if (p->err != TRDP_NO_ERR)
+                printf("tlp_publish() failed, err: %d\n", p->err);
+            else
+                printf("ok\n");
+            break;
         case PORT_PULL:
             p->err = tlp_publish(
                 apph,               /* session handle */
@@ -336,7 +368,7 @@ static void setup_ports()
                 p->dst,             /* destination address */
                 p->cycle,           /* cycle period   */
                 0,                  /* redundancy     */
-                PORT_FLAGS,         /* flags          */
+                TRDP_FLAGS_NONE,    /* flags          */
                 NULL,               /* default send parameters */
                 p->data,            /* data           */
                 p->size);           /* data size      */
@@ -358,7 +390,7 @@ static void setup_ports()
                 p->src,             /* source address */
                 p->dst,             /* destination address */
                 0,                  /* redundancy     */
-                PORT_FLAGS,         /* flags          */
+                TRDP_FLAGS_NONE,    /* flags          */
                 NULL,               /* default send parameters */
                 p->data,            /* data           */
                 p->size,            /* data size      */
@@ -384,8 +416,31 @@ static void setup_ports()
                 p->src,             /* source address   */
                 VOS_INADDR_ANY,
                 p->dst,             /* destination address    */
+                TRDP_FLAGS_NONE,    /* No flags set     */
+                NULL,               /*    Receive params */
+                p->timeout,             /* timeout [usec]   */
+                TRDP_TO_SET_TO_ZERO);   /* timeout behavior */
+
+            if (p->err != TRDP_NO_ERR)
+                printf("tlp_subscribe() failed, err: %d\n", p->err);
+            else
+                printf("ok\n");
+            break;
+        case PORT_SINK_PUSH:
+            p->err = tlp_subscribe(
+                apph,               /* session handle   */
+                &p->sh,             /* subscribe handle */
+                NULL,               /* user ref         */
+                NULL,               /* callback funktion */
+                0u,                 /* serviceId        */
+                p->comid,           /* comid            */
+                0,                  /* topo counter     */
+                0,
+                p->src,             /* source address   */
+                VOS_INADDR_ANY,
+                p->dst,             /* destination address    */
                 PORT_FLAGS,         /* No flags set     */
-                NULL,                   /*    default interface */
+                &comPrams,              /*    Receive params */
                 p->timeout,             /* timeout [usec]   */
                 TRDP_TO_SET_TO_ZERO);   /* timeout behavior */
 
@@ -672,6 +727,12 @@ static void process_data()
     int _w, _h;
     int i;
     unsigned n;
+    TRDP_COM_PARAM_T comPrams = TRDP_PD_DEFAULT_SEND_PARAM;
+#if PORT_FLAGS == TRDP_FLAGS_TSN
+    comPrams.vlan = 1;
+    comPrams.tsn = TRUE;
+#endif
+
     /* get terminal size */
     if (_get_term_size(&_w, &_h) == 0)
     {   /* changed width? */
@@ -719,8 +780,18 @@ static void process_data()
                 for (n = p->size; n; --n, ++src, ++dst)
                     *dst = (*src == '_') ? '~' : *src;
             }
-
+#if PORT_FLAGS == TRDP_FLAGS_TSN
+            if (p->type == PORT_PUSH)
+            {
+                p->err = tlp_putImmediate(apph, p->ph, p->data, p->size, 0);
+            }
+            else
+            {
+                p->err = tlp_put(apph, p->ph, p->data, p->size);
+            }
+#else
             p->err = tlp_put(apph, p->ph, p->data, p->size);
+#endif
         }
         else if (p->type == PORT_REQUEST)
         {
@@ -738,7 +809,7 @@ static void process_data()
             }
 
             p->err = tlp_request(apph, ports[p->link].sh, 0u, p->comid, 0u, 0u,
-                p->src, p->dst, 0, TRDP_FLAGS_NONE, NULL, p->data, p->size,
+                p->src, p->dst, 0, PORT_FLAGS, &comPrams, p->data, p->size,
                 p->repid, p->rep);
         }
 
@@ -797,11 +868,10 @@ static void poll_data()
     {
         Port * p = &ports[i];
         UINT32 size = p->size;
-        if (p->type != PORT_SINK)
-            /* poll only sink ports  */
-            continue;
-
-        p->err = tlp_get(apph, p->sh, &pdi, p->data, &size);
+        if (p->type == PORT_SINK || p->type == PORT_SINK_PUSH)
+        {
+            p->err = tlp_get(apph, p->sh, &pdi, p->data, &size);
+        }        
     }
 }
 

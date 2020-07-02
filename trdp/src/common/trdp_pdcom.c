@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-05-04: Ticket #329 dataSize is taken from wrong header type for received TSN messages
 *      BL 2019-10-18: Ticket #287 Enhancement performance while receiving (HIGH_PERF_INDEXED mode)
 *      BL 2019-10-10: Ticket #283 Automatic PD sequence counter reset after timeout
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING to DBG
@@ -890,7 +891,17 @@ TRDP_ERR_T  trdp_pdReceive (
             pExistingElement->curSeqCnt = vos_ntohl(pNewFrameHead->sequenceCounter);
 
             /*  This might have not been set!   */
-            pExistingElement->dataSize  = vos_ntohl(pNewFrameHead->datasetLength);
+#ifdef TSN_SUPPORT
+            if (TRUE == isTSN)
+            {
+                pExistingElement->dataSize  = vos_ntohs(pTSNFrameHead->datasetLength);
+            }
+            else
+#endif
+            {
+                pExistingElement->dataSize  = vos_ntohl(pNewFrameHead->datasetLength);
+            }
+
             pExistingElement->grossSize = trdp_packetSizePD(pExistingElement->dataSize);
 
             if (TRUE == isTSN)

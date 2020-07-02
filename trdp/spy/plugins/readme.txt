@@ -1,7 +1,7 @@
 TRDP SPY
 ----------------------------------
 Requirements:
-Wireshark version 2.6, 3.0
+Wireshark version 2.6, 3.0, 3.2
 
 Features:
 1. User data interpretation support

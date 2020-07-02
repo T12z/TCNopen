@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device xmlns:xsi="http://XMLSchema-instance" xsi:noNamespaceSchemaLocation="trdp-config.xsd" host-name="device1" leader-name="device1" type="dummy">
+    <device-configuration memory-size="1000000">
+        <mem-block-list>
+            <mem-block size="72" preallocate="256"/>
+            <mem-block size="1480" preallocate="100"/>
+        </mem-block-list>
+    </device-configuration>
+    
+    <bus-interface-list>
+        <bus-interface network-id="1" name="eth0" host-ip="10.0.1.101">
+            <trdp-process blocking="no" cycle-time="10000" priority="80" traffic-shaping="on"</>
+            <pd-com-parameter marshall="on" port="17224" qos="5" ttl="64" timeout-value="100000" validity-behavior="keep" />
+            <md-com-parameter udp-port="17225" tcp-port="17225"
+                              confirm-timeout="1000000" connect-timeout="60000000" reply-timeout="5000000"
+                              marshall="off" protocol="UDP" qos="3" retries="2" ttl="64" />
+            <telegram com-id="1001" data-set-id="1005" com-ptype="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1002" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1003" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1004" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1005" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1006" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1007" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1008" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1009" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1010" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1011" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1012" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1013" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1014" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1015" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1016" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1017" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1018" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1019" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1020" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1021" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1022" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1023" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1024" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1025" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1026" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1027" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1028" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1029" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1030" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1031" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1032" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1033" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1034" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1035" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1036" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1037" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1038" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+                    <telegram com-id="1039" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+            <telegram com-id="1040" data-set-id="1005" com-parameter-id="1" type="source-sink" create="on">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.0.1.100"/> <destination id="1" uri="10.0.1.100"/>
+            </telegram>
+         </bus-interface>
+    </bus-interfac>
+    </mapped-device-list>
+
+   

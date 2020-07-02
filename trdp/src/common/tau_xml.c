@@ -17,6 +17,9 @@
  /*
  * $Id$
  *
+ *      SB 2020-06-29: Ticket #338: Attribute Callback always does not work
+ *      AR 2020-05-08: Added parsing for attribute 'name' of event, method, field and instance elements used in service oriented interface
+ *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions and MD option for events
  *      BL 2020-01-08: Ticket #284: Parsing of UINT32 fixed
  *      SB 2019-12-19: Bugfix where ComIds from service definition were cast to 16 bit
  *     CKH 2019-10-11: Ticket #2: TRDPXML: Support of mapped devices missing (XLS #64)
@@ -362,6 +365,7 @@ static TRDP_ERR_T readTelegramDef (
                         else if (vos_strnicmp("always", value, TRDP_MAX_LABEL_LEN) == 0)
                         {
                             pExchgParam->pMdPar->flags  |= TRDP_FLAGS_FORCE_CB;
+                            pExchgParam->pMdPar->flags  |= TRDP_FLAGS_CALLBACK;
                             pExchgParam->pMdPar->flags  &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                         }
                     }
@@ -417,6 +421,7 @@ static TRDP_ERR_T readTelegramDef (
                         else if (vos_strnicmp("always", value, TRDP_MAX_LABEL_LEN) == 0)
                         {
                             pExchgParam->pPdPar->flags  |= TRDP_FLAGS_FORCE_CB;
+                            pExchgParam->pPdPar->flags  |= TRDP_FLAGS_CALLBACK;
                             pExchgParam->pPdPar->flags  &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                         }
                     }
@@ -1465,6 +1470,7 @@ EXT_DECL TRDP_ERR_T tau_readXmlInterfaceConfig (
                                     else if (vos_strnicmp("always", value, TRDP_MAX_LABEL_LEN) == 0)
                                     {
                                         pPdConfig->flags    |= TRDP_FLAGS_FORCE_CB;
+                                        pPdConfig->flags    |= TRDP_FLAGS_CALLBACK;
                                         pPdConfig->flags    &= (TRDP_FLAGS_T) ~TRDP_FLAGS_NONE;
                                     }
                                 }
@@ -2463,6 +2469,8 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                         UINT32 deviceCount;
                         UINT32 telegramRefCount;
 
+                        /* Default value */
+                        (*ppServiceDefs)[i].dummyService = FALSE;
                         while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt,
                                                     value) == TOK_ATTRIBUTE)
                         {
@@ -2477,6 +2485,13 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                             else if (vos_strnicmp(attribute, "ttl", MAX_TOK_LEN) == 0)
                             {
                                 (*ppServiceDefs)[i].serviceTTL = (UINT32) valueInt;
+                            }
+                            else if (vos_strnicmp(attribute, "dummyService", MAX_TOK_LEN) == 0)
+                            {
+                                if (vos_strnicmp(value, "on", MAX_TOK_LEN) == 0)
+                                {
+                                    (*ppServiceDefs)[i].dummyService = TRUE;
+                                }
                             }
                         }
 
@@ -2569,7 +2584,8 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                         {
                             if (vos_strnicmp(tag, "event", MAX_TAG_LEN) == 0 && pEvent != NULL)
                             {
-
+                                /* default value */
+                                pEvent->usesPd = TRUE;
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
                                     if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
@@ -2579,6 +2595,17 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
                                     {
                                         pEvent->comId = (UINT32) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "type", MAX_TOK_LEN) == 0)
+                                    {
+                                        if (vos_strnicmp(value, "MD", MAX_TOK_LEN) == 0)
+                                        {
+                                            pEvent->usesPd = FALSE;
+                                        }
+                                    }
+                                    else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                    {
+                                        vos_strncpy(pEvent->eventName, value, TRDP_MAX_URI_USER_LEN);
                                     }
                                 }
                                 pEvent++;
@@ -2594,6 +2621,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     else if (vos_strnicmp(attribute, "com-id", MAX_TOK_LEN) == 0)
                                     {
                                         pField->comId = (UINT32) valueInt;
+                                    }
+                                    else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                    {
+                                        vos_strncpy(pField->fieldName, value, TRDP_MAX_URI_USER_LEN);
                                     }
                                 }
                                 pField++;                               
@@ -2620,6 +2651,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                         {
                                             pMethod->confirm = TRUE;
                                         }
+                                    }
+                                    else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                    {
+                                        vos_strncpy(pMethod->methodName, value, TRDP_MAX_URI_USER_LEN);
                                     }
                                 }
                                 pMethod++;
@@ -2671,6 +2706,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                                 else if (vos_strnicmp(attribute, "dst-uri", MAX_TOK_LEN) == 0)
                                                 {
                                                     vos_strncpy(pInstance->dstUri, value, TRDP_MAX_URI_HOST_LEN);
+                                                }
+                                                else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                                {
+                                                    vos_strncpy(pInstance->instanceName, value, TRDP_MAX_URI_USER_LEN);
                                                 }
                                             }
                                             if (pInstance != NULL)

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="trdp-config.xsd" host-name="examplehost" leader-name="leaderhost" type="dummy">
+    <device-configuration memory-size="65535">
+        <mem-block-list>
+        </mem-block-list>
+    </device-configuration>
+    
+    <bus-interface-list>
+        <bus-interface network-id="1" name="en0" >
+            <trdp-process blocking="no" cycle-time="10000" priority="80" traffic-shaping="on" />
+            <pd-com-parameter marshall="on" port="17224" qos="5" ttl="64" timeout-value="100000" validity-behavior="zero" />
+            <md-com-parameter udp-port="17225" tcp-port="17225"
+                              confirm-timeout="1000000" connect-timeout="60000000" reply-timeout="5000000"
+                              marshall="off" protocol="UDP" qos="3" retries="2" ttl="64" />
+            <telegram name="tlg1001" com-id="1001" data-set-id="2004" com-parameter-id="1">
+                <pd-parameter cycle="100000" marshall="on" timeout ="300000" validity-behavior="keep"/>
+                <destination id="1" uri="239.0.1.1">
+                </destination>
+            </telegram>
+        </bus-interface>
+    </bus-interface-list>
+
+    <mapped-device-list>
+    </mapped-device-list>
+
+    <com-parameter-list>
+        <!--Default PD communication parameters-->
+        <com-parameter id="1" qos="5" ttl="64" />
+        <!--Default MD communication parameters-->
+        <com-parameter id="2" qos="3" ttl="64" />
+    </com-parameter-list>
+
+    <data-set-list>
+        <data-set name="DS2" id="2002">
+            <element name="c8-1" type="CHAR8"/>
+            <element name="i32-1" type="INT32"/>
+            <element name="i32-2" type="INT32"/>
+        </data-set>
+        <data-set name="DS3" id="2003">
+            <element name="u32-1" type="UINT32"/>
+            <element name="i32-1" type="INT32"/>
+            <!--element name="DS2" type="2002"/-->
+        </data-set>
+        <data-set name="DS4" id="2004">
+            <element name="1" type="TIMEDATE32" array-size="3"/>
+            <element name="2" type="TIMEDATE48" array-size="3"/>
+            <element name="3" type="TIMEDATE64" array-size="3"/>
+        </data-set>
+    </data-set-list>
+
+    <debug file-name="trdp.log" file-size="1000000" info="DTFC" level="W" />
+</device>
