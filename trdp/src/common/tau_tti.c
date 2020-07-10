@@ -21,11 +21,13 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2016-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2016-2020. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2020-07-09: Ticket #298 Create consist info entry error -> check for false data and empty arrays
+*      BL 2020-07-08: Ticket #297 Store Operation Train Dir error
 *      BL 2019-12-06: Ticket #299 ComId 100 shall be subscribed from two sources but only one needs to be received
 *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -116,6 +118,13 @@ static void ttiGetUUIDfromLabel (
  *      We need to search in the OP_TRAIN_DIR the OP_VEHICLE where the vehicle is the
  *      first one in the consist and its name matches.
  *      Note: The first vehicle in a consist has the same ID as the consist it is belonging to (5.3.3.2.5)
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      cstUUID         Consist UUID.
+ *  @param[in]      cstLabel        Consist label.
+ *
+ *  @retval         none
+ *
  */
 static void ttiGetUUIDfromLabel (
     TRDP_APP_SESSION_T  appHandle,
@@ -147,6 +156,16 @@ static void ttiGetUUIDfromLabel (
     memset(cstUUID, 0, sizeof(TRDP_UUID_T));
 }
 
+/**********************************************************************************************************************/
+/** Check own consist info
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      pTelegram       Pointer to the consist info.
+ *
+ *  @retval         != 0            if pTelegram is own consist
+ *
+ */
 static BOOL8   ttiIsOwnCstInfo (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_CONSIST_INFO_T *pTelegram)
@@ -291,6 +310,17 @@ static void ttiPDCallback (
 /**********************************************************************************************************************/
 /*  Functions to convert TTDB network packets into local (static) representation                                      */
 /**********************************************************************************************************************/
+
+/**********************************************************************************************************************/
+/** Store the operational train directory
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      pData           Pointer to the network buffer.
+ *
+ *  @retval         != 0            if topoCnt changed
+ *
+ */
 static BOOL8 ttiStoreOpTrnDir (
     TRDP_APP_SESSION_T  appHandle,
     UINT8               *pData)
@@ -312,8 +342,7 @@ static BOOL8 ttiStoreOpTrnDir (
     memcpy(&appHandle->pTTDB->opTrnDir, pData, size);
     pData += size + 3;              /* jump to cnt  */
     appHandle->pTTDB->opTrnDir.opVehCnt = *pData++;
-    size = appHandle->pTTDB->opTrnDir.opVehCnt * sizeof(TRDP_OP_VEHICLE_T) + sizeof(UINT32);    /* copy opTrnTopoCnt as
-                                                                                                  well    */
+    size = appHandle->pTTDB->opTrnDir.opVehCnt * sizeof(TRDP_OP_VEHICLE_T);     /* copy array only! (#297)    */
     memcpy(appHandle->pTTDB->opTrnDir.opVehList, pData, size);
 
     /* unmarshall manually and update the opTrnTopoCount   */
@@ -327,6 +356,16 @@ static BOOL8 ttiStoreOpTrnDir (
     return changedTopoCnt;
 }
 
+/**********************************************************************************************************************/
+/** Store the train directory
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      pData           Pointer to the network buffer.
+ *
+ *  @retval         none
+ *
+ */
 static void ttiStoreTrnDir (
     TRDP_APP_SESSION_T  appHandle,
     UINT8               *pData)
@@ -357,6 +396,16 @@ static void ttiStoreTrnDir (
     }
 }
 
+/**********************************************************************************************************************/
+/** Store the train network directory
+ *
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      pData           Pointer to the network buffer.
+ *
+ *  @retval         none
+ *
+ */
 static void ttiStoreTrnNetDir (
     TRDP_APP_SESSION_T  appHandle,
     UINT8               *pData)
@@ -391,8 +440,15 @@ static void ttiStoreTrnNetDir (
     }
 }
 
-/***********************************************************************************************************************
- * Remove traces of old consist info
+/**********************************************************************************************************************/
+/** Clear Consist Info Entry
+ *
+ *  Remove traces of old consist info
+ *
+ *  @param[in]      pData           Pointer to the consist info.
+ *
+ *  @retval         none
+ *
  */
 static void ttiFreeCstInfoEntry (
     TRDP_CONSIST_INFO_T *pData)
@@ -415,8 +471,19 @@ static void ttiFreeCstInfoEntry (
     }
 }
 
-/***********************************************************************************************************************
- * Create new consist info entry
+/**********************************************************************************************************************/
+/** Create new consist info entry
+ *
+ *  Create new consist info entry from received telegram
+ *
+ *  @param[out]     pDest           Pointer to the struct to be received.
+ *  @param[in]      pData           Pointer to the network buffer.
+ *  @param[in]      dataSize        Size of the received data
+ *
+ *  @retval         TRDP_NO_ERR         no error
+ *  @retval         TRDP_PACKET_ERR     packet malformed
+ *  @retval         TRDP_MEM_ERR        out of memory
+ *
  */
 static TRDP_ERR_T ttiCreateCstInfoEntry (
     TRDP_CONSIST_INFO_T *pDest,
@@ -425,6 +492,14 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
 {
     UINT32  idx;
     UINT8   *pEnd = pData + dataSize;
+
+    /** Exit if the packet is too small.
+      (Actually this should be checked more often to prevent DoS or stack/memory attacks)
+     */
+    if (dataSize < sizeof(TRDP_CONSIST_INFO_T))    /**< minimal size of a consist info telegram */
+    {
+        return TRDP_PACKET_ERR;
+    }
 
     pDest->version.ver  = *pData++;
     pDest->version.rel  = *pData++;
@@ -450,7 +525,7 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     pDest->reserved03   = vos_ntohs(*(UINT16 *)pData);
     pData += sizeof(UINT16);
 
-    if (pEnd >= pData)
+    if (pData > pEnd)
     {
         return TRDP_PACKET_ERR;
     }
@@ -474,7 +549,7 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     }
     /* pData += sizeof(TRDP_ETB_INFO_T) * pDest->etbCnt; */ /* Incremented while copying */
 
-    if (pEnd >= pData)
+    if (pData > pEnd)
     {
         return TRDP_PACKET_ERR;
     }
@@ -527,33 +602,36 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     pDest->fctCnt   = vos_ntohs(*(UINT16 *)pData);
     pData           += sizeof(UINT16);
 
-    pDest->pFctInfoList = (TRDP_FUNCTION_INFO_T *) vos_memAlloc(sizeof(TRDP_FUNCTION_INFO_T) * pDest->fctCnt);
-    if (pDest->pFctInfoList == NULL)
+    if (pDest->fctCnt > 0)
     {
-        pDest->fctCnt   = 0;
-        pDest->etbCnt   = 0;
-        vos_memFree(pDest->pEtbInfoList);
-        pDest->pEtbInfoList = NULL;
-        pDest->vehCnt       = 0;
-        vos_memFree(pDest->pVehInfoList);
-        pDest->pVehInfoList = NULL;
-        return TRDP_MEM_ERR;
-    }
+        pDest->pFctInfoList = (TRDP_FUNCTION_INFO_T *) vos_memAlloc(sizeof(TRDP_FUNCTION_INFO_T) * pDest->fctCnt);
+        if (pDest->pFctInfoList == NULL)
+        {
+            pDest->fctCnt   = 0;
+            pDest->etbCnt   = 0;
+            vos_memFree(pDest->pEtbInfoList);
+            pDest->pEtbInfoList = NULL;
+            pDest->vehCnt       = 0;
+            vos_memFree(pDest->pVehInfoList);
+            pDest->pVehInfoList = NULL;
+            return TRDP_MEM_ERR;
+        }
 
-    for (idx = 0u; idx < pDest->fctCnt; idx++)
-    {
-        memcpy(pDest->pFctInfoList->fctName, pData, sizeof(TRDP_NET_LABEL_T));
-        pData += sizeof(TRDP_NET_LABEL_T);
-        pDest->pFctInfoList->fctId = vos_ntohs(*(UINT16 *)pData);
-        pData += sizeof(UINT16);
-        pDest->pFctInfoList->grp        = *pData++;
-        pDest->pFctInfoList->reserved01 = *pData++;
-        pDest->pFctInfoList->cstVehNo   = *pData++;
-        pDest->pFctInfoList->etbId      = *pData++;
-        pDest->pFctInfoList->cnId       = *pData++;
-        pDest->pFctInfoList->reserved02 = *pData++;
+        for (idx = 0u; idx < pDest->fctCnt; idx++)
+        {
+            memcpy(pDest->pFctInfoList->fctName, pData, sizeof(TRDP_NET_LABEL_T));
+            pData += sizeof(TRDP_NET_LABEL_T);
+            pDest->pFctInfoList->fctId = vos_ntohs(*(UINT16 *)pData);
+            pData += sizeof(UINT16);
+            pDest->pFctInfoList->grp        = *pData++;
+            pDest->pFctInfoList->reserved01 = *pData++;
+            pDest->pFctInfoList->cstVehNo   = *pData++;
+            pDest->pFctInfoList->etbId      = *pData++;
+            pDest->pFctInfoList->cnId       = *pData++;
+            pDest->pFctInfoList->reserved02 = *pData++;
+        }
+        /* pData += sizeof(TRDP_FUNCTION_INFO_T) * pDest->fctCnt; */ /* Incremented while copying */
     }
-    /* pData += sizeof(TRDP_FUNCTION_INFO_T) * pDest->fctCnt; */ /* Incremented while copying */
 
     pDest->reserved06 = vos_ntohs(*(UINT16 *)pData);
     pData += sizeof(UINT16);
@@ -563,40 +641,51 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     pDest->cltrCstCnt = vos_ntohs(*(UINT16 *)pData);
     pData += sizeof(UINT16);
 
-    pDest->pCltrCstInfoList = (TRDP_CLTR_CST_INFO_T *) vos_memAlloc(sizeof(TRDP_CLTR_CST_INFO_T) * pDest->cltrCstCnt);
-    if (pDest->pCltrCstInfoList == NULL)
+    if (pDest->cltrCstCnt > 0)
     {
-        pDest->cltrCstCnt   = 0;
-        pDest->etbCnt       = 0;
-        vos_memFree(pDest->pEtbInfoList);
-        pDest->pEtbInfoList = NULL;
-        pDest->vehCnt       = 0;
-        vos_memFree(pDest->pVehInfoList);
-        pDest->pVehInfoList = NULL;
-        pDest->fctCnt       = 0;
-        vos_memFree(pDest->pFctInfoList);
-        pDest->pFctInfoList = NULL;
-        return TRDP_MEM_ERR;
+        pDest->pCltrCstInfoList = (TRDP_CLTR_CST_INFO_T *) vos_memAlloc(sizeof(TRDP_CLTR_CST_INFO_T) * pDest->cltrCstCnt);
+        if (pDest->pCltrCstInfoList == NULL)
+        {
+            pDest->cltrCstCnt   = 0;
+            pDest->etbCnt       = 0;
+            vos_memFree(pDest->pEtbInfoList);
+            pDest->pEtbInfoList = NULL;
+            pDest->vehCnt       = 0;
+            vos_memFree(pDest->pVehInfoList);
+            pDest->pVehInfoList = NULL;
+            pDest->fctCnt       = 0;
+            vos_memFree(pDest->pFctInfoList);
+            pDest->pFctInfoList = NULL;
+            return TRDP_MEM_ERR;
+        }
+
+        for (idx = 0u; idx < pDest->cltrCstCnt; idx++)
+        {
+            memcpy(pDest->pCltrCstInfoList->cltrCstUUID, pData, sizeof(TRDP_UUID_T));
+            pData += sizeof(TRDP_UUID_T);
+            pDest->pCltrCstInfoList->cltrCstOrient  = *pData++;
+            pDest->pCltrCstInfoList->cltrCstNo      = *pData++;
+            pDest->pCltrCstInfoList->reserved01     = vos_ntohs(*(UINT16 *)pData);
+            pData += sizeof(UINT16);
+        }
+
+        /* pData += sizeof(TRDP_CLTR_CST_INFO_T) * pDest->cltrCstCnt; */ /* Incremented while copying */
     }
-
-    for (idx = 0u; idx < pDest->cltrCstCnt; idx++)
-    {
-        memcpy(pDest->pCltrCstInfoList->cltrCstUUID, pData, sizeof(TRDP_UUID_T));
-        pData += sizeof(TRDP_UUID_T);
-        pDest->pCltrCstInfoList->cltrCstOrient  = *pData++;
-        pDest->pCltrCstInfoList->cltrCstNo      = *pData++;
-        pDest->pCltrCstInfoList->reserved01     = vos_ntohs(*(UINT16 *)pData);
-        pData += sizeof(UINT16);
-    }
-
-    pData += sizeof(TRDP_CLTR_CST_INFO_T) * pDest->cltrCstCnt;
-
     pDest->cstTopoCnt = vos_ntohl(*(UINT32 *)pData);
     return TRDP_NO_ERR;
 }
 
-/***********************************************************************************************************************
- * Find an appropriate location to store the received consist info
+/**********************************************************************************************************************/
+/** Store the received consist info
+ *
+ *  Find an appropriate location to store the received consist info
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[in]      pData           Pointer to the network buffer.
+ *  @param[in]      dataSize        Size of the received data
+ *
+ *  @retval         none
+ *
  */
 static void ttiStoreCstInfo (
     TRDP_APP_SESSION_T  appHandle,
