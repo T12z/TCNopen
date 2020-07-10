@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      BL 2020-07-10: Ticket #292 tau_getTrnVehCnt( ) not working if OpTrnDir is not already valid
 *      BL 2020-07-09: Ticket #298 Create consist info entry error -> check for false data and empty arrays
 *      BL 2020-07-08: Ticket #297 Store Operation Train Dir error
 *      BL 2019-12-06: Ticket #299 ComId 100 shall be subscribed from two sources but only one needs to be received
@@ -1362,10 +1363,11 @@ EXT_DECL TRDP_ERR_T tau_getTrnVehCnt (
         return TRDP_PARAM_ERR;
     }
 
-    if (appHandle->pTTDB->trnDir.cstCnt == 0 ||
+    if (appHandle->pTTDB->opTrnDir.opCstCnt == 0 ||
+        appHandle->pTTDB->opTrnDir.opVehCnt == 0 ||
         appHandle->pTTDB->opTrnState.etbTopoCnt != appHandle->etbTopoCnt)     /* need update? */
     {
-        ttiRequestTTDBdata(appHandle, TTDB_TRN_DIR_REQ_COMID, NULL);
+        ttiRequestTTDBdata(appHandle, TTDB_OP_DIR_INFO_REQ_COMID, NULL);
         return TRDP_NODATA_ERR;
     }
 
