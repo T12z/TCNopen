@@ -13,7 +13,7 @@
  *
  * @author          Bernd Loehr
  *
- * @remarks         Copyright NewTec GmbH, 2019.
+ * @remarks         Copyright NewTec GmbH, 2020.
  *                  All rights reserved.
  *
  * $Id$
@@ -756,6 +756,143 @@ static int test2 ()
     CLEANUP;
 }
 
+static int test3 ()
+{
+    PREPARE2("Ticket #337 PD request in multithread application, concurrency problems with msg/sockets", "test",
+             5000);     /* allocates appHandle1,
+
+    /* ------------------------- test code starts here --------------------------- */
+
+    //gFullLog = TRUE;
+
+    /* from Ticket:
+     Application has 2 PD threads:
+     - sender-thread for sending PD messages
+     - receiver-thread for receiving PD messages
+     Application logic includes PD pull pattern (PD request&reply), sometimes both threads are handling same PD-send-structures and the end result is unpredictable.
+     Based on debugging in Linux (no TSN configured), following errors have been seen:
+     - vos_sockSendUDP() trying to send 0 bytes
+     - vos_sockSendUDP() trying to send 144 bytes (when message is actually 72 bytes)
+     - tlp_processReceive() returning -35 (TRDP_CRC_ERR)
+     - tlp_processSend() returning -7 (TRDP_IO_ERR)
+     */
+
+    {
+        TRDP_SUB_T pubHandle1;
+        TRDP_SUB_T subHandle0;
+        TRDP_SUB_T subHandle1;
+        TRDP_SUB_T subHandle2;
+
+#define TEST3_COMID_1       1000u       /* Published */
+#define TEST3_COMID_2       2000u       /* Pull request */
+
+
+#define TEST3_INTERVAL     100000u
+#define TEST3_DATA         "Hello World!"
+#define TEST3_DATA_LEN     12u
+
+        /* The publisher from which to pull */
+        err = tlp_publish(gSession1.appHandle, &pubHandle1, NULL, NULL, 0u,
+                          TEST3_COMID_1, 0u, 0u,
+                          0u,
+                          gSession2.ifaceIP,
+                          0u, 0u, TRDP_FLAGS_DEFAULT, NULL,
+                          (UINT8 *)TEST3_DATA, TEST3_DATA_LEN);
+
+
+
+        IF_ERROR("tlp_publish");
+
+        err = tlp_subscribe(gSession1.appHandle, &subHandle1, NULL, NULL, 0u,
+                            TEST3_COMID_2, 0u, 0u,
+                            0u, 0u,                             /* Source * / */
+                            0u,                                 /* Destination */
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                               /*  default */
+                            0u, TRDP_TO_DEFAULT);
+
+
+        IF_ERROR("tlp_subscribe1");
+
+        /* The subscriber that pulls */
+
+        err = tlp_subscribe(gSession2.appHandle, &subHandle2, NULL, NULL, 0u,
+                            TEST3_COMID_1, 0u, 0u,
+                            0u, 0u,                             /* Source           */
+                            0u,                                 /* Destination      */
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                               /*    default interface                    */
+                            0u, TRDP_TO_DEFAULT);
+
+        IF_ERROR("tlp_subscribe2");
+
+        /*
+         Finished setup.
+         */
+        tlc_updateSession(gSession1.appHandle);
+        tlc_updateSession(gSession2.appHandle);
+
+        int counter = 100;
+        while (counter--)
+        {
+        /*    appHandle           the handle returned by tlc_openSession
+         *    subHandle           handle from related subscribe
+         *    serviceId           optional serviceId this telegram belongs to (default = 0)
+         *    comId               comId of packet to be sent
+         *    etbTopoCnt          ETB topocount to use, 0 if consist local communication
+         *    opTrnTopoCnt        operational topocount, != 0 for orientation/direction sensitive communication
+         *    srcIpAddr           own IP address, 0 - srcIP will be set by the stack
+         *    destIpAddr          where to send the packet to
+         *    redId               0 - Non-redundant, > 0 valid redundancy group
+         *    pktFlags            OPTION:
+         *                        TRDP_FLAGS_DEFAULT, TRDP_FLAGS_NONE, TRDP_FLAGS_MARSHALL, TRDP_FLAGS_CALLBACK
+         *    pSendParam          optional pointer to send parameter, NULL - default parameters are used
+         *    pData               pointer to packet data / dataset
+         *    dataSize            size of packet data
+         *    replyComId          comId of reply (default comID of subscription)
+         *    replyIpAddr         IP for reply
+         */
+            err = tlp_request(gSession2.appHandle, subHandle2, 0u, /* appHandle, subHandle, service Id */
+                            TEST3_COMID_2,          /* comId */
+                            0u, 0u,                 /* topocounts */
+                            0u,                     /* srcIpAddr */
+                            gSession1.ifaceIP,      /* destIpAddr */
+                            0u,                     /* redId */
+                            TRDP_FLAGS_NONE,        /* TRDP_FLAGS_MARSHALL, TRDP_FLAGS_CALLBACK */
+                            NULL, NULL, 0u,         /* pSendParam, pData, dataSize */
+                            TEST3_COMID_1,          /* comId of reply (default comID of subscription) */
+                            0u);                    /* replyIpAddr  */
+
+            IF_ERROR("tlp_request");
+
+            TRDP_PD_INFO_T pdInfo;
+            UINT8 buffer[TRDP_MAX_PD_DATA_SIZE];
+            UINT32 dataSize = TRDP_MAX_PD_DATA_SIZE;
+            vos_threadDelay(2000);
+            err = tlp_get(gSession1.appHandle, subHandle2, &pdInfo, buffer, &dataSize);
+            if (err == TRDP_NO_ERR)
+            {
+                vos_printLog(VOS_LOG_USR,
+                             "Rec. Seq: %u Typ: %c%c\n",
+                             pdInfo.seqCount,
+                             pdInfo.msgType >> 8,
+                             pdInfo.msgType & 0xFF);
+                vos_printLog(VOS_LOG_USR, "Data: %*s\n", dataSize, buffer);
+                //break;
+            }
+            else
+            {
+                vos_printLog(VOS_LOG_ERROR, "tlp_get returned with error %d (%s)\n", err, vos_getErrorString(err));
+            }
+        }
+        IF_ERROR("tlp_get");
+    }
+
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+}
+
 
 /**********************************************************************************************************************/
 /* This array holds pointers to the m-th test (m = 1 will execute test1...)                                           */
@@ -764,7 +901,8 @@ test_func_t *testArray[] =
 {
     NULL,
     //test1,  /* SRM test 1 */
-    test2,  /* ticket #284 */
+    //test2,  /* ticket #284 */
+    test3,  /* ticket #337 */
     NULL
 };
 
