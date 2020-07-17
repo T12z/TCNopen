@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      SW 2020-07-17: Ticket #327 Send 'Me' only in case of unicast 'Mr' if no listener found
  *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
  *      SB 2020-03-20: Ticket #324 mutexMD added to reply and confirm functions
  *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
@@ -1790,8 +1791,11 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
         }
         vos_printLogStr(VOS_LOG_INFO, "trdp_mdRecv: No listener found!\n");
         result = TRDP_NOLIST_ERR;
-        /* attempt sending Me, do not worry about issues */
-        (void)trdp_mdSendME(appHandle, pH, TRDP_REPLY_NO_REPLIER_INST);
+        /* Ticket #327: attempt sending Me, for unicast "Mr" if no matching listener found */
+        if ((!vos_isMulticast(appHandle->pMDRcvEle->addr.destIpAddr)) && (vos_ntohs(pH->msgType) == TRDP_MSG_MR))
+        {
+            (void)trdp_mdSendME(appHandle, pH, TRDP_REPLY_NO_REPLIER_INST);
+        }
     }
 
     *pIterMD = iterMD;
