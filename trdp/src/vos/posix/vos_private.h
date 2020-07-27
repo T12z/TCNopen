@@ -12,10 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
  /*
  * $Id$
+ *
+ *      BL 2020-07-27: Ticket #333: Insufficient memory allocation in posix vos_semaCreate
  *
  */
 
@@ -28,6 +30,7 @@
 
 #include <pthread.h>
 #include <sys/types.h>
+#include <semaphore.h>
 
 #include "vos_types.h"
 #include "vos_thread.h"
@@ -45,8 +48,8 @@ extern "C" {
 #ifndef VOS_VERSION
 #define VOS_VERSION            2u
 #define VOS_RELEASE            0u
-#define VOS_UPDATE             0u
-#define VOS_EVOLUTION          2u
+#define VOS_UPDATE             1u
+#define VOS_EVOLUTION          0u
 #endif
 
 /* Defines for Linux TSN ready sockets */
@@ -62,6 +65,19 @@ struct VOS_MUTEX
     UINT32          magicNo;
     pthread_mutex_t mutexId;
 };
+
+#ifdef __APPLE__
+struct VOS_SEMA
+{
+    sem_t*   sem;
+    int     number;
+};
+#else
+struct VOS_SEMA
+{
+    sem_t*   sem;
+};
+#endif
 
 struct VOS_SHRD
 {
