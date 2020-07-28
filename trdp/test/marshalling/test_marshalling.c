@@ -1064,5 +1064,6 @@ int main ()
         return test1();
         //return test2();
     }
+    return 1;
 }
 
