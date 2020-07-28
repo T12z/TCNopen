@@ -69,13 +69,13 @@ struct VOS_MUTEX
 #ifdef __APPLE__
 struct VOS_SEMA
 {
-    sem_t*   sem;
+    sem_t   sem;
     int     number;
 };
 #else
 struct VOS_SEMA
 {
-    sem_t*   sem;
+    sem_t   sem;
 };
 #endif
 
