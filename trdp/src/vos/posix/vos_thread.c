@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      BL 2020-07-29: Ticket #303: UUID creation... #warning if uuid not used
  *      BL 2020-07-27: Ticket #333: Insufficient memory allocation in posix vos_semaCreate
  *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
  *      BL 2019-08-19: LINT warnings
@@ -55,12 +56,9 @@
 #include <sched.h>
 
 #ifdef HAS_UUID
-#ifdef __APPLE__
 #include <uuid/uuid.h>
 #else
-#include <uuid.h>
-#endif
-#else
+#warning "Using internal uuid-generation does not conform to standard!"
 #include "vos_sock.h"
 #endif
 

@@ -1,6 +1,6 @@
 /**********************************************************************************************************************/
 /**
- * @file            pd_md_responder.c
+ * @file            pd_responder.c
  *
  * @brief           Test application for TRDP
  *
@@ -14,6 +14,7 @@
  *
  * $Id$
  *
+ *      BL 2020-07-29: Renamed (no MD support)
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  */
 

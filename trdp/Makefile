@@ -179,7 +179,7 @@ tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
 
 test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
 
-pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_md_responder $(OUTDIR)/testSub 
+pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_responder $(OUTDIR)/testSub
 
 mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-test-fast $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
 
@@ -295,7 +295,6 @@ $(OUTDIR)/mdManager: mdManager.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building example MD application $(@F)'
 			$(CC) example/mdManager.c \
 			    -ltrdp \
-			    -luuid \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
@@ -333,7 +332,6 @@ $(OUTDIR)/mdTest4: mdTest4.c  $(OUTDIR)/libtrdp.a
 			@$(ECHO) ' ### Building UDPMDCom test application $(@F)'
 			$(CC) test/udpmdcom/mdTest4.c \
 			    -ltrdp \
-			    -luuid \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
 			@$(STRIP) $@
@@ -418,9 +416,9 @@ $(OUTDIR)/vostest: $(OUTDIR)/libtrdp.a
 			    -o $@
 			@$(STRIP) $@
 
-$(OUTDIR)/pd_md_responder: $(OUTDIR)/libtrdp.a pd_md_responder.c
+$(OUTDIR)/pd_responder: $(OUTDIR)/libtrdp.a pd_responder.c
 			@$(ECHO) ' ### Building PD test application $(@F)'
-			$(CC) test/diverse/pd_md_responder.c \
+			$(CC) test/diverse/pd_responder.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 			    -o $@
@@ -561,9 +559,10 @@ help:
 	@$(ECHO) "  * LINUX_imx7_config            - Building for Linux ARM7/imx7 using YOCTO toolchain" >&2
 	@$(ECHO) "  * LINUX_sama5d27_config        - Native build on NTSecureGateway HelmsDeep96" >&2
 	@$(ECHO) "  * LINUX_TSN_config             - (experimental) Native build for RTLinux with basic TSN support" >&2
-	@$(ECHO) "  * OSX_X86_config               - Native (X86) build for OS X 32Bit" >&2
-	@$(ECHO) "  * OSX_X86_64_config            - Native (X86) build for OS X 64Bit" >&2
-	@$(ECHO) "  * OSX_X86_64_HP_config         - Native (X86) build for OS X 64Bit as high performance library" >&2
+	@$(ECHO) "  * OSX_64_TSN_config            - Native build for macOS 64Bit with TSN" >&2
+	@$(ECHO) "  * OSX_X86_64_config            - Native build for macOS 64Bit" >&2
+	@$(ECHO) "  * OSX_X86_64_HP_config         - Native build for macOS 64Bit as high performance library" >&2
+	@$(ECHO) "  * OSX_X86_64_SOA_TSN_config    - Native build for macOS 64Bit with SOA and TSN" >&2
 	@$(ECHO) "  * POSIX_X86_config             - Native build for POSIX compliant systems" >&2
 	@$(ECHO) "  * CENTOS_X86_64_config         - Native build for CentOS7 (Linux, little endian, 64Bit)" >&2
 	@$(ECHO) "  * QNX_X86_config               - (experimental) Native (X86) build for QNX" >&2
@@ -584,7 +583,7 @@ help:
 	@$(ECHO) "  * make test      # build the test server application" >&2
 	@$(ECHO) "  * make pdtest    # build the PDCom test applications" >&2
 	@$(ECHO) "  * make mdtest    # build the UDPMDcom test application" >&2
-	@$(ECHO) "  * make example   # build the example for MD communication, but needs libuuid!" >&2
+	@$(ECHO) "  * make example   # build the example for MD communication, needs libuuid!" >&2
 	@$(ECHO) "  * make libtrdp   # build the static library, only" >&2
 	@$(ECHO) "  * make libtrdpap # build the static library including xml parsing, marshalling, dnr and tti" >&2
 	@$(ECHO) "  * make xml       # build the xml test applications" >&2

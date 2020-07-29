@@ -18,6 +18,7 @@
 * $Id$
 *
 *
+*      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      BL 2019-11-12: Ticket #288 Added EXT_DECL to reply functions
 *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -288,7 +289,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   sourceURI,
+    const TRDP_URI_USER_T   srcURI,
     const TRDP_URI_USER_T   destURI);
 
 
@@ -308,7 +309,7 @@ EXT_DECL TRDP_ERR_T tlm_request (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   sourceURI,
+    const TRDP_URI_USER_T   srcURI,
     const TRDP_URI_USER_T   destURI);
 
 
@@ -354,6 +355,30 @@ EXT_DECL TRDP_ERR_T tlm_delListener (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_LIS_T          listenHandle);
 
+#ifdef CONFORMANCE_API
+EXT_DECL TRDP_ERR_T tlm_reply (
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_UUID_T       *pSessionId,
+    UINT32                  comId,
+    UINT16                  userStatus,
+    const TRDP_SEND_PARAM_T *pSendParam,
+    const UINT8             *pData,
+    UINT32                  dataSize,
+    const TRDP_URI_USER_T   srcURI);
+
+EXT_DECL TRDP_ERR_T tlm_replyQuery (
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_UUID_T       *pSessionId,
+    UINT32                  comId,
+    UINT16                  userStatus,
+    UINT32                  confirmTimeout,
+    const TRDP_SEND_PARAM_T *pSendParam,
+    const UINT8             *pData,
+    UINT32                  dataSize,
+    const TRDP_URI_USER_T   srcURI);
+
+#else
+
 EXT_DECL TRDP_ERR_T tlm_reply (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
@@ -371,7 +396,8 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     UINT32                  confirmTimeout,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize );
+    UINT32                  dataSize);
+#endif /* CONFORMANCE_API */
 
 #endif /* MD_SUPPORT    */
 

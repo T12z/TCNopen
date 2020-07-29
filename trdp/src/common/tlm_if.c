@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      SB 2020-03-30: Ticket #309 A Listener's Sessions now close when the Listener is deleted or readded
 *      SB 2020-03-30: Ticket #313 Added topoCount check for notifications
 *      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
@@ -206,7 +207,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
  *  @param[in]      pSendParam          optional pointer to send parameter, NULL - default parameters are used
  *  @param[in]      pData               pointer to packet data / dataset
  *  @param[in]      dataSize            size of packet data
- *  @param[in]      sourceURI           only functional group of source URI
+ *  @param[in]      srcURI              only functional group of source URI
  *  @param[in]      destURI             only functional group of destination URI
  *
  *  @retval         TRDP_NO_ERR         no error
@@ -227,7 +228,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   sourceURI,
+    const TRDP_URI_USER_T   srcURI,
     const TRDP_URI_USER_T   destURI)
 {
     if ( !trdp_isValidSession(appHandle))
@@ -264,7 +265,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
                pSendParam,
                pData,
                dataSize,
-               sourceURI,
+               srcURI,
                destURI
                );
 }
@@ -289,7 +290,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
  *  @param[in]      pSendParam          Pointer to send parameters, NULL to use default send parameters
  *  @param[in]      pData               pointer to packet data / dataset
  *  @param[in]      dataSize            size of packet data
- *  @param[in]      sourceURI           only functional group of source URI
+ *  @param[in]      srcURI              only functional group of source URI
  *  @param[in]      destURI             only functional group of destination URI
  *
  *  @retval         TRDP_NO_ERR         no error
@@ -313,7 +314,7 @@ EXT_DECL TRDP_ERR_T tlm_request (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   sourceURI,
+    const TRDP_URI_USER_T   srcURI,
     const TRDP_URI_USER_T   destURI)
 {
     UINT32 mdTimeOut;
@@ -368,7 +369,7 @@ EXT_DECL TRDP_ERR_T tlm_request (
                    pSendParam,
                    pData,
                    dataSize,
-                   sourceURI,
+                   srcURI,
                    destURI
                    );
     }
@@ -795,8 +796,17 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     UINT16                  userStatus,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize)
+    UINT32                  dataSize
+#ifdef CONFORMANCE_API
+   ,const TRDP_URI_USER_T   srcURI
+#endif
+    )
 {
+#ifndef CONFORMANCE_API
+    const TRDP_URI_USER_T   *pSrcURI = NULL;
+#else
+    const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
+#endif
     if ( !trdp_isValidSession(appHandle))
     {
         return TRDP_NOINIT_ERR;
@@ -813,7 +823,8 @@ EXT_DECL TRDP_ERR_T tlm_reply (
                         (INT32)userStatus,
                         pSendParam,
                         pData,
-                        dataSize);
+                        dataSize,
+                        pSrcURI);
 }
 
 
@@ -845,8 +856,17 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     UINT32                  confirmTimeout,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize )
+    UINT32                  dataSize
+#ifdef CONFORMANCE_API
+   ,const TRDP_URI_USER_T   srcURI
+#endif
+)
 {
+#ifndef CONFORMANCE_API
+    const TRDP_URI_USER_T   *pSrcURI = NULL;
+#else
+    const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
+#endif
     UINT32 mdTimeOut;
     if ( !trdp_isValidSession(appHandle))
     {
@@ -877,7 +897,8 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
                         (INT32)userStatus,
                         pSendParam,
                         pData,
-                        dataSize);
+                        dataSize,
+                        pSrcURI);
 }
 
 
