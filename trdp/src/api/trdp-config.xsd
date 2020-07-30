@@ -15,11 +15,12 @@
 #
 #  ABSTRACT      : XML Schema for TRDP configuration configuration
 #
-#  VERSION       : 1.14.0.0
+#  VERSION       : 1.15.0.0
 #
 #  SVN           : $Id$
 #
 #  HISTORY       :
+#                            1.15.0.0  Added optional attribute 'name' to event, method, field and instance for service oriented interface
 #                            1.14.0.0  IPTCom references removed
 #                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
 #                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)
@@ -239,6 +240,17 @@
           <xs:documentation>Service's time to live</xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute name="dummyService" default="off" use="optional">
+         <xs:annotation>
+            <xs:documentation>Defines whether the Service is a real Autosar Service or not.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="on"/>
+            <xs:enumeration value="off"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>     
     </xs:complexType>
   </xs:element>  
   
@@ -277,6 +289,22 @@
           <xs:documentation>ComId of telegram used for Event</xs:documentation>
         </xs:annotation>
       </xs:attribute>
+      <xs:attribute name="type" default="PD" use="optional">
+         <xs:annotation>
+            <xs:documentation>Defines whether the Event uses Process Data or Message Data.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="PD"/>
+            <xs:enumeration value="MD"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>        
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Event name</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
   
@@ -290,6 +318,11 @@
       <xs:attribute name="com-id" type="uint32" use="required">
         <xs:annotation>
           <xs:documentation>ComId of telegram used for field</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Field name</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
@@ -320,6 +353,11 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Method name</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
   
@@ -333,6 +371,11 @@
       <xs:attribute name="dst-uri" type="xs:string" use="required">
         <xs:annotation>
           <xs:documentation>Destination identifier of instance</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+      <xs:attribute name="name" type="xs:string" use="optional">
+        <xs:annotation>
+          <xs:documentation>Instance name</xs:documentation>
         </xs:annotation>
       </xs:attribute>
     </xs:complexType>
@@ -971,7 +1014,7 @@
           <xs:documentation>ID for exchange parameter. Required for TRDP telegrams.</xs:documentation>
         </xs:annotation>
       </xs:attribute>
-      <xs:attribute name="data-set-id" type="uint32" use="required">
+      <xs:attribute name="data-set-id" type="uint32" use="optional">
         <xs:annotation>
           <xs:documentation>ID for dataset to bve exchanged.</xs:documentation>
         </xs:annotation>

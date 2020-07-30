@@ -17,6 +17,9 @@
 /*
 * $Id$
 *
+*      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
+*      SB 2020-03-30: Ticket #309 A Listener's Sessions now close when the Listener is deleted or readded
+*      SB 2020-03-30: Ticket #313 Added topoCount check for notifications
 *      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
 *      SB 2019-10-02: Ticket #280 Moved assignment of iterMD after the mutex lock in tlm_abortSession
 *      SB 2019-07-12: Removing callback during tlm_abortSession to prevent it from being called with deleted pUserRef
@@ -204,7 +207,7 @@ EXT_DECL TRDP_ERR_T tlm_process (
  *  @param[in]      pSendParam          optional pointer to send parameter, NULL - default parameters are used
  *  @param[in]      pData               pointer to packet data / dataset
  *  @param[in]      dataSize            size of packet data
- *  @param[in]      sourceURI           only functional group of source URI
+ *  @param[in]      srcURI              only functional group of source URI
  *  @param[in]      destURI             only functional group of destination URI
  *
  *  @retval         TRDP_NO_ERR         no error
@@ -225,7 +228,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   sourceURI,
+    const TRDP_URI_USER_T   srcURI,
     const TRDP_URI_USER_T   destURI)
 {
     if ( !trdp_isValidSession(appHandle))
@@ -235,6 +238,13 @@ EXT_DECL TRDP_ERR_T tlm_notify (
     if (((pData == NULL) && (dataSize != 0u)) || (dataSize > TRDP_MAX_MD_DATA_SIZE))
     {
         return TRDP_PARAM_ERR;
+    }
+    if (!trdp_validTopoCounters(appHandle->etbTopoCnt,
+        appHandle->opTrnTopoCnt,
+        etbTopoCnt,
+        opTrnTopoCnt))
+    {
+        return TRDP_TOPO_ERR;
     }
     return trdp_mdCall(
                TRDP_MSG_MN,                                    /* notify without reply */
@@ -255,7 +265,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
                pSendParam,
                pData,
                dataSize,
-               sourceURI,
+               srcURI,
                destURI
                );
 }
@@ -280,7 +290,7 @@ EXT_DECL TRDP_ERR_T tlm_notify (
  *  @param[in]      pSendParam          Pointer to send parameters, NULL to use default send parameters
  *  @param[in]      pData               pointer to packet data / dataset
  *  @param[in]      dataSize            size of packet data
- *  @param[in]      sourceURI           only functional group of source URI
+ *  @param[in]      srcURI              only functional group of source URI
  *  @param[in]      destURI             only functional group of destination URI
  *
  *  @retval         TRDP_NO_ERR         no error
@@ -304,7 +314,7 @@ EXT_DECL TRDP_ERR_T tlm_request (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   sourceURI,
+    const TRDP_URI_USER_T   srcURI,
     const TRDP_URI_USER_T   destURI)
 {
     UINT32 mdTimeOut;
@@ -359,7 +369,7 @@ EXT_DECL TRDP_ERR_T tlm_request (
                    pSendParam,
                    pData,
                    dataSize,
-                   sourceURI,
+                   srcURI,
                    destURI
                    );
     }
@@ -570,6 +580,7 @@ EXT_DECL TRDP_ERR_T tlm_delListener (
     MD_LIS_ELE_T    *iterLis    = NULL;
     MD_LIS_ELE_T    *pDelete    = (MD_LIS_ELE_T *) listenHandle;
     BOOL8           dequeued    = FALSE;
+    MD_ELE_T        *pIterMD = NULL;
 
     if (!trdp_isValidSession(appHandle))
     {
@@ -620,6 +631,15 @@ EXT_DECL TRDP_ERR_T tlm_delListener (
                                    appHandle->mdDefault.connectTimeout,
                                    FALSE,
                                    mcGroup);
+            }
+            /* deletes listener sessions */
+            for (pIterMD = appHandle->pMDRcvQueue; pIterMD != NULL; pIterMD = pIterMD->pNext)
+            {
+                if (pIterMD->pListener == pDelete)
+                {
+                    pIterMD->pfCbFunction = NULL;
+                    pIterMD->morituri = TRUE;
+                }
             }
             /* free memory space for element */
             vos_memFree(pDelete);
@@ -673,6 +693,8 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
 {
     TRDP_ERR_T      ret         = TRDP_NO_ERR;
     MD_LIS_ELE_T    *pListener  = NULL;
+    MD_ELE_T        *pIterMD = NULL;
+
 
     if (!trdp_isValidSession(appHandle))
     {
@@ -698,6 +720,15 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
             vos_isMulticast(mcDestIpAddr) &&                        /* nor non-multicast listeners */
             pListener->addr.mcGroup != mcDestIpAddr)                /* nor if there's no change in group */
         {
+            /* deletes listener sessions */
+            for (pIterMD = appHandle->pMDRcvQueue; pIterMD != NULL; pIterMD = pIterMD->pNext)
+            {
+                if (pIterMD->pListener == pListener)
+                {
+                    pIterMD->pfCbFunction = NULL;
+                    pIterMD->morituri = TRUE;
+                }
+            }
             /*  Find the correct socket    */
             trdp_releaseSocket(appHandle->ifaceMD, pListener->socketIdx, 0u, FALSE, mcDestIpAddr);
             ret = trdp_requestSocket(appHandle->ifaceMD,
@@ -765,8 +796,17 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     UINT16                  userStatus,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize)
+    UINT32                  dataSize
+#ifdef CONFORMANCE_API
+   ,const TRDP_URI_USER_T   srcURI
+#endif
+    )
 {
+#ifndef CONFORMANCE_API
+    const TRDP_URI_USER_T   *pSrcURI = NULL;
+#else
+    const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
+#endif
     if ( !trdp_isValidSession(appHandle))
     {
         return TRDP_NOINIT_ERR;
@@ -783,7 +823,8 @@ EXT_DECL TRDP_ERR_T tlm_reply (
                         (INT32)userStatus,
                         pSendParam,
                         pData,
-                        dataSize);
+                        dataSize,
+                        pSrcURI);
 }
 
 
@@ -815,8 +856,17 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     UINT32                  confirmTimeout,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize )
+    UINT32                  dataSize
+#ifdef CONFORMANCE_API
+   ,const TRDP_URI_USER_T   srcURI
+#endif
+)
 {
+#ifndef CONFORMANCE_API
+    const TRDP_URI_USER_T   *pSrcURI = NULL;
+#else
+    const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
+#endif
     UINT32 mdTimeOut;
     if ( !trdp_isValidSession(appHandle))
     {
@@ -847,7 +897,8 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
                         (INT32)userStatus,
                         pSendParam,
                         pData,
-                        dataSize);
+                        dataSize,
+                        pSrcURI);
 }
 
 

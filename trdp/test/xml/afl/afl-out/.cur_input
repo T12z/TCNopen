@@ -1,0 +1,46 @@
+<?xm.0" encoding="UTF-8"?>
+<device x="ht/XMLSchema-instance" xsi:noNamespaceSchemaLocation="trdp-config.xsd" host-name="examplehost" leader-name="leaderhost" type="dummy">
+    <device-configuration memory-size="65535">
+        <mem-block-list>
+    <mem-block size=232" preallocate="512" />
+            <mem-block size="72" preallocate="256"/>
+            <mem-blŽŽŽŽsize="128" host-namete="256"/>
+        </mem-block-list>
+    </device-configuration>
+    
+    <bus-interface-list>
+        <bus-interface network-id="1" nam   <trdp-process blocking="no" cycle-time="10000" priority="80" traffic-shaping="off" port="21548" qos="4"on" />
+            <pd-com-parameter marshall="on" port="17224" qos="5" ttl="64" timeout-value="100000" validity-behavior="zero" />
+            <md-com-parameter udp-port="17225" tcp-port="17225"
+                              confirm-timeout="1000000" connect-timeout="60000000" reply-timeout="5000000"
+                              marshall="off" protocol="UDP" qos="3" retries="2" ttl="64" />
+            <telegram name="tlg1001" com-id="1001" data-set-id="1001" com-parameter-id="1">
+                <pd-parameter cycle="10000" marshall="on" timeout ="30000" validity-behavior="keep"/>
+                <source id="1" uri1="10.2.13.50">
+                    <sdt-parameter smi1="1234" udv="56" Žx-period="500" tx-period="2000" />
+                </source>
+                <destination id="1" uri="239.2.13.0">
+                    <sdt-parameter smi1="1234" udv="56" rx-period="500" tx-period="2000" />
+                </destination>
+            </telegram>
+            <telegram name="tlg1002" com-id="1002" data-set-id="1002" com-parameREAL64="4">
+                <pd-parameter cycle="50000" marshall="on" timeout ="150000" validity-behavior="zero"/>
+                <source id½"1" uri1="10.2.13.50" />
+                <destination id="1" uri="10.2.13.50" />
+                <destination id="2" uri="10.2.13.60" />
+            </telegram>
+        </bus-interface>
+        <bus-interface network-id="2" name="eth1" >
+            <trdp-process blocking="no" cycle-time="50000" priority="20" traffic-shaping="on" />
+            <pd-com-parameter marshall="off" port="21548" qos="4" ttl="64" timeout-value="500000" validity-behavior="keep" callback="on" />
+            <md-com-parameter udp-port="21550" tcp-port="21550"
+                              confirm-timeout="150000ut="650p" reply-timeout="5500000"
+                              marshall="off" protocol="TCP" qos="1" retries="4" ttl="64" callback="on" />
+            <telegram name="tlg1004" com-id="1004" data-set-id="1004" com-parameter-id="1">
+        
+           rce id="5" uri1="192.168.13.50" />
+                <destination id="5" uri="192.168.13.50" />
+            </telegram>
+        </bus-interface>
+    </bus-interfaappedlist>
+ 

@@ -14,6 +14,8 @@
  /*
  * $Id$
  *
+ *      BL 2020-02-26: Ticket #320 Wrong ETB_CTRL_TO_US value
+ *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
  *      BL 2019-08-15: Ticket #273 Units for certain standard timeout values inconsistent
  *      BL 2019-02-01: Ticket #234 Correcting Statistics ComIds
  *      BL 2018-01-29: Ticket #188 Typo in the TRDP_VAR_SIZE definition
@@ -92,8 +94,9 @@
 #define TRDP_MD_TCP_PORT                    17225u                      /**< IANA assigned message data TCP port    */
 #endif
 
-#define TRDP_PROTO_VER                      0x0100u                     /**< Protocol version                       */
+/**  Protocol version is defined in trdp_private.h */
 #define TRDP_PROTOCOL_VERSION_CHECK_MASK    0xFF00u                     /**< Version check, two digits are relevant */
+
 #define TRDP_SESS_ID_SIZE                   16u                         /**< Session ID (UUID) size in MD header    */
 #define TRDP_USR_URI_SIZE                   32u                         /**< max. User URI size in MD header        */
 
@@ -177,7 +180,7 @@
 
 #define ETB_CTRL_COMID                      1u
 #define ETB_CTRL_CYCLE                      500000u                                 /**< [us] 0.5s                  */
-#define ETB_CTRL_TO_US                      300000u                                 /**< [us] 3s                    */
+#define ETB_CTRL_TO_US                      3000000u                                /**< [us] 3s                    */
 #define ETB_CTRL_DEST_URI                   "grpECSP.anyVeh.aCst.aClTrn.lTrn"
 #define ETB_CTRL_DEST_IP                    "239.193.0.1"
 #define ETB_CTRL_DS                         "ETBCTRL_TELEGRAM"

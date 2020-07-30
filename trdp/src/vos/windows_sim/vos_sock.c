@@ -20,6 +20,7 @@
 /*
 * $Id$*
 *
+*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, removed old SimTecc workarounds, Requires SimTecc from 2020 or later
 *      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
 *      AÖ 2019-12-18: Ticket #295: vos_sockSendUDP some times report err 183 in Windows Sim
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
@@ -64,7 +65,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#define MAX_TEMP_BUF 65535
 #define DYN_PORT_RANGE_FIRST 49152
 #define DYN_PORT_RANGE_LAST 65535
 
@@ -114,72 +114,6 @@ SOCKET simSocketToSocket(SIM_SOCKET s)
     }
 
     return s;
-}
-
-/**********************************************************************************************************************/
-/** Find closed TCP connection
- *  This is a workaround due to that SimSocket don't signal this in SimSelect as expected
- *
- *  @param[in, out]      ret            Number of signaled sockets
- *  @param[in, out]      pSim_fds       A sim fds set
- *  @param[in]           pVos_fds       The original requested sockets fds set
- *
- *  @retval              int            -1 for error
- */
-int findClosedTCPConnections(int* ret, sim_fd_set* pSim_fds, VOS_FDS_T* pVos_fds)
-{
-    char buf[1];
-
-    if (pSim_fds == NULL)
-    {
-        return -1;
-    }
-
-    if (pVos_fds == NULL)
-    {
-        return -1;
-    }
-
-    /* Check all sockets in the input set */
-    for (unsigned int i = 0; i < pVos_fds->fd_count; i++)
-    {
-        int res;
-
-        SIM_SOCKET simSock = socketToSimSocket(pVos_fds->fd_array[i]);
-
-        if (SIM_FD_ISSET(simSock, pSim_fds) == TRUE)
-        {
-            //Already signaled
-            continue;
-        }
-            
-        //Socket not already signaled
-        res = SimRecv(simSock, buf, sizeof(buf), 0);
-        if (res == 0)
-        {
-            //SimRecv returned 0 the connection is closed
-            SIM_FD_SET(simSock, pSim_fds);
-            (*ret)++;
-        }
-        else if (res == SOCKET_ERROR)
-        {
-            DWORD err = GetLastError();
-
-            /* Check for closed connection */
-            if (err == WSAECONNRESET)
-            {
-                //Connection is closed
-                SIM_FD_SET(simSock, pSim_fds);
-                (*ret)++;
-            }
-        }
-        else
-        {
-            vos_printLog(VOS_LOG_ERROR, "findClosedTCPConnections() error data was not expected to be upload here!\n");
-        }
-    }
-
-    return 0;
 }
 
 /**********************************************************************************************************************/
@@ -276,62 +210,85 @@ int simFdsToVosFds(sim_fd_set* pSim_fds, VOS_FDS_T* pVos_fds)
 INT32 recvmsg(SOCKET sock, SIM_MSG* pMessage, int flags)
 {
     DWORD   numBytes = 0;
-    int res;
-    SIM_SOCKET simSock = socketToSimSocket(sock);
-    static char tmpBuf[MAX_TEMP_BUF];
+    int     res;
 
-    if (flags == MSG_PEEK)
-    {
-        /* Workaround due to that SimSocket function SimRecvMsg don't support flag MSG_PEEK*/
-        int len;
-        struct sockaddr srcAddr;
-        int fromLen = sizeof(srcAddr);
-
-        len = SimRecvFrom(simSock, tmpBuf, MAX_TEMP_BUF, MSG_PEEK, &srcAddr, &fromLen);
-
-        memcpy(pMessage->buffers->buf, tmpBuf,  pMessage->buffers->len);
-
-        if (len == SOCKET_ERROR)
-        {
-            numBytes = 0;
-            res = SOCKET_ERROR;
-        }
-        else
-        {
-            if ((int)pMessage->buffers->len < len)
-            {
-                numBytes = pMessage->buffers->len;
-            }
-            else
-            {
-                numBytes = len;
-            }
-            res = 0;
-        }
-
-        memcpy(pMessage->name, &srcAddr, fromLen);
-    }
-    else
-    {
-        res = SimRecvMsg(simSock, pMessage, &numBytes);
-    }
-
+    pMessage->flags = flags;
+    res = SimRecvMsg(sock, pMessage, &numBytes);
     if (0 != res)
     {
-        DWORD err = GetLastError();
+        DWORD err = WSAGetLastError();
 
         /* to avoid flooding with error messages */
         if (err != WSAEMSGSIZE)
         {
             if (err != WSAEWOULDBLOCK)
             {
-                vos_printLog(VOS_LOG_ERROR, "SimRecvMsg() failed (Err: %d)\n", err);
+                vos_printLog(VOS_LOG_ERROR, "WSARecvMsg() failed (Err: %d)\n", err);
             }
             return -1;
         }
+
     }
 
     return numBytes;
+
+    //DWORD   numBytes = 0;
+    //int res;
+    //SIM_SOCKET simSock = socketToSimSocket(sock);
+    //static char tmpBuf[MAX_TEMP_BUF];
+
+    //if (flags == MSG_PEEK)
+    //{
+    //    /* Workaround due to that SimSocket function SimRecvMsg don't support flag MSG_PEEK*/
+    //    int len;
+    //    struct sockaddr srcAddr;
+    //    int fromLen = sizeof(srcAddr);
+
+    //    len = SimRecvFrom(simSock, tmpBuf, MAX_TEMP_BUF, MSG_PEEK, &srcAddr, &fromLen);
+
+    //    memcpy(pMessage->buffers->buf, tmpBuf,  pMessage->buffers->len);
+
+    //    if (len == SOCKET_ERROR)
+    //    {
+    //        numBytes = 0;
+    //        res = SOCKET_ERROR;
+    //    }
+    //    else
+    //    {
+    //        if ((int)pMessage->buffers->len < len)
+    //        {
+    //            numBytes = pMessage->buffers->len;
+    //        }
+    //        else
+    //        {
+    //            numBytes = len;
+    //        }
+    //        res = 0;
+    //    }
+
+    //    memcpy(pMessage->name, &srcAddr, fromLen);
+    //}
+    //else
+    //{
+    //    res = SimRecvMsg(simSock, pMessage, &numBytes);
+    //}
+
+    //if (0 != res)
+    //{
+    //    DWORD err = GetLastError();
+
+    //    /* to avoid flooding with error messages */
+    //    if (err != WSAEMSGSIZE)
+    //    {
+    //        if (err != WSAEWOULDBLOCK)
+    //        {
+    //            vos_printLog(VOS_LOG_ERROR, "SimRecvMsg() failed (Err: %d)\n", err);
+    //        }
+    //        return -1;
+    //    }
+    //}
+
+    //return numBytes;
 }
 
 
@@ -616,8 +573,6 @@ EXT_DECL INT32 vos_select(
         vos_printLog(VOS_LOG_ERROR, "SimSelect() failed (Err: %d)\n", err);
     }
 
-    findClosedTCPConnections(&ret, pReadFds, pReadableFD);
-
     /* Copy back to vos_fd_set */
     if (simFdsToVosFds(pReadFds, pReadableFD) != 0)
     {
@@ -743,13 +698,13 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
         }
     }
 
-    if ((vos_sockSetOptions(sock, pOptions) != VOS_NO_ERR))
+    *pSock = simSocketToSocket(sock);
+
+    if ((vos_sockSetOptions(*pSock, pOptions) != VOS_NO_ERR))
     {
         (void) SimCloseSocket(sock);
         return VOS_SOCK_ERR;
     }
-
-    *pSock = simSocketToSocket(sock);
 
     return VOS_NO_ERR;
 }
@@ -793,13 +748,13 @@ EXT_DECL VOS_ERR_T vos_sockOpenTCP (
         return VOS_SOCK_ERR;
     }
 
-    if ((vos_sockSetOptions(sock, pOptions) != VOS_NO_ERR))
+    *pSock = simSocketToSocket(sock);
+
+    if ((vos_sockSetOptions(*pSock, pOptions) != VOS_NO_ERR))
     {
         (void) SimCloseSocket(sock);
         return VOS_SOCK_ERR;
     }
-
-    *pSock = simSocketToSocket(sock);
 
     return VOS_NO_ERR;
 }
@@ -862,7 +817,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
         if (1 == pOptions->reuseAddrPort)
         {
             DWORD optValue = TRUE;
-            if (SimSetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)& optValue,
+            if (SimSetSockOpt(simSock, SOL_SOCKET, SO_REUSEADDR, (const char*)& optValue,
                 sizeof(optValue)) == SOCKET_ERROR)
             {
                 int err = GetLastError();
@@ -1088,9 +1043,16 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
         {
             //Workaround, if the message is valid sent but there is no receiver
             //SimSocket will respond with sendSize = 0 event do the telegram was sent
-            //SimTimes SimSocket return error 183 even if the message was sent ok, but no destination available.
+            //Sometimes SimSocket return error 183 even if the message was sent ok, but no destination available.
             *pSize += size;
 
+            return VOS_NO_ERR;
+        }
+        else if (sendSize == SOCKET_ERROR && err == WSAEHOSTUNREACH)
+        {
+            //Workaround, if the message is valid sent but there is no receiver
+            //If I don't do like this TRDP tries for ever to send a UDP telegram and never get to timeout
+            *pSize = size;
             return VOS_NO_ERR;
         }
 
@@ -1255,12 +1217,10 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockBind (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  ipAddress,
     UINT16  port)
 {
-    VOS_ERR_T ret;    
-    int err = 0;
     struct sockaddr_in srcAddress;
     u_short dynPortNr = DYN_PORT_RANGE_FIRST;
     
@@ -1288,38 +1248,17 @@ EXT_DECL VOS_ERR_T vos_sockBind (
     vos_printLog(VOS_LOG_INFO, "binding to: %s:%hu\n",
                  inet_ntoa(srcAddress.sin_addr), port);
 
-    /* Dynamic ports not supported in SimSocket, we have to try
-       until we find a free port.*/
-
-    if (port == 0)
+    /*  Try to bind the socket to the PD port.    */
+    if (SimBind(sock, (struct sockaddr*) & srcAddress, sizeof(srcAddress)) == SOCKET_ERROR)
     {
-        srcAddress.sin_port = vos_htons(dynPortNr++);
+        int err = GetLastError();
+
+        err = err;     /* for lint */
+        vos_printLog(VOS_LOG_ERROR, "bind() failed (Err: %d)\n", err);
+        return VOS_SOCK_ERR;
     }
-   
-    ret = VOS_NO_ERR;
-    
-    do
-    {
-        err = 0;
 
-        /*  Try to bind the socket to the PD port.    */
-        if (SimBind(simSock, (struct sockaddr*) & srcAddress, sizeof(srcAddress)) == SOCKET_ERROR)
-        {
-            err = GetLastError();
-            if ((err == WSAEADDRINUSE) && (port == 0) && (dynPortNr < DYN_PORT_RANGE_LAST))
-            {
-                srcAddress.sin_port = vos_htons(dynPortNr++);
-            }
-            else
-            {
-                vos_printLog(VOS_LOG_ERROR, "bind() failed (Err: %d)\n", err);
-                ret = VOS_SOCK_ERR;
-            }
-        }        
-
-    } while ((err == WSAEADDRINUSE) && (port == 0) && (dynPortNr <= DYN_PORT_RANGE_LAST));
-
-    return ret;
+    return VOS_NO_ERR;
 }
 
 /**********************************************************************************************************************/
@@ -1335,7 +1274,7 @@ EXT_DECL VOS_ERR_T vos_sockBind (
  */
 
 EXT_DECL VOS_ERR_T vos_sockListen (
-    SOCKET   sock,
+    SOCKET  sock,
     UINT32  backlog)
 {
     SIM_SOCKET simSock = socketToSimSocket(sock);

@@ -17,7 +17,9 @@
 /*
 * $Id$
 *
-*      SB 2018-08-20: Fixed lint errors and warnings
+*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim
+*      SB 2020-03-30: Ticket #311: removed trdp_getSeqCnt() because redundant publisher should not run on the same interface
+*      SB 2019-08-20: Fixed lint errors and warnings
 *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
 *      BL 2019-08-13: Ignore qos/ttl on receive sockets
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -1107,7 +1109,7 @@ TRDP_ERR_T  trdp_requestSocket (
                 {
                     iface[lIndex].usage = 1;
                     *pIndex = lIndex;
-
+#ifndef SIM
                     /* This socket should bind to the (virtual) interface with the VLAN ID supplied by 'pOptions',
                      the way how to do that depends on the network implementation of the target system!
                      We will first construct the possible name according to the targets conventions:
@@ -1158,7 +1160,7 @@ TRDP_ERR_T  trdp_requestSocket (
 
                         iface[lIndex].bindAddr = tempIF.ipAddr;
                     }
-
+#endif
                     /* In case we didn't bind, we force it again */
                     if (rcvMostly)
                     {
@@ -1465,61 +1467,6 @@ void  trdp_releaseSocket (
         }
 #endif
     }
-}
-
-
-
-/**********************************************************************************************************************/
-/** Get the initial sequence counter for the comID/message type and subnet (source IP).
- *  If the comID/srcIP is not found elsewhere, return 0 -
- *  else return its current sequence number (the redundant packet needs the same seqNo)
- *
- *  Note: The standard demands that sequenceCounter is managed per comID/msgType at each publisher,
- *        but shall be the same for redundant telegrams (subnet/srcIP).
- *
- *  @param[in]      comId           comID to look for
- *  @param[in]      msgType         PD/MD type
- *  @param[in]      srcIpAddr       Source IP address
- *
- *  @retval            return the sequence number
- */
-
-UINT32  trdp_getSeqCnt (
-    UINT32          comId,
-    TRDP_MSG_T      msgType,
-    TRDP_IP_ADDR_T  srcIpAddr)
-{
-    TRDP_SESSION_PT pSession        = (TRDP_SESSION_PT)trdp_sessionQueue();
-    PD_ELE_T        *pSendElement   = NULL;
-
-    if (0 == comId)
-    {
-        return 0;
-    }
-
-    /*    For process data look at the PD send queue only    */
-    if ((TRDP_MSG_PD == msgType) ||
-        (TRDP_MSG_PP == msgType) ||
-        (TRDP_MSG_PR == msgType))
-    {
-        /*    Loop thru all sessions    */
-        while (pSession)
-        {
-            pSendElement = pSession->pSndQueue;
-            while (pSendElement)
-            {
-                if ((pSendElement->addr.comId == comId) &&
-                    ((srcIpAddr == 0) || (pSendElement->addr.srcIpAddr == srcIpAddr)))
-                {
-                    return pSendElement->curSeqCnt;
-                }
-                pSendElement = pSendElement->pNext;
-            }
-            pSession = pSession->pNext;
-        }
-    }
-
-    return 0;   /*    Not found, initial value is zero    */
 }
 
 /**********************************************************************************************************************/

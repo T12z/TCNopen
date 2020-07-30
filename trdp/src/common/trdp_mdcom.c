@@ -15,11 +15,15 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
  /*
  * $Id$
  *
+ *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
+ *      SW 2020-07-17: Ticket #327 Send 'Me' only in case of unicast 'Mr' if no listener found
+ *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
+ *      SB 2020-03-20: Ticket #324 mutexMD added to reply and confirm functions
  *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-08-16: Ticket #267 Incorrect values for fields WireError, CRCError and Topo...
  *      BL 2019-06-11: Possible NULL pointer access
@@ -1718,6 +1722,7 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
             iterMD->addr.etbTopoCnt     = iterListener->addr.etbTopoCnt;
             iterMD->addr.opTrnTopoCnt   = iterListener->addr.opTrnTopoCnt;
             iterMD->pktFlags            = iterListener->pktFlags;           /* BL: This was missing! */
+            iterMD->pListener           = iterListener;
 
 
             /* Count this Request/Notification as new session */
@@ -1787,8 +1792,11 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
         }
         vos_printLogStr(VOS_LOG_INFO, "trdp_mdRecv: No listener found!\n");
         result = TRDP_NOLIST_ERR;
-        /* attempt sending Me, do not worry about issues */
-        (void)trdp_mdSendME(appHandle, pH, TRDP_REPLY_NO_REPLIER_INST);
+        /* Ticket #327: attempt sending Me, for unicast "Mr" if no matching listener found */
+        if ((!vos_isMulticast(appHandle->pMDRcvEle->addr.destIpAddr)) && (vos_ntohs(pH->msgType) == TRDP_MSG_MR))
+        {
+            (void)trdp_mdSendME(appHandle, pH, TRDP_REPLY_NO_REPLIER_INST);
+        }
     }
 
     *pIterMD = iterMD;
@@ -3218,6 +3226,7 @@ static void trdp_mdDetailSenderPacket (const TRDP_MSG_T         msgType,
  *  @param[in]      pSendParam          Pointer to send parameters, NULL to use default send parameters
  *  @param[in]      pData               pointer to packet data / dataset
  *  @param[in]      dataSize            size of packet data
+ *  @param[in]      pSrcURI          pointer to source URI, can be set by user
  *
  *  @retval         TRDP_NO_ERR         no error
  *  @retval         TRDP_PARAM_ERR      parameter error
@@ -3232,12 +3241,12 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
                          INT32                      replyStatus,
                          const TRDP_SEND_PARAM_T    *pSendParam,
                          const UINT8                *pData,
-                         UINT32                     dataSize)
+                         UINT32                     dataSize,
+                         const TRDP_URI_USER_T      *pSrcURI)
 {
     TRDP_IP_ADDR_T  srcIpAddr;
     TRDP_IP_ADDR_T  destIpAddr;
-    const CHAR8 *srcURI     = NULL;
-    const CHAR8 *destURI    = NULL;
+    const TRDP_URI_USER_T *destURI    = NULL;
     UINT32          sequenceCounter;
     TRDP_ERR_T      errv = TRDP_NOLIST_ERR;
     MD_ELE_T        *pSenderElement = NULL;
@@ -3256,6 +3265,11 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
     {
         return TRDP_MUTEX_ERR;
     }
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        (void) vos_mutexUnlock(appHandle->mutex);
+        return TRDP_MUTEX_ERR;
+    }
 
     if ( pSessionId )
     {
@@ -3271,7 +3285,7 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
             {
                 /*get values for later use*/
                 destURI = pSenderElement->srcURI;
-                srcURI  = pSenderElement->destURI;
+                /*srcURI  = (pSourceURI == NULL)? (TRDP_URI_USER_T *) pSenderElement->destURI : (TRDP_URI_USER_T *)pSourceURI; */
                 /*perform cross over of IP adresses*/
                 destIpAddr  = pSenderElement->addr.srcIpAddr;
                 srcIpAddr   = pSenderElement->addr.destIpAddr;
@@ -3331,7 +3345,9 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
                                                   dataSize,
                                                   newSession,
                                                   appHandle,
-                                                  srcURI,
+                                                  (pSrcURI == NULL)?
+                                                        (const TRDP_URI_USER_T *) pSenderElement->destURI :
+                                                        pSrcURI,
                                                   destURI,
                                                   pSenderElement);
                         errv = TRDP_NO_ERR;
@@ -3347,6 +3363,10 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
     }
 
     /* Release mutex */
+    if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
+    }
     if ( vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR )
     {
         vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
@@ -3611,6 +3631,11 @@ TRDP_ERR_T trdp_mdConfirm (
     {
         return TRDP_MUTEX_ERR;
     }
+    if (vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        (void) vos_mutexUnlock(appHandle->mutex);
+        return TRDP_MUTEX_ERR;
+    }
 
     vos_printLogStr(VOS_LOG_INFO, "MD TRDP_MSG_MC\n");
 
@@ -3697,6 +3722,10 @@ TRDP_ERR_T trdp_mdConfirm (
         errv = TRDP_PARAM_ERR;
     }
     /* Release mutex */
+    if (vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
+    }
     if ( vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR )
     {
         vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");

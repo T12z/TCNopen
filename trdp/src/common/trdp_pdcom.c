@@ -12,11 +12,14 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2020-07-27: Ticket #304 ... stats count for no subscription added
+*      BL 2020-07-15: Ticket #337 PD request in multithread application, concurrency problems with msg/sockets
+*      BL 2020-05-04: Ticket #329 dataSize is taken from wrong header type for received TSN messages
 *      BL 2019-10-18: Ticket #287 Enhancement performance while receiving (HIGH_PERF_INDEXED mode)
 *      BL 2019-10-10: Ticket #283 Automatic PD sequence counter reset after timeout
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING to DBG
@@ -835,6 +838,7 @@ TRDP_ERR_T  trdp_pdReceive (
          vos_ntohl(pNewFrame->frameHead.comId));
          */
         err = TRDP_NOSUB_ERR;
+        appHandle->stats.pd.numNoSubs++;
     }
     else
     {
@@ -890,7 +894,17 @@ TRDP_ERR_T  trdp_pdReceive (
             pExistingElement->curSeqCnt = vos_ntohl(pNewFrameHead->sequenceCounter);
 
             /*  This might have not been set!   */
-            pExistingElement->dataSize  = vos_ntohl(pNewFrameHead->datasetLength);
+#ifdef TSN_SUPPORT
+            if (TRUE == isTSN)
+            {
+                pExistingElement->dataSize = vos_ntohs(pTSNFrameHead->datasetLength);
+            }
+            else
+#endif
+            {
+                pExistingElement->dataSize = vos_ntohl(pNewFrameHead->datasetLength);
+            }
+
             pExistingElement->grossSize = trdp_packetSizePD(pExistingElement->dataSize);
 
             if (TRUE == isTSN)
@@ -938,6 +952,13 @@ TRDP_ERR_T  trdp_pdReceive (
             /*  It might be a PULL request      */
             if (vos_ntohs(pNewFrameHead->msgType) == (UINT16) TRDP_MSG_PR)
             {
+                /* We need to get the transmission mutex! */
+
+                if (vos_mutexLock(appHandle->mutexTxPD) != VOS_NO_ERR)
+                {
+                    vos_printLogStr(VOS_LOG_WARNING, "A pull request could not get the TxPd mutex!\n");
+                }
+
                 /*  Handle statistics request  */
                 if (vos_ntohl(pNewFrameHead->comId) == TRDP_STATISTICS_PULL_COMID)
                 {
@@ -994,8 +1015,9 @@ TRDP_ERR_T  trdp_pdReceive (
 
                     informUser = TRUE;
                 }
+                /* We should release the mutex as soon as possible! */
+                (void) vos_mutexUnlock(appHandle->mutexTxPD);
             }
-
         }
         else
         {

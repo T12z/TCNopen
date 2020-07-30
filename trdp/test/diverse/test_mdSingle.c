@@ -36,7 +36,7 @@
 /***********************************************************************************************************************
  * DEFINITIONS
  */
-#define APP_VERSION         "1.4"
+#define APP_VERSION         "1.5"
 
 #define DATA_MAX            1000
 
@@ -66,8 +66,8 @@ typedef struct sSessionData
     BOOL8               sNoData;
     UINT32              sComID;
     TRDP_APP_SESSION_T  appHandle;              /*    Our identifier to the library instance    */
-    TRDP_LIS_T          listenUDP;          /*    Our identifier to the publication         */
-    TRDP_LIS_T          listenTCP;          /*    Our identifier to the publication         */
+    TRDP_LIS_T          listenUDP;              /*    Our identifier to the publication         */
+    TRDP_LIS_T          listenTCP;              /*    Our identifier to the publication         */
     BOOL8               sBlockingMode;          /*    TRUE if select shall be used              */
     UINT32              sDataSize;
 } SESSION_DATA_T;
@@ -185,6 +185,7 @@ void mdCallback (void                   *pRefCon,
                   {
                       vos_printLog(VOS_LOG_USR, "   Data[%uB]: %.80s...\n", dataSize, pData);
                   }
+                  /*    Check our argument/option    */
                   if (sSessionData.sConfirmRequested)
                   {
                       vos_printLogStr(VOS_LOG_USR, "-> sending reply with query\n");
@@ -195,7 +196,11 @@ void mdCallback (void                   *pRefCon,
                                            10000000,
                                            NULL,
                                            (UINT8 *) "I'm fine, how are you?",
-                                           23);
+                                           23
+#ifdef CONFORMANCE_API
+                                           , "test_mdSingle"
+#endif
+                                           );
                   }
                   else
                   {
@@ -206,7 +211,11 @@ void mdCallback (void                   *pRefCon,
                                       0,
                                       NULL,
                                       (UINT8 *) "I'm fine, thanx!",
-                                      17);
+                                      17
+#ifdef CONFORMANCE_API
+                                      , "test_mdSingle"
+#endif
+                                      );
                   }
                   if (err != TRDP_NO_ERR)
                   {
@@ -215,6 +224,7 @@ void mdCallback (void                   *pRefCon,
                   break;
               case  TRDP_MSG_MP:        /**< 'Mp' MD Reply without confirmation              */
                   vos_printLog(VOS_LOG_USR, "<- MR Reply received %u\n", pMsg->comId);
+                  vos_printLog(VOS_LOG_USR, "   from userURI: %.32s \n", pMsg->srcUserURI);
                   if (NULL != pData && dataSize > 0)
                   {
                       vos_printLog(VOS_LOG_USR, "   Data[%uB]: %.80s...\n", dataSize, pData);
@@ -226,6 +236,7 @@ void mdCallback (void                   *pRefCon,
                   break;
               case  TRDP_MSG_MQ:        /**< 'Mq' MD Reply with confirmation                 */
                   vos_printLog(VOS_LOG_USR, "<- MR Reply with confirmation received %u\n", pMsg->comId);
+                  vos_printLog(VOS_LOG_USR, "   from userURI: %.32s \n", pMsg->srcUserURI);
                   if (NULL != pData && dataSize > 0)
                   {
                       vos_printLog(VOS_LOG_USR, "   Data[%uB]: %.80s...\n", dataSize, pData);
@@ -281,7 +292,6 @@ void mdCallback (void                   *pRefCon,
            vos_printLog(VOS_LOG_USR, "### No Confirmation within time out for ComID %d, destIP: %s\n",
                         pMsg->comId,
                         vos_ipDotted(pMsg->destIpAddr));
- //          sSessionData.sLoop = FALSE;
            break;
        default:
            vos_printLog(VOS_LOG_USR, "### Error on packet received (ComID %d), err = %d\n",
@@ -316,6 +326,7 @@ void dbgOut (
 
     if (category != VOS_LOG_DBG)
     {
+        /* we filter some more info we're not interested in */
         if ((category != VOS_LOG_INFO) ||
             (strstr(pFile, "vos_sock.c") == NULL))
         {
@@ -360,6 +371,7 @@ int main (int argc, char *argv[])
         return 1;
     }
 
+    /* get the arguments/options */
     while ((ch = getopt(argc, argv, "t:o:p:d:l:e:b:h?vrcn01")) != -1)
     {
         switch (ch)
@@ -584,7 +596,7 @@ int main (int argc, char *argv[])
                 This way we can guarantee that PDs are sent in time
                 with minimum CPU load and minimum jitter.
              */
-            tlc_getInterval(sSessionData.appHandle, &tv, (TRDP_FDS_T *) &rfds, &noDesc);
+            tlm_getInterval(sSessionData.appHandle, &tv, (TRDP_FDS_T *) &rfds, &noDesc);
         }
         /*
             The wait time for select must consider cycle times and timeouts of
@@ -606,7 +618,7 @@ int main (int argc, char *argv[])
             */
             rv = vos_select((int)noDesc + 1, &rfds, NULL, NULL, &tv);
             /* vos_printLog(VOS_LOG_USR, "%d descriptors ready: 0x%04x\n", rv, rfds.fds_bits[0]); */
-            (void) tlc_process(sSessionData.appHandle, (TRDP_FDS_T *) &rfds, &rv);
+            (void) tlm_process(sSessionData.appHandle, (TRDP_FDS_T *) &rfds, &rv);
         }
         else
         {
@@ -622,7 +634,7 @@ int main (int argc, char *argv[])
                 The callback function will be called from within the tlc_process
                 function (in it's context and thread)!
             */
-            (void) tlc_process(sSessionData.appHandle, NULL, NULL);
+            (void) tlm_process(sSessionData.appHandle, NULL, NULL);
         }
 
         /* Handle other ready descriptors... */
@@ -632,7 +644,7 @@ int main (int argc, char *argv[])
         }
         else
         {
-            if (counter++ == 100)
+            if (counter++ > 200)
             {
                 counter = 0;
                 vos_printLogStr(VOS_LOG_USR, "...\n");

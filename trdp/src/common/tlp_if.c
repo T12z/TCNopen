@@ -12,11 +12,16 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2020-07-27: Ticket #304 The reception of any incorrect message causes it to exit the loop
+*      BL 2020-07-10: Ticket #328 tlp_put() writes out of memory for TSN telegrams
+*      BL 2020-07-10: Ticket #315 tlp_publish and heap allocation failed leads to wrong error behaviour
+*      CK 2020-04-06: Ticket #318 PD Request - sequence counter not incremented
+*      SB 2020-03-30: Ticket #311: replaced call to trdp_getSeqCnt() with -1 because redundant publisher should not run on the same interface
 *      BL 2019-12-06: Ticket #300 Can error message in tlp_setRedundant() be changed to warning?
 *      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
 *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
@@ -595,6 +600,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                     {
                         vos_memFree(pNewElement);
                         pNewElement = NULL;
+                        ret = TRDP_MEM_ERR;
                     }
                 }
             }
@@ -644,13 +650,11 @@ EXT_DECL TRDP_ERR_T tlp_publish (
              curSeqCnt holds the last sent sequence counter, therefore set the value initially to -1,
              it will be incremented when sending...    */
 
-            pNewElement->curSeqCnt = trdp_getSeqCnt(pNewElement->addr.comId, msgType,
-                                                    pNewElement->addr.srcIpAddr) - 1;
+            pNewElement->curSeqCnt = 0xFFFFFFFFu;
 
             /*  Get a second sequence counter in case this packet is requested as PULL. This way we will not
              disturb the monotonic sequence for PDs  */
-            pNewElement->curSeqCnt4Pull = trdp_getSeqCnt(pNewElement->addr.comId, TRDP_MSG_PP,
-                                                         pNewElement->addr.srcIpAddr) - 1;
+            pNewElement->curSeqCnt4Pull = 0xFFFFFFFFu;
 
             /*    Check if the redundancy group is already set as follower; if set, we need to mark this one also!
              This will only happen, if publish() is called while we are in redundant mode */
@@ -886,6 +890,17 @@ EXT_DECL TRDP_ERR_T tlp_put (
         return TRDP_NOINIT_ERR;
     }
 
+#ifdef TSN_SUPPORT
+    if ((pElement->pktFlags & TRDP_FLAGS_TSN) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_SDT) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_MSDT))
+    {
+        /* For TSN telegrams, use tlp_putImmediate! */
+        vos_printLogStr(VOS_LOG_ERROR, "For TSN telegrams, use tlp_putImmediate()!\n");
+        return TRDP_PARAM_ERR;
+    }
+#endif
+
     /*    Reserve mutual access    */
     ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutexTxPD);
     if ( ret == TRDP_NO_ERR )
@@ -945,7 +960,9 @@ EXT_DECL TRDP_ERR_T tlp_putImmediate (
     }
 
 #ifdef TSN_SUPPORT
-    if (pElement->pktFlags & TRDP_FLAGS_TSN)
+    if ((pElement->pktFlags & TRDP_FLAGS_TSN) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_SDT) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_MSDT))
     {
         /* For TSN telegrams, we do not take the mutex but send directly! */
         PD2_PACKET_T *pPacket = (PD2_PACKET_T *)(pElement->pFrame);
@@ -1017,9 +1034,10 @@ EXT_DECL TRDP_ERR_T tlp_request (
     UINT32                  replyComId,
     TRDP_IP_ADDR_T          replyIpAddr)
 {
-    TRDP_ERR_T  ret             = TRDP_NO_ERR;
-    PD_ELE_T    *pSubPD         = (PD_ELE_T *) subHandle;
-    PD_ELE_T    *pReqElement    = NULL;
+    TRDP_ERR_T              ret             = TRDP_NO_ERR;
+    PD_ELE_T                *pSubPD         = (PD_ELE_T *) subHandle;
+    PD_ELE_T                *pReqElement    = NULL;
+    TRDP_PR_SEQ_CNT_LIST_T  *pListElement   = NULL;
 
     /*    Check params    */
     if ((appHandle == NULL)
@@ -1090,6 +1108,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
             {
                 vos_memFree(pReqElement);
                 pReqElement = NULL;
+                ret = TRDP_MEM_ERR;
             }
             else
             {
@@ -1111,6 +1130,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
                     vos_memFree(pReqElement->pFrame);
                     vos_memFree(pReqElement);
                     pReqElement = NULL;
+                    ret = TRDP_MEM_ERR;
                 }
                 else
                 {
@@ -1129,10 +1149,33 @@ EXT_DECL TRDP_ERR_T tlp_request (
                     pReqElement->pktFlags =
                         (pktFlags == TRDP_FLAGS_DEFAULT) ? appHandle->pdDefault.flags : pktFlags;
                     pReqElement->magic = TRDP_MAGIC_PUB_HNDL_VALUE;
-                    /*  Find a possible redundant entry in one of the other sessions and sync
-                        the sequence counter! curSeqCnt holds the last sent sequence counter,
-                        therefore set the value initially to -1, it will be incremented when sending... */
-                    pReqElement->curSeqCnt = 0xFFFFFFFF;
+
+                    /*  Get the sequence counter from the sequence list maintained per comId.. */
+                    pListElement = appHandle->pSeqCntList4PDReq;
+                    while (pListElement)
+                    {
+                        if (pListElement->comId == comId)
+                        {
+                            /* Entry found */
+                            break;
+                        }
+                        pListElement = pListElement->pNext;
+                    }
+
+                    /* Add entry if not present */
+                    if (!pListElement)
+                    {
+                        pListElement = (TRDP_PR_SEQ_CNT_LIST_T *)vos_memAlloc(sizeof(TRDP_PR_SEQ_CNT_LIST_T));
+                        pListElement->comId = comId;
+                        pListElement->lastSeqCnt = 0xFFFFFFFFu;
+                        pListElement->pNext = appHandle->pSeqCntList4PDReq;
+                        appHandle->pSeqCntList4PDReq = pListElement;
+                    }
+
+                    /* Sequence counter is incremented once before sending in PD send */
+                    pReqElement->curSeqCnt = pListElement->lastSeqCnt;
+                    pListElement->lastSeqCnt++;
+
                     /*    Enter this request into the send queue.    */
                     trdp_queueInsFirst(&appHandle->pSndQueue, pReqElement);
                 }
@@ -1287,7 +1330,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
         subHandle.opTrnTopoCnt  = opTrnTopoCnt; /* Set topocounts now  */
         subHandle.etbTopoCnt    = etbTopoCnt;
 
-        if (pktFlags & TRDP_FLAGS_TSN)
+        if (pktFlags & (TRDP_FLAGS_TSN | TRDP_FLAGS_TSN_SDT | TRDP_FLAGS_TSN_MSDT))
         {
             usage = TRDP_SOCK_PD_TSN;
         }
@@ -1620,10 +1663,31 @@ EXT_DECL TRDP_ERR_T tlp_get (
         /*    Call the receive function if we are in non blocking mode    */
         if (!(appHandle->option & TRDP_OPTION_BLOCK))
         {
-            /* read all you can get, return value is not interesting */
+            TRDP_ERR_T  err;
+            /* read all you can get, return value checked for recoverable errors (Ticket #304) */
             do
-            {}
-            while (trdp_pdReceive(appHandle, appHandle->ifacePD[pElement->socketIdx].sock) == TRDP_NO_ERR);
+            {
+                err = trdp_pdReceive(appHandle, appHandle->ifacePD[pElement->socketIdx].sock);
+
+                switch (err)
+                {
+                    case TRDP_NO_ERR:
+                    case TRDP_NOSUB_ERR:         /* missing subscription should not lead to extensive error output */
+                    case TRDP_NODATA_ERR:
+                    case TRDP_BLOCK_ERR:
+                        break;
+                    case TRDP_PARAM_ERR:
+                        vos_printLog(VOS_LOG_ERROR, "trdp_pdReceive() failed (Err: %d)\n", err);
+                        break;
+                    case TRDP_WIRE_ERR:
+                    case TRDP_CRC_ERR:
+                    case TRDP_MEM_ERR:
+                    default:
+                        vos_printLog(VOS_LOG_WARNING, "trdp_pdReceive() failed (Err: %d)\n", err);
+                        break;
+                 }
+             }
+            while ((err != TRDP_NODATA_ERR) && (err != TRDP_BLOCK_ERR)); /* as long as there are messages or a timeout is received */
         }
 
         /*    Get the current time    */
