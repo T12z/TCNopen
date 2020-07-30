@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 #if defined (POSIX)
 #include <unistd.h>
 #include <sys/select.h>
@@ -99,7 +100,7 @@ void print_stats (
            (UINT32) trdp.rel,
            (UINT32) trdp.upd,
            (UINT32) trdp.evo);
-    printf("timestamp:          %llu\n", vos_ntohll(pData->timeStamp));
+    printf("timestamp:          %"PRIu64"\n", vos_ntohll(pData->timeStamp));
     printf("upTime:             %u\n", vos_ntohl(pData->upTime));
     printf("lastStatReset:      %u\n", vos_ntohl(pData->statisticTime));
     printf("hostName:           %s\n", pData->hostName);

@@ -3242,11 +3242,11 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
                          const TRDP_SEND_PARAM_T    *pSendParam,
                          const UINT8                *pData,
                          UINT32                     dataSize,
-                         const TRDP_URI_USER_T      *pSrcURI)
+                         const TRDP_URI_USER_T      srcURI)
 {
     TRDP_IP_ADDR_T  srcIpAddr;
     TRDP_IP_ADDR_T  destIpAddr;
-    const TRDP_URI_USER_T *destURI    = NULL;
+    const CHAR8     *destURI        = NULL;
     UINT32          sequenceCounter;
     TRDP_ERR_T      errv = TRDP_NOLIST_ERR;
     MD_ELE_T        *pSenderElement = NULL;
@@ -3345,9 +3345,9 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
                                                   dataSize,
                                                   newSession,
                                                   appHandle,
-                                                  (pSrcURI == NULL)?
-                                                        (const TRDP_URI_USER_T *) pSenderElement->destURI :
-                                                        pSrcURI,
+                                                  (srcURI == NULL)?
+                                                        pSenderElement->destURI :
+                                                        srcURI,
                                                   destURI,
                                                   pSenderElement);
                         errv = TRDP_NO_ERR;

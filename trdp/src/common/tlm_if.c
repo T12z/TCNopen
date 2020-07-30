@@ -803,9 +803,9 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     )
 {
 #ifndef CONFORMANCE_API
-    const TRDP_URI_USER_T   *pSrcURI = NULL;
+    const CHAR8   *_srcURI = NULL;
 #else
-    const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
+    const CHAR8   *_srcURI = srcURI;
 #endif
     if ( !trdp_isValidSession(appHandle))
     {
@@ -824,7 +824,7 @@ EXT_DECL TRDP_ERR_T tlm_reply (
                         pSendParam,
                         pData,
                         dataSize,
-                        pSrcURI);
+                        _srcURI);
 }
 
 
@@ -863,9 +863,9 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
 )
 {
 #ifndef CONFORMANCE_API
-    const TRDP_URI_USER_T   *pSrcURI = NULL;
+    const CHAR8   *_srcURI = NULL;
 #else
-    const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
+    const CHAR8   *_srcURI = srcURI;
 #endif
     UINT32 mdTimeOut;
     if ( !trdp_isValidSession(appHandle))
@@ -898,7 +898,7 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
                         pSendParam,
                         pData,
                         dataSize,
-                        pSrcURI);
+                        _srcURI);
 }
 
 

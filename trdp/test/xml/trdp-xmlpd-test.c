@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #if (defined (WIN32) || defined (WIN64))
 #include <winsock2.h>
 #endif
@@ -466,7 +467,7 @@ static TRDP_ERR_T printDatasetElem(UINT8 * pBuff, UINT32 * pOffset, UINT32 elemT
             printf("I32[%u]: %i, ", i, *(INT32 *)pData);
             break;
         case TRDP_INT64:
-            printf("I64[%u]: %lli, ", i, *(INT64 *)pData);
+            printf("I64[%u]: %" PRIi64 ", ", i, *(INT64 *)pData);
             break;
         case TRDP_UINT8:
             printf("U8[%u]: %u, ", i, *(UINT8 *)pData);
@@ -478,7 +479,7 @@ static TRDP_ERR_T printDatasetElem(UINT8 * pBuff, UINT32 * pOffset, UINT32 elemT
             printf("U32[%u]: %u, ", i, *(UINT32 *)pData);
             break;
         case TRDP_UINT64:
-            printf("U64[%u]: %llu, ", i, *(UINT64 *)pData);
+            printf("U64[%u]: %" PRIu64 ", ", i, *(UINT64 *)pData);
             break;
         case TRDP_REAL32:
             printf("R32[%u]: %f, ", i, *(float *)pData);

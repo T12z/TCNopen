@@ -110,17 +110,17 @@ void printSelParams(int noDesc, VOS_FDS_T *pReadableFD, VOS_TIMEVAL_T   *pTimeOu
 void printSelParams(int noDesc, VOS_FDS_T *pReadableFD, VOS_TIMEVAL_T   *pTimeOut)
 {
     int i;
-    char myStr[256] = "";
+    char myStr[187] = ""; /* vos_printLog won't take more */
     char *pStr = myStr;
     for (i = 0; i < noDesc; i++)
     {
         if (FD_ISSET(i, pReadableFD))
         {
-            sprintf(pStr, "%d ", i);
+            snprintf(pStr, sizeof(myStr)-(pStr-myStr), "%d ", i);
             pStr += strlen(pStr);
         }
     }
-    vos_printLog(VOS_LOG_USR, "Waiting for sockets %s and/or timeout %ld.%d\n", myStr, pTimeOut->tv_sec, pTimeOut->tv_usec * 1000);
+    vos_printLog(VOS_LOG_USR, "Waiting for sockets %s and/or timeout %ld.%ld\n", myStr, pTimeOut->tv_sec, (long int)pTimeOut->tv_usec * 1000);
 }
 
 /**********************************************************************************************************************/

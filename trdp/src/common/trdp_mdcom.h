@@ -105,7 +105,7 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T        msgType,
                          const TRDP_SEND_PARAM_T *pSendParam,
                          const UINT8             *pData,
                          UINT32                  dataSize,
-                         const TRDP_URI_USER_T   *pSourceURI);
+                         const TRDP_URI_USER_T   srcURI);
 
 TRDP_ERR_T trdp_mdCall (const TRDP_MSG_T        msgType,
                         TRDP_APP_SESSION_T      appHandle,
