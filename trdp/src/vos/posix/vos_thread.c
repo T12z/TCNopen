@@ -13,10 +13,12 @@
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- *          Copyright NewTec GmbH, 2019.
+ *          Copyright NewTec GmbH, 2020.
  *
  * $Id$
  *
+ *      BL 2020-07-29: Ticket #303: UUID creation... #warning if uuid not used
+ *      BL 2020-07-27: Ticket #333: Insufficient memory allocation in posix vos_semaCreate
  *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
  *      BL 2019-08-19: LINT warnings
  *      BL 2019-08-12: Ticket #274 Cyclic thread parameters must not use stack
@@ -54,12 +56,9 @@
 #include <sched.h>
 
 #ifdef HAS_UUID
-#ifdef __APPLE__
 #include <uuid/uuid.h>
 #else
-#include <uuid.h>
-#endif
-#else
+#warning "Using internal uuid-generation does not conform to standard!"
 #include "vos_sock.h"
 #endif
 
@@ -156,6 +155,8 @@ int sched_getattr (pid_t                pid,
  *  LOCALS
  */
 #ifdef __APPLE__
+static int  sSemCount = 1;
+
 static int sem_timedwait (sem_t *sem, const struct timespec *abs_timeout)
 {
     /* sem_timedwait() is not supported by DARWIN / Mac OS X!  */
@@ -188,21 +189,6 @@ static int sem_timedwait (sem_t *sem, const struct timespec *abs_timeout)
     return -1;
 }
 
-/* simulate
-    int sem_init(sem_t *, int, unsigned int);
-*/
-int sem_init (sem_t *pSema, int flags, unsigned int mode)
-{
-#pragma unused (flags)
-
-    pSema = sem_open("/tmp/trdp.sema", O_CREAT, 0644, (UINT8)mode);
-    if (pSema == SEM_FAILED)
-    {
-        return -1;
-    }
-    return 0;
-    /* rc = sem_init((sem_t *)*pSema, 0, (UINT8)initialState); */
-}
 #endif
 
 
@@ -1429,7 +1415,7 @@ EXT_DECL VOS_ERR_T vos_semaCreate (
     VOS_ERR_T   retVal  = VOS_SEMA_ERR;
     int         rc      = 0;
 
-    /*Check parameters*/
+    /* Check parameters */
     if (ppSema == NULL)
     {
         vos_printLogStr(VOS_LOG_ERROR, "vos_SemaCreate() ERROR invalid parameter pSema == NULL\n");
@@ -1441,27 +1427,28 @@ EXT_DECL VOS_ERR_T vos_semaCreate (
         retVal = VOS_PARAM_ERR;
     }
     else
-    {
-        /*pThread Semaphore init*/
-#ifdef __APPLE__
-        static int  count = 1;
-        char        tempPath[64];
-        sprintf(tempPath, "/tmp/trdp%d.sema", count++);
-        *ppSema = (VOS_SEMA_T) sem_open(tempPath, O_CREAT, 0644u, (UINT8)initialState);
-        if ((sem_t *)*ppSema == SEM_FAILED)
-        {
-            rc = -1;
-        }
-#else
-        /*Parameters are OK*/
-        *ppSema = (VOS_SEMA_T) vos_memAlloc(sizeof (VOS_SEMA_T));
+    {   /* Parameters are OK */
+
+        *ppSema = (VOS_SEMA_T) vos_memAlloc(sizeof (struct VOS_SEMA));
 
         if (*ppSema == NULL)
         {
             return VOS_MEM_ERR;
         }
+#ifdef __APPLE__
 
-        rc = sem_init((sem_t *)*ppSema, 0, (UINT8)initialState);
+        /* In MacOS/Darwin/iOS we have named semaphores, only */
+        char        tempPath[64];
+        (*ppSema)->number = ++sSemCount;
+        sprintf(tempPath, "/tmp/trdp%d.sema", (*ppSema)->number);
+        (*ppSema)->sem = sem_open(tempPath, O_CREAT, 0644u, (UINT8)initialState);
+        if ((*ppSema)->sem == SEM_FAILED)
+        {
+            rc = -1;
+        }
+#else
+
+        rc = sem_init((*ppSema)->sem, 0, (UINT8)initialState);
 #endif
         if (0 != rc)
         {
@@ -1498,7 +1485,7 @@ EXT_DECL void vos_semaDelete (VOS_SEMA_T sema)
     else
     {
 #ifdef __APPLE__
-        rc = sem_close((sem_t *)sema);
+        rc = sem_close(sema->sem);
         if (0 != rc)
         {
             /* Error closing Semaphore */
@@ -1506,28 +1493,27 @@ EXT_DECL void vos_semaDelete (VOS_SEMA_T sema)
         }
         else
         {
+            char    tempPath[64];
+            sprintf(tempPath, "/tmp/trdp%d.sema", sema->number);
             /* Semaphore deleted successfully, free allocated memory */
-            sem_unlink("/tmp/trdp.sema");
+            sem_unlink(tempPath);
         }
 #else
         int sval = 0;
         /* Check if this is a valid semaphore handle*/
-        rc = sem_getvalue((sem_t *)sema, &sval);
+        rc = sem_getvalue(sema->sem, &sval);
         if (0 == rc)
         {
-            rc = sem_destroy((sem_t *)sema);
+            rc = sem_destroy(sema->sem);
             if (0 != rc)
             {
                 /* Error destroying Semaphore */
                 vos_printLogStr(VOS_LOG_ERROR, "vos_semaDelete() ERROR CloseHandle failed\n");
             }
-            else
-            {
-                /* Semaphore deleted successfully, free allocated memory */
-                vos_memFree(sema);
-            }
         }
 #endif
+        /* Semaphore deleted successfully, free allocated memory */
+        vos_memFree(sema);
     }
     return;
 }
@@ -1563,12 +1549,12 @@ EXT_DECL VOS_ERR_T vos_semaTake (
     else if (timeout == 0u)
     {
         /* Take Semaphore, return ERROR if Semaphore cannot be taken immediately instead of blocking */
-        rc = sem_trywait((sem_t *)sema);
+        rc = sem_trywait(sema->sem);
     }
     else if (timeout == VOS_SEMA_WAIT_FOREVER)
     {
         /* Take Semaphore, block until Semaphore becomes available */
-        rc = sem_wait((sem_t *)sema);
+        rc = sem_wait(sema->sem);
     }
     else
     {
@@ -1613,14 +1599,14 @@ EXT_DECL VOS_ERR_T vos_semaTake (
            This call will fail under LINUX, because it depends on CLOCK_REALTIME (opposed to CLOCK_MONOTONIC)!
         */
 #ifdef __QNXNTO__
-        rc = sem_timedwait_monotonic((sem_t *)sema, &waitTimeSpec);
+        rc = sem_timedwait_monotonic(sema->sem, &waitTimeSpec);
 #else
         /* BL 2013-11-28:
            Currently, under Linux, there is no semaphore call which will work with CLOCK_MONOTONIC; the semaphore
            will fail if the clock was changed by the system (NTP, adjtime etc.).
            See also http://sourceware.org/bugzilla/show_bug.cgi?id=14717
         */
-        rc = sem_timedwait((sem_t *)sema, &waitTimeSpec);
+        rc = sem_timedwait(sema->sem, &waitTimeSpec);
 #endif
     }
     if (0 != rc)
@@ -1658,7 +1644,7 @@ EXT_DECL void vos_semaGive (
     else
     {
         /* release semaphore */
-        rc = sem_post((sem_t *)sema);
+        rc = sem_post(sema->sem);
         if (0 == rc)
         {
             /* Semaphore released */

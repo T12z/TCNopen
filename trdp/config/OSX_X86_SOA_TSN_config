@@ -18,9 +18,9 @@ TCPOSTFIX =
 DOXYPATH = /Applications/Doxygen.app/Contents/Resources/
 
 CFLAGS += -Wall -m64 -fno-builtin -fsigned-char -pthread -fPIC -D__USE_BSD -D_DARWIN_C_SOURCE -DPOSIX -DL_ENDIAN
-CFLAGS += -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign -DHAS_UUID
+CFLAGS += -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
 
-INCPATH += -I /usr/include/uuid
+CFLAGS +=  -DHAS_UUID
 
 # Additional sources for TSN support
 VOS_OBJS        += vos_sockTSN.o

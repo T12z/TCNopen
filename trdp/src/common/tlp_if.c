@@ -12,11 +12,14 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2020-07-27: Ticket #304 The reception of any incorrect message causes it to exit the loop
+*      BL 2020-07-10: Ticket #328 tlp_put() writes out of memory for TSN telegrams
+*      BL 2020-07-10: Ticket #315 tlp_publish and heap allocation failed leads to wrong error behaviour
 *      CK 2020-04-06: Ticket #318 PD Request - sequence counter not incremented
 *      SB 2020-03-30: Ticket #311: replaced call to trdp_getSeqCnt() with -1 because redundant publisher should not run on the same interface
 *      BL 2019-12-06: Ticket #300 Can error message in tlp_setRedundant() be changed to warning?
@@ -597,6 +600,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                     {
                         vos_memFree(pNewElement);
                         pNewElement = NULL;
+                        ret = TRDP_MEM_ERR;
                     }
                 }
             }
@@ -886,6 +890,17 @@ EXT_DECL TRDP_ERR_T tlp_put (
         return TRDP_NOINIT_ERR;
     }
 
+#ifdef TSN_SUPPORT
+    if ((pElement->pktFlags & TRDP_FLAGS_TSN) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_SDT) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_MSDT))
+    {
+        /* For TSN telegrams, use tlp_putImmediate! */
+        vos_printLogStr(VOS_LOG_ERROR, "For TSN telegrams, use tlp_putImmediate()!\n");
+        return TRDP_PARAM_ERR;
+    }
+#endif
+
     /*    Reserve mutual access    */
     ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutexTxPD);
     if ( ret == TRDP_NO_ERR )
@@ -945,7 +960,9 @@ EXT_DECL TRDP_ERR_T tlp_putImmediate (
     }
 
 #ifdef TSN_SUPPORT
-    if (pElement->pktFlags & TRDP_FLAGS_TSN)
+    if ((pElement->pktFlags & TRDP_FLAGS_TSN) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_SDT) ||
+        (pElement->pktFlags & TRDP_FLAGS_TSN_MSDT))
     {
         /* For TSN telegrams, we do not take the mutex but send directly! */
         PD2_PACKET_T *pPacket = (PD2_PACKET_T *)(pElement->pFrame);
@@ -1091,6 +1108,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
             {
                 vos_memFree(pReqElement);
                 pReqElement = NULL;
+                ret = TRDP_MEM_ERR;
             }
             else
             {
@@ -1112,6 +1130,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
                     vos_memFree(pReqElement->pFrame);
                     vos_memFree(pReqElement);
                     pReqElement = NULL;
+                    ret = TRDP_MEM_ERR;
                 }
                 else
                 {
@@ -1311,7 +1330,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
         subHandle.opTrnTopoCnt  = opTrnTopoCnt; /* Set topocounts now  */
         subHandle.etbTopoCnt    = etbTopoCnt;
 
-        if (pktFlags & TRDP_FLAGS_TSN)
+        if (pktFlags & (TRDP_FLAGS_TSN | TRDP_FLAGS_TSN_SDT | TRDP_FLAGS_TSN_MSDT))
         {
             usage = TRDP_SOCK_PD_TSN;
         }
@@ -1644,10 +1663,31 @@ EXT_DECL TRDP_ERR_T tlp_get (
         /*    Call the receive function if we are in non blocking mode    */
         if (!(appHandle->option & TRDP_OPTION_BLOCK))
         {
-            /* read all you can get, return value is not interesting */
+            TRDP_ERR_T  err;
+            /* read all you can get, return value checked for recoverable errors (Ticket #304) */
             do
-            {}
-            while (trdp_pdReceive(appHandle, appHandle->ifacePD[pElement->socketIdx].sock) == TRDP_NO_ERR);
+            {
+                err = trdp_pdReceive(appHandle, appHandle->ifacePD[pElement->socketIdx].sock);
+
+                switch (err)
+                {
+                    case TRDP_NO_ERR:
+                    case TRDP_NOSUB_ERR:         /* missing subscription should not lead to extensive error output */
+                    case TRDP_NODATA_ERR:
+                    case TRDP_BLOCK_ERR:
+                        break;
+                    case TRDP_PARAM_ERR:
+                        vos_printLog(VOS_LOG_ERROR, "trdp_pdReceive() failed (Err: %d)\n", err);
+                        break;
+                    case TRDP_WIRE_ERR:
+                    case TRDP_CRC_ERR:
+                    case TRDP_MEM_ERR:
+                    default:
+                        vos_printLog(VOS_LOG_WARNING, "trdp_pdReceive() failed (Err: %d)\n", err);
+                        break;
+                 }
+             }
+            while ((err != TRDP_NODATA_ERR) && (err != TRDP_BLOCK_ERR)); /* as long as there are messages or a timeout is received */
         }
 
         /*    Get the current time    */

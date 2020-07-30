@@ -12,9 +12,10 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2020. All rights reserved.
  */
 /*
+ *      BL 2020-07-10: Ticket #321 Move TRDP_TIMER_GRANULARITY to public API
  *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
  *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
  *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -214,6 +215,13 @@ typedef enum
 
 #define TRDP_INFINITE_TIMEOUT       0xffffffffu /**< Infinite reply timeout                               */
 #define TRDP_DEFAULT_PD_TIMEOUT     100000u /**< Default PD timeout 100ms from 61375-2-3 Table C.7        */
+
+#ifdef HIGH_PERF_INDEXED
+#   define TRDP_TIMER_GRANULARITY   500u                /**< granularity in us - we allow 0.5ms now!      */
+#else
+#   define TRDP_TIMER_GRANULARITY   5000u               /**< granularity in us - we allow 5ms now!        */
+#endif
+
 
 typedef UINT8 TRDP_FLAGS_T;
 

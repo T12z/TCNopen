@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-07-29: tlc_init() marks version info with 'trunk' (if vers.evo != 0)
 *      BL 2020-01-10: Undoing svn revision output, would reflect file revision, only.
 *      BL 2019-11-06: Ticket #289: Changed the max. returnedwait time of tlc_getInterval to 1s (instead of 1000s)
 *      BL 2019-10-25: Ticket #288 Why is not tlm_reply() exported from the DLL
@@ -345,8 +346,11 @@ EXT_DECL TRDP_ERR_T tlc_init (
 
         if (ret == TRDP_NO_ERR)
         {
+            const TRDP_VERSION_T *ver = tlc_getVersion();
             sInited = TRUE;
-            vos_printLog(VOS_LOG_INFO, "TRDP Stack Version %s: successfully initiated\n", tlc_getVersionString());
+            vos_printLog(VOS_LOG_INFO, "TRDP Stack Version %s%s: successfully initiated\n",
+                                        tlc_getVersionString(),
+                                        (ver->evo == 0)? "" : "(trunk)");
         }
     }
     else

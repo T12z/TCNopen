@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
  * $Id$
  *
+ *      BL 2020-07-10: Ticket #321 Move TRDP_TIMER_GRANULARITY to public API
  *      CK 2020-04-06: Ticket #318 Added pointer to list of seqCnt used per comId for PD Requests in TRDP_SESSION_T
  *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
  *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
@@ -76,12 +77,6 @@
 
 #define TRDP_VERSION_STR    STR_EXPAND(TRDP_VERSION) "." STR_EXPAND(TRDP_RELEASE) "." \
                             STR_EXPAND(TRDP_UPDATE) "." STR_EXPAND(TRDP_EVOLUTION)
-
-#ifdef HIGH_PERF_INDEXED
-#   define TRDP_TIMER_GRANULARITY          500u                     /**< granularity in us - we allow 0.5ms now!      */
-#else
-#   define TRDP_TIMER_GRANULARITY          5000u                    /**< granularity in us - we allow 5ms now!        */
-#endif
 
 /** Separate PD and MD socket lists. Reserve 1/4 of sockets for MD, if supported */
 #if MD_SUPPORT

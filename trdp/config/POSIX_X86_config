@@ -18,4 +18,6 @@ DOXYPATH = /usr/local/bin/
 
 CFLAGS += -O2 -Wall -fstrength-reduce -fno-builtin -fsigned-char -D$(TARGET_FLAG) -pthread -fPIC -DL_ENDIAN
 LDFLAGS += -lrt
-INCPATH += -I /usr/include/uuid
+
+CFLAGS +=  -DHAS_UUID
+LDFLAGS += -luuid

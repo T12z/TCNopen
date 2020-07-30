@@ -65,17 +65,6 @@
  * TYPEDEFS
  */
 
-typedef struct tau_dnr_query
-{
-    UINT16  id;
-    UINT16  param;
-    UINT16  noOfQueries;
-    UINT16  noOfReplies;
-    UINT16  noOfAuth;
-    UINT16  noOfAddInfo;
-    UINT8   data[1];
-} TAU_DNR_QUERY_T;
-
 /* Constant sized fields of the resource record structure */
 #if (defined (WIN32) || defined (WIN64))
 #pragma pack(push, 1)
@@ -127,6 +116,7 @@ typedef struct QUESTION
  *   Locals
  */
 
+static UINT16 sRequesterId = 1;     /* Id to identify own queries - getting rid of compiler and lint warnings */
 
 #pragma mark ----------------------- Local -----------------------------
 
@@ -584,9 +574,7 @@ static void updateDNSentry (
     UINT32          size;
     UINT32          querySize;
     VOS_SOCK_OPT_T  opts;
-    UINT16          id      = (UINT16) (((UINT16) appHandle) & 0xFFFFu);   /*lint !e507 
-                                                                           size incomatibility,
-                                                                           converting 4 byte pointer to 2 byte integral */
+    UINT16          id      = sRequesterId++;
     TAU_DNR_DATA_T  *pDNR   = (TAU_DNR_DATA_T *) appHandle->pUser;
     TRDP_IP_ADDR_T  ip_addr = VOS_INADDR_ANY;
 
@@ -1013,7 +1001,7 @@ static void updateTCNDNSentry (
     }
 
     /* kill the session to avoid dangeling semaphore */
-    (void) tlm_abortSession(appHandle, &sessionId); /*lint !e545 suspicious use of & parameter 2 */
+    (void) tlm_abortSession(appHandle, (const TRDP_UUID_T*)&sessionId); /*lint !e545 suspicious use of & parameter 2 */
 
 exit:
     vos_semaDelete(dnsSema);

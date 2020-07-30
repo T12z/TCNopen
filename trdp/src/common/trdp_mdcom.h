@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
  /*
  * $Id$
  *
+ *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
  *     AHW 2017-11-08: Ticket #179 Max. number of retries (part of sendParam) of a MD request needs to be checked
  *      BL 2014-07-14: Ticket #46: Protocol change: operational topocount needed
  *                     Ticket #47: Protocol change: no FCS for data part of telegrams
@@ -103,7 +104,8 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T        msgType,
                          INT32                   replyStatus,
                          const TRDP_SEND_PARAM_T *pSendParam,
                          const UINT8             *pData,
-                         UINT32                  dataSize);
+                         UINT32                  dataSize,
+                         const TRDP_URI_USER_T   *pSourceURI);
 
 TRDP_ERR_T trdp_mdCall (const TRDP_MSG_T        msgType,
                         TRDP_APP_SESSION_T      appHandle,
