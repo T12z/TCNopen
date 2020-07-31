@@ -1435,6 +1435,7 @@ EXT_DECL VOS_ERR_T vos_semaCreate (
         {
             return VOS_MEM_ERR;
         }
+
 #ifdef __APPLE__
 
         /* In MacOS/Darwin/iOS we have named semaphores, only */
@@ -1448,7 +1449,7 @@ EXT_DECL VOS_ERR_T vos_semaCreate (
         }
 #else
 
-        rc = sem_init((*ppSema)->sem, 0, (UINT8)initialState);
+        rc = sem_init(&(*ppSema)->sem, 0, (UINT8)initialState);
 #endif
         if (0 != rc)
         {
@@ -1501,10 +1502,10 @@ EXT_DECL void vos_semaDelete (VOS_SEMA_T sema)
 #else
         int sval = 0;
         /* Check if this is a valid semaphore handle*/
-        rc = sem_getvalue(sema->sem, &sval);
+        rc = sem_getvalue(&sema->sem, &sval);
         if (0 == rc)
         {
-            rc = sem_destroy(sema->sem);
+            rc = sem_destroy(&sema->sem);
             if (0 != rc)
             {
                 /* Error destroying Semaphore */
@@ -1549,12 +1550,12 @@ EXT_DECL VOS_ERR_T vos_semaTake (
     else if (timeout == 0u)
     {
         /* Take Semaphore, return ERROR if Semaphore cannot be taken immediately instead of blocking */
-        rc = sem_trywait(sema->sem);
+        rc = sem_trywait(&sema->sem);
     }
     else if (timeout == VOS_SEMA_WAIT_FOREVER)
     {
         /* Take Semaphore, block until Semaphore becomes available */
-        rc = sem_wait(sema->sem);
+        rc = sem_wait(&sema->sem);
     }
     else
     {
@@ -1599,14 +1600,14 @@ EXT_DECL VOS_ERR_T vos_semaTake (
            This call will fail under LINUX, because it depends on CLOCK_REALTIME (opposed to CLOCK_MONOTONIC)!
         */
 #ifdef __QNXNTO__
-        rc = sem_timedwait_monotonic(sema->sem, &waitTimeSpec);
+        rc = sem_timedwait_monotonic(&sema->sem, &waitTimeSpec);
 #else
         /* BL 2013-11-28:
            Currently, under Linux, there is no semaphore call which will work with CLOCK_MONOTONIC; the semaphore
            will fail if the clock was changed by the system (NTP, adjtime etc.).
            See also http://sourceware.org/bugzilla/show_bug.cgi?id=14717
         */
-        rc = sem_timedwait(sema->sem, &waitTimeSpec);
+        rc = sem_timedwait(&sema->sem, &waitTimeSpec);
 #endif
     }
     if (0 != rc)
@@ -1644,7 +1645,7 @@ EXT_DECL void vos_semaGive (
     else
     {
         /* release semaphore */
-        rc = sem_post(sema->sem);
+        rc = sem_post(&sema->sem);
         if (0 == rc)
         {
             /* Semaphore released */
@@ -1657,3 +1658,4 @@ EXT_DECL void vos_semaGive (
     }
     return;
 }
+
