@@ -70,6 +70,7 @@ struct VOS_MUTEX
 struct VOS_SEMA
 {
     sem_t   sem;
+    sem_t   *pSem;
     int     number;
 };
 #else

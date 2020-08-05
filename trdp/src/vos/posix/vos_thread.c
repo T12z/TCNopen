@@ -1442,11 +1442,12 @@ EXT_DECL VOS_ERR_T vos_semaCreate (
         char        tempPath[64];
         (*ppSema)->number = ++sSemCount;
         sprintf(tempPath, "/tmp/trdp%d.sema", (*ppSema)->number);
-        (*ppSema)->sem = sem_open(tempPath, O_CREAT, 0644u, (UINT8)initialState);
-        if ((*ppSema)->sem == SEM_FAILED)
+        (*ppSema)->pSem = sem_open(tempPath, O_CREAT, 0644u, (UINT8)initialState);
+        if ((*ppSema)->pSem == SEM_FAILED)
         {
             rc = -1;
         }
+        (*ppSema)->sem = (sem_t) (*ppSema)->pSem;
 #else
 
         rc = sem_init(&(*ppSema)->sem, 0, (UINT8)initialState);
@@ -1486,7 +1487,7 @@ EXT_DECL void vos_semaDelete (VOS_SEMA_T sema)
     else
     {
 #ifdef __APPLE__
-        rc = sem_close(sema->sem);
+        rc = sem_close(sema->pSem);
         if (0 != rc)
         {
             /* Error closing Semaphore */
