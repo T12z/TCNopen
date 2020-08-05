@@ -1,9 +1,0 @@
-<?xml veF-8"?>
-<device xmlns:xsi="http:/nce" xsimaLocbtion="trdpxsd" host-name="device2" leader-name="deype="dummy">>
-
-    <data-set-list>
-   <mem-block-list>
-    size="72" preallocate="256"/>
-        </mem-block-list>
-    </device-ation>
- 

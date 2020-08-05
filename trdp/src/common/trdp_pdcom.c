@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-07-29: Ticket #332 Error reading from TSN PD header
 *      BL 2020-07-27: Ticket #304 ... stats count for no subscription added
 *      BL 2020-07-15: Ticket #337 PD request in multithread application, concurrency problems with msg/sockets
 *      BL 2020-05-04: Ticket #329 dataSize is taken from wrong header type for received TSN messages
@@ -861,15 +862,13 @@ TRDP_ERR_T  trdp_pdReceive (
             if ((newSeqCnt == 0u) ||                                /* restarted or new sender  */
                 (pExistingElement->privFlags & TRDP_TIMED_OUT))     /* or timed out before      */
             {
-                trdp_resetSequenceCounter(pExistingElement, subAddresses.srcIpAddr,
-                                          (TRDP_MSG_T) vos_ntohs(pNewFrameHead->msgType));
+                trdp_resetSequenceCounter(pExistingElement, subAddresses.srcIpAddr, msgType);
             }
 
             /* find sender in our list */
             switch (trdp_checkSequenceCounter(pExistingElement,
                                               newSeqCnt,
-                                              subAddresses.srcIpAddr,
-                                              (TRDP_MSG_T) vos_ntohs(pNewFrameHead->msgType)))
+                                              subAddresses.srcIpAddr, msgType))
             {
                 case 0:                      /* Sequence counter is valid (at least 1 higher than previous one) */
                     break;
@@ -877,7 +876,7 @@ TRDP_ERR_T  trdp_pdReceive (
                     return TRDP_MEM_ERR;
                 case 1:
                     vos_printLog(VOS_LOG_INFO, "Old PD data ignored (SrcIp: %s comId %u)\n", vos_ipDotted(
-                                     subAddresses.srcIpAddr), vos_ntohl(pNewFrameHead->comId));
+                                     subAddresses.srcIpAddr), subAddresses.comId);
                     return TRDP_NO_ERR;      /* Ignore packet, too old or duplicate */
             }
 
@@ -898,32 +897,29 @@ TRDP_ERR_T  trdp_pdReceive (
             if (TRUE == isTSN)
             {
                 pExistingElement->dataSize = vos_ntohs(pTSNFrameHead->datasetLength);
+                pExistingElement->grossSize = trdp_packetSizePD2(pExistingElement->dataSize);
+                informUser = TRUE;
             }
             else
 #endif
             {
                 pExistingElement->dataSize = vos_ntohl(pNewFrameHead->datasetLength);
-            }
+                pExistingElement->grossSize = trdp_packetSizePD(pExistingElement->dataSize);
 
-            pExistingElement->grossSize = trdp_packetSizePD(pExistingElement->dataSize);
-
-            if (TRUE == isTSN)
-            {
-                informUser = TRUE;
-            }
-            /*  Has the data changed?   */
-            else if (pExistingElement->pktFlags & TRDP_FLAGS_CALLBACK)
-            {
-                if ((pExistingElement->pktFlags & TRDP_FLAGS_FORCE_CB) ||
-                    (pExistingElement->privFlags & TRDP_TIMED_OUT))
+                /*  Has the data changed?   */
+                if (pExistingElement->pktFlags & TRDP_FLAGS_CALLBACK)
                 {
-                    informUser = TRUE;                 /* Inform user anyway */
-                }
-                else if (0 != memcmp(appHandle->pNewFrame->data,
-                                     pExistingElement->pFrame->data,
-                                     pExistingElement->dataSize))
-                {
-                    informUser = TRUE;
+                    if ((pExistingElement->pktFlags & TRDP_FLAGS_FORCE_CB) ||
+                        (pExistingElement->privFlags & TRDP_TIMED_OUT))
+                    {
+                        informUser = TRUE;                 /* Inform user anyway */
+                    }
+                    else if (0 != memcmp(appHandle->pNewFrame->data,
+                                         pExistingElement->pFrame->data,
+                                         pExistingElement->dataSize))
+                    {
+                        informUser = TRUE;
+                    }
                 }
             }
 
@@ -950,7 +946,8 @@ TRDP_ERR_T  trdp_pdReceive (
             }
 
             /*  It might be a PULL request      */
-            if (vos_ntohs(pNewFrameHead->msgType) == (UINT16) TRDP_MSG_PR)
+            if ((msgType == TRDP_MSG_PR) &&
+                (FALSE == isTSN))               /* no PULL on TSN, currently */
             {
                 /* We need to get the transmission mutex! */
 

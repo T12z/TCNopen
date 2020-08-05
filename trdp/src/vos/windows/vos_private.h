@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2020-07-30: pthread includes removed
 *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
 */
 
@@ -30,7 +31,7 @@
 #if (defined (WIN32) || defined (WIN64))
 #include <WinBase.h>
 #else
-#include <pthread.h>
+#error "wrong file included!"
 #endif
 
 #include "vos_types.h"
@@ -49,8 +50,6 @@ extern "C" {
 #define VOS_UPDATE      0u
 #define VOS_EVOLUTION   2u
 
-#if (defined (WIN32) || defined (WIN64))
-
 #define MAX_SEM_COUNT  10
 
 struct VOS_MUTEX
@@ -63,20 +62,6 @@ struct VOS_SEMA
 {
     HANDLE semaphore;
 };
-
-#else
-
-struct VOS_MUTEX
-{
-    UINT32          magicNo;
-    pthread_mutex_t mutexId;
-};
-
-struct VOS_SEMA
-{
-    struct sem_t_ *semaphore;
-};
-#endif
 
 struct VOS_SHRD
 {

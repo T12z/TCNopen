@@ -20,7 +20,7 @@
  /*
  * $Id$
  *
- *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
+ *      BL 2020-07-30: Ticket #336 MD structures handling in multithread application
  *      SW 2020-07-17: Ticket #327 Send 'Me' only in case of unicast 'Mr' if no listener found
  *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
  *      SB 2020-03-20: Ticket #324 mutexMD added to reply and confirm functions
@@ -3438,7 +3438,7 @@ TRDP_ERR_T trdp_mdCall (
     }
 
     /* lock mutex */
-    if ( vos_mutexLock(appHandle->mutex) != VOS_NO_ERR )
+    if ( vos_mutexLock(appHandle->mutexMD) != VOS_NO_ERR )
     {
         return TRDP_MUTEX_ERR;
     }
@@ -3587,7 +3587,7 @@ TRDP_ERR_T trdp_mdCall (
     }
 
     /* Release mutex */
-    if ( vos_mutexUnlock(appHandle->mutex) != VOS_NO_ERR )
+    if ( vos_mutexUnlock(appHandle->mutexMD) != VOS_NO_ERR )
     {
         vos_printLogStr(VOS_LOG_ERROR, "vos_mutexUnlock() failed\n");
     }
