@@ -563,7 +563,7 @@ static int test1 ()
         }
         vos_printLogStr(VOS_LOG_USR,
                         "--- Services -------------------------------------------------------------------\n");
-        for (UINT32 i = 0; i < noOfServices; i++)
+        for (i = 0; i < noOfServices; i++)
         {
             vos_printLog(VOS_LOG_USR, " [%d] Name: %s,\tTypeId: %u,\tInstId:%3u,\tdevice: %s\n",
                          i,
@@ -608,7 +608,7 @@ static int test1 ()
         {
             vos_printLogStr(VOS_LOG_USR,
                             "--- Services -------------------------------------------------------------------\n");
-            for (UINT32 i = 0; i < noOfServices; i++)
+            for (i = 0; i < noOfServices; i++)
             {
                 vos_printLog(VOS_LOG_USR, " [%d] Name: %s,\tTypeId: %u,\tInstId:%3u,\tdevice: %s\n",
                              i,
@@ -759,7 +759,7 @@ static int test2 ()
 static int test3 ()
 {
     PREPARE2("Ticket #337 PD request in multithread application, concurrency problems with msg/sockets", "test",
-             5000);     /* allocates appHandle1,
+             5000);     /* allocates appHandle1, */
 
     /* ------------------------- test code starts here --------------------------- */
 
@@ -893,6 +893,35 @@ static int test3 ()
     CLEANUP;
 }
 
+#include <semaphore.h>
+
+static int test4 ()
+{
+    PREPARE_COM("Ticket #333 Testing semaphore memory allocation");
+
+    /* ------------------------- test code starts here --------------------------- */
+
+    gFullLog = TRUE;
+
+    {
+        VOS_SEMA_T mySemaphore;
+        fprintf(gFp, "Sizeof VOS_SEMA_T: %lu\n", sizeof(mySemaphore));
+        fprintf(gFp, "Sizeof sem: %lu\n", sizeof(sem_t));
+        err = (TRDP_ERR_T) vos_semaCreate(&mySemaphore, VOS_SEMA_FULL/*VOS_SEMA_EMPTY*/);
+        IF_ERROR("vos_semaCreate");
+        err = (TRDP_ERR_T) vos_semaTake(mySemaphore, VOS_SEMA_WAIT_FOREVER);
+        IF_ERROR("vos_semaTake");
+        vos_semaGive(mySemaphore);
+        vos_semaDelete(mySemaphore);
+
+        fprintf(gFp, "Semaphore deleted\n");
+
+    }
+
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+}
 
 /**********************************************************************************************************************/
 /* This array holds pointers to the m-th test (m = 1 will execute test1...)                                           */
@@ -902,7 +931,8 @@ test_func_t *testArray[] =
     NULL,
     //test1,  /* SRM test 1 */
     //test2,  /* ticket #284 */
-    test3,  /* ticket #337 */
+    //test3,  /* ticket #337 */
+	test4,
     NULL
 };
 

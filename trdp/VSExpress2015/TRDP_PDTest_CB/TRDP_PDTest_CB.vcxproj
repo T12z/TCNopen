@@ -211,7 +211,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\resources\windows\getopt\getopt.c" />
-    <ClCompile Include="..\..\test\diverse\pd_md_responder.c" />
+    <ClCompile Include="..\..\test\diverse\pd_responder.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TRDP\TRDP.vcxproj">
