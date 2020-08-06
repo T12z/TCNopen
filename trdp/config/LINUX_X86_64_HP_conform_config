@@ -1,0 +1,38 @@
+#//
+#// $Id: LINUX_X86_64_HP_conform_config 2183 2020-07-29 15:51:09Z bloehr $
+#//
+#// DESCRIPTION    Config file to make TRDP for Linux target and Conformance API changes with 2.0.3
+#//
+#// AUTHOR         NewTec GmbH
+#//
+#// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0 
+#// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/
+#// Copyright NewTec GmbH, 2019-2020. All rights reserved.
+#//
+
+ARCH = linux-x86_64
+TARGET_VOS = posix
+TARGET_OS = LINUX
+TCPREFIX = 
+TCPOSTFIX = 
+DOXYPATH = /usr/local/bin/
+
+# the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
+
+CFLAGS += -Wall -m64 -fstrength-reduce -fno-builtin -fsigned-char -pthread -fPIC -D_GNU_SOURCE -DPOSIX -DL_ENDIAN
+CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function # -Wno-int-to-void-pointer-cast -Wno-self-assign
+LDFLAGS += -lrt
+
+CFLAGS +=  -DHAS_UUID
+LDFLAGS += -luuid
+
+LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
+
+# Additional sources for TSN support
+#TSN_SUPPORT = 1
+#SOA_SUPPORT = 1
+
+HIGH_PERF_INDEXED = 1
+CFLAGS += -DCONFORMANCE_API
+# This will reduce timeout deviations (default is a check every 100ms)
+CFLAGS += -DTRDP_TO_CHECK_CYCLE=50000

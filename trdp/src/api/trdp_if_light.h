@@ -12,12 +12,13 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
 *
+*      BL 2020-08-05: tlc_freeBuffer() declaration removed, it was never defined!
 *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      BL 2019-11-12: Ticket #288 Added EXT_DECL to reply functions
 *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
@@ -116,10 +117,6 @@ EXT_DECL TRDP_ERR_T tlc_setOpTrainTopoCount (
 
 EXT_DECL UINT32     tlc_getOpTrainTopoCount (
     TRDP_APP_SESSION_T appHandle);
-
-EXT_DECL TRDP_ERR_T tlc_freeBuf (
-    TRDP_APP_SESSION_T  appHandle,
-    char                *pBuf);
 
 EXT_DECL TRDP_ERR_T tlc_getInterval (
     TRDP_APP_SESSION_T  appHandle,

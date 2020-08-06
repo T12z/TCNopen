@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      BL 2020-08-06: Ticket #314 Timeout supervision does not restart after PD request
  *      BL 2020-07-15: Formatting (indenting)
  *      BL 2019-12-06: Ticket #302 HIGH_PERF_INDEXED: Rebuild tables completely on tlc_update
  *      BL 2019-10-18: Ticket #287 Enhancement performance while receiving (HIGH_PERF_INDEXED mode)
@@ -1028,8 +1029,8 @@ void  trdp_pdHandleTimeOutsIndexed (TRDP_SESSION_PT appHandle)
             }
         }
 
-        /* every 100ms check for other timeouts */
-        if ((cumulatedCallTime.tv_usec > TRDP_LOW_CYCLE_LIMIT) || (cumulatedCallTime.tv_sec != 0))
+        /* every TRDP_TO_CHECK_CYCLE (default 100ms) check for other timeouts */
+        if ((cumulatedCallTime.tv_usec > TRDP_TO_CHECK_CYCLE) || (cumulatedCallTime.tv_sec != 0))
         {
             for (;
                  idx < idxMax;
