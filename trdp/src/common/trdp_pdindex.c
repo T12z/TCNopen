@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      BL 2020-08-07: Ticket #317 Bug in trdp_indexedFindSubAddr() (HIGH_PERFORMANCE)
  *      BL 2020-08-06: Ticket #314 Timeout supervision does not restart after PD request
  *      BL 2020-07-15: Formatting (indenting)
  *      BL 2019-12-06: Ticket #302 HIGH_PERF_INDEXED: Rebuild tables completely on tlc_update
@@ -521,6 +522,7 @@ static int compareTimeouts (const void *pPDElement1, const void *pPDElement2)
     const PD_ELE_T  *p2 = *(const PD_ELE_T * *)pPDElement2;
     return vos_cmpTime(&p1->interval, &p2->interval);
 }
+
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
@@ -1320,16 +1322,24 @@ PD_ELE_T *trdp_indexedFindSubAddr (
 
     pFirstMatchedPD = (PD_ELE_T * *) vos_bsearch(&pFirstMatchedPD, appHandle->pSlot->pRcvTableComId,
                                                  appHandle->pSlot->noOfRxEntries, sizeof(PD_ELE_T *), compareComIds);
-
+    /* The found hit might not be the very first (because of binary search) */
     if (pFirstMatchedPD)
     {
+        UINT32  startIdx;
+
+        /* We go back as long comId matches */
         while ((pFirstMatchedPD != appHandle->pSlot->pRcvTableComId) &&
                ((*(pFirstMatchedPD - 1))->addr.comId == pAddr->comId))
         {
             pFirstMatchedPD--;
         }
         /* the first match might not be the best! Look further, but stop on comId change */
-        return trdp_findSubAddr(*pFirstMatchedPD, pAddr, pAddr->comId);
+        /* was: return trdp_findSubAddr(*pFirstMatchedPD, pAddr, pAddr->comId);  Ticket #317*/
+        startIdx = (UINT32)(pFirstMatchedPD - appHandle->pSlot->pRcvTableComId);
+        //startIdx /= sizeof(PD_ELE_T *);
+        return trdp_idxfindSubAddr(appHandle->pSlot->pRcvTableComId,
+                                   startIdx, appHandle->pSlot->noOfRxEntries,
+                                   pAddr, pAddr->comId);
     }
     return NULL;
 }

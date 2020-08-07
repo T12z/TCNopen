@@ -925,15 +925,147 @@ static int test2 ()
 }
 
 /**********************************************************************************************************************/
+/** check for timeout
+ *
+ *  @param[in]    startTime     reference start time for timeout
+ *  @param[in]    timeOut       timeout value
+ *
+ *  @retval       TRUE          timeout detected
+ *  @retval       FALSE         no timeout detected
+ */
+
+static BOOL8 isTimeout(
+                VOS_TIMEVAL_T startTime,
+                UINT32           timeOut)
+{
+    VOS_TIMEVAL_T tmpTimeout;
+
+    VOS_TIMEVAL_T now;
+    vos_getTime(&now);
+
+    tmpTimeout.tv_sec  = timeOut / 1000000;
+    tmpTimeout.tv_usec = timeOut % 1000000;
+
+    if (startTime.tv_sec + tmpTimeout.tv_sec < now.tv_sec)
+    {
+        return TRUE;
+    }
+    else if (startTime.tv_sec + tmpTimeout.tv_sec == now.tv_sec)
+    {
+        if (startTime.tv_usec + tmpTimeout.tv_usec < now.tv_usec)
+        {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+char    numericString[256];
+#define IF_ERR(txt)                                                \
+    if (err != TRDP_NO_ERR)                                       \
+    {                                                              \
+    printf("### %s (error: %d)\n", txt, err);                  \
+    goto end;                                                  \
+}
+
+#define IF_ERR_NUM(txt, num)                       \
+    if (err != TRDP_NO_ERR)                       \
+    {                                              \
+        sprintf((CHAR8 *)numericString, txt, num); \
+        IF_ERR((CHAR8 *)numericString)             \
+    }
+
+
+/**********************************************************************************************************************/
 /** test3 tlp_get
+ *
+ *  @retval         0        no error
+ *  @retval         1        some error
+ */
+static int test3b ()
+{
+    PREPARE("Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR", "test"); /* allocates appHandle1, appHandle2,
+                                                                                    failed = 0, err */
+
+    /* ------------------------- test code starts here --------------------------- */
+
+    {
+        TRDP_SUB_T subHandle;
+        UINT8   receivedDataset_tlg2[1000];
+        UINT32  dataset_tlg2_size = 1000;
+        TRDP_PD_INFO_T pdInfo;
+
+#define TLG_2_NUM          (2u)
+#define TLG_2_COM_ID       (90u)
+#define TLG_2_CYCLE_TIME   (200000u)
+#define TLG_2_TIMEOUT      (TLG_2_CYCLE_TIME * 4u)
+
+        VOS_TIMEVAL_T startTime;
+        VOS_TIMEVAL_T time;
+
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL, 0u,
+                            TLG_2_COM_ID, 0u, 0u,
+                            0u, 0u, /* gSession2.ifaceIP,                  / * Source * / */
+                            0u,     /* gDestMC,                            / * Destination * / */
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                               /*    default interface                    */
+                            10 * TLG_2_CYCLE_TIME, TRDP_TO_DEFAULT);
+
+
+        IF_ERROR("tlp_subscribe");
+
+        /*
+         Finished setup.
+         */
+        tlc_updateSession(gSession1.appHandle);
+        tlc_updateSession(gSession2.appHandle);
+
+        vos_getTime(&startTime);
+
+        /* wait for data to be received */
+        /* try to receive tlg1 */
+        do
+        {
+            /*Bug Fix: loop was missing a delay time: Delay TLG_2_CYCLE_TIME / 10 is set now */
+            vos_threadDelay(TLG_2_CYCLE_TIME / 10);
+
+            //err = nt_tip_poll(appHandle, subHandle_tlg2, &pdInfo, receivedDataset_tlg2, &dataset_tlg2_size);
+            err = tlp_get(gSession2.appHandle, subHandle, &pdInfo, (UINT8 *) receivedDataset_tlg2, &dataset_tlg2_size);
+        } while (err != TRDP_TIMEOUT_ERR && isTimeout(startTime, 15 * 800000) != TRUE);
+        vos_getTime(&time);
+
+        err = (err == TRDP_TIMEOUT_ERR) ? TRDP_NO_ERR : TRDP_UNKNOWN_ERR;
+        IF_ERR_NUM("nt_tip_poll() on comId %d", TLG_2_COM_ID);
+
+        /* calculate the elapsed time from the subscription until the timeout recognition */
+        vos_subTime(&time, &startTime);
+
+        printf("delta = %lds %dms\n", time.tv_sec, time.tv_usec / 1000);
+
+        err = ((((time.tv_sec * 1000000) + time.tv_usec) - (10 * TLG_2_CYCLE_TIME)) <= TLG_2_CYCLE_TIME) ? TRDP_NO_ERR : TRDP_UNKNOWN_ERR;
+        //err = ((time.tv_usec - (10 * TLG_2_CYCLE_TIME)) <= TLG_2_CYCLE_TIME) ? TRDP_NO_ERR : TRDP_UNKNOWN_ERR;
+        IF_ERR_NUM("tlg2 timeout error was not signaled within the subscriber timeout value %d"
+                   , (10 * TLG_2_CYCLE_TIME) + TLG_2_CYCLE_TIME);
+
+    }
+
+    /* ------------------------- test code ends here --------------------------- */
+
+
+    CLEANUP;
+}
+
+/**********************************************************************************************************************/
+/** test3b tlp_get
  *
  *  @retval         0        no error
  *  @retval         1        some error
  */
 static int test3 ()
 {
-    PREPARE("Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR", "test"); /* allocates appHandle1, appHandle2,
-                                                                                    failed = 0, err */
+    PREPARE("Conformance: tlp_get reports TRDP_TIMEOUT_ERR", "test"); /* allocates appHandle1, appHandle2,
+                                                                                   failed = 0, err */
 
     /* ------------------------- test code starts here --------------------------- */
 
@@ -958,7 +1090,6 @@ static int test3 ()
         /*
          Finished setup.
          */
-        tlc_updateSession(gSession1.appHandle);
         tlc_updateSession(gSession2.appHandle);
         /*
          Enter the main processing loop.
@@ -994,7 +1125,6 @@ static int test3 ()
     }
 
     /* ------------------------- test code ends here --------------------------- */
-
 
     CLEANUP;
 }
@@ -3365,11 +3495,12 @@ test_func_t *testArray[] =
 //    test1,  /* PD publish and subscribe */
 //    test2,  /* Publish & Subscribe, Callback */
 //    test3,  /* Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR */
+//    test3b,  /* Conformance: tlp_get reports immediately TRDP_TIMEOUT_ERR */
 //    test4,  /* Ticket #153 (two PDs on one pull request */
 //    test5,  /* TCP MD Request - Reply - Confirm, #149, #160 */
 //    test6,  /* UDP MD Request - Reply - Confirm, #149 */
 //    test7,  /* UDP MD Notify no sessionID #127 */
-//    test8,  /* #153 (two PDs on one pull request? Receiver only */
+//    /* test8,  / * #153 (two PDs on one pull request? Receiver only * / */
 //    /* test9,  / * Send and receive many telegrams, to check time optimisations * / */
 //    test10,  /* tlc_getVersionString */
 //    test11,  /* babbling idiot :-) */
@@ -3380,9 +3511,9 @@ test_func_t *testArray[] =
 //    test16,  /* MD Request - Reply / UDP */
 //    test17,  /* CRC */
 //    test18,  /* XML stream */
-//    test19,  /* Basic test of PD send performance enhancement */
+    test19,  /* Basic test of PD send performance enhancement */
     test20,  /* Basic test of PD receive performance enhancement */
-//    test21,  /* Basic test of PD send/receive performance enhancement, unpublish/unsubscribe while operating */
+    test21,  /* Basic test of PD send/receive performance enhancement, unpublish/unsubscribe while operating */
     NULL
 };
 
