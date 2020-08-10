@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2020-08-10: Ticket #309 revisited: tlm_abortSession shall return noError if morituri is not set
 *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      SB 2020-03-30: Ticket #309 A Listener's Sessions now close when the Listener is deleted or readded
 *      SB 2020-03-30: Ticket #313 Added topoCount check for notifications
@@ -982,7 +983,8 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
 
         if (NULL != iterMD)
         {
-            if (memcmp(iterMD->sessionID, pSessionId, TRDP_SESS_ID_SIZE) == 0)
+            if ((memcmp(iterMD->sessionID, pSessionId, TRDP_SESS_ID_SIZE) == 0) &&
+                (iterMD->morituri == FALSE))
             {
                 iterMD->pfCbFunction = NULL;
                 iterMD->morituri = TRUE;
