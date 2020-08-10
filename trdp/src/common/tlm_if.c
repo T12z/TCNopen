@@ -717,9 +717,8 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
 
         pListener = (MD_LIS_ELE_T *) listenHandle;
 
-        if (((pListener->pktFlags & TRDP_FLAGS_TCP) == 0) &&        /* We don't need to handle TCP listeners */
-            vos_isMulticast(mcDestIpAddr) &&                        /* nor non-multicast listeners */
-            pListener->addr.mcGroup != mcDestIpAddr)                /* nor if there's no change in group */
+        /* Ticket #309, resetting listener must be done on all UDP listeners (why not TCP?) */
+        if ((pListener->pktFlags & TRDP_FLAGS_TCP) == 0)            /* We don't need to handle TCP listeners */
         {
             /* deletes listener sessions */
             for (pIterMD = appHandle->pMDRcvQueue; pIterMD != NULL; pIterMD = pIterMD->pNext)

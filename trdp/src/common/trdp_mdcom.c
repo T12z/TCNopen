@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      BL 2020-08-10: Ticket #335 MD UDP notifications sometimes dropped
  *      BL 2020-07-30: Ticket #336 MD structures handling in multithread application
  *      SW 2020-07-17: Ticket #327 Send 'Me' only in case of unicast 'Mr' if no listener found
  *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
@@ -1557,79 +1558,83 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
     /* set pointer to be returned to NULL */
     *pIterMD = NULL;
 
-    /* Search for existing session (in case it is a repeated request)  */
-    /* This is kind of error detection/comm issue remedy functionality */
-    /* running ahead of further logic */
-    for ( iterMD = appHandle->pMDRcvQueue; iterMD != NULL; iterMD = iterMD->pNext )
+    /* Only if no Notification */
+    if (state != TRDP_ST_TX_NOTIFY_ARM)
     {
-        numOfReceivers++; /* count the list items here */
-        if ( 0 == memcmp(iterMD->pPacket->frameHead.sessionID, pH->sessionID, TRDP_SESS_ID_SIZE))
+        /* Search for existing session (in case it is a repeated request)  */
+        /* This is kind of error detection/comm issue remedy functionality */
+        /* running ahead of further logic */
+        for ( iterMD = appHandle->pMDRcvQueue; iterMD != NULL; iterMD = iterMD->pNext )
         {
-            /* According IEC61375-2-3 A.7.7.1 */
-            /* encountered a matching session */
-            if ((pH->sequenceCounter == iterMD->pPacket->frameHead.sequenceCounter)
-                ||
-                (isTCP == TRUE) /* include TCP as topmost discard criterium */
-                ||
-                (iterMD->addr.mcGroup != 0))  /* discard multicasts anyway */
+            numOfReceivers++; /* count the list items here */
+            if ( 0 == memcmp(iterMD->pPacket->frameHead.sessionID, pH->sessionID, TRDP_SESS_ID_SIZE))
             {
-                /* discard call immediately */
-                vos_printLogStr(VOS_LOG_INFO,
-                                "trdp_mdRecv: Repeated request discarded!\n");
-                return result;
-            }
-            else if ( iterMD->stateEle != TRDP_ST_RX_REPLYQUERY_W4C )
-            {
-                /* reply has not been sent - discard immediately */
-                vos_printLogStr(VOS_LOG_INFO, "trdp_mdRecv: Reply not sent, request discarded!\n");
-                return result;
-            }
-            else if (((pH->etbTopoCnt != 0u) || (pH->opTrnTopoCnt != 0u))
-                     && !trdp_validTopoCounters( vos_ntohl(pH->etbTopoCnt),
-                                                 vos_ntohl(pH->opTrnTopoCnt),
-                                                 iterMD->addr.etbTopoCnt,
-                                                 iterMD->addr.opTrnTopoCnt))
-            {
-                /* no local communication and there has been a change in train configuration - ignore request */
-                vos_printLog(VOS_LOG_ERROR, "Repeated request topocount error - received: %u/%u, expected: %u/%u\n",
-                             vos_ntohl(pH->etbTopoCnt), vos_ntohl(pH->opTrnTopoCnt),
-                             iterMD->addr.etbTopoCnt, iterMD->addr.opTrnTopoCnt);
-                break; /* exit lookup at this place */
-            }
-            else
-            {
-                /* criteria reched to schedule resending reply message */
-                vos_printLogStr(VOS_LOG_INFO, "trdp_mdRecv: Restart reply transmission\n");
-                /* Retransmission will occur upon resetting the state of */
-                /* this MD_ELE_T item to TRDP_ST_TX_REPLYQUERY_ARM, for  */
-                /* reference check the trdp_mdSend function              */
-                iterMD->stateEle = TRDP_ST_TX_REPLYQUERY_ARM;
-                /* Increment the retry counter */
-                iterMD->numRetries++;
-                /* Align sequence counter with the received counter. Both*/
-                /* retain network order, as pH consists out of network   */
-                /* ordered data                                          */
-                iterMD->pPacket->frameHead.sequenceCounter = pH->sequenceCounter;
-                /* Store new sequence counter within the management info */
-                /* Set new time out value */
-                vos_addTime(&iterMD->timeToGo, &iterMD->interval);
-                /* update the frame header CRC also */
-                trdp_mdUpdatePacket(iterMD);
-                /* ready to proceed - will be handled by trdp_mdSend run- */
-                /* ning within its own loop triggered cyclically.         */
-                return result;
+                /* According IEC61375-2-3 A.7.7.1 (BL: non existant chapter?)*/
+                /* encountered a matching session */
+                if ((pH->sequenceCounter == iterMD->pPacket->frameHead.sequenceCounter)
+                    ||
+                    (isTCP == TRUE) /* include TCP as topmost discard criterium */
+                    ||
+                    (iterMD->addr.mcGroup != 0))  /* discard multicasts anyway */
+                {
+                    /* discard call immediately */
+                    vos_printLogStr(VOS_LOG_INFO,
+                                    "trdp_mdRecv: Repeated request discarded!\n");
+                    return result;
+                }
+                else if ( iterMD->stateEle != TRDP_ST_RX_REPLYQUERY_W4C )
+                {
+                    /* reply has not been sent - discard immediately */
+                    vos_printLogStr(VOS_LOG_INFO, "trdp_mdRecv: Reply not sent, request discarded!\n");
+                    return result;
+                }
+                else if (((pH->etbTopoCnt != 0u) || (pH->opTrnTopoCnt != 0u))
+                         && !trdp_validTopoCounters( vos_ntohl(pH->etbTopoCnt),
+                                                     vos_ntohl(pH->opTrnTopoCnt),
+                                                     iterMD->addr.etbTopoCnt,
+                                                     iterMD->addr.opTrnTopoCnt))
+                {
+                    /* no local communication and there has been a change in train configuration - ignore request */
+                    vos_printLog(VOS_LOG_ERROR, "Repeated request topocount error - received: %u/%u, expected: %u/%u\n",
+                                 vos_ntohl(pH->etbTopoCnt), vos_ntohl(pH->opTrnTopoCnt),
+                                 iterMD->addr.etbTopoCnt, iterMD->addr.opTrnTopoCnt);
+                    break; /* exit lookup at this place */
+                }
+                else
+                {
+                    /* criteria reched to schedule resending reply message */
+                    vos_printLogStr(VOS_LOG_INFO, "trdp_mdRecv: Restart reply transmission\n");
+                    /* Retransmission will occur upon resetting the state of */
+                    /* this MD_ELE_T item to TRDP_ST_TX_REPLYQUERY_ARM, for  */
+                    /* reference check the trdp_mdSend function              */
+                    iterMD->stateEle = TRDP_ST_TX_REPLYQUERY_ARM;
+                    /* Increment the retry counter */
+                    iterMD->numRetries++;
+                    /* Align sequence counter with the received counter. Both*/
+                    /* retain network order, as pH consists out of network   */
+                    /* ordered data                                          */
+                    iterMD->pPacket->frameHead.sequenceCounter = pH->sequenceCounter;
+                    /* Store new sequence counter within the management info */
+                    /* Set new time out value */
+                    vos_addTime(&iterMD->timeToGo, &iterMD->interval);
+                    /* update the frame header CRC also */
+                    trdp_mdUpdatePacket(iterMD);
+                    /* ready to proceed - will be handled by trdp_mdSend run- */
+                    /* ning within its own loop triggered cyclically.         */
+                    return result;
+                }
             }
         }
-    }
-    /* Inhibit MQ/MN Flooding */
-    if ( appHandle->mdDefault.maxNumSessions <= numOfReceivers )
-    {
-        /* Discard MD request, we shall not be flooded by incoming requests */
-        vos_printLog(VOS_LOG_INFO, "trdp_mdRecv: Max. number of requests reached (%d)!\n", numOfReceivers);
-        /* Indicate that this call can not get replied due to receiver count limitation  */
-        (void)trdp_mdSendME(appHandle, pH, TRDP_REPLY_NO_MEM_REPL);
-        /* return to calling routine without performing any receiver action */
-        return result;
+        /* Inhibit MQ/MN Flooding */
+        if ( appHandle->mdDefault.maxNumSessions <= numOfReceivers )
+        {
+            /* Discard MD request, we shall not be flooded by incoming requests */
+            vos_printLog(VOS_LOG_INFO, "trdp_mdRecv: Max. number of requests reached (%d)!\n", numOfReceivers);
+            /* Indicate that this call can not get replied due to receiver count limitation  */
+            (void)trdp_mdSendME(appHandle, pH, TRDP_REPLY_NO_MEM_REPL);
+            /* return to calling routine without performing any receiver action */
+            return result;
+        }
     }
 
     iterMD = NULL; /* reset item for the actual lookup task */
