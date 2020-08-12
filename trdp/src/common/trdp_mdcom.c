@@ -1559,7 +1559,7 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
     *pIterMD = NULL;
 
     /* Only if no Notification */
-    if (state != TRDP_ST_TX_NOTIFY_ARM)
+    if (state != TRDP_ST_RX_NOTIFY_RECEIVED)
     {
         /* Search for existing session (in case it is a repeated request)  */
         /* This is kind of error detection/comm issue remedy functionality */
