@@ -148,6 +148,8 @@ typedef struct
     BOOL8   raw;            /**< use raw socket, not for receiver!                  */
     UINT16  vlanId;
     CHAR8   ifName[VOS_MAX_IF_NAME_SIZE]; /**< interface name if available          */
+    INT32   clockid;        /**< clock, txtime will refer to, def. 0=CLOCK_REALTIME */
+    BOOL8   no_drop_late;   /**< invers of "drop if late", should be FALSE by def.  */
 } VOS_SOCK_OPT_T;
 
 typedef fd_set VOS_FDS_T;

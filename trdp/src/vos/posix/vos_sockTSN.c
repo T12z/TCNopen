@@ -48,6 +48,7 @@
 #ifdef __linux
 #   include <linux/if.h>
 #   include <byteswap.h>
+#   include <linux/net_tstamp.h>
 #else
 #   include <net/if.h>
 #   include <net/if_types.h>
@@ -80,8 +81,11 @@
 #define cVlanPrefix1    "en0."
 #define cVlanPrefix2    "vlan"
 #else
+/* This is not the case anymore  when udev is in use. It renames according to PCI BDF number, eg, enp0s31f6 */
+/* modified to catch "en*.* */
 #define cVlanPrefix1    "eth0."
 #define cVlanPrefix2    "vlan"
+#define cVlanPrefix3    "en"   /* mostly enp* -> PCI-BDF, eno* -> onboard device number (BIOS), enx* -> MAC. */
 #endif
 
 extern const CHAR8 *cDefaultIface;
@@ -187,42 +191,49 @@ EXT_DECL VOS_ERR_T vos_createVlanIF (
     CHAR8           *pIFaceName,
     VOS_IP4_ADDR_T  ipAddr)
 {
-    char    commandBuffer[128];
-    UINT8   i;
+    char    commandBuffer[256];
+    /*UINT8   i;*/
+    const char *xgressMap = "0:0 1:1 2:2 3:3 4:4 5:5 6:6 7:7";
 
-    snprintf(commandBuffer, 128, "sudo vconfig add %s %u", cDefaultIface, vlanId);
+    /* ifconfig and vconfig are legacy, move to ip (iproute2) people! */
+    /* typically calling these commands requires sudo, using TSN-timers other than MONO requires sudo as well, so you
+       need to call the application with sudo / elevated rights in the first place. */
+    snprintf(commandBuffer, sizeof(commandBuffer), "ip link add link %s name %s.%u type vlan id %u ingress %s egress %s",
+        cDefaultIface, cDefaultIface, vlanId, vlanId, xgressMap, xgressMap);
     if (system(commandBuffer) < 0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "vconfig add failed\n");
+        vos_printLogStr(VOS_LOG_ERROR, "ip link add vlan failed\n");
         return VOS_SOCK_ERR;
     }
 
     snprintf(pIFaceName, IFNAMSIZ, "%s%u", cVlanPrefix1, vlanId);
 
     /* We need some unique IP address on that interface, to be able to bind to it. */
-    snprintf(commandBuffer, 128, "sudo ifconfig %s %s netmask 255.255.192.0", pIFaceName, vos_ipDotted(ipAddr));
+    snprintf(commandBuffer, sizeof(commandBuffer), "ip addr add %s/18 dev %s", vos_ipDotted(ipAddr), pIFaceName);
     if (system(commandBuffer) < 0)
     {
-        vos_printLogStr(VOS_LOG_ERROR, "ifconfig add address failed\n");
+        vos_printLogStr(VOS_LOG_ERROR, "ip address add failed\n");
         return VOS_SOCK_ERR;
     }
 
     /* We set the mapping 1:1 for skb and qos */
+    /* made static for now, see above
     for (i = 0; i < 8; i++)
     {
-        snprintf(commandBuffer, 128, "sudo vconfig set_egress_map %s %u %u", pIFaceName, i, i);
+        snprintf(commandBuffer, sizeof(commandBuffer), "sudo vconfig set_egress_map %s %u %u", pIFaceName, i, i);
         if (system(commandBuffer) < 0)
         {
             vos_printLogStr(VOS_LOG_ERROR, "vconfig set_egress_map failed\n");
             return VOS_SOCK_ERR;
         }
-        snprintf(commandBuffer, 128, "sudo vconfig set_ingress_map %s %u %u", pIFaceName, i, i);
+        snprintf(commandBuffer, sizeof(commandBuffer), "sudo vconfig set_ingress_map %s %u %u", pIFaceName, i, i);
         if (system(commandBuffer) < 0)
         {
             vos_printLogStr(VOS_LOG_ERROR, "vconfig set_ingress_map failed\n");
             return VOS_SOCK_ERR;
         }
     }
+    */
     return VOS_NO_ERR;
 }
 
@@ -259,6 +270,7 @@ EXT_DECL VOS_ERR_T vos_ifnameFromVlanId (
         while (cursor != 0)
         {
 #ifdef __linux
+/* TODO alternatively query "ip -d -o link show type vlan"  and parse for id %d */
             if (cursor->ifa_name != NULL)
             {
                 /* check for eth0.XXXX */
@@ -399,7 +411,17 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
     }
 #endif
 
-
+    struct sock_txtime sk_txtime = { 
+        pOptions->clockid,
+        pOptions->no_drop_late ? 0 : SOF_TXTIME_DEADLINE_MODE
+        /* using inverse notation to enable "deadline"-mode by default in TSN mode. */
+    };
+    if (setsockopt(sock, SOL_SOCKET, SO_TXTIME, &sk_txtime, sizeof(sk_txtime)))
+    {
+        close(sock);
+        vos_printLogStr(VOS_LOG_ERROR, "socket() setsockopt failed!\n");
+        return VOS_SOCK_ERR;
+    }
 
     /* Other socket options to be applied */
     if ((vos_sockSetOptions(sock, pOptions) != VOS_NO_ERR)
@@ -538,10 +560,8 @@ EXT_DECL VOS_ERR_T vos_sockSendTSN (
     struct sockaddr_in  destAddr;
     ssize_t             sendSize    = 0;
     size_t              size        = 0;
-    clockid_t           clkid       = CLOCK_REALTIME;
     struct cmsghdr      *cmsg;
     struct msghdr       msg;
-    uint8_t             drop_if_late    = 1;
     uint64_t            txTime          = 0llu;
 
 #if VOS_USE_RAW_IP_SOCKET == 1
@@ -627,18 +647,6 @@ EXT_DECL VOS_ERR_T vos_sockSendTSN (
         cmsg->cmsg_type     = SCM_TXTIME;
         cmsg->cmsg_len      = CMSG_LEN(sizeof(uint64_t));
         *((uint64_t *) CMSG_DATA(cmsg)) = txTime;
-
-        cmsg = CMSG_NXTHDR(&msg, cmsg);
-        cmsg->cmsg_level    = SOL_SOCKET;
-        cmsg->cmsg_type     = SCM_CLOCKID;
-        cmsg->cmsg_len      = CMSG_LEN(sizeof(clockid_t));
-        *((clockid_t *) CMSG_DATA(cmsg)) = clkid;
-
-        cmsg = CMSG_NXTHDR(&msg, cmsg);
-        cmsg->cmsg_level    = SOL_SOCKET;
-        cmsg->cmsg_type     = SCM_DROP_IF_LATE;
-        cmsg->cmsg_len      = CMSG_LEN(sizeof(uint8_t));
-        *((uint8_t *) CMSG_DATA(cmsg)) = drop_if_late;
     }
     sendSize = sendmsg(sock, &msg, 0);
 
