@@ -34,6 +34,7 @@
 #include <arpa/inet.h>
 
 #include "trdp_if_light.h"
+#include "vos_utils.h"
 #include "vos_sock.h"
 #include "pdsend.h"
 
@@ -70,6 +71,8 @@ UINT8       gDataBuffer[MAX_PAYLOAD_SIZE] =
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
     0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F
 };      /*    Buffer for our PD data    */
+
+extern char gLogBuffer[64 * 1024];
 
 size_t      gDataSize   = 20;       /* Size of test data            */
 uint32_t    gComID      = PD_COMID0;
@@ -121,13 +124,21 @@ static void dbgOut (
     UINT16      LineNumber,
     const CHAR8 *pMsgStr)
 {
-    const char *catStr[] = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
-    printf("%s %s %s:%d %s",
-           pTime,
-           catStr[category],
-           pFile,
-           LineNumber,
-           pMsgStr);
+    if (category != VOS_LOG_DBG)
+    {
+        char lineBuffer[256] = "0";
+        const char *catStr[] = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
+        char    *pDisplay = strrchr(pFile, '/');
+        sprintf(lineBuffer, "%s %s %s:%d %s",
+                strrchr(pTime, '-') + 1,
+                catStr[category],
+                (pDisplay == NULL)? pFile : pDisplay + 1,
+                LineNumber,
+                pMsgStr);
+
+        strcat (gLogBuffer, lineBuffer);
+        printf("%s", lineBuffer);
+    }
 }
 
 /******************************************************************************/
@@ -188,7 +199,7 @@ int pd_init (
                                                TRDP_FLAGS_CALLBACK, 10000000, TRDP_TO_SET_TO_ZERO, 0};
     TRDP_MD_CONFIG_T        mdConfiguration = {mdCallback, NULL, TRDP_MD_DEFAULT_SEND_PARAM,
                                                 TRDP_FLAGS_CALLBACK, 5000000, 5000000, 5000000, 0, 0, 2, 10};
-    TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, 100000, {}};
+    TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, 1000000, {}};
     TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
 
 
@@ -205,7 +216,7 @@ int pd_init (
                  &dynamicConfig                    /* Use application supplied memory    */
                  ) != TRDP_NO_ERR)
     {
-        printf("Initialization error\n");
+        vos_printLogStr(VOS_LOG_USR, "Initialization error\n");
         return 1;
     }
 
@@ -216,7 +227,7 @@ int pd_init (
                         &pdConfiguration, &mdConfiguration,            /* system defaults for PD and MD    */
                         &processConfig) != TRDP_NO_ERR)
     {
-        printf("Initialization error\n");
+        vos_printLogStr(VOS_LOG_USR, "Initialization error\n");
         return 1;
     }
 
@@ -231,7 +242,7 @@ int pd_init (
 /*    if (tlp_publish(gAppHandle, &gPubHandle, gComID, 0, 0, vos_dottedIP(gTargetIP), gInterval, 0,
                     TRDP_FLAGS_NONE, NULL, gDataBuffer, gDataSize) != TRDP_NO_ERR)
     {
-        printf("Publish error\n");
+        vos_printLog(VOS_LOG_USR, "Publish error\n");
         return 1;
     }
  */   
@@ -263,7 +274,7 @@ void pd_deinit ()
     tlp_unpublish(gAppHandle, gPubHandle);
     tlc_closeSession(gAppHandle);
     tlc_terminate();
-    printf("pd_deinit\n");
+    vos_printLogStr(VOS_LOG_USR, "pd_deinit\n");
 }
 
 /******************************************************************************/
@@ -275,7 +286,7 @@ void pd_updatePublisher (int active)
         err = tlp_unpublish(gAppHandle, gPubHandle);
         if (err != TRDP_NO_ERR)
         {
-            printf("tlp_unpublish error %d\n", err);
+            vos_printLog(VOS_LOG_USR, "tlp_unpublish error %d\n", err);
         }
         gPubHandle = NULL;
     }
@@ -285,7 +296,7 @@ void pd_updatePublisher (int active)
                           TRDP_FLAGS_NONE, NULL, gDataBuffer, (UINT32) gDataSize);
         if (err != TRDP_NO_ERR)
         {
-            printf("tlp_publish error %d\n", err);
+            vos_printLog(VOS_LOG_USR, "tlp_publish error %d\n", err);
         }
     }
 }
@@ -350,7 +361,7 @@ void pd_sub (
 
     if (err != TRDP_NO_ERR)
     {
-        printf("trdp_subscribe error\n");
+        vos_printLogStr(VOS_LOG_USR, "trdp_subscribe error\n");
     }
 }
 
@@ -410,7 +421,7 @@ void md_listen (
 
     if (err != TRDP_NO_ERR)
     {
-        printf("trdp_subscribe error\n");
+        vos_printLogStr(VOS_LOG_USR, "trdp_subscribe error\n");
     }
 }
 
@@ -463,10 +474,10 @@ void pdCallBack (
             switch (pMsg->comId)
             {
                 case 100u:
-                    printf("PD 100 received\n");
+                    vos_printLogStr(VOS_LOG_USR, "PD 100 received\n");
                     break;
                 case 1000u:
-                    printf("PD 1000 received\n");
+                    vos_printLogStr(VOS_LOG_USR, "PD 1000 received\n");
                     break;
                 case PD_COMID1:
                     if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[0].srcIP)))
@@ -505,16 +516,16 @@ void pdCallBack (
                 default:
                     break;
             }
-            printf("ComID %d received (%d Bytes)\n", pMsg->comId, dataSize);
+            vos_printLog(VOS_LOG_USR, "ComID %d received (%d Bytes)\n", pMsg->comId, dataSize);
             if (pData && dataSize > 0)
             {
-                printf("Msg: %s\n", pData);
+                vos_printLog(VOS_LOG_USR, "Msg: %s\n", pData);
             }
             break;
 
         case TRDP_TIMEOUT_ERR:
             /* The application can decide here if old data shall be invalidated or kept    */
-            printf("Packet timed out (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
+            vos_printLog(VOS_LOG_USR, "Packet timed out (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
 
             switch (pMsg->comId)
             {
@@ -550,7 +561,7 @@ void pdCallBack (
 
         default:
             /*
-               printf("Error on packet received (ComID %d), err = %d\n",
+               vos_printLog(VOS_LOG_USR, "Error on packet received (ComID %d), err = %d\n",
                      pMsg->comId,
                      pMsg->resultCode);
              */
@@ -571,7 +582,7 @@ void pdCallBack (
     switch (pMsg->resultCode)
     {
         case TRDP_NO_ERR:
-            printf("ComID %d received (%d Bytes)\n", pMsg->comId, dataSize);
+            vos_printLog(VOS_LOG_USR, "ComID %d received (%d Bytes)\n", pMsg->comId, dataSize);
             
             if (pMsg->msgType == TRDP_MSG_MR)
             {
@@ -581,7 +592,7 @@ void pdCallBack (
                 //            TRDP_FLAGS_CALLBACK, 0, NULL, (UINT8*)"Maleikum Salam", 16, NULL, NULL);
                 if (err != TRDP_NO_ERR)
                 {
-                    printf("Error repling data (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
+                    vos_printLog(VOS_LOG_USR, "Error repling data (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
                 }
                 else
                 {
@@ -600,7 +611,7 @@ void pdCallBack (
 
                 if (memcmp(gMessageData.sessionId, pMsg->sessionId, sizeof(gMessageData.sessionId)) != 0)
                 {
-                    printf("Unexpected data! (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
+                    vos_printLog(VOS_LOG_USR, "Unexpected data! (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
                     gMessageData.invalid = 1;
                 }
                 else
@@ -613,7 +624,7 @@ void pdCallBack (
         case TRDP_TIMEOUT_ERR:
             if (memcmp(gMessageData.sessionId, pMsg->sessionId, sizeof(gMessageData.sessionId)) == 0)
             {
-                printf("Session timed out (UUID: %02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n",
+                vos_printLog(VOS_LOG_USR, "Session timed out (UUID: %02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n",
                         pMsg->sessionId[0],
                         pMsg->sessionId[1],
                         pMsg->sessionId[2],
@@ -638,7 +649,7 @@ void pdCallBack (
                 gMessageData.invalid = 1;
             }
             /* The application can decide here if old data shall be invalidated or kept    */
-            printf("Packet timed out (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
+            vos_printLog(VOS_LOG_USR, "Packet timed out (ComID %d, SrcIP: %s)\n", pMsg->comId, vos_ipDotted(pMsg->srcIpAddr));
 
         default:
             break;
@@ -653,7 +664,7 @@ int pd_loop2 (void)
     TRDP_ERR_T  err;
     int         rv = 0;
 
-    printf("pd_init\n");
+    vos_printLogStr(VOS_LOG_USR, "pd_init\n");
 
     /*
      Enter the main processing loop.
@@ -675,7 +686,7 @@ int pd_loop2 (void)
 
             if (err != TRDP_NO_ERR)
             {
-                printf("put pd error\n");
+                vos_printLogStr(VOS_LOG_USR, "put pd error\n");
             }
             gDataChanged = 0;
         }
@@ -729,11 +740,11 @@ int pd_loop2 (void)
 
         if (rv > 0)
         {
-            printf("%sother descriptors were ready\n", vos_getTimeStamp());
+            vos_printLog(VOS_LOG_USR, "%s other descriptors were ready\n", vos_getTimeStamp());
         }
         else
         {
-            /* printf("%slooping...\n", trdp_getTimeStamp()); */
+            /* vos_printLog(VOS_LOG_USR, "%slooping...\n", trdp_getTimeStamp()); */
         }
 
     }

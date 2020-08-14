@@ -21,27 +21,29 @@
 #import "Controller.h"
 #include "pdsend.h"
 
-extern int gIsActive;
+extern int      gIsActive;
+char            gLogBuffer[64 * 1024];
+bool            gLogging = true;
 
 @implementation Controller
 
 - (IBAction)button1:(id)sender 
 {
-    [textField setStringValue:@"Toggle Door1 command"];
+    [textField setString:@"Toggle Door1 command"];
     dataArray[0] = htonl(!ntohl(dataArray[0]));
     dataChanged = true;
     pd_updateData((uint8_t*)dataArray, sizeof(dataArray));
 }
 - (IBAction)button2:(id)sender 
 {
-    [textField setStringValue:@"Toggle Door2 command"];
+    [textField setString:@"Toggle Door2 command"];
     dataArray[1] = htonl(!ntohl(dataArray[1]));
     dataChanged = true;
     pd_updateData((uint8_t*)dataArray, sizeof(dataArray));
 }
 - (IBAction)button3:(id)sender 
 {
-    [textField setStringValue:@"Toggle Light command"];
+    [textField setString:@"Toggle Light command"];
     dataArray[2] = htonl(!ntohl(dataArray[2]));
     dataChanged = true;
     pd_updateData((uint8_t*)dataArray, sizeof(dataArray));
@@ -187,6 +189,7 @@ extern int gIsActive;
 {
 }
 
+
 - (void)doIt
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -312,6 +315,18 @@ extern int gIsActive;
             [MRinMessage setStringValue:[NSString stringWithUTF8String:(const char*)mdCurrent->message]];
         }
         mdCurrent->changed = 0;
+    }
+
+    if (gLogging && strlen(gLogBuffer) <= 64000u)
+    {
+        NSString *myNSString = [NSString stringWithCString:gLogBuffer encoding:NSASCIIStringEncoding];
+
+        [logOut setString:myNSString];
+    }
+    else
+    {
+        memset(gLogBuffer, 0, sizeof(gLogBuffer));
+        [logOut setString:@"logging is off\n"];
     }
 
 }
