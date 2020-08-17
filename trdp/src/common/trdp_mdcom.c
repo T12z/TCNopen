@@ -949,6 +949,13 @@ static TRDP_ERR_T trdp_mdCheck (TRDP_SESSION_PT appHandle,
             vos_printLog(VOS_LOG_ERROR, "Topocount error - received: %u/%u, actual: %u/%u\n",
                          vos_ntohl(pPacket->etbTopoCnt), vos_ntohl(pPacket->opTrnTopoCnt),
                          appHandle->etbTopoCnt, appHandle->opTrnTopoCnt);
+
+            /* Ticket #327: attempt sending Me, for unicast "Mr" if no matching listener found */
+            if ((!vos_isMulticast(appHandle->pMDRcvEle->addr.destIpAddr)) && (vos_ntohs(pPacket->msgType) == TRDP_MSG_MR))
+            {
+                (void)trdp_mdSendME(appHandle, pPacket, TRDP_REPLY_NO_REPLIER_INST);
+            }
+
             err = TRDP_TOPO_ERR;
         }
     }
@@ -1598,7 +1605,7 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
                     vos_printLog(VOS_LOG_ERROR, "Repeated request topocount error - received: %u/%u, expected: %u/%u\n",
                                  vos_ntohl(pH->etbTopoCnt), vos_ntohl(pH->opTrnTopoCnt),
                                  iterMD->addr.etbTopoCnt, iterMD->addr.opTrnTopoCnt);
-                    break; /* exit lookup at this place */
+                    continue; /* exit lookup at this place */
                 }
                 else
                 {
