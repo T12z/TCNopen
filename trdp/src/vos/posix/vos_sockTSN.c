@@ -291,7 +291,7 @@ EXT_DECL VOS_ERR_T vos_createVlanIF (
     {
         vos_printLogStr(VOS_LOG_ERROR, "ifconfig add address failed\n");
         return VOS_SOCK_ERR;
-	}
+    }
 #endif
 
     /* We set the mapping 1:1 for skb and qos */

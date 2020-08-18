@@ -215,7 +215,7 @@ BOOL8 trdp_SockDelJoin (
     return FALSE;
 }
 
-TRDP_IP_ADDR_T trdp_getOwnIP ()
+TRDP_IP_ADDR_T trdp_getOwnIP( void )
 {
     UINT32          i;
     UINT32          addrCnt = 2 * VOS_MAX_NUM_IF;
@@ -996,8 +996,8 @@ TRDP_ERR_T  trdp_requestSocket (
     TRDP_IP_ADDR_T  bindAddr    = vos_determineBindAddr(srcIP, mcGroup, rcvMostly);
 
 #ifdef TSN_SUPPORT
-	CHAR8           busInterfaceName[24];
-	memset(busInterfaceName, 0, sizeof(busInterfaceName));
+    CHAR8           busInterfaceName[24];
+    memset(busInterfaceName, 0, sizeof(busInterfaceName));
 #endif
     memset(&sock_options, 0, sizeof(sock_options));
 
@@ -1109,23 +1109,23 @@ TRDP_ERR_T  trdp_requestSocket (
 /* we need the "real" bus-interface name to find or newly create a VLAN-IF, so probe all _known_ sockets. This strongly
  * assumes, the TSN telegram is not the first telegram to be allocated. */
         if (iface[lIndex].sock != VOS_INVALID_SOCKET && params->vlan && iface[lIndex].bindAddr) {
-			char tmp_bin[sizeof(busInterfaceName)] = { 0, };
+            char tmp_bin[sizeof(busInterfaceName)] = { 0, };
             if ((VOS_NO_ERR == vos_getRealInterfaceName( iface[lIndex].bindAddr, tmp_bin )) && *tmp_bin) {
-				if ( *busInterfaceName && *tmp_bin && (0!=strcmp(busInterfaceName, tmp_bin))) {
-					vos_printLog(VOS_LOG_WARNING, "Cannot determine bus-interface-name (got \"%s\" and \"%s\") to seek requested VLAN (%d) for %s\n", busInterfaceName, tmp_bin, params->vlan, vos_ipDotted(iface[lIndex].bindAddr));
-				} else {
-					vos_printLog(VOS_LOG_INFO, "Found %s for %s\n", tmp_bin, vos_ipDotted(iface[lIndex].bindAddr));
-					strncpy(busInterfaceName, tmp_bin, sizeof(busInterfaceName));
-				}
-			}
+                if ( *busInterfaceName && *tmp_bin && (0!=strcmp(busInterfaceName, tmp_bin))) {
+                    vos_printLog(VOS_LOG_WARNING, "Cannot determine bus-interface-name (got \"%s\" and \"%s\") to seek requested VLAN (%d) for %s\n", busInterfaceName, tmp_bin, params->vlan, vos_ipDotted(iface[lIndex].bindAddr));
+                } else {
+                    vos_printLog(VOS_LOG_INFO, "Found %s for %s\n", tmp_bin, vos_ipDotted(iface[lIndex].bindAddr));
+                    strncpy(busInterfaceName, tmp_bin, sizeof(busInterfaceName));
+                }
+            }
         }
 #endif
     }
 
 #ifdef TSN_SUPPORT
-	if (!*busInterfaceName && params->vlan) { /* resort to any adapter */
-		vos_getRealInterfaceName( 0, busInterfaceName );
-	}
+    if (!*busInterfaceName && params->vlan) { /* resort to any adapter */
+        vos_getRealInterfaceName( 0, busInterfaceName );
+    }
 #endif
 
     /* Not found, create a new socket entry */
@@ -1135,10 +1135,12 @@ TRDP_ERR_T  trdp_requestSocket (
     case  TRDP_SOCK_PD_TSN:
         sockMax = TRDP_MAX_PD_SOCKET_CNT;
         break;
+#if MD_SUPPORT
     case  TRDP_SOCK_MD_TCP:
     case  TRDP_SOCK_MD_UDP:
         sockMax = TRDP_MAX_MD_SOCKET_CNT;
         break;
+#endif
     default:
         sockMax = 0;
     }
@@ -1240,14 +1242,14 @@ TRDP_ERR_T  trdp_requestSocket (
 
                     /* We want to bind to a vlan-enabled interface, which might have a different ip address */
                     /* TODO Actually, it must have a different address - this would require a different bus-interface
-					 * instance, which is a different approach to the current. However, there should be two ways here:
-					 * Either matching the IP-address of the vlan-interface,
-					 * or finding the real-bus-interface's name and its child-interfaces.
-					 * I think the first is not possible achitecturally at the moment. So hopefully we found the real
-				     * IF name earlier and can use that. */
+                     * instance, which is a different approach to the current. However, there should be two ways here:
+                     * Either matching the IP-address of the vlan-interface,
+                     * or finding the real-bus-interface's name and its child-interfaces.
+                     * I think the first is not possible achitecturally at the moment. So hopefully we found the real
+                     * IF name earlier and can use that. */
                     {
                         VOS_IF_REC_T tempIF;
-						strncpy(sock_options.ifName, busInterfaceName, sizeof(sock_options.ifName));
+                        strncpy(sock_options.ifName, busInterfaceName, sizeof(sock_options.ifName));
                         if (vos_ifnameFromVlanId(sock_options.vlanId, (CHAR8 *) sock_options.ifName) != VOS_NO_ERR)
                         {
                             /* We need a unique IP address!
@@ -1260,8 +1262,8 @@ TRDP_ERR_T  trdp_requestSocket (
                                 (unsigned) (sock_options.vlanId << 8u) +
                                 (trdp_getOwnIP() & 0xFF);
                             /* try creating via system call on Linux and try it again */
-							strncpy(tempIF.name, busInterfaceName, sizeof(sock_options.ifName));
-							strncpy(sock_options.ifName, busInterfaceName, sizeof(sock_options.ifName));
+                            strncpy(tempIF.name, busInterfaceName, sizeof(sock_options.ifName));
+                            strncpy(sock_options.ifName, busInterfaceName, sizeof(sock_options.ifName));
                             if ((vos_createVlanIF(sock_options.vlanId, tempIF.name, rndIP) != VOS_NO_ERR) ||
                                 (vos_ifnameFromVlanId(sock_options.vlanId, (CHAR8 *) sock_options.ifName) != VOS_NO_ERR))
                             {
@@ -1328,6 +1330,7 @@ TRDP_ERR_T  trdp_requestSocket (
 #endif /* TSN */
             case TRDP_SOCK_MD_UDP:
                 sock_options.nonBlocking = TRUE;  /* MD UDP sockets are always non blocking because they are polled */
+                __fallthrough;
             /* fall thru! */
             case TRDP_SOCK_PD:
                 err = (TRDP_ERR_T) vos_sockOpenUDP(&iface[lIndex].sock, &sock_options);
@@ -1450,8 +1453,8 @@ err_exit:
 void  trdp_releaseSocket (
     TRDP_SOCKETS_T  iface[],
     INT32           lIndex,
-    UINT32          connectTimeout,
-    BOOL8           checkAll,
+    UINT32          connectTimeout __mdused,
+    BOOL8           checkAll __mdused,
     TRDP_IP_ADDR_T  mcGroupUsed)
 {
     TRDP_ERR_T err = TRDP_PARAM_ERR;
