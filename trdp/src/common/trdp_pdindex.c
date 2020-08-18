@@ -1336,7 +1336,7 @@ PD_ELE_T *trdp_indexedFindSubAddr (
         /* the first match might not be the best! Look further, but stop on comId change */
         /* was: return trdp_findSubAddr(*pFirstMatchedPD, pAddr, pAddr->comId);  Ticket #317*/
         startIdx = (UINT32)(pFirstMatchedPD - appHandle->pSlot->pRcvTableComId);
-        //startIdx /= sizeof(PD_ELE_T *);
+        /*startIdx /= sizeof(PD_ELE_T *); */
         return trdp_idxfindSubAddr(appHandle->pSlot->pRcvTableComId,
                                    startIdx, appHandle->pSlot->noOfRxEntries,
                                    pAddr, pAddr->comId);
