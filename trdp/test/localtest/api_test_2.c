@@ -13,11 +13,12 @@
  *
  * @author          Bernd Loehr
  *
- * @remarks         Copyright NewTec GmbH, 2019.
+ * @remarks         Copyright NewTec GmbH, 2019-2020.
  *                  All rights reserved.
  *
  * $Id$
  *
+ *      BL 2020-08-18: Output changed, Version info...
  *      BL 2019-08-23: Init macro changed for High Performance mode, cycle time is 3rd parm
  *      BL 2019-07-09: Ticket #161/162 Tests for Version 2 features
  */
@@ -70,8 +71,8 @@ typedef struct
     VOS_THREAD_T        threadIdMD;
 } TRDP_THREAD_SESSION_T;
 
-TRDP_THREAD_SESSION_T   gSession1 = {NULL, 0x0A000264u, 1, 0, 0, 0};
-TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000265u, 1, 0, 0, 0};
+TRDP_THREAD_SESSION_T   gSession1 = {NULL, 0x0A000364u, 1, 0, 0, 0};
+TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 1, 0, 0, 0};
 
 /* Data buffers to play with (Content is borrowed from Douglas Adams, "The Hitchhiker's Guide to the Galaxy") */
 
@@ -391,6 +392,7 @@ static char xmlBuffer[] =
 #define CLEANUP                                                                             \
 end:                                                                                        \
     {                                                                                       \
+        fprintf(gFp, "\n-------- Cleaning up %s ----------\n", __FUNCTION__);               \
         test_deinit(&gSession1, &gSession2);                                                \
                                                                                             \
         if (gFailed) {                                                                      \
@@ -3492,25 +3494,25 @@ static int test21 ()
 test_func_t *testArray[] =
 {
     NULL,
-//    test1,  /* PD publish and subscribe */
-//    test2,  /* Publish & Subscribe, Callback */
-//    test3,  /* Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR */
-//    test3b,  /* Conformance: tlp_get reports immediately TRDP_TIMEOUT_ERR */
-//    test4,  /* Ticket #153 (two PDs on one pull request */
-//    test5,  /* TCP MD Request - Reply - Confirm, #149, #160 */
-//    test6,  /* UDP MD Request - Reply - Confirm, #149 */
-//    test7,  /* UDP MD Notify no sessionID #127 */
-//    /* test8,  / * #153 (two PDs on one pull request? Receiver only * / */
-//    /* test9,  / * Send and receive many telegrams, to check time optimisations * / */
-//    test10,  /* tlc_getVersionString */
-//    test11,  /* babbling idiot :-) */
-//    test12,  /* testing unsubscribe and unjoin */
-//    test13,  /* PD publish and subscribe, auto increment using new 1.4 callback function */
-//    test14,  /* Publish & Subscribe, Callback */
-//    test15,  /* MD Request - Reply / Reuse of TCP connection */
-//    test16,  /* MD Request - Reply / UDP */
-//    test17,  /* CRC */
-//    test18,  /* XML stream */
+    test1,  /* PD publish and subscribe */
+    test2,  /* Publish & Subscribe, Callback */
+    test3,  /* Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR */
+    test3b,  /* Conformance: tlp_get reports immediately TRDP_TIMEOUT_ERR */
+    test4,  /* Ticket #153 (two PDs on one pull request */
+    test5,  /* TCP MD Request - Reply - Confirm, #149, #160 */
+    test6,  /* UDP MD Request - Reply - Confirm, #149 */
+    test7,  /* UDP MD Notify no sessionID #127 */
+    /* test8,  / * #153 (two PDs on one pull request? Receiver only * / */
+    /* test9,  / * Send and receive many telegrams, to check time optimisations * / */
+    test10,  /* tlc_getVersionString */
+    test11,  /* babbling idiot :-) */
+    test12,  /* testing unsubscribe and unjoin */
+    test13,  /* PD publish and subscribe, auto increment using new 1.4 callback function */
+    test14,  /* Publish & Subscribe, Callback */
+    test15,  /* MD Request - Reply / Reuse of TCP connection */
+    test16,  /* MD Request - Reply / UDP */
+    test17,  /* CRC */
+    test18,  /* XML stream */
     test19,  /* Basic test of PD send performance enhancement */
     test20,  /* Basic test of PD receive performance enhancement */
     test21,  /* Basic test of PD send/receive performance enhancement, unpublish/unsubscribe while operating */
@@ -3604,6 +3606,7 @@ int main (int argc, char *argv[])
         exit(1);
     }
 
+    printf("TRDP Stack Version %s\n", tlc_getVersionString());
     if (testNo == 0)    /* Run all tests in sequence */
     {
         while (1)

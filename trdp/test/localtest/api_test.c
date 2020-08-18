@@ -13,7 +13,7 @@
  *
  * @author          Bernd Loehr
  *
- * @remarks         Copyright NewTec GmbH, 2017.
+ * @remarks         Copyright NewTec GmbH, 2017-2020.
  *                  All rights reserved.
  *
  * $Id$
@@ -68,8 +68,8 @@ typedef struct
 
 } TRDP_THREAD_SESSION_T;
 
-TRDP_THREAD_SESSION_T   gSession1 = {NULL, 0x0A000264u, 0, 0};
-TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000265u, 0, 0};
+TRDP_THREAD_SESSION_T   gSession1 = {NULL, 0x0A000364u, 0, 0};
+TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 0, 0};
 
 /* Data buffers to play with (Content is borrowed from Douglas Adams, "The Hitchhiker's Guide to the Galaxy") */
 static uint8_t          dataBuffer1[64 * 1024] =
@@ -361,6 +361,7 @@ static char          xmlBuffer[] =
 #define CLEANUP                                                                             \
 end:                                                                                        \
     {                                                                                       \
+        fprintf(gFp, "\n-------- Cleaning up %s ----------\n", __FUNCTION__);               \
         test_deinit(&gSession1, &gSession2);                                                \
                                                                                             \
         if (gFailed) {                                                                      \
@@ -2375,6 +2376,7 @@ int main (int argc, char *argv[])
         exit(1);
     }
 
+    printf("TRDP Stack Version %s\n", tlc_getVersionString());
     if (testNo == 0)    /* Run all tests in sequence */
     {
         while (1)

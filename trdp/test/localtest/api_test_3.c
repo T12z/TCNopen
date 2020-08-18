@@ -165,6 +165,7 @@ TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 1, 0, 0, 0};
 #define CLEANUP                                                                             \
 end:                                                                                        \
     {                                                                                       \
+        fprintf(gFp, "\n-------- Cleaning up %s ----------\n", __FUNCTION__);               \
         test_deinit(&gSession1, &gSession2);                                                \
                                                                                             \
         if (gFailed) {                                                                      \
@@ -495,7 +496,7 @@ static int test1 ()
     /* ------------------------- test code starts here --------------------------- */
 
     {
-        int i;
+        unsigned int i;
 
         /* gFullLog = TRUE; */
 
@@ -882,7 +883,7 @@ static int test3 ()
             }
             else
             {
-                vos_printLog(VOS_LOG_ERROR, "tlp_get returned with error %d (%s)\n", err, vos_getErrorString(err));
+                vos_printLog(VOS_LOG_ERROR, "tlp_get returned with error %d (%s)\n", err, vos_getErrorString((VOS_ERR_T)err));
             }
         }
         IF_ERROR("tlp_get");
@@ -910,7 +911,7 @@ static int test4 ()
         err = (TRDP_ERR_T) vos_semaCreate(&mySemaphore, VOS_SEMA_FULL/*VOS_SEMA_EMPTY*/);
         IF_ERROR("vos_semaCreate");
         err = (TRDP_ERR_T) vos_semaTake(mySemaphore, VOS_SEMA_WAIT_FOREVER);
-        IF_ERROR("vos_semaTake");
+        //IF_ERROR("vos_semaTake");
         vos_semaGive(mySemaphore);
         vos_semaDelete(mySemaphore);
 
@@ -924,15 +925,111 @@ static int test4 ()
 }
 
 /**********************************************************************************************************************/
+/** test5 MD Notification
+ *
+ *  @retval         0        no error
+ *  @retval         1        some error
+ */
+
+#define                 TEST5_STRING_COMID      1000u
+#define                 TEST5_STRING_NOTIFY1    "Test notification 1"
+#define                 TEST5_STRING_NOTIFY2    "Test notification 2"
+
+static int gNoOfNotifications = 0;
+
+static void  test5CBFunction (
+    void                    *pRefCon,
+    TRDP_APP_SESSION_T      appHandle,
+    const TRDP_MD_INFO_T    *pMsg,
+    UINT8                   *pData,
+    UINT32                  dataSize)
+{
+    TRDP_ERR_T err;
+
+    if ((pMsg->msgType == TRDP_MSG_MN) &&
+             (pMsg->comId == TEST5_STRING_COMID))
+    {
+        if (strlen((char *)pMsg->sessionId) > 0)
+        {
+            gFailed = 1;
+            fprintf(gFp, "#### ->> Notification received, sessionID = %16s\n", pMsg->sessionId);
+        }
+        else
+        {
+            gFailed = 0;
+            fprintf(gFp, "->> Notification received, comId: %u, seq: %u, %s\n", pMsg->comId, pMsg->seqCount, pData);
+            gNoOfNotifications++;
+        }
+    }
+    else
+    {
+        fprintf(gFp, "->> Unsolicited Message received (type = %c%c)\n", pMsg->msgType >> 8, pMsg->msgType & 0xFF);
+        gFailed = 1;
+    }
+end:
+    return;
+}
+
+static int test5 ()
+{
+    PREPARE("UDP MD Notify #335", "test"); /* allocates appHandle1, appHandle2, failed = 0, err =
+                                                         TRDP_NO_ERR */
+
+    /* ------------------------- test code starts here --------------------------- */
+
+    {
+        TRDP_LIS_T listenHandle;
+        UINT32  i;
+
+        //gFullLog = TRUE;
+
+        err = tlm_addListener(appHandle2, &listenHandle, NULL, test5CBFunction,
+                              TRUE,
+                              TEST5_STRING_COMID, 0u, 0u, 0u, VOS_INADDR_ANY, VOS_INADDR_ANY, TRDP_FLAGS_CALLBACK,
+                              NULL, NULL);
+        IF_ERROR("tlm_addListener");
+        fprintf(gFp, "->> MD Listener set up\n");
+
+        for (i = 0u; i < 100u; i++)
+        {
+            char buffer[32];
+            sprintf(buffer, "Notification No.: %03d", i);
+            fprintf(gFp, "->> MD %s ...\n", buffer);
+            err = tlm_notify(appHandle1, NULL, NULL, TEST5_STRING_COMID, 0u, 0u, 0u,
+                             gSession2.ifaceIP, TRDP_FLAGS_CALLBACK, NULL,
+                             (UINT8 *)buffer, (UINT32) strlen(buffer), NULL, NULL );
+
+            IF_ERROR("tlm_notify");
+
+            vos_threadDelay(1000u);
+        }
+        vos_threadDelay(100000u);
+        if (gNoOfNotifications != i)
+        {
+            fprintf(gFp, "### Error: received %u instead of %u notifications!\n", gNoOfNotifications, i);
+            FAILED("### Error");
+        }
+        err = tlm_delListener(appHandle2, listenHandle);
+        IF_ERROR("tlm_delListener");
+    }
+
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+}
+
+
+/**********************************************************************************************************************/
 /* This array holds pointers to the m-th test (m = 1 will execute test1...)                                           */
 /**********************************************************************************************************************/
 test_func_t *testArray[] =
 {
     NULL,
     //test1,  /* SRM test 1 */
-    //test2,  /* ticket #284 */
-    //test3,  /* ticket #337 */
+    test2,  /* ticket #284 */
+    test3,  /* ticket #337 */
 	test4,
+    test5,  /* ticket #335 */
     NULL
 };
 
@@ -1023,6 +1120,7 @@ int main (int argc, char *argv[])
         exit(1);
     }
 
+    printf("TRDP Stack Version %s\n", tlc_getVersionString());
     if (testNo == 0)    /* Run all tests in sequence */
     {
         while (1)
