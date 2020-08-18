@@ -429,6 +429,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
     struct ifaddrs  *addrs;
     struct ifaddrs  *cursor;
     unsigned int    count = 0;
+    static int inhibit_dump = 0;
 
     if (pAddrCnt == NULL ||
         *pAddrCnt == 0 ||
@@ -445,6 +446,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
         {
             if (cursor->ifa_addr != NULL && cursor->ifa_addr->sa_family == AF_INET)
             {
+                memset(&ifAddrs[count], 0, sizeof(*ifAddrs));
                 memcpy(&ifAddrs[count].ipAddr, &cursor->ifa_addr->sa_data[2], 4);
                 ifAddrs[count].ipAddr = vos_ntohl(ifAddrs[count].ipAddr);
                 memcpy(&ifAddrs[count].netMask, &cursor->ifa_netmask->sa_data[2], 4);
@@ -454,15 +456,18 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                     strncpy((char *) ifAddrs[count].name, cursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
                     ifAddrs[count].name[VOS_MAX_IF_NAME_SIZE - 1] = 0;
                 }
-                vos_printLog(VOS_LOG_INFO, "IP-Addr for '%s': %u.%u.%u.%u\n",
+                if ( !inhibit_dump ) {
+                    vos_printLog(VOS_LOG_INFO, "IP-Addr for '%s': %u.%u.%u.%u\n",
                              ifAddrs[count].name,
                              (unsigned int)(ifAddrs[count].ipAddr >> 24) & 0xFF,
                              (unsigned int)(ifAddrs[count].ipAddr >> 16) & 0xFF,
                              (unsigned int)(ifAddrs[count].ipAddr >> 8)  & 0xFF,
                              (unsigned int)(ifAddrs[count].ipAddr        & 0xFF));
+                }
                 if (vos_getMacAddress(ifAddrs[count].mac, ifAddrs[count].name) == TRUE)
                 {
-                    vos_printLog(VOS_LOG_INFO, "Mac-Addr for '%s': %02x:%02x:%02x:%02x:%02x:%02x\n",
+                    if ( !inhibit_dump ) {
+                             vos_printLog(VOS_LOG_INFO, "Mac-Addr for '%s': %02x:%02x:%02x:%02x:%02x:%02x\n",
                                  ifAddrs[count].name,
                                  (unsigned int)ifAddrs[count].mac[0],
                                  (unsigned int)ifAddrs[count].mac[1],
@@ -470,6 +475,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                                  (unsigned int)ifAddrs[count].mac[3],
                                  (unsigned int)ifAddrs[count].mac[4],
                                  (unsigned int)ifAddrs[count].mac[5]);
+                    }
                 }
                 if (cursor->ifa_flags & IFF_RUNNING)
                 {
@@ -483,7 +489,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
             }
             cursor = cursor->ifa_next;
         }
-
+        inhibit_dump |= !!*pAddrCnt; /* don't repeat dumping the addresses later */
         freeifaddrs(addrs);
     }
     else
@@ -854,7 +860,7 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
 
 
 #ifdef SO_PRIORITY
-            /* if available (and the used socket is tagged) set the VLAN PCP field as well. */
+            /* if available (and the used socket is tagged) set the skb_priority, which is mapped to the VLAN PCP field. */
             sockOptValue = (int) pOptions->qos;
             if (setsockopt(sock, SOL_SOCKET, SO_PRIORITY, &sockOptValue,
                            sizeof(sockOptValue)) == -1)
@@ -897,10 +903,10 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
                 vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_MULTICAST_TTL failed (Err: %s)\n", buff);
             }
         }
-        if (pOptions->no_mc_loop > 0)
+//        if (pOptions->no_mc_loop > 0)
         {
             /* Default behavior is ON * / */
-            sockOptValue = 0;
+            sockOptValue = !pOptions->no_mc_loop;
             if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_LOOP, &sockOptValue,
                            sizeof(sockOptValue)) == -1)
             {

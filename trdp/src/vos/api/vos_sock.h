@@ -93,6 +93,9 @@ extern "C" {
 #ifndef VOS_MAX_IF_NAME_SIZE        /**< The maximum size for the interface name                   */
 #ifdef IFNAMSIZ
 #define VOS_MAX_IF_NAME_SIZE    IFNAMSIZ
+#if VOS_MAX_IF_NAME_SIZE != 16      /**< IFNAMSIZ is only correctly included in vos_sock*.c */
+#error IFNAMSIZ is not 16 which will lead to C-API mismatch
+#endif
 #else
 #define VOS_MAX_IF_NAME_SIZE    16
 #endif
@@ -656,6 +659,8 @@ EXT_DECL VOS_IP4_ADDR_T vos_determineBindAddr ( VOS_IP4_ADDR_T  srcIP,
 
 #ifdef TSN_SUPPORT
 /* Extension for TSN & VLAN support */
+EXT_DECL VOS_ERR_T  vos_getRealInterfaceName (VOS_IP4_ADDR_T ipAddr,
+                                              CHAR8          *pIFaceName);
 EXT_DECL VOS_ERR_T  vos_ifnameFromVlanId (UINT16    vlanId,
                                           CHAR8     *pIFaceName);
 EXT_DECL VOS_ERR_T  vos_createVlanIF (UINT16            vlanId,
