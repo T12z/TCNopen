@@ -698,13 +698,13 @@ static void test_deinit (
     {
         vos_threadTerminate(pSession2->threadIdTxPD);
         vos_threadDelay(100000);
-        pSession1->threadIdTxPD = 0;
+        pSession2->threadIdTxPD = 0;
         vos_threadTerminate(pSession2->threadIdRxPD);
         vos_threadDelay(100000);
-        pSession1->threadIdRxPD = 0;
+        pSession2->threadIdRxPD = 0;
         vos_threadTerminate(pSession2->threadIdMD);
         vos_threadDelay(100000);
-        pSession1->threadIdMD = 0;
+        pSession2->threadIdMD = 0;
         tlc_closeSession(pSession2->appHandle);
     }
     tlc_terminate();
