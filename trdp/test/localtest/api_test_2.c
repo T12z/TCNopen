@@ -3589,7 +3589,7 @@ int main (int argc, char *argv[])
             case 'v':   /*  version */
                 printf("%s: Version %s\t(%s - %s)\n",
                        argv[0], APP_VERSION, __DATE__, __TIME__);
-                printf("No. of tests: %lu\n", sizeof(testArray) / sizeof(void *) - 2);
+                printf("No. of tests: %lu\n", (unsigned long) (sizeof(testArray) / sizeof(void *) - 2));
                 exit(0);
                 break;
             case 'h':
