@@ -445,7 +445,8 @@ int main (int argc, char *argv[])
     /* This is our time base, we'll start with the current time default on the quarter second,
         if not set otherwise
      */
-    vos_getRealTime(&now);
+    vos_getTime(&now); /* vos_threadCreateSync() expects time on CLOCK_MONOTONIC */
+    if (startTime < now.tv_usec+1000 ) now.tv_sec++; /* assure to start in the future */
     now.tv_usec = (int) startTime;
 
     /* Create a data producer task as an example of a synchronized simulated real-time thread.

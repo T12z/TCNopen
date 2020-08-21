@@ -133,11 +133,10 @@ static int bindToDevice (int sock, int family, const char *devicename, VOS_IP4_A
         pAdapter = pAdapter->ifa_next;
     }
 
-    sai = (struct sockaddr_in *)pAdapterFound->ifa_addr;
-
     /* only bind if really wanted */
     if (pAdapterFound != NULL)
     {
+        sai = (struct sockaddr_in *)pAdapterFound->ifa_addr;
         if ( doBind )
         {
             sai->sin_port = vos_htons(17224);
@@ -149,6 +148,12 @@ static int bindToDevice (int sock, int family, const char *devicename, VOS_IP4_A
                          vos_ntohs(sai->sin_port),
                          (bindresult == -1) ? "failed" : "OK"
                          );
+        } else {
+            vos_printLog(VOS_LOG_INFO,
+                         "vos_sockBind2IF ... which should be %s\n",
+                         vos_ipDotted(vos_ntohl(sai->sin_addr.s_addr))
+                         );
+
         }
         if ( pIPaddress ) {
             *pIPaddress = vos_ntohl(sai->sin_addr.s_addr);
@@ -815,15 +820,11 @@ EXT_DECL VOS_ERR_T vos_sockBind2IF (
 #define VOS_BINDTODEVICE
 #ifdef VOS_BINDTODEVICE
 
-    /*
-     Binding to a device returns an unusable IP address for the interface.
-     We might not be able to do a MC join to that IP!
-     Maybe we can use it if we go for RAW sockets...
-     */
     struct ifreq ifReq;
+    memset(&ifReq, 0, sizeof(ifReq));
     strncpy(ifReq.ifr_name, iFace->name, VOS_MAX_IF_NAME_SIZE);
 
-    vos_printLog(VOS_LOG_INFO, "vos_sockBind2IF binding using SO_BINDTODEVICE\n", iFace->name);
+    vos_printLog(VOS_LOG_INFO, "vos_sockBind2IF binding %s using SO_BINDTODEVICE\n", iFace->name);
 
     /* Bind socket to interface index. */
     if (setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, &ifReq, sizeof (ifReq)) < 0)
