@@ -15,7 +15,9 @@
  *          Copyright Toshiba Corporation, Japan, 2013. All rights reserved.
  *
  * $Id$
- *
+ *          ### NOTE: This code is not supported, nor updated or tested!
+ *          ###       It is left here for reference, only, and might be removed from the next major
+ *          ###       release.
  */
 
 #include <stdio.h>

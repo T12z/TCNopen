@@ -352,7 +352,6 @@ EXT_DECL TRDP_ERR_T tlm_delListener (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_LIS_T          listenHandle);
 
-#ifdef CONFORMANCE_API
 EXT_DECL TRDP_ERR_T tlm_reply (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
@@ -373,28 +372,6 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     const UINT8             *pData,
     UINT32                  dataSize,
     const TRDP_URI_USER_T   srcURI);
-
-#else
-
-EXT_DECL TRDP_ERR_T tlm_reply (
-    TRDP_APP_SESSION_T      appHandle,
-    const TRDP_UUID_T       *pSessionId,
-    UINT32                  comId,
-    UINT16                  userStatus,
-    const TRDP_SEND_PARAM_T *pSendParam,
-    const UINT8             *pData,
-    UINT32                  dataSize);
-
-EXT_DECL TRDP_ERR_T tlm_replyQuery (
-    TRDP_APP_SESSION_T      appHandle,
-    const TRDP_UUID_T       *pSessionId,
-    UINT32                  comId,
-    UINT16                  userStatus,
-    UINT32                  confirmTimeout,
-    const TRDP_SEND_PARAM_T *pSendParam,
-    const UINT8             *pData,
-    UINT32                  dataSize);
-#endif /* CONFORMANCE_API */
 
 #endif /* MD_SUPPORT    */
 

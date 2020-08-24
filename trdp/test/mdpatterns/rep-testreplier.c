@@ -154,7 +154,7 @@ static  void mdCallback(
                                      1500000,
                                      NULL,
                                      (const UINT8*)&dataMQ,
-                                     sizeof(dataMQ));
+                                     sizeof(dataMQ), NULL);
                 if (err != TRDP_NO_ERR)
                 {
                     /* echo unformatted error code */
@@ -172,7 +172,7 @@ static  void mdCallback(
                                 0,
                                 NULL,
                                 (const UINT8*)&dataMP,
-                                sizeof(dataMP));
+                                sizeof(dataMP), NULL);
                 if (err != TRDP_NO_ERR)
                 {
                     /* echo unformatted error code */
@@ -189,7 +189,7 @@ static  void mdCallback(
                                 0,
                                 NULL,
                                 (const UINT8*)&dataMP,
-                                sizeof(dataMP));
+                                sizeof(dataMP), NULL);
                 if (err != TRDP_NO_ERR)
                 {
                     /* echo unformatted error code */
@@ -206,7 +206,7 @@ static  void mdCallback(
                                      1500000,
                                      NULL,
                                      (const UINT8*)&dataMQ,
-                                     sizeof(dataMQ));
+                                     sizeof(dataMQ), NULL);
                 if (err != TRDP_NO_ERR)
                 {
                     /* echo unformatted error code */

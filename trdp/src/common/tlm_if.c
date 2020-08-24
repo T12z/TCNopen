@@ -796,17 +796,11 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     UINT16                  userStatus,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize
-#ifdef CONFORMANCE_API
-   ,const TRDP_URI_USER_T   srcURI
-#endif
-    )
+    UINT32                  dataSize,
+    const TRDP_URI_USER_T   srcURI)
 {
-#ifndef CONFORMANCE_API
-    const TRDP_URI_USER_T   *pSrcURI = NULL;
-#else
     const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
-#endif
+
     if ( !trdp_isValidSession(appHandle))
     {
         return TRDP_NOINIT_ERR;
@@ -856,18 +850,12 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     UINT32                  confirmTimeout,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize
-#ifdef CONFORMANCE_API
-   ,const TRDP_URI_USER_T   srcURI
-#endif
-)
+    UINT32                  dataSize,
+    const TRDP_URI_USER_T   srcURI)
 {
-#ifndef CONFORMANCE_API
-    const TRDP_URI_USER_T   *pSrcURI = NULL;
-#else
     const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
-#endif
     UINT32 mdTimeOut;
+
     if ( !trdp_isValidSession(appHandle))
     {
         return TRDP_NOINIT_ERR;

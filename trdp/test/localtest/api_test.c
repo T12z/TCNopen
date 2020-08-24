@@ -1018,7 +1018,7 @@ static void  test5CBFunction (
             }
             fprintf(gFp, "->> Sending reply\n");
             err = tlm_replyQuery(appHandle, &pMsg->sessionId, TEST5_STRING_COMID, 0u, 500000u, NULL,
-                                 (UINT8 *)TEST5_STRING_REPLY, 63 * 1024 /*strlen(TEST5_STRING_REPLY)*/);
+                                 (UINT8 *)TEST5_STRING_REPLY, 63 * 1024 /*strlen(TEST5_STRING_REPLY)*/, NULL);
 
             IF_ERROR("tlm_reply");
         }
@@ -1987,7 +1987,7 @@ static void  test15CBFunction (
 //            }
             fprintf(gFp, "->> Sending reply with query (%.16s)\n", (UINT8 *)TEST15_STRING_REPLY);
             err = tlm_replyQuery(appHandle, &pMsg->sessionId, TEST15_STRING_COMID, 0u, 0u, NULL,
-                                 (UINT8 *)TEST15_STRING_REPLY, TEST15_STRING_REPLY_LEN);
+                                 (UINT8 *)TEST15_STRING_REPLY, TEST15_STRING_REPLY_LEN, NULL);
 
             IF_ERROR("tlm_reply");
         }
