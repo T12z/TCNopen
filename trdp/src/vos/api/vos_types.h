@@ -187,6 +187,30 @@ typedef double REAL64;
 #define WARNING(s) message (__FILE__ "(" STRING(__LINE__) "):warning: "  s)
 #endif
 
+#ifndef __unused
+#if defined( __GNUC__ ) || defined ( __clang__ )
+#define __unused __attribute__ ((__unused__))
+#else
+#define __unused
+#endif
+#endif
+
+#if MD_SUPPORT
+#define __mdused
+#else
+#define __mdused __unused
+#endif
+
+#ifndef __fallthrough
+#if defined( __GNUC__ ) && __GNUC__ >= 7
+#define __fallthrough __attribute__ ((fallthrough));
+#elif defined( __clang__ )
+#define __fallthrough [[clang::fallthrough]]
+#else
+#define __fallthrough /* fallthrough */
+#endif
+#endif
+
 /***********************************************************************************************************************
  * TYPEDEFS
  */

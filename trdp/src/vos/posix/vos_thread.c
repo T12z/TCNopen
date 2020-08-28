@@ -70,7 +70,7 @@
 #include <sched.h>
 
 #ifdef HAS_UUID
-#include <uuid/uuid.h>
+#include <uuid.h> /* the path to UUID-headers shoudl be set by compiler include directives */
 #else
 #warning "Using internal uuid-generation does not conform to standard!"
 #include "vos_sock.h"

@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      TS 2020-08-28: Adjusting thread function type: pthreads MUST return a pointer on exit (in Win a DWORD though)
 *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API 
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
@@ -124,7 +125,7 @@ typedef UINT8 VOS_THREAD_PRIORITY_T;
 #define VOS_THREAD_PRIORITY_HIGHEST     255
 
 /** Thread function definition    */
-typedef void (__cdecl * VOS_THREAD_FUNC_T)(void *pArg);
+typedef void *(__cdecl * VOS_THREAD_FUNC_T)(void *pArg);
 
 /** State of the semaphore    */
 typedef enum

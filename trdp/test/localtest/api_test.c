@@ -441,9 +441,9 @@ static void dbgOut (
  *
  *  @param[in]      pArg            user supplied context pointer
  *
- *  @retval         none
+ *  @retval         NULL
  */
-static void trdp_loop (void *pArg)
+static void *trdp_loop (void *pArg)
 {
     TRDP_THREAD_SESSION_T *pSession = (TRDP_THREAD_SESSION_T *) pArg;
     /*
@@ -511,6 +511,7 @@ static void trdp_loop (void *pArg)
 
     (void)tlc_closeSession(pSession->appHandle);
     pSession->appHandle = NULL;
+    return NULL;
 }
 
 /**********************************************************************************************************************/

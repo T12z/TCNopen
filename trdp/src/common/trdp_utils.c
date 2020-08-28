@@ -238,12 +238,12 @@ TRDP_IP_ADDR_T trdp_getOwnIP( void )
                 )
             {
                 if (oIP == VOS_INADDR_ANY) {
-                    vos_printLog(VOS_LOG_INFO, "Reasonable \"own\" IP determined as %s on %s %d/%d.\n",
+                    vos_printLog(VOS_LOG_INFO, "Reasonable \"own\" IP determined as %.15s on %.16s %d/%d.\n",
                                  vos_ipDotted(localIF[i].ipAddr), localIF[i].name, i, addrCnt);
                     oIP = localIF[i].ipAddr;
                 } else {
                     /* Warn if this device has multiple interfaces */
-                    vos_printLog(VOS_LOG_WARNING, "Found another IP %s on %s %d/%d Will stick with the first.\n",
+                    vos_printLog(VOS_LOG_WARNING, "Found another IP %.15s on %.16s %d/%d Will stick with the first.\n",
                                  vos_ipDotted(localIF[i].ipAddr), localIF[i].name, i, addrCnt);
                 }
             }
