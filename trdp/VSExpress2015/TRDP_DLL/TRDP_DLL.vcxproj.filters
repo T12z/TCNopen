@@ -4,7 +4,6 @@
     <ClCompile Include="..\..\src\common\tau_ctrl.c" />
     <ClCompile Include="..\..\src\common\tau_dnr.c" />
     <ClCompile Include="..\..\src\common\tau_marshall.c" />
-    <ClCompile Include="..\..\src\common\tau_so_if.c" />
     <ClCompile Include="..\..\src\common\tau_tti.c" />
     <ClCompile Include="..\..\src\common\tau_xml.c" />
     <ClCompile Include="..\..\src\common\tlc_if.c" />
@@ -45,7 +44,6 @@
     <ClInclude Include="..\..\src\api\tau_ctrl.h" />
     <ClInclude Include="..\..\src\api\tau_dnr.h" />
     <ClInclude Include="..\..\src\api\tau_marshall.h" />
-    <ClInclude Include="..\..\src\api\tau_so_if.h" />
     <ClInclude Include="..\..\src\api\tau_tti.h" />
     <ClInclude Include="..\..\src\api\tau_xml.h" />
     <ClInclude Include="..\..\src\api\trdp_if_light.h" />

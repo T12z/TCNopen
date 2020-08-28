@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019-2020. All rights reserved.
  */
 /*
  * $Id$
  *
+ *      BL 2020-08-06: Ticket #314 Timeout supervision does not restart after PD request
  *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
  *      BL 2019-07-10: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2019-07-10: Ticket #161 Increase performance
@@ -46,13 +47,17 @@
 #define TRDP_MIN_CYCLE          1000u
 #define TRDP_MAX_CYCLE          10000u
 
-#define TRDP_LOW_CYCLE          1000                    /* 1...99ms         */
-#define TRDP_MID_CYCLE          10000                   /* 100ms...990ms    */
-#define TRDP_HIGH_CYCLE         100000                  /* >= 1000ms        */
+#define TRDP_LOW_CYCLE          1000                    /**< 1...99ms         */
+#define TRDP_MID_CYCLE          10000                   /**< 100ms...990ms    */
+#define TRDP_HIGH_CYCLE         100000                  /**< >= 1000ms        */
 
-#define TRDP_LOW_CYCLE_LIMIT    100000                  /* 0.5...100ms      */
-#define TRDP_MID_CYCLE_LIMIT    1000000                 /* 101ms...1000ms   */
-#define TRDP_HIGH_CYCLE_LIMIT   10000000                /* > 1000ms         */
+#define TRDP_LOW_CYCLE_LIMIT    100000                  /**< 1...100ms      */
+#define TRDP_MID_CYCLE_LIMIT    1000000                 /**< 101ms...1000ms   */
+#define TRDP_HIGH_CYCLE_LIMIT   10000000                /**< over 1000ms         */
+
+#ifndef TRDP_TO_CHECK_CYCLE
+#define TRDP_TO_CHECK_CYCLE     100000                  /* default 100ms      */
+#endif
 
 /** Default table size settings in HIGH_PERF_INDEXED Mode  */
 #define TRDP_DEFAULT_INDEX_SIZES  {100,     /**< Max. number of expected subscriptions with intervals <= 100ms  */ \
@@ -79,7 +84,7 @@ typedef struct hp_slot
     UINT32          slotCycle;                          /**< cycle time with which each slot will be called (us)    */
     UINT8           noOfTxEntries;                      /**< no of slots == first array dimension                   */
     UINT8           depthOfTxEntries;                   /**< depth of slots == second array dimension               */
-    const PD_ELE_T  * *ppIdxCat;                        /**< pointer to an array of PD_ELE_T* (dim[depth][slot])    */
+    PD_ELE_T        * *ppIdxCat;                        /**< pointer to an array of PD_ELE_T* (dim[depth][slot])    */
     UINT32          allocatedTableSize;                 /**< real allocated size                                    */
 } TRDP_HP_CAT_SLOT_T;
 

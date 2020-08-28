@@ -171,6 +171,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -179,6 +180,9 @@
     </Link>
     <PostBuildEvent>
     </PostBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugSim|Win32'">
     <ClCompile>
@@ -187,6 +191,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;_TSN_SUPPORT;_LIB;SIM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;$(SIMTECC_SDK_PATH)\inc;$(SIMTECC_SDK_PATH)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -205,6 +211,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;TSN_SUPPORT;_LIB;SIM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;$(SIMTECC_SDK_PATH)\inc;$(SIMTECC_SDK_PATH)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -223,6 +230,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -231,14 +240,19 @@
     </Link>
     <PostBuildEvent>
     </PostBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugSim|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;_LIB;SIM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;$(SIMTECC_SDK_PATH)\inc;$(SIMTECC_SDK_PATH)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -246,14 +260,18 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_DEBUG;DLL_EXPORT;TSN_SUPPORT;_LIB;SIM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;$(SIMTECC_SDK_PATH)\inc;$(SIMTECC_SDK_PATH)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -261,6 +279,9 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -271,6 +292,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;DLL_EXPORT;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -278,6 +300,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -288,6 +313,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;DLL_EXPORT;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -295,6 +321,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\src\common;..\..\src\api;..\..\src\vos\api</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -304,7 +333,6 @@
     <ClCompile Include="..\..\src\common\tau_ctrl.c" />
     <ClCompile Include="..\..\src\common\tau_dnr.c" />
     <ClCompile Include="..\..\src\common\tau_marshall.c" />
-    <ClCompile Include="..\..\src\common\tau_so_if.c" />
     <ClCompile Include="..\..\src\common\tau_tti.c" />
     <ClCompile Include="..\..\src\common\tau_xml.c" />
     <ClCompile Include="..\..\src\common\tlc_if.c" />
@@ -321,14 +349,20 @@
     <ClCompile Include="..\..\src\vos\windows\vos_shared_mem.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\vos\windows\vos_sock.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\vos\windows\vos_thread.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\vos\windows_sim\vos_shared_mem.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -360,7 +394,6 @@
     <ClInclude Include="..\..\src\api\tau_ctrl.h" />
     <ClInclude Include="..\..\src\api\tau_dnr.h" />
     <ClInclude Include="..\..\src\api\tau_marshall.h" />
-    <ClInclude Include="..\..\src\api\tau_so_if.h" />
     <ClInclude Include="..\..\src\api\tau_tti.h" />
     <ClInclude Include="..\..\src\api\tau_xml.h" />
     <ClInclude Include="..\..\src\api\trdp_if_light.h" />
@@ -382,6 +415,8 @@
     <ClInclude Include="..\..\src\vos\windows\vos_private.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSimTSN|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugSim|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\src\vos\windows_sim\vos_private.h" />
     <ClInclude Include="resource.h" />

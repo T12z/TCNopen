@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
+*      BL 2020-08-10: Ticket #309 revisited: tlm_abortSession shall return noError if morituri is not set
 *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      SB 2020-03-30: Ticket #309 A Listener's Sessions now close when the Listener is deleted or readded
 *      SB 2020-03-30: Ticket #313 Added topoCount check for notifications
@@ -716,9 +717,8 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
 
         pListener = (MD_LIS_ELE_T *) listenHandle;
 
-        if (((pListener->pktFlags & TRDP_FLAGS_TCP) == 0) &&        /* We don't need to handle TCP listeners */
-            vos_isMulticast(mcDestIpAddr) &&                        /* nor non-multicast listeners */
-            pListener->addr.mcGroup != mcDestIpAddr)                /* nor if there's no change in group */
+        /* Ticket #309, resetting listener must be done on all UDP listeners (why not TCP?) */
+        if ((pListener->pktFlags & TRDP_FLAGS_TCP) == 0)            /* We don't need to handle TCP listeners */
         {
             /* deletes listener sessions */
             for (pIterMD = appHandle->pMDRcvQueue; pIterMD != NULL; pIterMD = pIterMD->pNext)
@@ -796,17 +796,11 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     UINT16                  userStatus,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize
-#ifdef CONFORMANCE_API
-   ,const TRDP_URI_USER_T   srcURI
-#endif
-    )
+    UINT32                  dataSize,
+    const TRDP_URI_USER_T   srcURI)
 {
-#ifndef CONFORMANCE_API
-    const TRDP_URI_USER_T   *pSrcURI = NULL;
-#else
     const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
-#endif
+
     if ( !trdp_isValidSession(appHandle))
     {
         return TRDP_NOINIT_ERR;
@@ -856,18 +850,12 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     UINT32                  confirmTimeout,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
-    UINT32                  dataSize
-#ifdef CONFORMANCE_API
-   ,const TRDP_URI_USER_T   srcURI
-#endif
-)
+    UINT32                  dataSize,
+    const TRDP_URI_USER_T   srcURI)
 {
-#ifndef CONFORMANCE_API
-    const TRDP_URI_USER_T   *pSrcURI = NULL;
-#else
     const TRDP_URI_USER_T   *pSrcURI = (const TRDP_URI_USER_T *) srcURI;    /* Array as parameter is a pointer */
-#endif
     UINT32 mdTimeOut;
+
     if ( !trdp_isValidSession(appHandle))
     {
         return TRDP_NOINIT_ERR;
@@ -982,7 +970,8 @@ EXT_DECL TRDP_ERR_T tlm_abortSession (
 
         if (NULL != iterMD)
         {
-            if (memcmp(iterMD->sessionID, pSessionId, TRDP_SESS_ID_SIZE) == 0)
+            if ((memcmp(iterMD->sessionID, pSessionId, TRDP_SESS_ID_SIZE) == 0) &&
+                (iterMD->morituri == FALSE))
             {
                 iterMD->pfCbFunction = NULL;
                 iterMD->morituri = TRUE;

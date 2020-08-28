@@ -14,7 +14,11 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Toshiba Corporation, Japan, 2013. All rights reserved.
  *
- * $Id:$
+ * $Id$
+ *
+ *          ### NOTE: This code is not supported, nor updated or tested!
+ *          ###       It is left here for reference, only, and might be removed from the next major
+ *          ###       release.
  *
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
  *

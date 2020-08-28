@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-08-07: Ticket #317 Bug in trdp_indeedFindSubAddr() (HIGH_PERFORMANCE)
 *      SB 2020-03-30: Ticket #311: removed trdp_getSeqCnt() because redundant publisher should not run on the same interface
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
@@ -86,6 +87,13 @@ PD_ELE_T        *trdp_queueFindComId (
 PD_ELE_T        *trdp_findSubAddr (
     PD_ELE_T            *pHead,
     TRDP_ADDRESSES_T    *pAddr,
+    UINT32              comId);
+
+PD_ELE_T        *trdp_idxfindSubAddr (
+    PD_ELE_T            *array[],
+    UINT32              startIdx,
+    UINT32              maxIdx,
+    TRDP_ADDRESSES_T    *addr,
     UINT32              comId);
 
 PD_ELE_T        *trdp_queueFindSubAddr (

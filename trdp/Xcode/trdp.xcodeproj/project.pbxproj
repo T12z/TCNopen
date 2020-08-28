@@ -165,6 +165,7 @@
 		08BFF29620247236005E2AB8 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		08BFF29C2024759D005E2AB8 /* sourceFiltering.c in Sources */ = {isa = PBXBuildFile; fileRef = 08BFF29B2024759D005E2AB8 /* sourceFiltering.c */; };
 		08C44FE31F2231B400AB84EF /* tau_dnr_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 08C44FE11F2231B300AB84EF /* tau_dnr_types.h */; };
+		08C4993824E410A700A86DBC /* pdsend_example.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 088397771F06A2A4003A8C6F /* pdsend_example.xml */; };
 		08C5E46722B146C8004D2028 /* libtrdp64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73591F971B986C7900B758F0 /* libtrdp64.a */; };
 		08C5E46C22B14704004D2028 /* trdp-xmlpd-test.c in Sources */ = {isa = PBXBuildFile; fileRef = 7366AC7316B68C920068A893 /* trdp-xmlpd-test.c */; };
 		08CE2192164A91B30038151B /* trdp_reserved.c in Sources */ = {isa = PBXBuildFile; fileRef = 08CE2172164A6E130038151B /* trdp_reserved.c */; };
@@ -688,6 +689,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		08C4993724E4109000A86DBC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+				08C4993824E410A700A86DBC /* pdsend_example.xml in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		08D51C11200FB6F8004319B6 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -778,9 +789,9 @@
 		085323DA20DD5BD200A29E56 /* component.mk */ = {isa = PBXFileReference; lastKnownFileType = text; name = component.mk; path = ../component.mk; sourceTree = "<group>"; };
 		085323DB20DD5C2C00A29E56 /* VSExpress2015 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = VSExpress2015; path = ../VSExpress2015; sourceTree = "<group>"; };
 		08545AE9230C2288008C3C33 /* trdp-pd-test-fast */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-pd-test-fast"; sourceTree = BUILT_PRODUCTS_DIR; };
-		08545AEC230C22D9008C3C33 /* trdp-pd-test-fast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "trdp-pd-test-fast.c"; sourceTree = "<group>"; };
+		08545AEC230C22D9008C3C33 /* trdp-pd-test-fast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = "trdp-pd-test-fast.c"; sourceTree = "<group>"; };
 		085518E523157B080069A5FB /* serviceRegistrySample.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = serviceRegistrySample.c; sourceTree = "<group>"; };
-		085518E623157D080069A5FB /* api_test_3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = api_test_3.c; sourceTree = "<group>"; };
+		085518E623157D080069A5FB /* api_test_3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = api_test_3.c; sourceTree = "<group>"; };
 		085518F123157E540069A5FB /* test_local_loop3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_local_loop3; sourceTree = BUILT_PRODUCTS_DIR; };
 		08594B061B6FAC160066EA06 /* spy */ = {isa = PBXFileReference; lastKnownFileType = folder; name = spy; path = ../spy; sourceTree = "<group>"; };
 		08594B071B6FB24E0066EA06 /* config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = config; path = ../config; sourceTree = "<group>"; };
@@ -800,11 +811,13 @@
 		0864C3DA2243A3CE00E091E1 /* sendTSN.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sendTSN.c; sourceTree = "<group>"; };
 		0867899C1F0CE3D7009D1B8F /* lint */ = {isa = PBXFileReference; lastKnownFileType = folder; path = lint; sourceTree = "<group>"; };
 		086A4F6822B0F3AF00C9BB93 /* test_sdt.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = test_sdt.xml; sourceTree = "<group>"; };
-		086EEEA822D4BE000061637D /* api_test_2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = api_test_2.c; sourceTree = "<group>"; };
+		086EEEA822D4BE000061637D /* api_test_2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = api_test_2.c; sourceTree = "<group>"; };
 		086EEEB122D4BF410061637D /* test_local_loop2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_local_loop2; sourceTree = BUILT_PRODUCTS_DIR; };
 		086EEEB522D5D7EA0061637D /* trdp_pdindex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = trdp_pdindex.h; sourceTree = "<group>"; };
 		086EEEB622D5D7EA0061637D /* trdp_pdindex.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = trdp_pdindex.c; sourceTree = "<group>"; };
 		0874F444228DC0C900038D72 /* speedTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = speedTest; sourceTree = BUILT_PRODUCTS_DIR; };
+		087E92D424EAD19D00580F99 /* windows_sim */ = {isa = PBXFileReference; lastKnownFileType = folder; path = windows_sim; sourceTree = "<group>"; };
+		0880A8A724D84E0500F1BB49 /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../doc; sourceTree = "<group>"; };
 		088397771F06A2A4003A8C6F /* pdsend_example.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = pdsend_example.xml; sourceTree = "<group>"; };
 		0899477222B8C6A1009D0D6C /* trdp_serviceRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = trdp_serviceRegistry.h; sourceTree = "<group>"; };
 		0899477622B91586009D0D6C /* tlp_if.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tlp_if.c; sourceTree = "<group>"; };
@@ -813,20 +826,17 @@
 		0899478222BA82CC009D0D6C /* tau_so_if.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tau_so_if.h; sourceTree = "<group>"; };
 		0899478322BA83AF009D0D6C /* tlc_if.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tlc_if.c; sourceTree = "<group>"; };
 		0899478722BA83B9009D0D6C /* tlc_if.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tlc_if.h; sourceTree = "<group>"; };
-		08A327B91E51FDD400B03846 /* api_test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = api_test.c; sourceTree = "<group>"; };
-		08A327BA1E51FDD400B03846 /* hostsfile.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = hostsfile.txt; sourceTree = "<group>"; };
-		08A327BB1E51FDD400B03846 /* test6.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = test6.xml; sourceTree = "<group>"; };
+		08A327B91E51FDD400B03846 /* api_test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = api_test.c; sourceTree = "<group>"; };
+		08A327BA1E51FDD400B03846 /* hostsfile.txt */ = {isa = PBXFileReference; lastKnownFileType = text; lineEnding = 0; path = hostsfile.txt; sourceTree = "<group>"; };
+		08A327BB1E51FDD400B03846 /* test6.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; lineEnding = 0; path = test6.xml; sourceTree = "<group>"; };
 		08A327C71E51FE2700B03846 /* test_local_loop */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_local_loop; sourceTree = BUILT_PRODUCTS_DIR; };
 		08A38CEE20C813CE002DD477 /* esp */ = {isa = PBXFileReference; lastKnownFileType = folder; path = esp; sourceTree = "<group>"; };
-		08B34F5522DCC24D00F36EA5 /* TRDPSpeedupFlowPDReceive.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = TRDPSpeedupFlowPDReceive.pdf; sourceTree = "<group>"; };
-		08B34F5622DCC24D00F36EA5 /* TRDPSpeedupFlowPDTransmit.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = TRDPSpeedupFlowPDTransmit.pdf; sourceTree = "<group>"; };
-		08B34F5722DCC24D00F36EA5 /* TRDPSpeedupFlowMD.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = TRDPSpeedupFlowMD.pdf; sourceTree = "<group>"; };
 		08BAB726236B1DBD003F962B /* srmDemo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = srmDemo; sourceTree = BUILT_PRODUCTS_DIR; };
 		08BC1D9E2100C38D009FC612 /* vtest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vtest; sourceTree = BUILT_PRODUCTS_DIR; };
 		08BFF28D20247203005E2AB8 /* sourceFiltering */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sourceFiltering; sourceTree = BUILT_PRODUCTS_DIR; };
 		08BFF29A2024759D005E2AB8 /* NTT_CommonHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTT_CommonHeader.h; sourceTree = "<group>"; };
 		08BFF29B2024759D005E2AB8 /* sourceFiltering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sourceFiltering.c; sourceTree = "<group>"; };
-		08C14636230D482F00508AC6 /* trdp-md-test-fast.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "trdp-md-test-fast.c"; sourceTree = "<group>"; };
+		08C14636230D482F00508AC6 /* trdp-md-test-fast.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = "trdp-md-test-fast.c"; sourceTree = "<group>"; };
 		08C44FE11F2231B300AB84EF /* tau_dnr_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tau_dnr_types.h; sourceTree = "<group>"; };
 		08C5E46B22B146C8004D2028 /* trdp-xmlpd-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-xmlpd-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		08CE2171164A6E130038151B /* trdp_reserved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = trdp_reserved.h; path = marshalling/trdp_reserved.h; sourceTree = "<group>"; };
@@ -840,7 +850,6 @@
 		08ED5AF624D173CC00CDBCAB /* libtrdp64PosixHPConf.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtrdp64PosixHPConf.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		08F4F55122FDAAED00304B34 /* libtrdp64PosixHP.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtrdp64PosixHP.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		08FA81B52176207900A4FF81 /* trdp-xmlprint-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-xmlprint-test"; sourceTree = BUILT_PRODUCTS_DIR; };
-		08FA81C32177310000A4FF81 /* type_test.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; lineEnding = 2; name = type_test.xml; path = ../../../../../../Desktop/type_test.xml; sourceTree = "<group>"; };
 		7303DC7E1BAAB016004C92D9 /* tau_cstinfo.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = tau_cstinfo.c; sourceTree = "<group>"; tabWidth = 4; };
 		730B42A81C650ECB00A92265 /* trdp_xml.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = trdp_xml.c; sourceTree = "<group>"; tabWidth = 4; };
 		730B42A91C650ECB00A92265 /* trdp_xml.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = trdp_xml.h; sourceTree = "<group>"; tabWidth = 4; };
@@ -849,18 +858,15 @@
 		730C15D31B95AE450075D7F3 /* test_tau_dnr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_tau_dnr; sourceTree = BUILT_PRODUCTS_DIR; };
 		730C15D51B95CB340075D7F3 /* hosts_example */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text; name = hosts_example; path = ../test/diverse/hosts_example; sourceTree = "<group>"; tabWidth = 4; };
 		730DAF9616A07B150019B4D0 /* readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
-		730DAF9716A07B150019B4D0 /* trdp-pd-test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "trdp-pd-test.c"; sourceTree = "<group>"; };
+		730DAF9716A07B150019B4D0 /* trdp-pd-test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = "trdp-pd-test.c"; sourceTree = "<group>"; };
 		730DAF9D16A07B5B0019B4D0 /* trdp-pd-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-pd-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		730F3B371BA2FEFE00737C74 /* iec61375-2-3.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = "iec61375-2-3.h"; sourceTree = "<group>"; tabWidth = 4; };
-		731292991535BEA1006B3A88 /* SingleThreadedWorkflowPD.eps */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SingleThreadedWorkflowPD.eps; sourceTree = "<group>"; };
-		7312929B1535BEA1006B3A88 /* SingleThreadedWorkflowPD.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = SingleThreadedWorkflowPD.pdf; sourceTree = "<group>"; };
-		7312929E1535BEA1006B3A88 /* TCNOpen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TCNOpen.png; sourceTree = "<group>"; };
 		73134A221BCBD8FA00E3BF88 /* inaugTest.c */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.c.c; name = inaugTest.c; path = ../test/diverse/inaugTest.c; sourceTree = "<group>"; tabWidth = 4; };
 		73134A301BCBD95E00E3BF88 /* test_inaug */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_inaug; sourceTree = BUILT_PRODUCTS_DIR; };
-		73134A321BCBDC7900E3BF88 /* patterns.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = patterns.txt; sourceTree = "<group>"; };
-		73134A331BCBDC7900E3BF88 /* rep-testcaller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "rep-testcaller.c"; sourceTree = "<group>"; };
-		73134A341BCBDC7900E3BF88 /* rep-testreplier.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "rep-testreplier.c"; sourceTree = "<group>"; };
-		73134A351BCBDC7900E3BF88 /* trdp-md-test.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "trdp-md-test.xml"; sourceTree = "<group>"; };
+		73134A321BCBDC7900E3BF88 /* patterns.txt */ = {isa = PBXFileReference; lastKnownFileType = text; lineEnding = 0; path = patterns.txt; sourceTree = "<group>"; };
+		73134A331BCBDC7900E3BF88 /* rep-testcaller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = "rep-testcaller.c"; sourceTree = "<group>"; };
+		73134A341BCBDC7900E3BF88 /* rep-testreplier.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = "rep-testreplier.c"; sourceTree = "<group>"; };
+		73134A351BCBDC7900E3BF88 /* trdp-md-test.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; lineEnding = 0; path = "trdp-md-test.xml"; sourceTree = "<group>"; };
 		73134A361BCBDCDC00E3BF88 /* patterns.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = patterns.txt; sourceTree = "<group>"; };
 		73134A371BCBDD4600E3BF88 /* test_marshalling2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = test_marshalling2.c; path = marshalling/test_marshalling2.c; sourceTree = "<group>"; };
 		73134A381BCBDD8D00E3BF88 /* mdTest.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = mdTest.txt; sourceTree = "<group>"; };
@@ -887,7 +893,6 @@
 		73591F971B986C7900B758F0 /* libtrdp64.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libtrdp64.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		7359DE151C6CC8EB0009487B /* vtest.c */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.c.c; name = vtest.c; path = ../test/diverse/vtest.c; sourceTree = "<group>"; tabWidth = 4; };
 		7359DE161C6CC8EB0009487B /* vtest.h */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.c.h; name = vtest.h; path = ../test/diverse/vtest.h; sourceTree = "<group>"; tabWidth = 4; };
-		735BAD12172EC1AB00837D0E /* memory.xlsx */ = {isa = PBXFileReference; lastKnownFileType = file; path = memory.xlsx; sourceTree = "<group>"; };
 		73603CF2175CBE79004608BD /* trdp-md-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "trdp-md-test"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7366AC6116B68C100068A893 /* example.xml */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text.xml; path = example.xml; sourceTree = "<group>"; tabWidth = 4; };
 		7366AC6216B68C100068A893 /* interoperability_test.xml */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text.xml; path = interoperability_test.xml; sourceTree = "<group>"; tabWidth = 4; };
@@ -917,7 +922,7 @@
 		7367955917202E93003C68ED /* mdTestMain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mdTestMain.c; sourceTree = "<group>"; };
 		7367955A17202E93003C68ED /* mdTestMdReceiveManager.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mdTestMdReceiveManager.c; sourceTree = "<group>"; };
 		7367955B17202E93003C68ED /* mdTestReplier.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mdTestReplier.c; sourceTree = "<group>"; };
-		7367955D17202EBE003C68ED /* trdp-md-test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "trdp-md-test.c"; sourceTree = "<group>"; };
+		7367955D17202EBE003C68ED /* trdp-md-test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = "trdp-md-test.c"; sourceTree = "<group>"; };
 		7367955E17202EF3003C68ED /* ladderApplication_multiPD.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ladderApplication_multiPD.c; path = ../test/ladderpdtest/ladderApplication_multiPD.c; sourceTree = "<group>"; };
 		737B18BE15D9015800724FEF /* test_marshalling */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test_marshalling; sourceTree = BUILT_PRODUCTS_DIR; };
 		737B18CE15D901F000724FEF /* test_marshalling.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_marshalling.c; path = marshalling/test_marshalling.c; sourceTree = "<group>"; };
@@ -947,7 +952,6 @@
 		73A00E5E1913CCAF0020A6EA /* tau_tti_types.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = tau_tti_types.h; sourceTree = "<group>"; tabWidth = 4; };
 		73A00E601913CCC50020A6EA /* tau_ctrl.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = tau_ctrl.h; sourceTree = "<group>"; tabWidth = 4; };
 		73A00E611913CCC50020A6EA /* tau_dnr.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = tau_dnr.h; sourceTree = "<group>"; tabWidth = 4; };
-		73B68B7917904A4900BFA039 /* TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf"; sourceTree = "<group>"; };
 		73CBA1AD19548350006648EE /* rules.mk */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = text; name = rules.mk; path = ../rules.mk; sourceTree = "<group>"; tabWidth = 4; };
 		73D452741D90301F00CEF20D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		73D6657A15D3D88700A352D4 /* tau_marshall.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = tau_marshall.c; sourceTree = "<group>"; tabWidth = 4; };
@@ -1420,7 +1424,7 @@
 				08594B071B6FB24E0066EA06 /* config */,
 				73821F27150777B00046E0AC /* src */,
 				73821F3B150777B00046E0AC /* example */,
-				73821F42150777D30046E0AC /* doc */,
+				0880A8A724D84E0500F1BB49 /* doc */,
 				73821F7C150777D40046E0AC /* test */,
 				082B3C09201F66EE0061DF17 /* ladder */,
 				08594B061B6FAC160066EA06 /* spy */,
@@ -1495,19 +1499,6 @@
 			path = pdpatterns;
 			sourceTree = "<group>";
 		};
-		731292961535BEA1006B3A88 /* images */ = {
-			isa = PBXGroup;
-			children = (
-				731292991535BEA1006B3A88 /* SingleThreadedWorkflowPD.eps */,
-				7312929B1535BEA1006B3A88 /* SingleThreadedWorkflowPD.pdf */,
-				7312929E1535BEA1006B3A88 /* TCNOpen.png */,
-				08B34F5722DCC24D00F36EA5 /* TRDPSpeedupFlowMD.pdf */,
-				08B34F5522DCC24D00F36EA5 /* TRDPSpeedupFlowPDReceive.pdf */,
-				08B34F5622DCC24D00F36EA5 /* TRDPSpeedupFlowPDTransmit.pdf */,
-			);
-			path = images;
-			sourceTree = "<group>";
-		};
 		733615A9165BF91200A70D3D /* udpmdcom */ = {
 			isa = PBXGroup;
 			children = (
@@ -1530,7 +1521,6 @@
 				086A4F6822B0F3AF00C9BB93 /* test_sdt.xml */,
 				088397771F06A2A4003A8C6F /* pdsend_example.xml */,
 				082938F420935967009A69C9 /* nestedDS.xml */,
-				08FA81C32177310000A4FF81 /* type_test.xml */,
 				7366AC7216B68C920068A893 /* readme.txt */,
 				7366AC7316B68C920068A893 /* trdp-xmlpd-test.c */,
 				08514BA822C50F370046916F /* trdp-xmlpd-test-fast.c */,
@@ -1666,25 +1656,6 @@
 			sourceTree = "<group>";
 			tabWidth = 4;
 		};
-		73821F42150777D30046E0AC /* doc */ = {
-			isa = PBXGroup;
-			children = (
-				735BAD12172EC1AB00837D0E /* memory.xlsx */,
-				73B68B7917904A4900BFA039 /* TCN-TRDP2-D-BOM-033-xx - TRDP Reference Manual.pdf */,
-				731292961535BEA1006B3A88 /* images */,
-				73821F66150777D30046E0AC /* latex */,
-			);
-			name = doc;
-			path = ../doc;
-			sourceTree = SOURCE_ROOT;
-		};
-		73821F66150777D30046E0AC /* latex */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = latex;
-			sourceTree = "<group>";
-		};
 		73821F7C150777D40046E0AC /* test */ = {
 			isa = PBXGroup;
 			children = (
@@ -1714,6 +1685,7 @@
 				08594B2B1B70E0E30066EA06 /* vxworks */,
 				08594B391B70EA1D0066EA06 /* integrity */,
 				08A38CEE20C813CE002DD477 /* esp */,
+				087E92D424EAD19D00580F99 /* windows_sim */,
 				08594B381B70EA0E0066EA06 /* windows */,
 				73E0526A151352CE0058D590 /* posix */,
 			);
@@ -2227,6 +2199,7 @@
 			buildPhases = (
 				08C5E46422B146C8004D2028 /* Sources */,
 				08C5E46622B146C8004D2028 /* Frameworks */,
+				08C4993724E4109000A86DBC /* CopyFiles */,
 			);
 			buildRules = (
 			);

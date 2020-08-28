@@ -65,8 +65,9 @@
     IBOutlet    id    MRcomID;
     IBOutlet    id    MDrecColor;
     
-    IBOutlet    id    MsgView;
-    
+ //   IBOutlet    id    logOut;
+    IBOutlet    NSTextView*         logOut;
+
     Boolean    isActive;
     
     NSTimer *timer;

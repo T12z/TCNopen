@@ -215,7 +215,7 @@ TRDP_ERR_T  trdp_getAccess (TRDP_APP_SESSION_T appHandle, int force)
 
     if (appHandle != NULL)
     {
-        ret = (TRDP_ERR_T) vos_mutexLock(appHandle->mutex);
+        ret = (TRDP_ERR_T) mutexLock(appHandle->mutex);
         if (ret == TRDP_NO_ERR)
         {
             /*  Wait for any ongoing communications by getting the other mutexes as well */

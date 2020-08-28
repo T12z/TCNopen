@@ -354,7 +354,7 @@ static void myMDcallBack (
             printf("> ComID %d received, URef: %p\n", pMsg->comId, pMsg->pUserRef);
             if (pMsg->msgType == TRDP_MSG_MR)
             {
-                tlm_reply(appHandle, &pMsg->sessionId, 0, 0, NULL, NULL, 0);
+                tlm_reply(appHandle, &pMsg->sessionId, 0u, 0u, NULL, NULL, 0u, NULL);
                 printf("Replying %d\n", pMsg->comId);
             }
             break;

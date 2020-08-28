@@ -12,9 +12,9 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright UniControls, 2013. All rights reserved.
+ *          Copyright UniControls, 2013-2020. All rights reserved.
  *
- * $Id: trdp_reserved.c 898 2013-06-05 15:19:20Z 97025 $
+ * $Id$
  *
  *      IB 2019-08-15: separate sender and receiver thread added
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
@@ -879,7 +879,7 @@ int main(int argc, char * argv[])
     TRDP_ERR_T err;
     unsigned tick = 0;
 
-    printf("TRDP process data test program, version SVN $Rev:$\n");
+    printf("TRDP process data test program, version SVN $Rev$\n");
 
     if (argc < 4)
     {

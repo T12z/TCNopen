@@ -128,6 +128,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;..\..\test\localtest;..\..\resources\windows\getopt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068;4005;4101;4113</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,6 +143,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;SIM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\vos\api;..\..\src\api;..\..\resources\windows\getopt;$(SIMTECC_SDK_PATH)\inc</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068;4005;4101;4113</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,6 +158,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_DEBUG;HIGH_PERF_INDEXED=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;..\..\test\localtest;..\..\resources\windows\getopt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068;4005;4101;4113</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,6 +173,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_DEBUG;HIGH_PERF_INDEXED=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;..\..\test\localtest;..\..\resources\windows\getopt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068;4005;4101;4113</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -186,6 +190,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;..\..\test\localtest;..\..\resources\windows\getopt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068;4005;4101;4113</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -204,6 +209,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;MD_SUPPORT=1;L_ENDIAN;_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;NDEBUG;_DEBUG;HIGH_PERF_INDEXED=1;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\src\api;..\..\src\vos\api;..\..\src\vos\windows;..\..\test\localtest;..\..\resources\windows\getopt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4068;4005;4101;4113</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
