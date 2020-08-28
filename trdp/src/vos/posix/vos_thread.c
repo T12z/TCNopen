@@ -50,7 +50,7 @@
 
 #if defined (RT_THREADS)
 /* inhibit inclusion of outdated libc struct sched_param definition.
- * This should be fixed, once libc gets this right. See also inline definition of sched_setattr. */
+ * TODO This should be fixed, once libc gets this right. See also inline definition of sched_setattr. */
 #define _BITS_TYPES_STRUCT_SCHED_PARAM 1
 #include <sys/syscall.h>
 #include <linux/sched/types.h>
@@ -81,6 +81,10 @@
 #include "vos_mem.h"
 #include "vos_utils.h"
 #include "vos_private.h"
+
+#if defined(RT_THREADS) && !defined(SCHED_DEADLINE)
+#warning RT_THREADS defined but SCHED_DEADLINE is not available. This may not be what you expect.
+#endif
 
 /***********************************************************************************************************************
  * DEFINITIONS
@@ -295,8 +299,9 @@ static void *vos_runCyclicThread_EDF (
 #endif
 
 static void *vos_runCyclicThread (
-    VOS_THREAD_CYC_T *pParameters)
+    void *data)
 {
+    VOS_THREAD_CYC_T   *pParameters = (VOS_THREAD_CYC_T *)data;
     VOS_TIMEVAL_T       now;
     VOS_TIMEVAL_T       priorCall;
     VOS_TIMEVAL_T       afterCall;
@@ -304,8 +309,8 @@ static void *vos_runCyclicThread (
     UINT32              waitingTime;
     UINT32              interval    = pParameters->interval;
     VOS_THREAD_FUNC_T   pFunction   = pParameters->pFunction;
-    void *pArguments = pParameters->pArguments;
-    VOS_TIMEVAL_T       startTime = pParameters->startTime;
+    void *              pArguments  = pParameters->pArguments;
+    VOS_TIMEVAL_T       startTime   = pParameters->startTime;
     CHAR8               name[16];
 
     vos_strncpy(name, pParameters->pName, 16);      /* for logging */
@@ -517,7 +522,8 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     /* Limit and set the scheduling priority of the thread */
     if (priority > sched_get_priority_max(policy))
     {
-        vos_printLog(VOS_LOG_INFO, "priority reduced to %d (from demanded %d)\n",
+        if (priority != 255)
+            vos_printLog(VOS_LOG_WARNING, "priority reduced to %d (from demanded %d)\n",
                      (int) sched_get_priority_max(policy), (int) priority);
         priority = (VOS_THREAD_PRIORITY_T) sched_get_priority_max(policy);
     }
@@ -568,7 +574,7 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
 #if defined(SCHED_DEADLINE) && defined (RT_THREADS)
             vos_runCyclicThread_EDF,
 #else
-            void *(*)(void *))vos_runCyclicThread,
+            vos_runCyclicThread,
 #endif
             p_params);
         (void) vos_threadDelay(10000u);

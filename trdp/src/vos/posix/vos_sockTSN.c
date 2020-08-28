@@ -81,7 +81,6 @@
 
 #if defined(__APPLE__) || defined(__QNXNTO__)
 #define cVlanPrefix1    "en0."
-#define cVlanPrefix2    "vlan"
 #endif
 
 extern const CHAR8 *cDefaultIface;
@@ -102,7 +101,7 @@ extern const CHAR8 *cDefaultIface;
  *  @retval         VOS_NO_ERR       no error
  *  @retval         VOS_SOCK_ERR     failed
  */
-static int bindToDevice (int sock, int family, const char *devicename, VOS_IP4_ADDR_T *pIPaddress, int doBind)
+static VOS_ERR_T bindToDevice (int sock, int family, const char *devicename, VOS_IP4_ADDR_T *pIPaddress, int doBind)
 {
     struct ifaddrs  *pList          = NULL;
     struct ifaddrs  *pAdapter       = NULL;
@@ -183,30 +182,38 @@ EXT_DECL VOS_ERR_T  vos_getRealInterfaceName (VOS_IP4_ADDR_T  ipAddr,
     if (0 != (err = vos_getInterfaces(&AddrCount, ifAddrs))) return err;
 
     err = VOS_SOCK_ERR;
-#ifdef __linux
-    /* open a socket */
+    /* open a socket for ioctls */
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) return err;
-#endif
 
     for (i = 0u; i < AddrCount; ++i) {
         if ((ipAddr && ipAddr == ifAddrs[i].ipAddr)
             || (!ipAddr && ifAddrs[i].ipAddr != VOS_INADDR_ANY && ifAddrs[i].ipAddr != INADDR_LOOPBACK)) {
         /* first check, if this actually is a VLAN-IF */
 #ifdef __linux
-            struct vlan_ioctl_args iva1;
-            memset(&iva1, 0, sizeof(iva1));
-            strncpy(iva1.device1, ifAddrs[i].name, sizeof(iva1.device1));
-            iva1.cmd = GET_VLAN_REALDEV_NAME_CMD;
-            if (ioctl(sock, SIOCGIFVLAN, &iva1) == 0) {
-                strcpy(pIFaceName, iva1.u.device2);
+            struct vlan_ioctl_args ifr;
+            memset(&ifr, 0, sizeof(ifr));
+            ifr.cmd = GET_VLAN_REALDEV_NAME_CMD;
+#define _IN  ifr.device1
+#define _OUT ifr.u.device2
+#else
+        /* for BSDs use code from vos_ifnameFromVlanId */
+            struct vlanreq {
+                char    vlr_parent[IFNAMSIZ];
+                u_short vlr_tag;
+            } vreq;
+            struct ifreq ifr;
+            bzero(&ifr, sizeof(ifr));
+            ifr.ifr_data = &vreq;
+#define _IN  ifr.ifr_name
+#define _OUT vreq.vlr_parent
+#endif
+            strncpy(_IN, ifAddrs[i].name, sizeof(_IN));
+            if (ioctl(sock, SIOCGIFVLAN, &ifr) == 0) {
+                strncpy(pIFaceName, _OUT, VOS_MAX_IF_NAME_SIZE);
                 err = VOS_NO_ERR;
                 break;
             }
-#else
-        /* TODO for BSDs use code from vos_ifnameFromVlanId */
-#warning vos_getRealInterfaceName() is not implemented for non-Linux systems
-#endif
             strcpy(pIFaceName, ifAddrs[i].name);
             err = VOS_NO_ERR;
             break;
@@ -342,11 +349,11 @@ EXT_DECL VOS_ERR_T vos_createVlanIF (
 
 /**********************************************************************************************************************/
 /** Get the interface for a given VLAN ID
- *  This function assumes that the VLAN ID is unique across the system, unless pIFaceName hands in the real device.
+ *  This function assumes that the VLAN ID is unique across the system, unless pIFaceName hands in the parent device.
  *
  *
  *  @param[in]      vlanId          vlan ID to find
- *  @param[in,out]  pIFaceName      found interface
+ *  @param[in,out]  pIFaceName      in: parent interface or "", out: found interface
  *
  *  @retval         VOS_NO_ERR      if found
  */
@@ -442,6 +449,10 @@ EXT_DECL VOS_ERR_T vos_ifnameFromVlanId (
                     STRING_ERR(buff);
                     vos_printLog(VOS_LOG_ERROR, "ioctl SIOCGIFVLAN failed (Err: %s)\n", buff);
                     break;
+                }
+                /* if we search on a specific real-IF, skip if is does not match */
+                if (*pIFaceName && 0 != strncmp(vreq.vlr_parent, pIFaceName, IFNAMSIZ)) {
+                    continue;
                 }
                 if (vlanId == vreq.vlr_tag)
                 {
@@ -815,11 +826,8 @@ EXT_DECL VOS_ERR_T vos_sockBind2IF (
 {
     VOS_ERR_T err = VOS_NO_ERR;
 
-/* TODO temporary / needs checking
- * eg, https://stackoverflow.com/questions/12681097/c-choose-interface-for-udp-multicast-socket */
-#define VOS_BINDTODEVICE
-#ifdef VOS_BINDTODEVICE
-
+#ifdef SO_BINDTODEVICE
+    /* probably limited to Linux */
     struct ifreq ifReq;
     memset(&ifReq, 0, sizeof(ifReq));
     strncpy(ifReq.ifr_name, iFace->name, VOS_MAX_IF_NAME_SIZE);

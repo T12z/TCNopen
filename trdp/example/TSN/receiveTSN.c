@@ -200,15 +200,13 @@ static void myPDcallBack (
                       }
                       else  /* the clocks are out of sync! */
                       {
-                          /* TODO this needs further checking, I had future packets..*/
-                          vos_subTime(&latency, &tempTime);
-                          /*vos_printLog(VOS_LOG_USR, "Sync Error: ComID %d coming from the future (%02d:%02d:%02d.%06d)\n",
+                          vos_printLog(VOS_LOG_USR, "Sync Error: ComID %d coming from the future (%02d:%02d:%02d.%06d)\n",
                                        pMsg->comId,
                                        curTimeTM->tm_hour,
                                        curTimeTM->tm_min,
                                        curTimeTM->tm_sec,
                                        tempTime.tv_usec);
-                          break;*/
+                          break;
                       }
                       /* compute the jitter (must be < 1s) */
                       curJitter     = labs(sLastLatency.tv_usec - latency.tv_usec); /* curJitter = sLastLatency -
