@@ -16,6 +16,10 @@
  *
  * $Id$
  *
+ *          ### NOTE: This code is not supported, nor updated or tested!
+ *          ###       It is left here for reference, only, and might be removed from the next major
+ *          ###       release.
+ *
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  */
 #ifdef TRDP_OPTION_LADDER

@@ -1,731 +1,602 @@
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000039E140, size	16
-INF File: ..\..\src\common\tlc_if.c Line: 346 TRDP Stack Version 2.0.2.1: successfully initiated
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A3400, size	12912
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000039DD00, size	128
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000039E1A0, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000039E1C0, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000039E1E0, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 000000000039E200, size	16
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A1810, size	1472
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A1DE0, size	168
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515B5060, size	16
+INF File: ..\..\src\common\tlc_if.c Line: 353 TRDP Stack Version 2.0.3.0: successfully initiated
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515CDE90, size	12920
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A92D0, size	128
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515B5200, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515B50A0, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515B50E0, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515B5300, size	16
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D1110, size	1472
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515AE420, size	168
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 152
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = PD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 5, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.22:0
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 248
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = PD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 5, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 0
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A8220, size	420
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D2DD0, size	420
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:17224
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 152
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = PD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 5, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 148
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = PD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 5, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.22:17224
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 248
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = PD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 5, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 0
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 252
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = PD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 5, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A85F0, size	168
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A86A0, size	1472
-INF File: ..\..\src\common\tlc_if.c Line: 577 TRDP session opened successfully
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A8C70, size	4000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 482 Process cycle time: 1ms, PDs < 100ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A9C20, size	4000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 482 Process cycle time: 10ms, PDs < 1000ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AABD0, size	4000
-INF File: ..\..\src\common\trdp_pdindex.c Line: 482 Process cycle time: 100ms, PDs < 10000ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A1EF0, size	8
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003A1F10, size	8
-WAR File: ..\..\src\common\trdp_pdindex.c Line: 1218 Pre-allocated receiver table size was not sufficent, enlarge no of subs! (0 < 1)
-DBG File: ..\..\src\common\trdp_pdindex.c Line: 1234 Sorting array at 00000000003A1EF0.
-DBG File: ..\..\src\common\trdp_pdindex.c Line: 1239 Sorting array at 00000000003A1F10.
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515AE160, size	168
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D30C0, size	1472
+INF File: ..\..\src\common\tlc_if.c Line: 584 TRDP session opened successfully
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating TCP MD caller session '08b704009f1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2270 Socket connection for TCP not ready (Socket: 156, Port: 17225)
-WAR File: ..\..\src\vos\windows\vos_sock.c Line: 1561 send() failed (Err: 10057)
-ERR File: ..\..\src\common\trdp_mdcom.c Line: 1012 vos_sockSendTCP error (Err: -16, Socket: 156, Port: 17225)
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 156) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 156, lIndex: 0)
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing TCP MD caller session '08b704009f1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-ERR File: ..\..\src\common\tlm_if.c Line: 166 trdp_mdSend() failed (Err: -16)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.22:17225
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2166 TCP socket opened and listening (Socket: 256, Port: 17225)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A53E0, size	144
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A56A0, size	144
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
 INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.22:17225
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '08b70400a01eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 156 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 156
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '08b70400a01eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A50A0, size	144
+INF File: ..\..\src\vos\windows\vos_sock.c Line: 970 joining MC: 239.2.24.1 on iface 10.0.1.22
+INF File: ..\..\src\common\trdp_utils.c Line: 1054 socket 260 joined 239.2.24.1!
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '08b70400a11eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 156 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 156
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '08b70400a11eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D3910, size	4000
+INF File: ..\..\src\common\trdp_pdindex.c Line: 486 Process cycle time: 1ms, PDs < 100ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D48C0, size	4000
+INF File: ..\..\src\common\trdp_pdindex.c Line: 486 Process cycle time: 10ms, PDs < 1000ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D5870, size	4000
+INF File: ..\..\src\common\trdp_pdindex.c Line: 486 Process cycle time: 100ms, PDs < 10000ms: 0 telegrams, (re-)allocating table[100][5] 3kByte
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515AA2B0, size	8
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515AFDB0, size	8
+WAR File: ..\..\src\common\trdp_pdindex.c Line: 1265 Pre-allocated receiver table size was not sufficent, enlarge no of subs! (0 < 1)
+DBG File: ..\..\src\common\trdp_pdindex.c Line: 1281 Sorting array at 0000018B515AA2B0.
+DBG File: ..\..\src\common\trdp_pdindex.c Line: 1286 Sorting array at 0000018B515AFDB0.
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 264 (Port: 42358)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 264
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating TCP MD caller session '08b70400a21eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2270 Socket connection for TCP not ready (Socket: 156, Port: 17225)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B0AC0, size	240
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mp' UUID: 08b70400a21eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1435 Decrement the socket 156 usage = 1
-INF File: ..\..\src\common\trdp_utils.c Line: 1448 The Socket (Num = 156 usage=0) ConnectionTimeout will be started
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing TCP MD caller session '08b70400a21eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 264
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 264)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 264) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 264, lIndex: 1)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 264 (Port: 42360)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 264
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '68a10500a31eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mp' UUID: 68a10500a31eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '68a10500a31eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mr' UUID: 6d64750de3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '6d64750de3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using TCP MD session '6d64750de3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2276 Opened TCP connection to 10.0.1.1 (Socket: 264, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '6d64750de3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 6ea515d4e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '6ea515d4e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '6ea515d4e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '6ea515d4e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 6ea515d5e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '6ea515d5e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '6ea515d5e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '6ea515d5e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 264
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 264)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 264) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 264, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 6fea2e66e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '6fea2e66e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '6fea2e66e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6820, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '6fea2e66e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6820
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 264 (Port: 42362)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 264
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session 'a83d0600a41eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mp' UUID: a83d0600a41eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session 'a83d0600a41eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2985 The socket (Num = 156) TIMEOUT
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 156) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 156, lIndex: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mr' UUID: 7250548ce3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '7250548ce3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using TCP MD session '7250548ce3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2276 Opened TCP connection to 10.0.1.1 (Socket: 264, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D17F0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E6920, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mc' UUID: 7250548ce3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '7250548ce3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E6920
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 72f46360e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '72f46360e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '72f46360e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E6920, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mc' UUID: 72f46360e3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '72f46360e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E6920
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D17F0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 72f46361e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '72f46361e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '72f46361e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D17F0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E6920, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mc' UUID: 72f46361e3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '72f46361e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E6920
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 264
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 264)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 264) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 264, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 74365b66e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '74365b66e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '74365b66e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6820, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E67E0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mc' UUID: 74365b66e3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6820
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '74365b66e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E67E0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D17F0
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 264 (Port: 42364)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 264
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session 'e8d90600a51eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mp' UUID: e8d90600a51eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 156 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 156
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session 'e8d90600a51eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 264
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 264)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 264) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 264, lIndex: 1)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 268 (Port: 42366)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 268
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating TCP MD caller session '08280700a91eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2270 Socket connection for TCP not ready (Socket: 156, Port: 17225)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mq' UUID: 08280700a91eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using TCP MD session '08280700a91eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 156, Port: 17225)
-DBG File: ..\..\src\common\trdp_utils.c Line: 1435 Decrement the socket 156 usage = 1
-INF File: ..\..\src\common\trdp_utils.c Line: 1448 The Socket (Num = 156 usage=0) ConnectionTimeout will be started
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing TCP MD caller session '08280700a91eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mr' UUID: 77d9882fe3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '77d9882fe3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using TCP MD session '77d9882fe3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2276 Opened TCP connection to 10.0.1.1 (Socket: 268, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '77d9882fe3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 791beae2e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '791beae2e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '791beae2e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '791beae2e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 791beae3e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '791beae3e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '791beae3e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '791beae3e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6960, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 268
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 268)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 268) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 268, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6F30, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6960
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 7a60db42e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '7a60db42e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '7a60db42e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6F30
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D6820, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '7a60db42e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D6820
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 272 (Port: 42368)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 272
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '68120800aa1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mq' UUID: 68120800aa1eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using UDP MD session '68120800aa1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '68120800aa1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mr' UUID: 7cc7780ae3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '7cc7780ae3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using TCP MD session '7cc7780ae3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2276 Opened TCP connection to 10.0.1.1 (Socket: 272, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D17F0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E87F0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mc' UUID: 7cc7780ae3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '7cc7780ae3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E87F0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 7cc7780be3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '7cc7780be3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '7cc7780be3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E87F0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mc' UUID: 7cc7780be3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '7cc7780be3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E87F0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D17F0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 7e149d6ee3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '7e149d6ee3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '7e149d6ee3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D17F0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E87F0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mc' UUID: 7e149d6ee3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '7e149d6ee3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E87F0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 272
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 272)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 272) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 272, lIndex: 1)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mr' UUID: 7e149d6fe3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '7e149d6fe3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using UDP MD session '7e149d6fe3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 4, msgType=Mq
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2369 Setting timeout for confirmation!
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515E87F0, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mc' UUID: 7e149d6fe3be11ea Data len: 0)
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 646 Received Confirmation, session will be closed!
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '7e149d6fe3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515E87F0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D17F0
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 272 (Port: 42370)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 272
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session 'a8ae0800ab1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mq' UUID: a8ae0800ab1eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using UDP MD session 'a8ae0800ab1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session 'a8ae0800ab1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2985 The socket (Num = 156) TIMEOUT
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 156) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 156, lIndex: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received UDP MD packet (type: 'Mn' UUID: 0000000000000000 Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating UDP MD replier session '0000000000000000'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD UDP replier session '0000000000000000'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 272
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 272)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 272) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 272, lIndex: 1)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2747 Accepting new TCP connection on Socket: 268 (Port: 42372)
+DBG File: ..\..\src\common\trdp_utils.c Line: 118 ------- Socket usage -------
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[0].sock = 260
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[0].type = MD_UDP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[0].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[0].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[0].usage = 2
+DBG File: ..\..\src\common\trdp_utils.c Line: 125 iface[1].sock = 268
+DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].bindAddr = a000116
+DBG File: ..\..\src\common\trdp_utils.c Line: 129 iface[1].type = MD_TCP 
+DBG File: ..\..\src\common\trdp_utils.c Line: 134 iface[1].sendParam.qos = 3, ttl = 64
+DBG File: ..\..\src\common\trdp_utils.c Line: 135 iface[1].rcvMostly = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 136 iface[1].usage = 1
+DBG File: ..\..\src\common\trdp_utils.c Line: 138 ----------------------------
 
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session 'e84a0900ac1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mq' UUID: e84a0900ac1eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using UDP MD session 'e84a0900ac1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-INF File: ..\..\src\common\trdp_mdcom.c Line: 449 UDP MD reply/confirm timeout
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 156 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 156
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session 'e84a0900ac1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating TCP MD caller session '48350a00b01eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2270 Socket connection for TCP not ready (Socket: 156, Port: 17225)
-DBG File: ..\..\src\common\trdp_utils.c Line: 1435 Decrement the socket 156 usage = 1
-INF File: ..\..\src\common\trdp_utils.c Line: 1448 The Socket (Num = 156 usage=0) ConnectionTimeout will be started
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing TCP MD caller session '48350a00b01eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '48350a00b11eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '48350a00b11eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '48350a00b21eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '48350a00b21eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating TCP MD caller session '48350a00b31eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 156, Port: 17225)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mp' UUID: 48350a00b31eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1435 Decrement the socket 156 usage = 1
-INF File: ..\..\src\common\trdp_utils.c Line: 1448 The Socket (Num = 156 usage=0) ConnectionTimeout will be started
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing TCP MD caller session '48350a00b31eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '88d10a00b41eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mp' UUID: 88d10a00b41eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '88d10a00b41eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session 'c86d0b00b51eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mp' UUID: c86d0b00b51eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session 'c86d0b00b51eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2985 The socket (Num = 156) TIMEOUT
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 156) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 156, lIndex: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '080a0c00b61eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mp' UUID: 080a0c00b61eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 156 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 156
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '080a0c00b61eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating TCP MD caller session '28580c00ba1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2270 Socket connection for TCP not ready (Socket: 156, Port: 17225)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received TCP MD packet (type: 'Mq' UUID: 28580c00ba1eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using TCP MD session '28580c00ba1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2263 Opened TCP connection to 10.0.1.22 (Socket: 156, Port: 17225)
-DBG File: ..\..\src\common\trdp_utils.c Line: 1435 Decrement the socket 156 usage = 1
-INF File: ..\..\src\common\trdp_utils.c Line: 1448 The Socket (Num = 156 usage=0) ConnectionTimeout will be started
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing TCP MD caller session '28580c00ba1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '88420d00bb1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mq' UUID: 88420d00bb1eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using UDP MD session '88420d00bb1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '88420d00bb1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003ABB80, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 308
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session 'c8de0d00bc1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B22C0, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mq' UUID: c8de0d00bc1eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using UDP MD session 'c8de0d00bc1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B22C0
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003AE650, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 308 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 308
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session 'c8de0d00bc1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003AE650
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003ABB80
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2985 The socket (Num = 156) TIMEOUT
-INF File: ..\..\src\common\trdp_utils.c Line: 1348 The socket (Num = 156) will be closed
-INF File: ..\..\src\common\trdp_utils.c Line: 1359 Deleting socket from the iface (Sock: 156, lIndex: 0)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3B70, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session 'f07e0e00bd1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3C70, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 2, msgType=Mr
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3D30, size	1480
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2024 Received UDP MD packet (type: 'Mq' UUID: f07e0e00bd1eb00d Data len: 64)
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3C70
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3617 MD TRDP_MSG_MC
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3664 Using UDP MD session 'f07e0e00bd1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3D30
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3C70, size	116
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 5, msgType=Mc
-INF File: ..\..\src\common\trdp_mdcom.c Line: 449 UDP MD reply/confirm timeout
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 156 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 156
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session 'f07e0e00bd1eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3C70
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3B70
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3B70, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating TCP MD caller session '00000000c21eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3C70, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-INF File: ..\..\src\common\trdp_mdcom.c Line: 2270 Socket connection for TCP not ready (Socket: 156, Port: 17225)
-DBG File: ..\..\src\common\trdp_utils.c Line: 1435 Decrement the socket 156 usage = 1
-INF File: ..\..\src\common\trdp_utils.c Line: 1448 The Socket (Num = 156 usage=0) ConnectionTimeout will be started
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing TCP MD caller session '00000000c21eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3C70
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3B70
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3B70, size	240
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 190 Send buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 203 Recv buffer limit = 65536
-INF File: ..\..\src\vos\windows\vos_sock.c Line: 1329 binding to: 10.0.1.1:0
-DBG File: ..\..\src\common\trdp_utils.c Line: 115 ------- Socket usage -------
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[0].sock = 156
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[0].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[0].type = MD_TCP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[0].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[0].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[0].usage = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 122 iface[1].sock = 316
-DBG File: ..\..\src\common\trdp_utils.c Line: 123 iface[1].bindAddr = a000101
-DBG File: ..\..\src\common\trdp_utils.c Line: 126 iface[1].type = MD_UDP 
-DBG File: ..\..\src\common\trdp_utils.c Line: 131 iface[1].sendParam.qos = 3, ttl = 64
-DBG File: ..\..\src\common\trdp_utils.c Line: 132 iface[1].rcvMostly = 0
-DBG File: ..\..\src\common\trdp_utils.c Line: 133 iface[1].usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 135 ----------------------------
-
-INF File: ..\..\src\common\trdp_mdcom.c Line: 251 Creating UDP MD caller session '00000000c31eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 00000000003B3C70, size	180
-INF File: ..\..\src\common\trdp_mdcom.c Line: 3206 MD sender element state = 1, msgType=Mn
-DBG File: ..\..\src\common\trdp_utils.c Line: 1389 Decrement the socket 316 usage = 1
-DBG File: ..\..\src\common\trdp_utils.c Line: 1403 Closed socket 316
-INF File: ..\..\src\common\trdp_mdcom.c Line: 738 Freeing UDP MD caller session '00000000c31eb00d'
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3C70
-DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 00000000003B3B70
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8E00, size	65452
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2037 Received TCP MD packet (type: 'Mr' UUID: 8259b725e3be11ea Data len: 65336)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1755 Creating TCP MD replier session '8259b725e3be11ea'
+INF File: ..\..\src\common\trdp_mdcom.c Line: 236 Using TCP MD session '8259b725e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8E00
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	65452
+INF File: ..\..\src\common\trdp_mdcom.c Line: 3219 MD sender element state = 3, msgType=Mp
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2276 Opened TCP connection to 10.0.1.1 (Socket: 268, Port: 17225)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 769 Freeing MD TCP replier session '8259b725e3be11ea'
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515D8830
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 519 vos_memFree() 0000018B515A52B0
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515A52B0, size	248
+DBG File: ..\..\src\vos\common\vos_mem.c Line: 376 vos_memAlloc() 0000018B515D8830, size	1480
+INF File: ..\..\src\common\trdp_mdcom.c Line: 1204 vos_sockReceiveTCP - No data at socket 268
+ERR File: ..\..\src\common\trdp_mdcom.c Line: 1527 trdp_mdCheck TCP failed (Err: -5)
+INF File: ..\..\src\common\trdp_mdcom.c Line: 2892 The socket has been closed in the other corner (Corner Ip: 10.0.1.1, Socket: 268)
+INF File: ..\..\src\common\trdp_utils.c Line: 1439 The socket (Num = 268) will be closed
+INF File: ..\..\src\common\trdp_utils.c Line: 1450 Deleting socket from the iface (Sock: 268, lIndex: 1)

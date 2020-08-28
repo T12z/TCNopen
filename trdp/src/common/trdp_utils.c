@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-08-07: Ticket #317 Bug in trdp_indexedFindSubAddr() (HIGH_PERFORMANCE)
 *      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim
 *      SB 2020-03-30: Ticket #311: removed trdp_getSeqCnt() because redundant publisher should not run on the same interface
 *      SB 2019-08-20: Fixed lint errors and warnings
@@ -486,6 +487,79 @@ PD_ELE_T *trdp_queueFindSubAddr (
 {
     return trdp_findSubAddr (pHead, addr, 0u);
 }
+
+/**********************************************************************************************************************/
+/** Return the element with same comId and IP addresses
+ *
+ *  @param[in]      array           ComId-indexed array of PD Elements
+ *  @param[in]      startIdx        Index to begin search
+ *  @param[in]      maxIdx          Size / max index + 1  of array
+ *  @param[in]      addr            Pub/Sub handle (Address, ComID, srcIP & dest IP, serviceId) to search for
+ *  @param[in]      comId           ComId to stay on on a sorted search, 0 when searching on unsorted queues
+ *
+ *  @retval         != NULL         pointer to PD element
+ *  @retval         NULL            No PD element found
+ */
+PD_ELE_T *trdp_idxfindSubAddr (
+    PD_ELE_T            *array[],
+    UINT32              startIdx,
+    UINT32              maxIdx,
+    TRDP_ADDRESSES_T    *addr,
+    UINT32              comId)
+{
+    PD_ELE_T    *iterPD;
+    PD_ELE_T    *pFirstMatchedPD = NULL;
+    UINT32      idx;
+
+    if ((array == NULL) || (addr == NULL) ||
+        (startIdx >= maxIdx))
+    {
+        return NULL;
+    }
+
+    for (idx = startIdx; idx < maxIdx; idx++)
+    {
+        iterPD = array[idx];
+        /* watch a comId change (needed for indexed search) */
+        if ((comId != 0u) && (iterPD->addr.comId != comId))
+        {
+            break;
+        }
+        /*  We match if src/dst/mc address is zero or matches */
+        /* if ((iterPD->addr.comId == addr->comId)
+         && SOA_SAME_SERVICEID_OR0(addr->serviceId, iterPD->addr.serviceId)) */
+        if (SAME_SERVICE_COM_ID(iterPD->addr, *addr)) /*lint !e506 meant to be true, if service support is off */
+        {
+            /* if srcIP filter matches AND destIP matches THEN this is a direct hit */
+            if ((iterPD->addr.srcIpAddr == addr->srcIpAddr) &&
+                ((iterPD->addr.destIpAddr == addr->destIpAddr)))
+            {
+                return iterPD;  /* we cannot find a better match */
+            }
+
+            if (((iterPD->addr.srcIpAddr == VOS_INADDR_ANY) || (iterPD->addr.srcIpAddr == addr->srcIpAddr))
+                && ((iterPD->addr.destIpAddr == VOS_INADDR_ANY) || (addr->destIpAddr == VOS_INADDR_ANY) ||
+                    (iterPD->addr.destIpAddr == addr->destIpAddr)))
+            {
+                pFirstMatchedPD = iterPD;
+            }
+
+            /* Check for IP range */
+            if (iterPD->addr.srcIpAddr2 != VOS_INADDR_ANY)
+            {
+                if ((addr->srcIpAddr >= iterPD->addr.srcIpAddr) &&
+                    (addr->srcIpAddr <= iterPD->addr.srcIpAddr2) &&
+                    ((iterPD->addr.destIpAddr == VOS_INADDR_ANY) || (addr->destIpAddr == VOS_INADDR_ANY) ||
+                     (iterPD->addr.destIpAddr == addr->destIpAddr)))
+                {
+                    return iterPD;
+                }
+            }
+        }
+    }
+    return pFirstMatchedPD;
+}
+
 
 /**********************************************************************************************************************/
 /** Return the element with same comId and IP addresses
@@ -994,6 +1068,21 @@ TRDP_ERR_T  trdp_requestSocket (
                 }
             }
             /* add_end TOSHIBA */
+
+#ifdef MC_ISSUE_VXWORKS_2_INTERFACES_TBD
+            /* Multicast and sourceAddr on two IFs */
+            if ((type = TRDP_SOCK_MD_UDP)
+                && (rcvMostly)
+                && vos_isMulticast(srcIP))
+            {
+                err = (TRDP_ERR_T) vos_sockSetMulticastIf(iface[lIndex].sock, srcIP);
+                if (err != TRDP_NO_ERR)
+                {
+                    /* Avoid to excessive error reporting:
+                     vos_printLog(VOS_LOG_WARNING, "vos_sockSetMulticastIf() for UDP snd failed! (Err: %d)\n", err); */
+                }
+            }
+#endif
 
             /* Use that socket */
             *pIndex = lIndex;

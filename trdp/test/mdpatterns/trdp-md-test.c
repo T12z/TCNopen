@@ -1250,7 +1250,8 @@ void send_msg (TRDP_MD_INFO_T *msg, TRDP_FLAGS_T flags)
                    0,                               /* user status */
                    NULL,                            /* send parameters */
                    (UINT8 *) buf,                   /* dataset buffer */
-                   opts.msgsz);                     /* dataset size */
+                   opts.msgsz,                      /* dataset size */
+                   NULL);                           /* srcURI */
            /* check for errors */
            if (err != TRDP_NO_ERR)
            {
@@ -1274,8 +1275,8 @@ void send_msg (TRDP_MD_INFO_T *msg, TRDP_FLAGS_T flags)
                    opts.tmo * 1000,                 /* confirm timeout */
                    NULL,                            /* send parameters */
                    (UINT8 *) buf,                   /* dataset buffer */
-                   opts.msgsz);                     /* dataset size */
-
+                   opts.msgsz,                      /* dataset size */
+                   NULL);                           /* srcURI */
            /* check for errors */
            if (err != TRDP_NO_ERR)
            {

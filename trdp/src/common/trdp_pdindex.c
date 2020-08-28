@@ -17,6 +17,8 @@
 /*
  * $Id$
  *
+ *      BL 2020-08-07: Ticket #317 Bug in trdp_indexedFindSubAddr() (HIGH_PERFORMANCE)
+ *      BL 2020-08-06: Ticket #314 Timeout supervision does not restart after PD request
  *      BL 2020-07-15: Formatting (indenting)
  *      BL 2019-12-06: Ticket #302 HIGH_PERF_INDEXED: Rebuild tables completely on tlc_update
  *      BL 2019-10-18: Ticket #287 Enhancement performance while receiving (HIGH_PERF_INDEXED mode)
@@ -112,7 +114,7 @@ static INLINE void setElement (
     TRDP_HP_CAT_SLOT_T  *pEntry,
     UINT32              slot,
     UINT32              depth,
-    const PD_ELE_T      *pAssign)
+    PD_ELE_T            *pAssign)
 {
     *(pEntry->ppIdxCat + slot * pEntry->depthOfTxEntries + depth) = pAssign;
 }
@@ -286,7 +288,7 @@ static PERF_TABLE_TYPE_T   perf_table_category (
  */
 static TRDP_ERR_T distribute (
     TRDP_HP_CAT_SLOT_T  *pCat,
-    const PD_ELE_T      *pElement)
+    PD_ELE_T            *pElement)
 {
     TRDP_ERR_T  err         = TRDP_NO_ERR;
     INT32       startIdx    = 0;
@@ -443,7 +445,7 @@ static TRDP_ERR_T indexCreatePubTable (
     /* first time allocation */
     if (pCat->ppIdxCat == NULL)
     {
-        pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+        pCat->ppIdxCat = (PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
 
         if (pCat->ppIdxCat == NULL)
         {
@@ -456,7 +458,7 @@ static TRDP_ERR_T indexCreatePubTable (
     {
         /* re-allocation is necessary, print warning! */
         vos_memFree(pCat->ppIdxCat);
-        pCat->ppIdxCat = (const PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
+        pCat->ppIdxCat = (PD_ELE_T * *) vos_memAlloc(sizeof (PD_ELE_T *) * slots * depth);
 
         if (pCat->ppIdxCat == NULL)
         {
@@ -520,6 +522,7 @@ static int compareTimeouts (const void *pPDElement1, const void *pPDElement2)
     const PD_ELE_T  *p2 = *(const PD_ELE_T * *)pPDElement2;
     return vos_cmpTime(&p1->interval, &p2->interval);
 }
+
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
@@ -1028,8 +1031,8 @@ void  trdp_pdHandleTimeOutsIndexed (TRDP_SESSION_PT appHandle)
             }
         }
 
-        /* every 100ms check for other timeouts */
-        if ((cumulatedCallTime.tv_usec > TRDP_LOW_CYCLE_LIMIT) || (cumulatedCallTime.tv_sec != 0))
+        /* every TRDP_TO_CHECK_CYCLE (default 100ms) check for other timeouts */
+        if ((cumulatedCallTime.tv_usec > TRDP_TO_CHECK_CYCLE) || (cumulatedCallTime.tv_sec != 0))
         {
             for (;
                  idx < idxMax;
@@ -1319,16 +1322,24 @@ PD_ELE_T *trdp_indexedFindSubAddr (
 
     pFirstMatchedPD = (PD_ELE_T * *) vos_bsearch(&pFirstMatchedPD, appHandle->pSlot->pRcvTableComId,
                                                  appHandle->pSlot->noOfRxEntries, sizeof(PD_ELE_T *), compareComIds);
-
+    /* The found hit might not be the very first (because of binary search) */
     if (pFirstMatchedPD)
     {
+        UINT32  startIdx;
+
+        /* We go back as long comId matches */
         while ((pFirstMatchedPD != appHandle->pSlot->pRcvTableComId) &&
                ((*(pFirstMatchedPD - 1))->addr.comId == pAddr->comId))
         {
             pFirstMatchedPD--;
         }
         /* the first match might not be the best! Look further, but stop on comId change */
-        return trdp_findSubAddr(*pFirstMatchedPD, pAddr, pAddr->comId);
+        /* was: return trdp_findSubAddr(*pFirstMatchedPD, pAddr, pAddr->comId);  Ticket #317*/
+        startIdx = (UINT32)(pFirstMatchedPD - appHandle->pSlot->pRcvTableComId);
+        /*startIdx /= sizeof(PD_ELE_T *); */
+        return trdp_idxfindSubAddr(appHandle->pSlot->pRcvTableComId,
+                                   startIdx, appHandle->pSlot->noOfRxEntries,
+                                   pAddr, pAddr->comId);
     }
     return NULL;
 }

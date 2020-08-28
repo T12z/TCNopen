@@ -13,7 +13,7 @@
  *
  * @author          Bernd Loehr
  *
- * @remarks         Copyright NewTec GmbH, 2017.
+ * @remarks         Copyright NewTec GmbH, 2017-2020.
  *                  All rights reserved.
  *
  * $Id$
@@ -68,8 +68,8 @@ typedef struct
 
 } TRDP_THREAD_SESSION_T;
 
-TRDP_THREAD_SESSION_T   gSession1 = {NULL, 0x0A000264u, 0, 0};
-TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000265u, 0, 0};
+TRDP_THREAD_SESSION_T   gSession1 = {NULL, 0x0A000364u, 0, 0};
+TRDP_THREAD_SESSION_T   gSession2 = {NULL, 0x0A000365u, 0, 0};
 
 /* Data buffers to play with (Content is borrowed from Douglas Adams, "The Hitchhiker's Guide to the Galaxy") */
 static uint8_t          dataBuffer1[64 * 1024] =
@@ -361,6 +361,7 @@ static char          xmlBuffer[] =
 #define CLEANUP                                                                             \
 end:                                                                                        \
     {                                                                                       \
+        fprintf(gFp, "\n-------- Cleaning up %s ----------\n", __FUNCTION__);               \
         test_deinit(&gSession1, &gSession2);                                                \
                                                                                             \
         if (gFailed) {                                                                      \
@@ -1018,7 +1019,7 @@ static void  test5CBFunction (
             }
             fprintf(gFp, "->> Sending reply\n");
             err = tlm_replyQuery(appHandle, &pMsg->sessionId, TEST5_STRING_COMID, 0u, 500000u, NULL,
-                                 (UINT8 *)TEST5_STRING_REPLY, 63 * 1024 /*strlen(TEST5_STRING_REPLY)*/);
+                                 (UINT8 *)TEST5_STRING_REPLY, 63 * 1024 /*strlen(TEST5_STRING_REPLY)*/, NULL);
 
             IF_ERROR("tlm_reply");
         }
@@ -1270,7 +1271,7 @@ static int test8 ()
 
             usleep(100000u);
 
-            err = tlp_get(gSession2.appHandle, subHandle, &pdInfo, (UINT8 *) data2, &dataSize2);
+            err = tlp_get(gSession1.appHandle, subHandle, &pdInfo, (UINT8 *) data2, &dataSize2);
             if (err == TRDP_NODATA_ERR)
             {
                 fprintf(gFp, ".");
@@ -1911,11 +1912,11 @@ static int test14 ()
         /*
          Enter the main processing loop.
          */
-        int counter = 0;
+        unsigned int counter = 0;
         while (counter < 5)         /* 0.5 seconds */
         {
 
-            sprintf(data1, "Just a Counter: %08d", counter++);
+            sprintf(data1, "Just a Counter: %08u", counter++);
 
             err = tlp_put(gSession1.appHandle, pubHandle, (UINT8 *) data1, (UINT32) strlen(data1));
             IF_ERROR("tap_put");
@@ -1987,7 +1988,7 @@ static void  test15CBFunction (
 //            }
             fprintf(gFp, "->> Sending reply with query (%.16s)\n", (UINT8 *)TEST15_STRING_REPLY);
             err = tlm_replyQuery(appHandle, &pMsg->sessionId, TEST15_STRING_COMID, 0u, 0u, NULL,
-                                 (UINT8 *)TEST15_STRING_REPLY, TEST15_STRING_REPLY_LEN);
+                                 (UINT8 *)TEST15_STRING_REPLY, TEST15_STRING_REPLY_LEN, NULL);
 
             IF_ERROR("tlm_reply");
         }
@@ -2190,7 +2191,7 @@ static int test17 ()
 
         {
             UINT8   str[] = "123456789";
-            UINT32 result, seed, len = strlen((char*) str);
+            UINT32 result, seed, len = (UINT32) strlen((char*) str);
             /* CRC of the string "123456789" is 0x1697d06a ??? */
             seed = 0;
             result = vos_sc32(seed, str, len);
@@ -2198,7 +2199,7 @@ static int test17 ()
         }
         {
             UINT8   str[] = "123456789";
-            UINT32 result, seed, len = strlen((char*) str);
+            UINT32 result, seed, len = (UINT32) strlen((char*) str);
             /* CRC of the string "123456789" is 0x1697d06a ??? */
             seed = 0xFFFFFFFF;
             result = vos_sc32(seed, str, len);
@@ -2236,7 +2237,7 @@ static int test18 ()
         TRDP_COM_PAR_T          *pComPar;
         UINT32                  numIfConfig;
         TRDP_IF_CONFIG_T        *pIfConfig;
-        int i;
+        unsigned int i;
 
         err = tau_prepareXmlMem (xmlBuffer, strlen(xmlBuffer), &docHnd);
         IF_ERROR("tau_prepareXmlMem");
@@ -2268,24 +2269,24 @@ static int test18 ()
 test_func_t *testArray[] =
 {
     NULL,
-//    test1,  /* PD publish and subscribe */
-//    test2,  /* Publish & Subscribe, Callback */
-//    test3,  /* Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR */
-//    test4,  /* Ticket #153 (two PDs on one pull request */
-//    test5,  /* TCP MD Request - Reply - Confirm, #149, #160 */
-//    test6,  /* UDP MD Request - Reply - Confirm, #149 */
-//    test7,  /* UDP MD Notify no sessionID #127 */
-//    test8,  /* #153 (two PDs on one pull request? Receiver only */
-//    test9,  /* Send and receive many telegrams, to check time optimisations */
+    test1,  /* PD publish and subscribe */
+    test2,  /* Publish & Subscribe, Callback */
+    test3,  /* Ticket #140: tlp_get reports immediately TRDP_TIMEOUT_ERR */
+    test4,  /* Ticket #153 (two PDs on one pull request */
+    test5,  /* TCP MD Request - Reply - Confirm, #149, #160 */
+    test6,  /* UDP MD Request - Reply - Confirm, #149 */
+    test7,  /* UDP MD Notify no sessionID #127 */
+    test8,  /* #153 (two PDs on one pull request? Receiver only */
+    test9,  /* Send and receive many telegrams, to check time optimisations */
     test10,  /* tlc_getVersionString */
-//    test11,  /* babbling idiot :-) */
-//    test12,  /* testing unsubscribe and unjoin */
-//    test13,  /* PD publish and subscribe, auto increment using new 1.4 callback function */
-//    test14,  /* Publish & Subscribe, Callback */
-//    test15,     /* MD Request - Reply / Reuse of TCP connection */
-//    test16,     /* MD Request - Reply / UDP */
-//    test17,     /* CRC */
-//    test18,     /* XML stream */
+    test11,  /* babbling idiot :-) */
+    test12,  /* testing unsubscribe and unjoin */
+    test13,  /* PD publish and subscribe, auto increment using new 1.4 callback function */
+    test14,  /* Publish & Subscribe, Callback */
+    test15,     /* MD Request - Reply / Reuse of TCP connection */
+    test16,     /* MD Request - Reply / UDP */
+    test17,     /* CRC */
+    test18,     /* XML stream */
     NULL
 };
 
@@ -2376,6 +2377,7 @@ int main (int argc, char *argv[])
         exit(1);
     }
 
+    printf("TRDP Stack Version %s\n", tlc_getVersionString());
     if (testNo == 0)    /* Run all tests in sequence */
     {
         while (1)

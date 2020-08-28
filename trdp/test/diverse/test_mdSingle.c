@@ -192,14 +192,12 @@ void mdCallback (void                   *pRefCon,
                       err = tlm_replyQuery(myGlobals->appHandle,
                                            &pMsg->sessionId,
                                            pMsg->comId,
-                                           0,
-                                           10000000,
+                                           0u,
+                                           10000000u,
                                            NULL,
                                            (UINT8 *) "I'm fine, how are you?",
-                                           23
-#ifdef CONFORMANCE_API
-                                           , "test_mdSingle"
-#endif
+                                           23u, 
+                                           "test_mdSingle"
                                            );
                   }
                   else
@@ -211,10 +209,8 @@ void mdCallback (void                   *pRefCon,
                                       0,
                                       NULL,
                                       (UINT8 *) "I'm fine, thanx!",
-                                      17
-#ifdef CONFORMANCE_API
-                                      , "test_mdSingle"
-#endif
+                                      17,
+                                      "test_mdSingle"
                                       );
                   }
                   if (err != TRDP_NO_ERR)

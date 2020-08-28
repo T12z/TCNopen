@@ -12,12 +12,13 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
  */
 /*
 * $Id$
 *
 *
+*      BL 2020-08-05: tlc_freeBuffer() declaration removed, it was never defined!
 *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      BL 2019-11-12: Ticket #288 Added EXT_DECL to reply functions
 *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
@@ -116,10 +117,6 @@ EXT_DECL TRDP_ERR_T tlc_setOpTrainTopoCount (
 
 EXT_DECL UINT32     tlc_getOpTrainTopoCount (
     TRDP_APP_SESSION_T appHandle);
-
-EXT_DECL TRDP_ERR_T tlc_freeBuf (
-    TRDP_APP_SESSION_T  appHandle,
-    char                *pBuf);
 
 EXT_DECL TRDP_ERR_T tlc_getInterval (
     TRDP_APP_SESSION_T  appHandle,
@@ -355,7 +352,6 @@ EXT_DECL TRDP_ERR_T tlm_delListener (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_LIS_T          listenHandle);
 
-#ifdef CONFORMANCE_API
 EXT_DECL TRDP_ERR_T tlm_reply (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
@@ -376,28 +372,6 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     const UINT8             *pData,
     UINT32                  dataSize,
     const TRDP_URI_USER_T   srcURI);
-
-#else
-
-EXT_DECL TRDP_ERR_T tlm_reply (
-    TRDP_APP_SESSION_T      appHandle,
-    const TRDP_UUID_T       *pSessionId,
-    UINT32                  comId,
-    UINT16                  userStatus,
-    const TRDP_SEND_PARAM_T *pSendParam,
-    const UINT8             *pData,
-    UINT32                  dataSize);
-
-EXT_DECL TRDP_ERR_T tlm_replyQuery (
-    TRDP_APP_SESSION_T      appHandle,
-    const TRDP_UUID_T       *pSessionId,
-    UINT32                  comId,
-    UINT16                  userStatus,
-    UINT32                  confirmTimeout,
-    const TRDP_SEND_PARAM_T *pSendParam,
-    const UINT8             *pData,
-    UINT32                  dataSize);
-#endif /* CONFORMANCE_API */
 
 #endif /* MD_SUPPORT    */
 

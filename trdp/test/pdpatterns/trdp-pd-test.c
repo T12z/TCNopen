@@ -14,7 +14,7 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright UniControls, 2013. All rights reserved.
  *
- * $Id: trdp_reserved.c 898 2013-06-05 15:19:20Z 97025 $
+ * $Id$
  *
  *      AÖ 2020-05-04: Ticket #330: Extend TRDP_PDTest with TSN support
  *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows

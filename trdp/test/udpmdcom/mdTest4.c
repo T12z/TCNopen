@@ -643,7 +643,8 @@ static int testReplySend(trdp_apl_cbenv_t msg, TRDP_MD_TEST_DS_T mdTestData)
         0,         /*  userStatus */
         NULL,      /* send param */
         (UINT8 *) &mdTestData,
-        sizeof(mdTestData)
+        sizeof(mdTestData),         /* dataset size */
+        NULL);                      /* srcURI */
         );
 
     //
@@ -674,7 +675,8 @@ static int testReplyQuerySend(trdp_apl_cbenv_t msg, TRDP_MD_TEST_DS_T mdTestData
         2 * 1000 * 1000, /* confirm timeout */
         NULL,            /* send param */
         (UINT8 *) &mdTestData,
-        sizeof(mdTestData)
+        sizeof(mdTestData),         /* dataset size */
+        NULL);                      /* srcURI */
         );
 
     //

@@ -14,7 +14,7 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright UniControls, a.s., 2013. All rights reserved.
  *
- * $Id: trdp-md-test.c 1797 2018-11-09 13:43:57Z ahweiss $
+ * $Id$
  *
  *      IB 2019-08-16: separate sender and receiver thread added
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
@@ -1256,7 +1256,8 @@ void send_msg (TRDP_MD_INFO_T *msg, TRDP_FLAGS_T flags)
                    0,                               /* user status */
                    NULL,                            /* send parameters */
                    (UINT8 *) buf,                   /* dataset buffer */
-                   opts.msgsz);                     /* dataset size */
+                   opts.msgsz,                      /* dataset size */
+                   NULL);                           /* srcURI */
            /* check for errors */
            if (err != TRDP_NO_ERR)
            {
@@ -1280,7 +1281,8 @@ void send_msg (TRDP_MD_INFO_T *msg, TRDP_FLAGS_T flags)
                    opts.tmo * 1000,                 /* confirm timeout */
                    NULL,                            /* send parameters */
                    (UINT8 *) buf,                   /* dataset buffer */
-                   opts.msgsz);                     /* dataset size */
+                   opts.msgsz,                      /* dataset size */
+                   NULL);                           /* srcURI */
 
            /* check for errors */
            if (err != TRDP_NO_ERR)
