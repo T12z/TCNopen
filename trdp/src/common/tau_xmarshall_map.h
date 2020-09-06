@@ -22,8 +22,21 @@
 #ifndef SRC_COMMON_TAU_XMARSHALL_MAP_H_
 #define SRC_COMMON_TAU_XMARSHALL_MAP_H_
 
-#ifndef ALIGNOF
-#define ALIGNOF(type)   __alignof__(type)
+#include <stddef.h>
+
+/** Copy from vos_utils.h, to avoid redefinition issues */
+#if (defined (WIN32) || defined (WIN64))
+
+#define XALIGNOF(type)  __alignof(type)
+
+#elif defined(__clang__)
+
+#define XALIGNOF(type)   __alignof__(type)
+
+#else
+
+#define XALIGNOF(type)  ((uint8_t)offsetof(struct { char c; type member; }, member))
+
 #endif
 
 /**********************************************************************************************************************/

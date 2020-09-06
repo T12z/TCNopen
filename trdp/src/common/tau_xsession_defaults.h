@@ -19,7 +19,9 @@
 #define TAU_XSESSION_TIME_GRANULARITY 2500 /**< allow a certain fuzziness for time-stamps in cycle processing */
 
 #ifndef TRDP_MAX_LABEL_LEN           /* avoid to pull in all of trdp for a SHM client */
-#define TRDP_MAX_LABEL_LEN 16
+#define TRDP_DEFAULT_MAX_LABEL_LEN 16
+#else
+#define TRDP_DEFAULT_MAX_LABEL_LEN TRDP_MAX_LABEL_LEN
 #endif
 
 #endif /* SRC_COMMON_TAU_XSESSION_DEFAULTS_H_ */
