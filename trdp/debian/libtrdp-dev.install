@@ -2,3 +2,5 @@ bld/output/${DEB_HOST_MULTIARCH}*-rel/libtrdp*.a usr/lib/${DEB_HOST_MULTIARCH}/
 src/api/*.h     usr/include/trdp
 src/common/*.h  usr/include/trdp
 src/vos/api/*.h usr/include/trdp
+src/common/*.hpp  usr/include/trdp
+
