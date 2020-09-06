@@ -48,6 +48,9 @@
 #ifdef __linux
 #   include <linux/if.h>
 #   include <byteswap.h>
+#   include <linux/net_tstamp.h>
+#   include <linux/sockios.h>
+#   include <linux/if_vlan.h>
 #else
 #   include <net/if.h>
 #   include <net/if_types.h>
@@ -78,10 +81,6 @@
 
 #if defined(__APPLE__) || defined(__QNXNTO__)
 #define cVlanPrefix1    "en0."
-#define cVlanPrefix2    "vlan"
-#else
-#define cVlanPrefix1    "eth0."
-#define cVlanPrefix2    "vlan"
 #endif
 
 extern const CHAR8 *cDefaultIface;
@@ -102,18 +101,21 @@ extern const CHAR8 *cDefaultIface;
  *  @retval         VOS_NO_ERR       no error
  *  @retval         VOS_SOCK_ERR     failed
  */
-static int bindToDevice (int sock, int family, const char *devicename, VOS_IP4_ADDR_T *pIPaddress, int doBind)
+static VOS_ERR_T bindToDevice (int sock, int family, const char *devicename, VOS_IP4_ADDR_T *pIPaddress, int doBind)
 {
     struct ifaddrs  *pList          = NULL;
     struct ifaddrs  *pAdapter       = NULL;
     struct ifaddrs  *pAdapterFound  = NULL;
     int bindresult = 0;
+    struct sockaddr_in *sai;
+
+    if (family != AF_INET) return VOS_PARAM_ERR; /* this only works for AF_INET a.t.m */
 
     int result = getifaddrs(&pList);
 
     if (result < 0)
     {
-        return -1;
+        return VOS_SOCK_ERR;
     }
 
     pAdapter = pList;
@@ -131,43 +133,32 @@ static int bindToDevice (int sock, int family, const char *devicename, VOS_IP4_A
     }
 
     /* only bind if really wanted */
-    if ((pAdapterFound != NULL) &&
-        (doBind == TRUE))
+    if (pAdapterFound != NULL)
     {
-        ((struct sockaddr_in *)(pAdapterFound->ifa_addr))->sin_port = vos_htons(17224);
-        bindresult = bind(sock, pAdapterFound->ifa_addr, sizeof(struct sockaddr_in));
-        if (bindresult != -1)
+        sai = (struct sockaddr_in *)pAdapterFound->ifa_addr;
+        if ( doBind )
         {
+            sai->sin_port = vos_htons(17224);
+            bindresult = bind(sock, pAdapterFound->ifa_addr, sizeof(*sai));
 
-
-            vos_printLog(VOS_LOG_INFO, "vos_sockBind2IF (bindToDevice) binding %d to %d.%d.%d.%d port: %u\n", sock,
-                         pAdapterFound->ifa_addr->sa_data[2],
-                         pAdapterFound->ifa_addr->sa_data[3],
-                         pAdapterFound->ifa_addr->sa_data[4],
-                         pAdapterFound->ifa_addr->sa_data[5],
-                         vos_ntohs(((struct sockaddr_in *)(pAdapterFound->ifa_addr))->sin_port)
+            vos_printLog((bindresult == -1) ? VOS_LOG_WARNING : VOS_LOG_INFO,
+                         "vos_sockBind2IF (bindToDevice) binding to %s:%hu %s\n",
+                         vos_ipDotted(vos_ntohl(sai->sin_addr.s_addr)),
+                         vos_ntohs(sai->sin_port),
+                         (bindresult == -1) ? "failed" : "OK"
                          );
+        } else {
+            vos_printLog(VOS_LOG_INFO,
+                         "vos_sockBind2IF ... which should be %s\n",
+                         vos_ipDotted(vos_ntohl(sai->sin_addr.s_addr))
+                         );
+
+        }
+        if ( pIPaddress ) {
+            *pIPaddress = vos_ntohl(sai->sin_addr.s_addr);
         }
     }
 
-    /* return the found iface address */
-    if ((pAdapterFound != NULL) && (pIPaddress != NULL))
-    {
-        *pIPaddress = (VOS_IP4_ADDR_T) (pAdapterFound->ifa_addr->sa_data[2] << 24u |
-                                        pAdapterFound->ifa_addr->sa_data[3] << 16u |
-                                        pAdapterFound->ifa_addr->sa_data[4] << 8u |
-                                        pAdapterFound->ifa_addr->sa_data[5]);
-    }
-    if (bindresult == -1)
-    {
-        vos_printLog(VOS_LOG_WARNING, "bindToDevice %s failed (%d.%d.%d.%d : %u)\n",
-                     devicename,
-                     pAdapterFound->ifa_addr->sa_data[2],
-                     pAdapterFound->ifa_addr->sa_data[3],
-                     pAdapterFound->ifa_addr->sa_data[4],
-                     pAdapterFound->ifa_addr->sa_data[5],
-                     vos_ntohs(((struct sockaddr_in *)(pAdapterFound->ifa_addr))->sin_port));
-    }
     freeifaddrs(pList);
     return bindresult;
 }
@@ -175,11 +166,75 @@ static int bindToDevice (int sock, int family, const char *devicename, VOS_IP4_A
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
  */
+/** Look up the name of an interface bound by the passed in @ipAddr.
+ *  @pIFaceName must point to a buffer providing at least 24 bytes.
+ *  If @ipAddr resolves to a VLAN device, the underlying device's name is returned instead.
+ */
+EXT_DECL VOS_ERR_T  vos_getRealInterfaceName (VOS_IP4_ADDR_T  ipAddr,
+                                              CHAR8           *pIFaceName)
+{
+    UINT32          i;
+    UINT32          AddrCount = VOS_MAX_NUM_IF;
+    VOS_IF_REC_T    ifAddrs[VOS_MAX_NUM_IF];
+    VOS_ERR_T       err;
+
+    if ( !pIFaceName ) return VOS_PARAM_ERR;
+    if (0 != (err = vos_getInterfaces(&AddrCount, ifAddrs))) return err;
+
+    err = VOS_SOCK_ERR;
+    /* open a socket for ioctls */
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == -1) return err;
+
+    for (i = 0u; i < AddrCount; ++i) {
+        if ((ipAddr && ipAddr == ifAddrs[i].ipAddr)
+            || (!ipAddr && ifAddrs[i].ipAddr != VOS_INADDR_ANY && ifAddrs[i].ipAddr != INADDR_LOOPBACK)) {
+        /* first check, if this actually is a VLAN-IF */
+#ifdef __linux
+            struct vlan_ioctl_args ifr;
+            memset(&ifr, 0, sizeof(ifr));
+            ifr.cmd = GET_VLAN_REALDEV_NAME_CMD;
+#define _IN  ifr.device1
+#define _OUT ifr.u.device2
+#else
+        /* for BSDs use code from vos_ifnameFromVlanId */
+            struct vlanreq {
+                char    vlr_parent[IFNAMSIZ];
+                u_short vlr_tag;
+            } vreq;
+            struct ifreq ifr;
+            bzero(&ifr, sizeof(ifr));
+            ifr.ifr_data = &vreq;
+#define _IN  ifr.ifr_name
+#define _OUT vreq.vlr_parent
+#endif
+            strncpy(_IN, ifAddrs[i].name, sizeof(_IN));
+            if (ioctl(sock, SIOCGIFVLAN, &ifr) == 0) {
+                strncpy(pIFaceName, _OUT, VOS_MAX_IF_NAME_SIZE);
+                err = VOS_NO_ERR;
+                break;
+            }
+            strcpy(pIFaceName, ifAddrs[i].name);
+            err = VOS_NO_ERR;
+            break;
+        }
+    }
+    close(sock);
+    return err;
+}
 
 /**********************************************************************************************************************/
 /** Create a suitable interface for the supplied VLAN ID.
  *  Prepare the skb/qos mapping for each priority as 1:1 for ingress and egress
  *  This is quite slow and works on systems with a command shell only, but is only called on initialization!
+ *
+ *  T12z: I strongly disagree with this function. It is broken! (eg, setting netmask / broadcast address, cleaning up
+ *        the interface, etc.) This setup should be done before running any libtrdp application.
+ *
+ *        e.g. Linux: (sudo) ip link add link eno1 name eno1.10 type vlan id 10
+ *                    (sudo) ip addr add 10.64.10.123/18 dev eno1.10
+ *                    (sudo) ip link set eno1.10 up
+ *                           echo "Easy, right?"
  */
 
 EXT_DECL VOS_ERR_T vos_createVlanIF (
@@ -187,10 +242,53 @@ EXT_DECL VOS_ERR_T vos_createVlanIF (
     CHAR8           *pIFaceName,
     VOS_IP4_ADDR_T  ipAddr)
 {
-    char    commandBuffer[128];
     UINT8   i;
 
-    snprintf(commandBuffer, 128, "sudo vconfig add %s %u", cDefaultIface, vlanId);
+#ifdef __linux
+    struct vlan_ioctl_args ifrv = { .vlan_qos = 0 };
+    struct ifreq ifr;
+    struct sockaddr_in sai = { .sin_family = AF_INET, .sin_addr = { .s_addr = vos_htonl(ipAddr) }};
+
+    /* open a socket */
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == -1)
+    {
+        return VOS_SOCK_ERR;
+    }
+
+    /* use ioctls instead of ip or ifconfig or vconfig. This is a little less flexible, but does not rely on the
+     * specific tool to be available. */
+    strncpy(ifrv.device1, pIFaceName, sizeof(ifrv.device1));
+    ifrv.cmd = ADD_VLAN_CMD;
+    ifrv.u.VID = vlanId;
+    if (-1 == ioctl(sock, SIOCSIFVLAN, &ifrv)) {
+        vos_printLog(VOS_LOG_ERROR, "vconfig add %d to %s failed\n", vlanId, pIFaceName);
+    }
+    /* at this point, I have no feedback, what the new interface is effectively called. I have to look it up. */
+    if (VOS_NO_ERR != vos_ifnameFromVlanId(vlanId, pIFaceName))
+        return VOS_SOCK_ERR;
+
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, pIFaceName, sizeof(ifr.ifr_name));
+    memcpy(&ifr.ifr_addr, &sai, sizeof(struct sockaddr));
+    if (0 != ioctl(sock, SIOCSIFADDR, &ifr) ) {
+        vos_printLog(VOS_LOG_ERROR, "ifconfig %s %s failed\n", pIFaceName, vos_ipDotted(ipAddr));
+        close(sock);
+        return VOS_SOCK_ERR;
+    }
+
+
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, pIFaceName, sizeof(ifr.ifr_name));
+    if (0 != ioctl(sock, SIOCGIFFLAGS, &ifr) || (0 == (ifr.ifr_flags |= IFF_UP | IFF_RUNNING)) || (0 != ioctl(sock, SIOCSIFFLAGS, &ifr)) ) {
+        vos_printLog(VOS_LOG_ERROR, "ifconfig up %s failed\n", pIFaceName);
+        close(sock);
+        return VOS_SOCK_ERR;
+    }
+#else
+    char    commandBuffer[256];
+
+    snprintf(commandBuffer, sizeof(commandBuffer), "sudo vconfig add %s %u", cDefaultIface, vlanId);
     if (system(commandBuffer) < 0)
     {
         vos_printLogStr(VOS_LOG_ERROR, "vconfig add failed\n");
@@ -200,39 +298,62 @@ EXT_DECL VOS_ERR_T vos_createVlanIF (
     snprintf(pIFaceName, IFNAMSIZ, "%s%u", cVlanPrefix1, vlanId);
 
     /* We need some unique IP address on that interface, to be able to bind to it. */
-    snprintf(commandBuffer, 128, "sudo ifconfig %s %s netmask 255.255.192.0", pIFaceName, vos_ipDotted(ipAddr));
+    snprintf(commandBuffer, sizeof(commandBuffer), "sudo ifconfig %s %s netmask 255.255.192.0", pIFaceName, vos_ipDotted(ipAddr));
     if (system(commandBuffer) < 0)
     {
         vos_printLogStr(VOS_LOG_ERROR, "ifconfig add address failed\n");
         return VOS_SOCK_ERR;
     }
+#endif
 
     /* We set the mapping 1:1 for skb and qos */
     for (i = 0; i < 8; i++)
     {
-        snprintf(commandBuffer, 128, "sudo vconfig set_egress_map %s %u %u", pIFaceName, i, i);
+#ifdef __linux
+    /* use ioctl(), as newer systems may rely on the ip tool (iproute2 / netlink-based) and lack support for vconfig */
+        strncpy(ifrv.device1, pIFaceName, sizeof(ifrv.device1));
+        ifrv.cmd = SET_VLAN_EGRESS_PRIORITY_CMD;
+        ifrv.u.skb_priority = i;
+        ifrv.vlan_qos = i;
+        if (-1 == ioctl(sock, SIOCSIFVLAN, &ifrv)) {
+            vos_printLogStr(VOS_LOG_ERROR, "vconfig set_egress_map failed\n");
+        }
+        strncpy(ifrv.device1, pIFaceName, sizeof(ifrv.device1));
+        ifrv.cmd = SET_VLAN_INGRESS_PRIORITY_CMD;
+        ifrv.u.skb_priority = i;
+        ifrv.vlan_qos = i;
+        if (-1 == ioctl(sock, SIOCSIFVLAN, &ifrv)) {
+            vos_printLogStr(VOS_LOG_ERROR, "vconfig set_ingress_map failed\n");
+        }
+#else
+        snprintf(commandBuffer, sizeof(commandBuffer), "sudo vconfig set_egress_map %s %u %u", pIFaceName, i, i);
         if (system(commandBuffer) < 0)
         {
             vos_printLogStr(VOS_LOG_ERROR, "vconfig set_egress_map failed\n");
             return VOS_SOCK_ERR;
         }
-        snprintf(commandBuffer, 128, "sudo vconfig set_ingress_map %s %u %u", pIFaceName, i, i);
+        snprintf(commandBuffer, sizeof(commandBuffer), "sudo vconfig set_ingress_map %s %u %u", pIFaceName, i, i);
         if (system(commandBuffer) < 0)
         {
             vos_printLogStr(VOS_LOG_ERROR, "vconfig set_ingress_map failed\n");
             return VOS_SOCK_ERR;
         }
+#endif
     }
+#ifdef __linux
+    close(sock);
+#endif
     return VOS_NO_ERR;
 }
 
 
 /**********************************************************************************************************************/
 /** Get the interface for a given VLAN ID
+ *  This function assumes that the VLAN ID is unique across the system, unless pIFaceName hands in the parent device.
  *
  *
  *  @param[in]      vlanId          vlan ID to find
- *  @param[in]      pIFaceName      found interface
+ *  @param[in,out]  pIFaceName      in: parent interface or "", out: found interface
  *
  *  @retval         VOS_NO_ERR      if found
  */
@@ -246,56 +367,50 @@ EXT_DECL VOS_ERR_T vos_ifnameFromVlanId (
 
     if (getifaddrs(&ifap) == 0)
     {
-        cursor = ifap;
-
         /* open a socket */
         int sock = socket(AF_INET, SOCK_DGRAM, 0);
         if (sock == -1)
         {
             err = VOS_SOCK_ERR;
-            goto done;
         }
 
-        while (cursor != 0)
+        for (cursor=ifap; sock >= 0 && cursor != 0; cursor = cursor->ifa_next)
         {
 #ifdef __linux
             if (cursor->ifa_name != NULL)
             {
-                /* check for eth0.XXXX */
-                if (strncmp(cursor->ifa_name, cVlanPrefix1, strlen(cVlanPrefix1)) == 0)
+                struct vlan_ioctl_args iva1;
+                struct vlan_ioctl_args iva2;
+                memset(&iva1, 0, sizeof(iva1));
+                strncpy(iva1.device1, cursor->ifa_name, sizeof(iva1.device1));
+                iva1.cmd = GET_VLAN_REALDEV_NAME_CMD;
+                if (ioctl(sock, SIOCGIFVLAN, &iva1) == -1)
                 {
-                    UINT16 lVlanId;
-                    /* the VLAN ID is appended */
-                    if (sscanf(cursor->ifa_name + strlen(cVlanPrefix1), "%hu", &lVlanId) == 1)
-                    {
-                        if (lVlanId == vlanId)
-                        {
-                            strncpy(pIFaceName, cursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
-                            pIFaceName[VOS_MAX_IF_NAME_SIZE - 1] = 0;
-                            err = VOS_NO_ERR;
-                            vos_printLog(VOS_LOG_INFO, "Matching VLAN %s found\n", pIFaceName);
-                            break;
-                        }
-                    }
+                    /*  this also fails for non-VLANs, so this is non-fatal */
+                    continue;
                 }
-                /* check for vlanXXXX */
-                else if (strncmp(cursor->ifa_name, cVlanPrefix2, strlen(cVlanPrefix2)) == 0)
+                /* if we search on a specific real-IF, skip if is does not match */
+                if (*pIFaceName && strncmp(iva1.u.device2, pIFaceName, sizeof(iva1.u.device2))) {
+                    continue;
+                }
+                memset(&iva2, 0, sizeof(iva2));
+                strncpy(iva2.device1, cursor->ifa_name, sizeof(iva2.device1));
+                iva2.cmd = GET_VLAN_VID_CMD;
+                if (ioctl(sock, SIOCGIFVLAN, &iva2) == -1)
                 {
-                    UINT16 lVlanId;
-                    /* the VLAN ID is appended */
-                    if (sscanf(cursor->ifa_name + strlen(cVlanPrefix2), "%hu", &lVlanId) == 1)
-                    {
-                        if (lVlanId == vlanId)
-                        {
-                            strncpy(pIFaceName, cursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
-                            pIFaceName[VOS_MAX_IF_NAME_SIZE - 1] = 0;
-                            err = VOS_NO_ERR;
-                            vos_printLog(VOS_LOG_INFO, "Matching VLAN %s found\n", pIFaceName);
-                            break;
-                        }
-                    }
+                    err = VOS_SOCK_ERR;
+                    char buff[VOS_MAX_ERR_STR_SIZE];
+                    STRING_ERR(buff);
+                    vos_printLog(VOS_LOG_ERROR, "ioctl SIOCGIFVLAN failed (Err: %s)\n", buff);
+                    break;
                 }
-                vos_printLog(VOS_LOG_INFO, "%s is not a vlan...\n", cursor->ifa_name);
+                if (iva2.u.VID == vlanId) {
+                    strncpy(pIFaceName, cursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
+                    err = VOS_NO_ERR;
+                    vos_printLog(VOS_LOG_INFO, "Matching VLAN %s found on %s.\n", pIFaceName, iva1.u.device2);
+                    break;
+                }
+                vos_printLog(VOS_LOG_INFO, "%s is not the right vlan...\n", cursor->ifa_name);
             }
 #else
             if (cursor->ifa_addr->sa_family == AF_LINK)
@@ -315,12 +430,12 @@ EXT_DECL VOS_ERR_T vos_ifnameFromVlanId (
                 if_data = (struct if_data *)cursor->ifa_data;
                 if (if_data == NULL)
                 {
-                    goto cont;    /* if no interface data */
+                    continue;    /* if no interface data */
                 }
 
                 if (if_data->ifi_type != IFT_L2VLAN)
                 {
-                    goto cont;    /* if not VLAN */
+                    continue;    /* if not VLAN */
                 }
 
                 bzero(&ifr, sizeof(ifr));
@@ -333,7 +448,11 @@ EXT_DECL VOS_ERR_T vos_ifnameFromVlanId (
                     char buff[VOS_MAX_ERR_STR_SIZE];
                     STRING_ERR(buff);
                     vos_printLog(VOS_LOG_ERROR, "ioctl SIOCGIFVLAN failed (Err: %s)\n", buff);
-                    goto done;
+                    break;
+                }
+                /* if we search on a specific real-IF, skip if is does not match */
+                if (*pIFaceName && 0 != strncmp(vreq.vlr_parent, pIFaceName, IFNAMSIZ)) {
+                    continue;
                 }
                 if (vlanId == vreq.vlr_tag)
                 {
@@ -342,12 +461,9 @@ EXT_DECL VOS_ERR_T vos_ifnameFromVlanId (
                     break;
                 }
             }
-cont:
 #endif
-            cursor = cursor->ifa_next;
         }
-        close(sock);
-done:
+        if (sock >= 0) close(sock);
         freeifaddrs(ifap);
 
     }
@@ -399,7 +515,17 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
     }
 #endif
 
-
+    struct sock_txtime sk_txtime = { 
+        pOptions->clockid,
+        pOptions->no_drop_late ? 0 : SOF_TXTIME_DEADLINE_MODE
+        /* using inverse notation to enable "deadline"-mode by default in TSN mode. */
+    };
+    if (setsockopt(sock, SOL_SOCKET, SO_TXTIME, &sk_txtime, sizeof(sk_txtime)))
+    {
+        close(sock);
+        vos_printLogStr(VOS_LOG_ERROR, "socket() setsockopt failed!\n");
+        return VOS_SOCK_ERR;
+    }
 
     /* Other socket options to be applied */
     if ((vos_sockSetOptions(sock, pOptions) != VOS_NO_ERR)
@@ -538,10 +664,8 @@ EXT_DECL VOS_ERR_T vos_sockSendTSN (
     struct sockaddr_in  destAddr;
     ssize_t             sendSize    = 0;
     size_t              size        = 0;
-    clockid_t           clkid       = CLOCK_REALTIME;
     struct cmsghdr      *cmsg;
     struct msghdr       msg;
-    uint8_t             drop_if_late    = 1;
     uint64_t            txTime          = 0llu;
 
 #if VOS_USE_RAW_IP_SOCKET == 1
@@ -627,18 +751,6 @@ EXT_DECL VOS_ERR_T vos_sockSendTSN (
         cmsg->cmsg_type     = SCM_TXTIME;
         cmsg->cmsg_len      = CMSG_LEN(sizeof(uint64_t));
         *((uint64_t *) CMSG_DATA(cmsg)) = txTime;
-
-        cmsg = CMSG_NXTHDR(&msg, cmsg);
-        cmsg->cmsg_level    = SOL_SOCKET;
-        cmsg->cmsg_type     = SCM_CLOCKID;
-        cmsg->cmsg_len      = CMSG_LEN(sizeof(clockid_t));
-        *((clockid_t *) CMSG_DATA(cmsg)) = clkid;
-
-        cmsg = CMSG_NXTHDR(&msg, cmsg);
-        cmsg->cmsg_level    = SOL_SOCKET;
-        cmsg->cmsg_type     = SCM_DROP_IF_LATE;
-        cmsg->cmsg_len      = CMSG_LEN(sizeof(uint8_t));
-        *((uint8_t *) CMSG_DATA(cmsg)) = drop_if_late;
     }
     sendSize = sendmsg(sock, &msg, 0);
 
@@ -714,17 +826,13 @@ EXT_DECL VOS_ERR_T vos_sockBind2IF (
 {
     VOS_ERR_T err = VOS_NO_ERR;
 
-#ifdef VOS_BINDTODEVICE
-
-    /*
-     Binding to a device returns an unusable IP address for the interface.
-     We might not be able to do a MC join to that IP!
-     Maybe we can use it if we go for RAW sockets...
-     */
+#ifdef SO_BINDTODEVICE
+    /* probably limited to Linux */
     struct ifreq ifReq;
+    memset(&ifReq, 0, sizeof(ifReq));
     strncpy(ifReq.ifr_name, iFace->name, VOS_MAX_IF_NAME_SIZE);
 
-    vos_printLog(VOS_LOG_INFO, "vos_sockBind2IF binding %d to %s using SO_BINDTODEVICE\n", sock, iFace->name);
+    vos_printLog(VOS_LOG_INFO, "vos_sockBind2IF binding %s using SO_BINDTODEVICE\n", iFace->name);
 
     /* Bind socket to interface index. */
     if (setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, &ifReq, sizeof (ifReq)) < 0)
@@ -733,9 +841,9 @@ EXT_DECL VOS_ERR_T vos_sockBind2IF (
         STRING_ERR(buff);
         vos_printLog(VOS_LOG_ERROR, "vos_sockBind2IF() SO_BINDTODEVICE failed on %s (Err: %s)\n", iFace->name, buff);
         err = VOS_SOCK_ERR;
-        (void) bindToDevice(sock, AF_INET, iFace->name, (VOS_IP4_ADDR_T *) &iFace->ipAddr, doBind);
-    }
-#else
+    } else
+        doBind = 0;
+#endif
 
     /* This only works reliably if the assigned IP address of the TSN interface is unique */
     if (bindToDevice(sock, AF_INET, iFace->name, (VOS_IP4_ADDR_T *) &iFace->ipAddr, doBind) < 0)
@@ -745,7 +853,6 @@ EXT_DECL VOS_ERR_T vos_sockBind2IF (
         vos_printLog(VOS_LOG_ERROR, "vos_sockBind2IF() Binding to %s failed (Err: %s)\n", iFace->name, buff);
         err = VOS_SOCK_ERR;
     }
-#endif
 
     return err;
 }

@@ -220,27 +220,37 @@ TRDP_IP_ADDR_T trdp_getOwnIP( void )
     UINT32          i;
     UINT32          addrCnt = 2 * VOS_MAX_NUM_IF;
     VOS_IF_REC_T    localIF[2 * VOS_MAX_NUM_IF];
-    (void) vos_getInterfaces(&addrCnt, localIF);
-    for (i = 0u; i < addrCnt; ++i)
-    {
-        if ((localIF[i].mac[0] ||        /* Take a MAC address as indicator for an ethernet interface */
-             localIF[i].mac[1] ||
-             localIF[i].mac[2] ||
-             localIF[i].mac[3] ||
-             localIF[i].mac[4] ||
-             localIF[i].mac[5])
-            &&
-            (localIF[i].ipAddr != VOS_INADDR_ANY)
-            &&
-            (localIF[i].ipAddr != INADDR_LOOPBACK)
-            )
+    TRDP_IP_ADDR_T  oIP = VOS_INADDR_ANY;
+
+    if (VOS_NO_ERR == vos_getInterfaces(&addrCnt, localIF)) {
+        for (i = 0u; i < addrCnt; ++i)
         {
-            vos_printLog(VOS_LOG_INFO, "Own IP determined as %s\n", vos_ipDotted(localIF[i].ipAddr));
-            return localIF[i].ipAddr;   /* Could still be unset!    */
+            if ((localIF[i].mac[0] ||        /* Take a MAC address as indicator for an ethernet interface */
+                 localIF[i].mac[1] ||
+                 localIF[i].mac[2] ||
+                 localIF[i].mac[3] ||
+                 localIF[i].mac[4] ||
+                 localIF[i].mac[5])
+                &&
+                (localIF[i].ipAddr != VOS_INADDR_ANY)
+                &&
+                (localIF[i].ipAddr != INADDR_LOOPBACK)
+                )
+            {
+                if (oIP == VOS_INADDR_ANY) {
+                    vos_printLog(VOS_LOG_INFO, "Reasonable \"own\" IP determined as %.15s on %.16s %d/%d.\n",
+                                 vos_ipDotted(localIF[i].ipAddr), localIF[i].name, i, addrCnt);
+                    oIP = localIF[i].ipAddr;
+                } else {
+                    /* Warn if this device has multiple interfaces */
+                    vos_printLog(VOS_LOG_WARNING, "Found another IP %.15s on %.16s %d/%d Will stick with the first.\n",
+                                 vos_ipDotted(localIF[i].ipAddr), localIF[i].name, i, addrCnt);
+                }
+            }
         }
     }
-    vos_printLogStr(VOS_LOG_WARNING, "Own IP could not be determined!\n");
-    return VOS_INADDR_ANY;
+    if (oIP == VOS_INADDR_ANY) vos_printLogStr(VOS_LOG_WARNING, "Own IP could not be determined!\n");
+    return oIP;
 }
 
 /***********************************************************************************************************************
@@ -995,6 +1005,10 @@ TRDP_ERR_T  trdp_requestSocket (
     TRDP_ERR_T      err         = TRDP_NO_ERR;
     TRDP_IP_ADDR_T  bindAddr    = vos_determineBindAddr(srcIP, mcGroup, rcvMostly);
 
+#ifdef TSN_SUPPORT
+    CHAR8           busInterfaceName[24];
+    memset(busInterfaceName, 0, sizeof(busInterfaceName));
+#endif
     memset(&sock_options, 0, sizeof(sock_options));
 
     if (iface == NULL || params == NULL || pIndex == NULL)
@@ -1101,7 +1115,32 @@ TRDP_ERR_T  trdp_requestSocket (
             /* Remember the first empty slot */
             emptySockIdx = lIndex;
         }
+#ifdef TSN_SUPPORT
+        /* we need the "real" bus-interface name of this instance to find a VLAN-IF, so probe all _known_ sockets. This
+         * strongly assumes, the TSN telegram is not the first telegram to be allocated. */
+        if (iface[lIndex].sock != VOS_INVALID_SOCKET && params->vlan && iface[lIndex].bindAddr) {
+            char tmp_bin[sizeof(busInterfaceName)];
+            memset(tmp_bin, 0, sizeof(busInterfaceName));
+            if ((VOS_NO_ERR == vos_getRealInterfaceName( iface[lIndex].bindAddr, tmp_bin )) && *tmp_bin) {
+                if ( *busInterfaceName && *tmp_bin && (0!=strcmp(busInterfaceName, tmp_bin))) {
+                    vos_printLog(VOS_LOG_WARNING, "Cannot determine bus-interface-name (got \"%s\" and \"%s\") to seek requested VLAN (%d) for %s\n", busInterfaceName, tmp_bin, params->vlan, vos_ipDotted(iface[lIndex].bindAddr));
+                } else {
+                    vos_printLog(VOS_LOG_INFO, "Found %s for %s\n", tmp_bin, vos_ipDotted(iface[lIndex].bindAddr));
+                    strncpy(busInterfaceName, tmp_bin, sizeof(busInterfaceName));
+                }
+            }
+        }
+#endif
     }
+
+#ifdef TSN_SUPPORT
+    if (!*busInterfaceName && params->vlan) { /* resort to any adapter */
+        vos_printLogStr(VOS_LOG_WARNING, "Could not find a bus-interface-name of an in-used socket for VLAN-binding. Will"
+                     " resort to the first available, which *may be wrong*. Try to allocate a non-VLAN/TSN-socket on"
+                     " the interface first.\n");
+        vos_getRealInterfaceName( 0, busInterfaceName );
+    }
+#endif
 
     /* Not found, create a new socket entry */
     switch (type) /* because of lint*/
@@ -1216,8 +1255,16 @@ TRDP_ERR_T  trdp_requestSocket (
                      */
 
                     /* We want to bind to a vlan-enabled interface, which might have a different ip address */
+
+                    /* TODO Actually, it must have a different address - this would require a different bus-interface
+                     * instance, which is a different approach to the current. However, there should be two ways here:
+                     * Either matching the IP-address of the vlan-interface,
+                     * or finding the real-bus-interface's name (as we did earlier) and its child-interfaces.
+                     * I think the first is not possible architecturally at the moment. So hopefully we found the real
+                     * IF name earlier and can use that. */
                     {
                         VOS_IF_REC_T tempIF;
+                        strncpy(sock_options.ifName, busInterfaceName, sizeof(sock_options.ifName));
                         if (vos_ifnameFromVlanId(sock_options.vlanId, (CHAR8 *) sock_options.ifName) != VOS_NO_ERR)
                         {
                             /* We need a unique IP address!
@@ -1230,6 +1277,8 @@ TRDP_ERR_T  trdp_requestSocket (
                                 (unsigned) (sock_options.vlanId << 8u) +
                                 (trdp_getOwnIP() & 0xFF);
                             /* try creating via system call on Linux and try it again */
+                            strncpy(tempIF.name, busInterfaceName, sizeof(tempIF.name));
+                            strncpy(sock_options.ifName, busInterfaceName, sizeof(sock_options.ifName));
                             if ((vos_createVlanIF(sock_options.vlanId, tempIF.name, rndIP) != VOS_NO_ERR) ||
                                 (vos_ifnameFromVlanId(sock_options.vlanId, (CHAR8 *) sock_options.ifName) != VOS_NO_ERR))
                             {
@@ -1296,8 +1345,7 @@ TRDP_ERR_T  trdp_requestSocket (
 #endif /* TSN */
             case TRDP_SOCK_MD_UDP:
                 sock_options.nonBlocking = TRUE;  /* MD UDP sockets are always non blocking because they are polled */
-				__fallthrough;
-				// no break for Eclipse
+                __fallthrough;
             /* fall thru! */
             case TRDP_SOCK_PD:
                 err = (TRDP_ERR_T) vos_sockOpenUDP(&iface[lIndex].sock, &sock_options);

@@ -24,6 +24,7 @@ CFLAGS += -Wall -m64 -fstrength-reduce -fno-builtin -fsigned-char -pthread -fPIC
 CFLAGS += -Wno-unknown-pragmas -Wno-format -Wno-unused-label -Wno-unused-function -Wno-int-to-void-pointer-cast -Wno-self-assign
 LDFLAGS += -lrt
 
+INCPATH += -I/usr/include/uuid
 CFLAGS +=  -DHAS_UUID
 LDFLAGS += -luuid
 

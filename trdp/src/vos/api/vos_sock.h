@@ -99,6 +99,9 @@ extern "C" {
 #ifndef VOS_MAX_IF_NAME_SIZE        /**< The maximum size for the interface name                   */
 #ifdef IFNAMSIZ
 #define VOS_MAX_IF_NAME_SIZE    IFNAMSIZ
+#if VOS_MAX_IF_NAME_SIZE != 16      /**< IFNAMSIZ is only correctly included in vos_sock*.c */
+#error IFNAMSIZ is not 16 which will lead to C-API mismatch
+#endif
 #else
 #define VOS_MAX_IF_NAME_SIZE    16
 #endif
@@ -154,6 +157,8 @@ typedef struct
     BOOL8   raw;            /**< use raw socket, not for receiver!                  */
     UINT16  vlanId;
     CHAR8   ifName[VOS_MAX_IF_NAME_SIZE]; /**< interface name if available          */
+    INT32   clockid;        /**< clock, txtime will refer to, def. 0=CLOCK_REALTIME */
+    BOOL8   no_drop_late;   /**< invers of "drop if late", should be FALSE by def.  */
 } VOS_SOCK_OPT_T;
 
 typedef fd_set VOS_FDS_T;
@@ -660,6 +665,8 @@ EXT_DECL VOS_IP4_ADDR_T vos_determineBindAddr ( VOS_IP4_ADDR_T  srcIP,
 
 #ifdef TSN_SUPPORT
 /* Extension for TSN & VLAN support */
+EXT_DECL VOS_ERR_T  vos_getRealInterfaceName (VOS_IP4_ADDR_T ipAddr,
+                                              CHAR8          *pIFaceName);
 EXT_DECL VOS_ERR_T  vos_ifnameFromVlanId (UINT16    vlanId,
                                           CHAR8     *pIFaceName);
 EXT_DECL VOS_ERR_T  vos_createVlanIF (UINT16            vlanId,

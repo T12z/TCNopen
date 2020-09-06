@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      TS 2020-08-28: Adjusting thread function type: pthreads MUST return a pointer on exit (in Win a DWORD though)
 *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API 
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
