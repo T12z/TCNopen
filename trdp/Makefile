@@ -173,7 +173,11 @@ ifeq ($(FULL_BUILD), 1)
 	TRDP_OBJS += $(TRDP_OPT_OBJS)
 endif
 
-CPPFLAGS += $(INCLUDES)
+# this is a quite fragile method to determine the library version
+SRC_VER_MAJ := $(word 3, $(shell grep define src/common/trdp_private.h | grep TRDP_VERSION))
+SRC_VER_REL := $(word 3, $(shell grep define src/common/trdp_private.h | grep TRDP_RELEASE ))
+SRC_VER = $(SRC_VER_MAJ).$(SRC_VER_REL)
+
 .PHONY: all libtrdp libtrdpap example tsn test pdtest mdtest vtests xml highperf marshall clean unconfig distclean lint doc help
 
 # define some trivial shortcuts
@@ -229,6 +233,7 @@ $(OUTDIR)/libtrdpap.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS))) $(addpref
 # rules for building a shared library
 #
 ###############################################################################
+.PHONY: shared
 ## note
 # We build both versions of TRDP (simple / HIGHPERF) separately, so both are
 # available later (ie. in a package). It would be nice, if the opt sources,
@@ -240,13 +245,15 @@ $(OUTDIR)/libtrdpap.a:		$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS))) $(addpref
 # major version number. The debian packaging script passes SO_VER_MAJ. If that
 # is not available or empty, provide some sane default.
 ifeq ($(strip $(SO_VER_MAJ)),)
-SO_VER_MAJ = 2
+SO_VER_MAJ = $(SRC_VER_MAJ)
 endif
 
 # If the whole SO_VER is known, we also "prepare" (copy) the versioned libs, as
 # it is easier done here, than later.
 
-ifneq ($(strip $(SO_VER)),)
+ifeq ($(strip $(SO_VER)),)
+SO_VER = $(SRC_VER)
+endif
 
 %.so.$(SO_VER) : %.so
 	@cp $< $@
@@ -254,31 +261,24 @@ ifneq ($(strip $(SO_VER)),)
 shared: $(OUTDIR)/libtrdp.so.$(SO_VER) $(OUTDIR_HP)/libtrdp-hp.so.$(SO_VER) \
         $(OUTDIR)/libtau.so.$(SO_VER) $(OUTDIR_HP)/libtau-hp.so.$(SO_VER)
 
-else
-
-shared: $(OUTDIR)/libtau.so $(OUTDIR_HP)/libtau-hp.so
-
-endif
-
-
 $(OUTDIR)/libtrdp.so:	$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OBJS)))
 			@$(ECHO) ' ### Building the lib $(@F)'
-			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtrdp.so.$(SO_VER_MAJ) \
+			$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtrdp.so.$(SO_VER_MAJ) \
 				-shared -o "$@" $^ $(LDLIBS) 
 
 $(OUTDIR)/libtau.so:	$(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS))) $(OUTDIR)/libtrdp.so
 			@$(ECHO) ' ### Building the lib $(@F)'
-			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtau.so.$(SO_VER_MAJ) \
+			$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtau.so.$(SO_VER_MAJ) \
 				-shared -o "$@" $^ $(LDLIBS) -ltrdp
 
 $(OUTDIR_HP)/libtrdp-hp.so:	$(addprefix $(OUTDIR_HP)/,$(notdir $(TRDP_OBJS) trdp_pdindex.o))
 			@$(ECHO) ' ### Building the lib $(@F)'
-			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtrdp-hp.so.$(SO_VER_MAJ) \
+			$(CC) $(CFLAGS) $(LDFLAGS) -Wl,-soname,libtrdp-hp.so.$(SO_VER_MAJ) \
 				-shared -o "$@" $^ $(LDLIBS) 
 
 $(OUTDIR_HP)/libtau-hp.so:	$(addprefix $(OUTDIR_HP)/,$(notdir $(TRDP_OPT_OBJS))) $(OUTDIR_HP)/libtrdp-hp.so
 			@$(ECHO) ' ### Building the lib $(@F)'
-			$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -L$(OUTDIR_HP) -Wl,-soname,libtau-hp.so.$(SO_VER_MAJ) \
+			$(CC) $(CFLAGS) $(LDFLAGS) -L$(OUTDIR_HP) -Wl,-soname,libtau-hp.so.$(SO_VER_MAJ) \
 				-shared -o "$@" $^ $(LDLIBS) -ltrdp-hp
 
 ###############################################################################
@@ -325,7 +325,7 @@ $(OUTDIR)/receiveHello: receiveHello.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/receiveHello.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
-                $(LDLIBS) \
+			    $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -343,7 +343,7 @@ $(OUTDIR)/receiveTSN: receiveTSN.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/TSN/receiveTSN.c \
 			-ltrdp \
 			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
-            $(LDLIBS) \
+			$(LDLIBS) \
 			-o $@
 			@$(STRIP) $@
 
@@ -352,7 +352,7 @@ $(OUTDIR)/sendTSN:   sendTSN.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/TSN/sendTSN.c \
 			-ltrdp \
 			$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
-            $(LDLIBS) \
+			$(LDLIBS) \
 			-o $@
 			@$(STRIP) $@
 
@@ -361,7 +361,7 @@ $(OUTDIR)/sendData:   sendData.c  $(OUTDIR)/libtrdp.a
 			$(CC) example/sendData.c \
 				-ltrdp \
 				$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
-                $(LDLIBS) \
+				$(LDLIBS) \
 				-o $@
 			@$(STRIP) $@
 
@@ -370,7 +370,7 @@ $(OUTDIR)/getStats:   diverse/getStats.c  $(OUTDIR)/libtrdp.a
 			$(CC) test/diverse/getStats.c \
 			    -ltrdp \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
-                $(LDLIBS) \
+			    $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -385,7 +385,7 @@ $(OUTDIR)/mdManager: mdManager.c  $(OUTDIR)/libtrdp.a
 			    -ltrdp \
 			    -luuid \
 			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
-                $(LDLIBS) \
+			    $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -394,27 +394,27 @@ $(OUTDIR)/mdManager: mdManager.c  $(OUTDIR)/libtrdp.a
 # rule for the various test binaries
 #
 ###############################################################################
-$(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/trdp-xmlprint-test:  trdp-xmlprint-test.c  $(OUTDIR)/libtrdpap.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^ \
 			$(CFLAGS) $(INCLUDES) -o $@ \
-			-ltrdp \
+			-ltrdpap \
 			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
-$(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/trdp-xmlpd-test:  trdp-xmlpd-test.c  $(OUTDIR)/libtrdpap.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
-			-ltrdp \
+			-ltrdpap \
 			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
-$(OUTDIR)/trdp-xmlpd-test-fast:  trdp-xmlpd-test-fast.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/trdp-xmlpd-test-fast:  trdp-xmlpd-test-fast.c  $(OUTDIR)/libtrdpap.a
 			@$(ECHO) ' ### Building application $(@F)'
 			$(CC) $^  \
 			$(CFLAGS) $(INCLUDES) -o $@\
-			-ltrdp \
+			-ltrdpap \
 			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
@@ -530,7 +530,23 @@ $(OUTDIR)/pdPull: $(OUTDIR)/libtrdp.a pdPull.c
 			    -o $@
 			@$(STRIP) $@
 
-$(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdpap.a
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdpap \
+				$(LDFLAGS) $(LDLIBS)
+			@$(STRIP) $@
+
+$(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdpap.a
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdpap \
+				$(LDFLAGS) $(LDLIBS)
+			@$(STRIP) $@
+
+$(OUTDIR)/localtest3:   localtest/api_test_3.c  $(OUTDIR)/libtrdpap.a
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
@@ -538,23 +554,7 @@ $(OUTDIR)/localtest:   localtest/api_test.c  $(OUTDIR)/libtrdp.a $(addprefix $(O
 				$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
-$(OUTDIR)/localtest2:   localtest/api_test_2.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
-			@$(ECHO) ' ### Building local loop test tool $(@F)'
-			$(CC) $^  \
-				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
-				-ltrdp \
-            $(LDFLAGS) $(LDLIBS)
-			@$(STRIP) $@
-
-$(OUTDIR)/localtest3:   localtest/api_test_3.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
-			@$(ECHO) ' ### Building local loop test tool $(@F)'
-			$(CC) $^  \
-				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
-				-ltrdp \
-            $(LDFLAGS) $(LDLIBS)
-			@$(STRIP) $@
-
-$(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+$(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdpap.a
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
@@ -610,13 +610,13 @@ LINTFLAGS += -DPOSIX
 endif
 
 
-$(LINT_OUTDIR)/final.lint: $(addprefix $(LINT_OUTDIR)/,$(notdir $(LINT_OBJECTS)))
+$(LINT_OUTDIR)/final.lint: $(addprefix $(LINT_OUTDIR)/,$(notdir $(LINT_OBJECTS)))  | $(LINT_OUTDIR)
 	@$(ECHO) '### Lint Final'
 	@$(ECHO) '### Final Lint Stage - Verifying inter module / system wide stuff' > $@
 	$(FLINT) $(LINTFLAGS) $(SILENCE_LINT) -zero  $^ 1>>$@ 2>>$@
 
 # Partial lint for single C files
-$(LINT_OUTDIR)/%.lob : %.c
+$(LINT_OUTDIR)/%.lob : %.c  | $(LINT_OUTDIR)
 	@$(ECHO) ' --- Lint $(^F)'
 	@$(ECHO) '### Lint file: $(^F)'  > $(LINT_OUTDIR)/$(^F).lint
 	$(FLINT) $(LINTFLAGS) -u -oo\($@\)  -zero $< 1>>$(LINT_OUTDIR)/$(^F).lint 2>>$(LINT_OUTDIR)/$(^F).lint
@@ -640,14 +640,16 @@ doc/latex/refman.pdf: Doxyfile trdp_if_light.h trdp_types.h
 #
 ###############################################################################
 ifdef INSTALLDIR
+.PHONY: install
 install:
 	@$(MD) ../$(INSTALLDIR)
 	cp $(OUTDIR)/libtrdpap.a ../$(INSTALLDIR)/libtrdpap.a
 endif
 
+.PHONY: dist bindeb-pkg deb-pkg
 dist: distclean
 	@$(ECHO) "Building a source archive w/o project artifacts in the top-level folder."
-	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="test" --exclude="resources" --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_2.0.orig.tar.xz ../trdp
+	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="test" --exclude="resources" --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_$(SRC_VER).orig.tar.xz ../trdp
 
 #these are just a shortcuts for those like me, that always forget
 bindeb-pkg:
@@ -688,6 +690,7 @@ help:
 	@$(ECHO) "  * CENTOS_X86_64_config         - Native build for CentOS7 (Linux, little endian, 64Bit)" >&2
 	@$(ECHO) "  * QNX_X86_config               - (experimental) Native (X86) build for QNX" >&2
 	@$(ECHO) "  * VXWORKS_KMODE_PPC_config     - (experimental) Building for VXWORKS kernel mode for PowerPC" >&2
+	@$(ECHO) "  * DEB_config                   - Native build settings Debian library package" >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Custom adaptation hints:" >&2
 	@$(ECHO) " " >&2
@@ -699,6 +702,7 @@ help:
 	@$(ECHO) "To build debug binaries, append 'DEBUG=TRUE' to the make command " >&2
 	@$(ECHO) "To exclude message data support, append 'MD_SUPPORT=0' to the make command " >&2
 	@$(ECHO) "To include realtime scheduling support, append 'RT_THREADS=1' to the make command " >&2
+	@$(ECHO) "To build to a path other than '$(BUILD)', append 'BUILD=other/path'." >&2
 	@$(ECHO) " " >&2
 	@$(ECHO) "Other builds:" >&2
 	@$(ECHO) "  * make test      # build the test server application" >&2
@@ -719,8 +723,17 @@ help:
 	@$(ECHO) "  * make unconfig  - remove the configuration file" >&2
 	@$(ECHO) "  * make distclean - make clean unconfig" >&2
 	@$(ECHO) " " >&2
+	@$(ECHO) "Wrap special packages" >&2
+	@$(ECHO) "  * make dist      - package a stripped down source archive" >&2
+	@$(ECHO) "  * make bindeb-pkg- build Debian packages of the library, docs and Wireshark-plugin (w/o tests or examples)" >&2
+	@$(ECHO) "      The shared libraries can be included via '-ltrdp' or '-ltau' (the latter depends on libtrdp)." >&2
+	@$(ECHO) "      You can also include -ltrdp-hp or -ltau-hp respectively for the Indexed-variants. Don't forget to " >&2
+	@$(ECHO) "      define -DHIGH_PERF_INDEXED in that case for the included-headers to know right." >&2
+	@$(ECHO) " " >&2
 	@$(ECHO) "Documentation generator" >&2
 	@$(ECHO) "  * make doc       - build the documentation (refman.pdf)" >&2
 	@$(ECHO) "                   - (needs doxygen installed in executable path)" >&2
+	@$(ECHO) " " >&2
+	@$(ECHO) " src version: $(SRC_VER)" >&2
 	@$(ECHO) " " >&2
 
