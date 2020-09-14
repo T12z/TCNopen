@@ -40,9 +40,9 @@
 #endif
 
 /**********************************************************************************************************************/
-/**    Provide a uint8 map, see macro below, for xmarshalling. Currently, this has no means to be safely trough runtime.
+/**    Provide a uint8 map, see macro below, for xmarshalling. Slightly oversize, to avoid potential illegal mem access.
  */
-#define TAU_XTYPE_MAP_SIZE 40
+#define TAU_XTYPE_MAP_SIZE (2*(1+TRDP_TYPE_MAX)) /* 2*31 */
 
 /**********************************************************************************************************************/
 /**    Macro to help define the correct sizes and alignments for a specialized type mapping. This obviously has
@@ -77,12 +77,14 @@
 		sizeof(f32), sizeof(f64), sizeof(sec), \
 		sizeof(__TAU_XTYPE_TIME48), sizeof(__TAU_XTYPE_TIME64), \
 		sizeof(tick), sizeof(us), 0, \
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
 		0, ALIGNOF(bit8), ALIGNOF(c8), ALIGNOF(c16), \
 		ALIGNOF(i8), ALIGNOF(i16), ALIGNOF(i32), ALIGNOF(i64),  \
 		ALIGNOF(u8), ALIGNOF(u16), ALIGNOF(u32), ALIGNOF(u64),  \
 		ALIGNOF(f32), ALIGNOF(f64), ALIGNOF(sec), \
 		ALIGNOF(__TAU_XTYPE_TIME48), ALIGNOF(__TAU_XTYPE_TIME64), \
 		ALIGNOF(tick), ALIGNOF(us), 0, \
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
 	}
 
 #define __TRDP_TIMEDATE48_TICK 17

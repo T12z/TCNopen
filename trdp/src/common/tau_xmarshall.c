@@ -60,7 +60,7 @@ static TRDP_DATASET_T * *sDataSets = NULL;
 static UINT32 sNumEntries = 0u;
 
 /** List of byte sizes for standard TCMS types, identical to tau-version */
-static const UINT8 cWireSizeOfBasicTypes[] = { 0, 1, 1, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 4, 6, 8 };
+static const UINT8 cWireSizeOfBasicTypes[1+TRDP_TYPE_MAX] = { 0, 1, 1, 2, 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 4, 6, 8, 0, };
 
 static const uint8_t *cMemSizeOfBasicTypes;
 static const uint8_t *cAlignOfBasicTypes;
@@ -679,6 +679,9 @@ EXT_DECL TRDP_ERR_T tau_xmarshall(void *pRefCon __unused, UINT32 comId, const UI
 	if (!comId || !pSrc || !pDest || !pDestSize || !*pDestSize)
 		return TRDP_PARAM_ERR;
 
+	if (!sNumEntries)
+		return TRDP_INIT_ERR;
+
 	/* Can we use the formerly cached value? */
 	if (ppDSPointer) {
 		if (!*ppDSPointer)
@@ -735,6 +738,9 @@ EXT_DECL TRDP_ERR_T tau_xunmarshall(void *pRefCon __unused, UINT32 comId, UINT8 
 
 	if (!comId || !pSrc || !pDest || !pDestSize || !*pDestSize) return TRDP_PARAM_ERR;
 
+	if (!sNumEntries)
+		return TRDP_INIT_ERR;
+
 	/* Can we use the formerly cached value? */
 	if (ppDSPointer) {
 		if (!*ppDSPointer) *ppDSPointer = findDSFromComId(comId);
@@ -788,6 +794,9 @@ EXT_DECL TRDP_ERR_T tau_xcalcDatasetSize(void *pRefCon __unused, UINT32 dsId, UI
 	TAU_MARSHALL_INFO_T info;
 
 	if (!dsId || !pSrc || !pDestSize) return TRDP_PARAM_ERR;
+
+	if (!sNumEntries)
+		return TRDP_INIT_ERR;
 
 	/* Can we use the formerly cached value? */
 	if (ppDSPointer) {
@@ -844,6 +853,9 @@ EXT_DECL TRDP_ERR_T tau_xcalcDatasetSizeByComId(void *pRefCon __unused, UINT32 c
 	TAU_MARSHALL_INFO_T info;
 
 	if (!comId || !pSrc || !pDestSize) return TRDP_PARAM_ERR;
+
+	if (!sNumEntries)
+		return TRDP_INIT_ERR;
 
 	/* Can we use the formerly cached value? */
 	if (ppDSPointer) {

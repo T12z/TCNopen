@@ -68,6 +68,7 @@ libtau-hp.so.2 libtrdp2 #MINVER#
  tau_xsession_cycle_until@Base 2.0
  tau_xsession_delete@Base 2.0
  tau_xsession_getCom@Base 2.0
+ tau_xsession_getRxTime@Base 2.0
  tau_xsession_init@Base 2.0
  tau_xsession_load@Base 2.0
  tau_xsession_lookup_dataset@Base 2.0
@@ -158,6 +159,7 @@ libtau.so.2 libtrdp2 #MINVER#
  tau_xsession_cycle_until@Base 2.0
  tau_xsession_delete@Base 2.0
  tau_xsession_getCom@Base 2.0
+ tau_xsession_getRxTime@Base 2.0
  tau_xsession_init@Base 2.0
  tau_xsession_load@Base 2.0
  tau_xsession_lookup_dataset@Base 2.0
@@ -255,8 +257,8 @@ libtrdp-hp.so.2 libtrdp2 #MINVER#
  trdp_getAccess@Base 2.0
  trdp_getCurrentMaxSocketCnt@Base 2.0
  trdp_getOwnIP@Base 2.0
- trdp_getSeqCnt@Base 2.0
  trdp_handleTimeout@Base 2.0
+ trdp_idxfindSubAddr@Base 2.0
  trdp_indexAllocTables@Base 2.0
  trdp_indexCheckPending@Base 2.0
  trdp_indexCreatePubTables@Base 2.0
@@ -481,8 +483,8 @@ libtrdp.so.2 libtrdp2 #MINVER#
  trdp_getAccess@Base 2.0
  trdp_getCurrentMaxSocketCnt@Base 2.0
  trdp_getOwnIP@Base 2.0
- trdp_getSeqCnt@Base 2.0
  trdp_handleTimeout@Base 2.0
+ trdp_idxfindSubAddr@Base 2.0
  trdp_initSockets@Base 2.0
  trdp_initStats@Base 2.0
  trdp_initUncompletedTCP@Base 2.0

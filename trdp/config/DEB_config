@@ -33,13 +33,20 @@ endif
 
 # the _GNU_SOURCE is needed to get the extended poll feature for the POSIX socket
 CPPFLAGS += -D_GNU_SOURCE -DPOSIX -DL_ENDIAN -pthread
+CPPFLAGS += -DHAS_UUID
+# CPPFLAGS is not used in the Makefile, use CFLAGS instead
+CFLAGS += $(CPPFLAGS)
 
 # be mildly annoying
 CFLAGS   += -Wall -Werror -fstrength-reduce -fsigned-char -fPIC 
-CFLAGS   += -Wno-unknown-pragmas -Wno-unused-label -Wno-unused-function -Wno-address-of-packed-member
-
-LDFLAGS += 
+# silence XCode pragmas
+CFLAGS   += -Wno-unknown-pragmas
 LDLIBS += -lrt
+
+INCPATH += -I/usr/include/uuid
+LDLIBS += -luuid
+
+
 
 # debhelper potentially already does this for us, need to check
 ifeq ($(DEB_HOST_ARCH), i386)
@@ -60,5 +67,8 @@ SOA_SUPPORT = 1
 
 # Currently, there are multiple libs being build, partially with HP enabled.
 # Do not uncomment this for this configuration.
+# However, append it manually to make for building the examples with this config & HP
 #HIGH_PERF_INDEXED = 1
 
+# This will reduce timeout deviations (default is a check every 100ms)
+CFLAGS += -DTRDP_TO_CHECK_CYCLE=50000

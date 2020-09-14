@@ -152,7 +152,7 @@ const char *tau_getResultString(TRDP_ERR_T ret) {
  *  @retval         none
  */
 static void dbgOut (void *pRefCon, TRDP_LOG_T category, const CHAR8 *pTime, const CHAR8 *pFile, UINT16 LineNumber, const CHAR8 *pMsgStr) {
-	static const char *catStr[] = {"**Error: ", "Warning: ", "   Info: ", "  Debug: "};
+	const char *catStr[] = {"**Error: ", "Warning: ", "   Info: ", "  Debug: "};
 
 	/*  Check message category*/
 	if (!_.app_cput || (INT32)category > _.maxLogCategory) return;
@@ -172,7 +172,7 @@ static void dbgOut (void *pRefCon, TRDP_LOG_T category, const CHAR8 *pTime, cons
 			/* time */		(_.dbgConfig.option & TRDP_DBG_TIME) ? pTime:"",
 			/* category */	(_.dbgConfig.option & TRDP_DBG_CAT) ? catStr[category]:"",
 			/* location */	(_.dbgConfig.option & TRDP_DBG_LOC) ? pFile:"",
-							(_.dbgConfig.option & TRDP_DBG_LOC) ? LineNumber:0);
+							(_.dbgConfig.option & TRDP_DBG_LOC) ? LineNumber:0u);
 		_.app_cput(str, pMsgStr, putNL);
 	} else
 		_.app_cput("DBG: ", pMsgStr, putNL);
@@ -202,10 +202,10 @@ static TRDP_ERR_T initMarshalling(const TRDP_XML_DOC_HANDLE_T * pDocHnd, const U
 	/* basically, take values, sort the arrays, but takes no copy! */
 	if (xmap_valid) {
 		result = tau_xinitMarshall(NULL /*cur. a nop*/, _.numComId, _.pComIdDsIdMap, _.numDataset, _.apDataset, pXTypeMap);
-		vos_printLog(VOS_LOG_INFO, "Using EXTENDED marshalling.");
+		vos_printLogStr(VOS_LOG_INFO, "Using EXTENDED marshalling.");
 	} else {
 		result = tau_initMarshall( NULL /*cur. a nop*/, _.numComId, _.pComIdDsIdMap, _.numDataset, _.apDataset);
-		vos_printLog(VOS_LOG_INFO, "Using default marshalling.");
+		vos_printLogStr(VOS_LOG_INFO, "Using default marshalling.");
 	}
 	if (result != TRDP_NO_ERR) {
 		tau_freeXmlDatasetConfig(_.numComId, _.pComIdDsIdMap, _.numDataset, _.apDataset);
@@ -222,7 +222,7 @@ static TRDP_ERR_T initMarshalling(const TRDP_XML_DOC_HANDLE_T * pDocHnd, const U
 	_.marshallCfg.pfCbUnmarshall = xmap_valid ? tau_xunmarshall : tau_unmarshall;
 	_.marshallCfg.pRefCon = NULL; /* if we overwrite with own functions, pRefCon may be set to @our or something like it */
 
-	vos_printLog(VOS_LOG_INFO, "Initialized %cmarshalling for %d datasets, %d ComId to Dataset Id relations",
+	vos_printLog(VOS_LOG_INFO, "Initialized %cmarshalling for %u datasets, %u ComId to Dataset Id relations",
 			xmap_valid?'x':' ',	_.numDataset, _.numComId);
 	return TRDP_NO_ERR;
 }
@@ -270,7 +270,7 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 		if (_.comPar[i].id == pExchgPar->comParId) pSendParam = &_.comPar[i].sendParam;
 
 	if (!pSendParam) {
-		vos_printLog(VOS_LOG_ERROR, "Unknown comParId %d for comID %d", pExchgPar->comParId, pExchgPar->comId);
+		vos_printLog(VOS_LOG_ERROR, "Unknown comParId %u for comID %u", pExchgPar->comParId, pExchgPar->comId);
 		return TRDP_PARAM_ERR;
 	}
 
@@ -303,7 +303,7 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 		if (pDest.pUriHost) {
 			destIP = vos_dottedIP(*(pDest.pUriHost));
 			if (*pDest.pUriHost && **pDest.pUriHost && !destIP) {
-				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s configured for comID %d, destID %d",
+				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s configured for comID %u, destID %u",
 						*pDest.pUriHost, pExchgPar->comId, pDest.id);
 				return TRDP_PARAM_ERR;
 			}
@@ -311,7 +311,7 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 		if (!destIP && info) destIP = info->replyIpAddr? info->replyIpAddr : info->srcIpAddr;
 
 		if (interval && (destIP == 0 || destIP == 0xFFFFFFFF)) {
-			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s/%x specified for comID %d, destID %d",
+			vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s/%x specified for comID %u, destID %u",
 					*pDest.pUriHost, destIP, pExchgPar->comId, pDest.id);
 			return TRDP_PARAM_ERR;
 		}
@@ -327,11 +327,11 @@ static TRDP_ERR_T publishTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExchg
 				data, memLength);
 
 		if (result != TRDP_NO_ERR) {
-			vos_printLog(VOS_LOG_ERROR, "tlp_publish for comID %d, destID %d failed: %s",
+			vos_printLog(VOS_LOG_ERROR, "tlp_publish for comID %u, destID %u failed: %s",
 					pExchgPar->comId, pDest.id, tau_getResultString(result));
 			return result;
 		} else {
-			vos_printLog(VOS_LOG_INFO, "Published telegram: ComId %d, DestId %d", pExchgPar->comId, pDest.id);
+			vos_printLog(VOS_LOG_INFO, "Published telegram: ComId %u, DestId %u", pExchgPar->comId, pDest.id);
 
 			/* round down time, if cycle-alignment is used */
 			if (our->sendOffset >= 0) {
@@ -420,7 +420,7 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 		if (pExchgPar->pSrc[i].pUriHost1 && *pExchgPar->pSrc[i].pUriHost1 && **pExchgPar->pSrc[i].pUriHost1) {
 			srcIP1 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost1));
 			if (!srcIP1 || srcIP1 == 0xFFFFFFFF) {
-				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI1 in comID %d, destID %d",
+				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI1 in comID %u, destID %u",
 						*pExchgPar->pSrc[i].pUriHost1, pExchgPar->comId, pExchgPar->pSrc[i].id);
 				return result;
 			}
@@ -429,7 +429,7 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 		if (pExchgPar->pSrc[i].pUriHost2) {
 			srcIP2 = vos_dottedIP(*(pExchgPar->pSrc[i].pUriHost2));
 			if (!srcIP2 || srcIP2 == 0xFFFFFFFF) {
-				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI2 in comID %d, destID %d",
+				vos_printLog(VOS_LOG_ERROR, "Invalid IP address %s specified for URI2 in comID %u, destID %u",
 						*pExchgPar->pSrc[i].pUriHost2, pExchgPar->comId, pExchgPar->pSrc[i].id);
 				return TRDP_PARAM_ERR;
 			}
@@ -441,7 +441,7 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 				0, 0, srcIP1, srcIP2, destMCIP, flags, NULL, timeout, toBehav);
 
 		if (result != TRDP_NO_ERR) {
-			vos_printLog(VOS_LOG_ERROR, "tlp_subscribe for comID %d, srcID %d failed: %s",
+			vos_printLog(VOS_LOG_ERROR, "tlp_subscribe for comID %u, srcID %u failed: %s",
 					pExchgPar->comId, pExchgPar->pSrc[i].id, tau_getResultString(result));
 			return result;
 		}
@@ -454,7 +454,7 @@ static TRDP_ERR_T subscribeTelegram(TAU_XSESSION_T *our, TRDP_EXCHG_PAR_T * pExc
 			}
 		}
 
-		vos_printLog(VOS_LOG_INFO, "Subscribed telegram: ComId %d, SrcId %d",
+		vos_printLog(VOS_LOG_INFO, "Subscribed telegram: ComId %u, SrcId %u",
 				pExchgPar->comId, pExchgPar->pSrc[i].id);
 	}
 
@@ -611,7 +611,7 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName,
 
 	/*  Log configuration   */
 	if (!_.devDocHnd.pXmlDocument || _.use < 0) {
-		vos_printLog(VOS_LOG_ERROR, "XML device configuration not available.");
+		vos_printLogStr(VOS_LOG_ERROR, "XML device configuration not available.");
 		return result;
 	}
 
@@ -672,7 +672,7 @@ TRDP_ERR_T tau_xsession_publish(TAU_XSESSION_T *our, UINT32 ComID, INT32 *pubTel
 		}
 	}
 	if (result != TRDP_NO_ERR) {
-		vos_printLog(VOS_LOG_WARNING, "Failed to publish telegram comId=%d for interface %s",
+		vos_printLog(VOS_LOG_WARNING, "Failed to publish telegram comId=%u for interface %s",
 				ComID, our->pIfConfig->ifName);
 	}
 
@@ -691,7 +691,7 @@ TRDP_ERR_T tau_xsession_subscribe(TAU_XSESSION_T *our, UINT32 ComID, INT32 *subT
 		}
 	}
 	if (result != TRDP_NO_ERR) {
-		vos_printLog(VOS_LOG_WARNING, "Failed to subscribe telegram comId=%d for interface %s",
+		vos_printLog(VOS_LOG_WARNING, "Failed to subscribe telegram comId=%u for interface %s",
 				ComID, our->pIfConfig->ifName);
 	}
 
@@ -884,7 +884,7 @@ TRDP_ERR_T tau_xsession_setCom(TAU_XSESSION_T *our, INT32 pubTelID, const UINT8 
 		result = tlp_put( our->sessionhandle, our->aTelegrams[pubTelID].handle, data, cap);
 		if (result != our->aTelegrams[pubTelID].result) {
 			our->aTelegrams[pubTelID].result = result;
-			vos_printLog(VOS_LOG_WARNING, "%s comId=%d for dst=<%s>. %s\n",
+			vos_printLog(VOS_LOG_WARNING, "%s comId=%u for dst=<%s>. %s\n",
 					result ? "Failed to SET" : "Setting again",
 					our->aTelegrams[pubTelID].handle->addr.comId, vos_ipDotted(our->aTelegrams[pubTelID].handle->addr.destIpAddr), tau_getResultString(result));
 		}
@@ -905,7 +905,7 @@ TRDP_ERR_T tau_xsession_getCom(TAU_XSESSION_T *our, INT32 subTelID, UINT8 *data,
 		result = tlp_get( our->sessionhandle, our->aTelegrams[subTelID].handle, info, data, length);
 		if (result != our->aTelegrams[subTelID].result) {
 			our->aTelegrams[subTelID].result = result;
-			vos_printLog(VOS_LOG_WARNING, "%s comId=%d from src=<%s> (%s)\n",
+			vos_printLog(VOS_LOG_WARNING, "%s comId=%u from src=<%s> (%s)\n",
 					result ? "Failed to get" : "Getting again",
 					our->aTelegrams[subTelID].handle->addr.comId, vos_ipDotted(our->aTelegrams[subTelID].handle->addr.srcIpAddr), tau_getResultString(result));
 		}
@@ -927,7 +927,7 @@ TRDP_ERR_T tau_xsession_request(TAU_XSESSION_T *our, INT32 subTelID) {
 		result = tlp_request(our->sessionhandle, sub, 0, sub->addr.comId, 0u, 0u, our->pIfConfig->hostIp, sub->addr.srcIpAddr,
 							0u, TRDP_FLAGS_NONE, 0u, NULL, 0u, 0u, 0u);
 		if (result != TRDP_NO_ERR)
-			vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%d from dst=%d (%s)",
+			vos_printLog(VOS_LOG_WARNING, "Failed to request telegram comId=%u from dst=%u (%s)",
 					sub->addr.comId, sub->addr.srcIpAddr, tau_getResultString(result));
 	} else {
 		vos_printLog(VOS_LOG_ERROR, "Invalid TelID (%d) to request buffer.", subTelID);
