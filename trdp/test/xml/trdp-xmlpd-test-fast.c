@@ -470,7 +470,7 @@ static TRDP_ERR_T printDatasetElem(UINT8 * pBuff, UINT32 * pOffset, UINT32 elemT
             printf("I32[%u]: %010i, ", i, *(INT32 *)pData);
             break;
         case TRDP_INT64:
-            printf("I64[%u]: %020lli, ", i, *(INT64 *)pData);
+            printf("I64[%u]: %020lli, ", i, *(long long int *)pData);
             break;
         case TRDP_UINT8:
             printf("U8[%u]: %03u, ", i, *(UINT8 *)pData);
@@ -482,7 +482,7 @@ static TRDP_ERR_T printDatasetElem(UINT8 * pBuff, UINT32 * pOffset, UINT32 elemT
             printf("U32[%u]: %010u, ", i, *(UINT32 *)pData);
             break;
         case TRDP_UINT64:
-            printf("U64[%u]: %020llu, ", i, *(UINT64 *)pData);
+            printf("U64[%u]: %020llu, ", i, *(long long unsigned int *)pData);
             break;
         case TRDP_REAL32:
             printf("R32[%u]: %f, ", i, *(float *)pData);
@@ -1092,7 +1092,7 @@ static void processData()
     dataPeriod.tv_usec = DATA_PERIOD % 1000000;
     dataPeriod.tv_sec = DATA_PERIOD / 1000000;
 
-    printf("Data update cycle:\t%uµs\n", dataPeriod.tv_usec);
+    printf("Data update cycle:\t%ldµs\n", (long int)dataPeriod.tv_usec);
     /*  Wait for user to press enter    */
     printf("Press Enter to start data processing...\n");
     getchar();

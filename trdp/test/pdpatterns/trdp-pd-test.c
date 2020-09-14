@@ -658,7 +658,7 @@ static void _set_color_default()
     printf("\033" "[0m");
 }
 
-static void _sleep_msec(int msec)
+static void __unused _sleep_msec(int msec)
 {
     struct timespec ts;
     ts.tv_sec = msec / 1000;

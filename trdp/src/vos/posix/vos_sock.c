@@ -1641,14 +1641,15 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
     UINT32  *pSize)
 {
     ssize_t rcvSize     = 0;
-    size_t  bufferSize  = (size_t) *pSize;
-
-    *pSize = 0;
+    size_t  bufferSize;
 
     if (sock == -1 || pBuffer == NULL || pSize == NULL)
     {
         return VOS_PARAM_ERR;
     }
+
+    bufferSize  = (size_t) *pSize;
+    *pSize = 0;
 
     do
     {

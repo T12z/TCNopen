@@ -21,9 +21,9 @@
  *      CK 2020-04-06: Ticket #318 Added pointer to list of seqCnt used per comId for PD Requests in TRDP_SESSION_T
  *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
  *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
- *      AÖ 2020-01-10: Ticket #293 Minor fix in the macro, added spaces to avoid " to be part of the final string.
+ *      AÃ– 2020-01-10: Ticket #293 Minor fix in the macro, added spaces to avoid " to be part of the final string.
  *      BL 2020-01-10: Ticket #293 Avoid having version numbering in different places! Makro for version string (DLL) changed.
- *      AÖ 2019-11-14: Ticket #293 Add version to TCNOpen dll <-- !!! should be rejected! Use the function in tlc_if.c !!!
+ *      AÃ– 2019-11-14: Ticket #293 Add version to TCNOpen dll <-- !!! should be rejected! Use the function in tlc_if.c !!!
  *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
  *      BL 2019-06-17: Ticket #264 Provide service oriented interface
  *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter

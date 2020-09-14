@@ -1043,7 +1043,7 @@ static int test3b ()
         /* calculate the elapsed time from the subscription until the timeout recognition */
         vos_subTime(&time, &startTime);
 
-        printf("delta = %lds %dms\n", time.tv_sec, time.tv_usec / 1000);
+        printf("delta = %lds %ldms\n", time.tv_sec, (long int)time.tv_usec / 1000);
 
         err = ((((time.tv_sec * 1000000) + time.tv_usec) - (10 * TLG_2_CYCLE_TIME)) <= TLG_2_CYCLE_TIME) ? TRDP_NO_ERR : TRDP_UNKNOWN_ERR;
         //err = ((time.tv_usec - (10 * TLG_2_CYCLE_TIME)) <= TLG_2_CYCLE_TIME) ? TRDP_NO_ERR : TRDP_UNKNOWN_ERR;
@@ -1504,7 +1504,7 @@ static int test7 ()
  *  @retval         0        no error
  *  @retval         1        some error
  */
-static int test8 ()
+static int __unused test8 ()
 {
     PREPARE("#153 (two PDs on one pull request? Receiver only", "test"); /* allocates appHandle1, appHandle2, failed =
                                                                            0, err */
@@ -1602,7 +1602,7 @@ static int test8 ()
  *  @retval         0        no error
  *  @retval         1        some error
  */
-static int test9 ()
+static int __unused test9 ()
 {
     PREPARE("Send and receive many telegrams, to check time optimisations", "test"); /* allocates appHandle1,
                                                                                        appHandle2, failed = 0, err */
@@ -1847,7 +1847,11 @@ static int test11 ()
                              pdInfo.seqCount,
                              pdInfo.msgType >> 8,
                              pdInfo.msgType & 0xFF);
-                vos_printLog(VOS_LOG_USR, "Data: %*s\n", dataSize, buffer);
+                buffer[dataSize<248?dataSize:248] = 0; 
+                vos_printLog(VOS_LOG_USR, "Data: %.248s\n", buffer);
+                if (dataSize > 248) {
+                    vos_printLog(VOS_LOG_USR, "Data output truncated from size=%d\n", dataSize);
+                }
                 break;
             }
         }

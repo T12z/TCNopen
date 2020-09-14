@@ -93,7 +93,7 @@ EXT_DECL VOS_ERR_T vos_sharedOpen (
 {
     VOS_ERR_T       ret         = VOS_MEM_ERR;
     mode_t          PERMISSION  = 0666;      /* Shared Memory permission is rw-rw-rw- */
-    static INT32    fd;                      /* Shared Memory file descriptor */
+    INT32           fd;                      /* Shared Memory file descriptor */
     struct    stat  sharedMemoryStat;        /* Shared Memory Stat */
 
     /* Shared Memory Open */

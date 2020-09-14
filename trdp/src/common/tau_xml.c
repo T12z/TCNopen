@@ -2395,7 +2395,6 @@ EXT_DECL void tau_freeXmlDatasetConfig (
             ppDataset[i] = NULL;
         }
         vos_memFree(ppDataset);
-        ppDataset = NULL;
     }
 }
 

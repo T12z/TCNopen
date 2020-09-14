@@ -166,7 +166,8 @@ static void   print_table (
     TRDP_HP_CAT_SLOT_T *pSlots)
 {
     UINT32 slot, depth;
-    static CHAR8 buffer[1024] = {0};
+    CHAR8 buffer[1024];
+    buffer[0] = 0;
 
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
     vos_printLog(VOS_LOG_INFO,
@@ -179,7 +180,7 @@ static void   print_table (
         for (depth = 0; depth < pSlots->depthOfTxEntries; depth++)
         {
             int n;
-            static CHAR8    strBuf[32];
+            CHAR8    strBuf[32];
             PD_ELE_T        *pDest = getElement(pSlots, slot, depth);
             if (pDest == NULL)
             {
@@ -381,7 +382,7 @@ static TRDP_ERR_T distribute (
                  */
                 idx++;
                 vos_printLog(VOS_LOG_WARNING,
-                             "Max. depth exceeded - comId %u with %ums interval will have additional jitter (%ums)\n",
+                             "Max. depth exceeded - comId %u with %dms interval will have additional jitter (%ums)\n",
                              (unsigned int) pElement->addr.comId,
                              (int) (pElement->interval.tv_usec / 1000 + pElement->interval.tv_sec * 1000u),
                              (unsigned int) pCat->slotCycle / 1000u);
@@ -824,7 +825,7 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
         (processCycle > TRDP_MAX_CYCLE))
     {
         vos_printLog(VOS_LOG_ERROR,
-                     "trdp_indexCreatePubTables Failed! processCycle %d : Not between 1000 to 10000...\n",
+                     "trdp_indexCreatePubTables Failed! processCycle %u : Not between 1000 to 10000...\n",
                      processCycle);
         return TRDP_PARAM_ERR;
     }

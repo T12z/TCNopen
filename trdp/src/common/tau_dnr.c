@@ -324,7 +324,7 @@ static TRDP_ERR_T readHostsFile (
                 }
             }
         }
-        vos_printLog(VOS_LOG_DBG, "readHostsFile: %d entries processed\n", pDNR->noOfCachedEntries);
+        vos_printLog(VOS_LOG_DBG, "readHostsFile: %u entries processed\n", pDNR->noOfCachedEntries);
         vos_qsort(pDNR->cache, pDNR->noOfCachedEntries, sizeof(TAU_DNR_ENTRY_T), compareURI);
         fclose(fp);
         printDNRcache(pDNR);

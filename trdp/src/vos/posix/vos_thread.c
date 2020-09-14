@@ -275,7 +275,7 @@ static void *vos_runCyclicThread_EDF (
         if (runtime > interval) {
             vos_printLog(VOS_LOG_WARNING,
                          "[t:%s] intv=%llu ms --> ~%llu ns.\n",
-                         name, interval/1000000ull, runtime);
+                         name, interval/1000000ull, (unsigned long long)runtime);
         }
 #ifdef DEBUG
         /* help seeking WCET */
@@ -872,24 +872,21 @@ EXT_DECL void vos_getNanoTime (
 
 EXT_DECL const CHAR8 *vos_getTimeStamp (void)
 {
-    static char     pTimeString[64] = {0};
+    static char     pTimeString[64];
     struct timeval  curTime;
-    struct tm       *curTimeTM;
+    struct tm       curTimeTM;
 
     (void)gettimeofday(&curTime, NULL);
-    curTimeTM = localtime(&curTime.tv_sec);
+    localtime_r(&curTime.tv_sec, &curTimeTM);
 
-    if (curTimeTM != NULL)
-    {
-        (void)sprintf(pTimeString, "%04d%02d%02d-%02d:%02d:%02d.%06ld ",
-                      curTimeTM->tm_year + 1900,
-                      curTimeTM->tm_mon + 1,
-                      curTimeTM->tm_mday,
-                      curTimeTM->tm_hour,
-                      curTimeTM->tm_min,
-                      curTimeTM->tm_sec,
+    snprintf(pTimeString, sizeof(pTimeString), "%04d%02d%02d-%02d:%02d:%02d.%06ld ",
+                      curTimeTM.tm_year + 1900,
+                      curTimeTM.tm_mon + 1,
+                      curTimeTM.tm_mday,
+                      curTimeTM.tm_hour,
+                      curTimeTM.tm_min,
+                      curTimeTM.tm_sec,
                       (long) curTime.tv_usec);
-    }
     return pTimeString;
 }
 

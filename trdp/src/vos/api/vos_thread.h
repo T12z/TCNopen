@@ -18,8 +18,8 @@
 * $Id$
 *
 *      TS 2020-08-28: Adjusting thread function type: pthreads MUST return a pointer on exit (in Win a DWORD though)
-*      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API 
-*      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
+*      AÃ– 2019-12-17: Ticket #308: Add vos Sim function to API 
+*      AÃ– 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
 *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
 */
@@ -348,6 +348,7 @@ EXT_DECL void   vos_getNanoTime (
 /** Get a time-stamp string.
  *    Get a time-stamp string for debugging in the form "yyyymmdd-hh:mm:ss.ms"
  *    Depending on the used OS / hardware the time might not be a real-time stamp but relative from start of system.
+ *    This function is NOT thread-safe (static string buffer).
  *
  *  @retval         timestamp        "yyyymmdd-hh:mm:ss.ms"
  */

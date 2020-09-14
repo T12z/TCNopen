@@ -1548,7 +1548,12 @@ static int test11 ()
                              pdInfo.seqCount,
                              pdInfo.msgType >> 8,
                              pdInfo.msgType & 0xFF);
-                vos_printLog(VOS_LOG_USR, "Data: %*s\n", dataSize, buffer);
+                /* printLog has a limited 256-buffer, print only the first 248 characters */
+                buffer[dataSize<248?dataSize:248] = 0;
+                vos_printLog(VOS_LOG_USR, "Data: %.248s\n", buffer);
+                if (dataSize > 248) {
+                    vos_printLog(VOS_LOG_USR, "Data buffer chopped to %u, was %u.\n", 248, dataSize);
+                }
                 break;
             }
         }

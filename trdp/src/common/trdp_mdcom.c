@@ -962,18 +962,14 @@ static TRDP_ERR_T trdp_mdCheck (TRDP_SESSION_PT appHandle,
  */
 static void    trdp_mdUpdatePacket (MD_ELE_T *pElement)
 {
-    /* Initialize CRC calculation */
     UINT32  myCRC;
-
-    /* Get header and packet check sum values */
-    UINT32  *hFCS = &pElement->pPacket->frameHead.frameCheckSum;
 
     /* Calculate CRC for message head */
     myCRC = vos_crc32(INITFCS,
                       (UINT8 *)&pElement->pPacket->frameHead,
                       sizeof(MD_HEADER_T) - SIZE_OF_FCS);
     /* Convert to Little Endian */
-    *hFCS = MAKE_LE(myCRC);
+    pElement->pPacket->frameHead.frameCheckSum = MAKE_LE(myCRC);
 }
 
 /**********************************************************************************************************************/
@@ -1032,7 +1028,7 @@ static TRDP_ERR_T  trdp_mdSendPacket (SOCKET    mdSock,
 
     if ((pElement->sendSize) != pElement->grossSize)
     {
-        vos_printLog(VOS_LOG_INFO, "vos_sockSend%s incomplete (Socket: %d, Port: %d)\n",
+        vos_printLog(VOS_LOG_INFO, "vos_sockSend%s incomplete (Socket: %d, Port: %u)\n",
                      (pElement->pktFlags & TRDP_FLAGS_TCP) ? "TCP" : "UDP", (int) mdSock, (unsigned int) port);
         return TRDP_IO_ERR;
     }
@@ -1629,7 +1625,7 @@ static TRDP_ERR_T trdp_mdHandleRequest (TRDP_SESSION_PT     appHandle,
         if ( appHandle->mdDefault.maxNumSessions <= numOfReceivers )
         {
             /* Discard MD request, we shall not be flooded by incoming requests */
-            vos_printLog(VOS_LOG_INFO, "trdp_mdRecv: Max. number of requests reached (%d)!\n", numOfReceivers);
+            vos_printLog(VOS_LOG_INFO, "trdp_mdRecv: Max. number of requests reached (%u)!\n", numOfReceivers);
             /* Indicate that this call can not get replied due to receiver count limitation  */
             (void)trdp_mdSendME(appHandle, pH, TRDP_REPLY_NO_MEM_REPL);
             /* return to calling routine without performing any receiver action */
@@ -2836,7 +2832,7 @@ void  trdp_mdCheckListenSocks (
 
                         if (err != TRDP_NO_ERR)
                         {
-                            vos_printLog(VOS_LOG_ERROR, "trdp_requestSocket() failed (Err: %d, Port: %d)\n",
+                            vos_printLog(VOS_LOG_ERROR, "trdp_requestSocket() failed (Err: %d, Port: %u)\n",
                                          err, (UINT32)appHandle->mdDefault.tcpPort);
                         }
                     }
@@ -2926,7 +2922,7 @@ void  trdp_mdCheckListenSocks (
 void  trdp_mdCheckTimeouts (
     TRDP_SESSION_PT appHandle)
 {
-    MD_ELE_T    *iterMD     = appHandle->pMDSndQueue;
+    MD_ELE_T    *iterMD;
     BOOL8       firstLoop   = TRUE;
     BOOL8       timeOut     = FALSE;
     TRDP_TIME_T now;
@@ -2935,6 +2931,7 @@ void  trdp_mdCheckTimeouts (
     {
         return;
     }
+    iterMD = appHandle->pMDSndQueue;
 
     /*  Find the sessions which needs action
      Note: We must also check the receive queue for pending replies! */

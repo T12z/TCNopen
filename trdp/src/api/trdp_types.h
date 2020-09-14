@@ -418,7 +418,7 @@ typedef struct
     UINT32  numFreeErr;                                 /**< free errors */
     UINT32  blockSize[VOS_MEM_NBLOCKSIZES];             /**< preallocated memory blocks */
     UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];         /**< used memory blocks */
-} GNU_PACKED TRDP_MEM_STATISTICS_T;
+} /* GNU_PACKED -- is packed as is */ TRDP_MEM_STATISTICS_T;
 
 
 /** Structure containing all general PD statistics information. */

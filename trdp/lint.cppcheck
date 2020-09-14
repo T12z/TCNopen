@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <builddir>bld/cppcheck</builddir>
+    <platform>Native</platform>
+    <analyze-all-vs-configs>false</analyze-all-vs-configs>
+    <check-headers>true</check-headers>
+    <check-unused-templates>false</check-unused-templates>
+    <max-ctu-depth>10</max-ctu-depth>
+    <includedir>
+        <dir name="src/api/"/>
+        <dir name="src/vos/api/"/>
+        <dir name="src/vos/posix/"/>
+        <dir name="/usr/include/uuid/"/>
+        <dir name="src/common/"/>
+    </includedir>
+    <defines>
+        <define name="POSIX"/>
+        <define name="HAS_UUID=1"/>
+        <define name="RT_THREADS"/>
+        <define name="NO_DEBUG"/>
+        <define name="_GNU_SOURCE"/>
+        <define name="L_ENDIAN"/>
+        <define name="SOA_SUPPORT"/>
+        <define name="MD_SUPPORT=1"/>
+        <define name="HIGH_PERF_INDEXED"/>
+        <define name="TSN_SUPPORT"/>
+        <define name="SO_PRIORITY=1"/>
+        <define name="SO_BINDTODEVICE=1"/>
+        <define name="SO_REUSEPORT=1"/>
+        <define name="SCHED_DEADLINE=1"/>
+        <define name="CLOCK_MONOTONIC=1"/>
+    </defines>
+    <undefines>
+        <undefine>WIN64</undefine>
+        <undefine>SOCKET</undefine>
+        <undefine>__APPLE__</undefine>
+        <undefine>INVALID_SOCKET</undefine>
+    </undefines>
+    <paths>
+        <dir name="src/vos/posix"/>
+        <dir name="src/common"/>
+    </paths>
+    <libraries>
+        <library>posix</library>
+    </libraries>
+    <suppressions>
+        <suppression>selfAssignment</suppression>
+    </suppressions>
+    <addons>
+        <addon>threadsafety</addon>
+        <addon>cert</addon>
+    </addons>
+</project>

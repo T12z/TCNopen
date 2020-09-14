@@ -466,6 +466,7 @@ void    trdp_UpdateStats (
     VOS_ERR_T       ret;
     VOS_TIMEVAL_T   temp, temp2;
     TIMEDATE32      diff;
+    TRDP_MEM_STATISTICS_T mem; /* use a local buffer to assure aligned pointers to memCount() */
 
     /*  Get a new time stamp    */
     vos_getTime(&temp2);
@@ -482,17 +483,19 @@ void    trdp_UpdateStats (
 
 
     /*  Update memory statsp    */
-    ret = vos_memCount(&appHandle->stats.mem.total,
-                       &appHandle->stats.mem.free,
-                       &appHandle->stats.mem.minFree,
-                       &appHandle->stats.mem.numAllocBlocks,
-                       &appHandle->stats.mem.numAllocErr,
-                       &appHandle->stats.mem.numFreeErr,
-                       appHandle->stats.mem.blockSize,
-                       appHandle->stats.mem.usedBlockSize);
+    ret = vos_memCount(&mem.total,
+                       &mem.free,
+                       &mem.minFree,
+                       &mem.numAllocBlocks,
+                       &mem.numAllocErr,
+                       &mem.numFreeErr,
+                       mem.blockSize,
+                       mem.usedBlockSize);
     if (ret != VOS_NO_ERR)
     {
         vos_printLog(VOS_LOG_ERROR, "vos_memCount() failed (Err: %d)\n", ret);
+    } else {
+        appHandle->stats.mem = mem;
     }
 
     appHandle->stats.pd.numMissed = 0u;

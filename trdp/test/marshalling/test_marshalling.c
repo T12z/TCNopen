@@ -975,7 +975,7 @@ static int test1()
     return 0;
 }
 
-static int test2()
+static int __unused test2()
 {
     TRDP_ERR_T  err;
     UINT32      compSize    = 0;
