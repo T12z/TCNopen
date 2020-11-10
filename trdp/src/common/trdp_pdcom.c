@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-11-03: Ticket #347 Allow dynamic sized arrays for PD (Ticket #207 undone)
 *      BL 2020-07-29: Ticket #332 Error reading from TSN PD header
 *      BL 2020-07-27: Ticket #304 ... stats count for no subscription added
 *      BL 2020-07-15: Ticket #337 PD request in multithread application, concurrency problems with msg/sockets
@@ -224,12 +225,27 @@ TRDP_ERR_T trdp_pdPut (
         {
 
             /* We must check the packet size! */
-            if ((dataSize > TRDP_MAX_PD_DATA_SIZE) ||
-                ((pPacket->dataSize != 0u) && (dataSize != pPacket->dataSize)))   /* Ticket #207: datasize differs */
-            {
+            if (dataSize > TRDP_MAX_PD_DATA_SIZE)   /*  Ticket #207: datasize differs -> Ticket #347    */
+            {                                       /*          var. size is allowed now!               */
                 return TRDP_PARAM_ERR;
             }
+            /* If new data size is larger than former size, we must reallocate the transmit buffer */
+            if (pPacket->grossSize  < trdp_packetSizePD(dataSize))
+            {
+                PD_PACKET_T *pTemp;
+                pTemp = (PD_PACKET_T *) vos_memAlloc(trdp_packetSizePD(dataSize));
+                if (pTemp == NULL)
+                {
+                    return TRDP_MEM_ERR;
+                }
+                /* copy existing header info */
+                memcpy(pTemp, pPacket->pFrame, trdp_packetSizePD(0u));
+                vos_memFree(pPacket->pFrame);
+                pPacket->pFrame = pTemp;
+            }
             memcpy(pPacket->pFrame->data, pData, dataSize);
+            pPacket->dataSize   = dataSize;
+            pPacket->grossSize  = trdp_packetSizePD(dataSize);
         }
         else
         {

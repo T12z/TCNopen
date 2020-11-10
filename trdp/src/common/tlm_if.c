@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2020-09-08: Ticket #343 userStatus parameter size in tlm_reply and tlm_replyQuery
 *      BL 2020-08-10: Ticket #309 revisited: tlm_abortSession shall return noError if morituri is not set
 *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      SB 2020-03-30: Ticket #309 A Listener's Sessions now close when the Listener is deleted or readded
@@ -782,6 +783,7 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
  *  @param[in]      pSendParam          Pointer to send parameters, NULL to use default send parameters
  *  @param[in]      pData               pointer to packet data / dataset
  *  @param[in]      dataSize            size of packet data
+ *  @param[in]      srcURI              only functional group of source URI, set to NULL if not used
  *
  *  @retval         TRDP_NO_ERR         no error
  *  @retval         TRDP_PARAM_ERR      parameter error
@@ -793,7 +795,7 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
     UINT32                  comId,
-    UINT16                  userStatus,
+    UINT32                  userStatus,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
@@ -805,7 +807,9 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     {
         return TRDP_NOINIT_ERR;
     }
-    if (((pData == NULL) && (dataSize != 0u)) || (dataSize > TRDP_MAX_MD_DATA_SIZE))
+    if (((pData == NULL) && (dataSize != 0u)) ||
+        (dataSize > TRDP_MAX_MD_DATA_SIZE) ||
+        (userStatus > 0x7FFFFFFF))
     {
         return TRDP_PARAM_ERR;
     }
@@ -835,6 +839,7 @@ EXT_DECL TRDP_ERR_T tlm_reply (
  *  @param[in]      pSendParam          Pointer to send parameters, NULL to use default send parameters
  *  @param[in]      pData               pointer to packet data / dataset
  *  @param[in]      dataSize            size of packet data
+ *  @param[in]      srcURI              only functional group of source URI, set to NULL if not used
  *
  *  @retval         TRDP_NO_ERR         no error
  *  @retval         TRDP_PARAM_ERR      parameter error
@@ -846,7 +851,7 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
     UINT32                  comId,
-    UINT16                  userStatus,
+    UINT32                  userStatus,
     UINT32                  confirmTimeout,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
@@ -860,7 +865,9 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     {
         return TRDP_NOINIT_ERR;
     }
-    if (((pData == NULL) && (dataSize != 0u)) || (dataSize > TRDP_MAX_MD_DATA_SIZE))
+    if (((pData == NULL) && (dataSize != 0u)) ||
+        (dataSize > TRDP_MAX_MD_DATA_SIZE) ||
+        (userStatus > 0x7FFFFFFF))
     {
         return TRDP_PARAM_ERR;
     }

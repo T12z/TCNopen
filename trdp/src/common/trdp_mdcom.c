@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      BL 2020-11-03: Ticket #346 UDP MD: In case of wrong data length (too big) in the header the package won't be released
  *      BL 2020-08-10: Ticket #335 MD UDP notifications sometimes dropped
  *      BL 2020-07-30: Ticket #336 MD structures handling in multithread application
  *      SW 2020-07-17: Ticket #327 Send 'Me' only in case of unicast 'Mr' if no listener found
@@ -1391,6 +1392,13 @@ static TRDP_ERR_T trdp_mdRecvUDPPacket (TRDP_SESSION_PT appHandle, SOCKET mdSock
                 MD_PACKET_T *pBigData = (MD_PACKET_T *) vos_memAlloc(trdp_packetSizeMD(pElement->dataSize));
                 if ( pBigData == NULL )
                 {
+                    /* Ticket #346: We have to flush the receive buffers, in case the message is too big for us. */
+                    (void) vos_sockReceiveUDP(mdSock,
+                                              (UINT8 *)pElement->pPacket,
+                                              &size,
+                                              NULL,
+                                              NULL, NULL,
+                                              FALSE);
                     return TRDP_MEM_ERR;
                 }
                 /*  Swap the pointers ...  */
