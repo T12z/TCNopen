@@ -18,6 +18,7 @@
 * $Id$
 *
 *
+*      BL 2020-09-08: Ticket #343 userStatus parameter size in tlm_reply and tlm_replyQuery
 *      BL 2020-08-05: tlc_freeBuffer() declaration removed, it was never defined!
 *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
 *      BL 2019-11-12: Ticket #288 Added EXT_DECL to reply functions
@@ -356,7 +357,7 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
     UINT32                  comId,
-    UINT16                  userStatus,
+    UINT32                  userStatus,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
@@ -366,7 +367,7 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     TRDP_APP_SESSION_T      appHandle,
     const TRDP_UUID_T       *pSessionId,
     UINT32                  comId,
-    UINT16                  userStatus,
+    UINT32                  userStatus,
     UINT32                  confirmTimeout,
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,

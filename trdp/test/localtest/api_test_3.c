@@ -869,7 +869,7 @@ static int test3 ()
             TRDP_PD_INFO_T pdInfo;
             UINT8 buffer[TRDP_MAX_PD_DATA_SIZE];
             UINT32 dataSize = TRDP_MAX_PD_DATA_SIZE;
-            vos_threadDelay(2000);
+            vos_threadDelay(20000);
             err = tlp_get(gSession1.appHandle, subHandle2, &pdInfo, buffer, &dataSize);
             if (err == TRDP_NO_ERR)
             {
@@ -979,9 +979,9 @@ static int test5 ()
 
     {
         TRDP_LIS_T listenHandle;
-        UINT32  i;
+        INT32  i;
 
-        //gFullLog = TRUE;
+        /*gFullLog = TRUE;*/
 
         err = tlm_addListener(appHandle2, &listenHandle, NULL, test5CBFunction,
                               TRUE,
@@ -990,7 +990,7 @@ static int test5 ()
         IF_ERROR("tlm_addListener");
         fprintf(gFp, "->> MD Listener set up\n");
 
-        for (i = 0u; i < 100u; i++)
+        for (i = 0; i < 100; i++)
         {
             char buffer[32];
             sprintf(buffer, "Notification No.: %03d", i);
@@ -1018,6 +1018,98 @@ static int test5 ()
     CLEANUP;
 }
 
+/**********************************************************************************************************************/
+/** PD publish and subscribe with varying payload sizes Ticket #345
+ *
+ *  @retval         0        no error
+ *  @retval         1        some error
+ */
+static int test6 ()
+{
+    PREPARE("PD publish and subscribe with varying payload sizes, Ticket #345", "test"); /* allocates appHandle1, appHandle2,
+                                                                                  failed = 0, err */
+
+    /* ------------------------- test code starts here --------------------------- */
+
+    {
+        TRDP_PUB_T  pubHandle;
+        TRDP_SUB_T  subHandle;
+
+#define TEST6_COMID         0u
+#define TEST6_INTERVAL      100000u
+#define TEST6_DATA          "Hello World!3456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+#define TEST6_PUBLISH_SIZE  300u
+#define TEST6_START_SIZE    24u
+#define TEST6_DATA_SIZE_INC 3u
+
+        /*    Copy the packet into the internal send queue, prepare for sending.    */
+
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL,  0u, TEST6_COMID, 0u, 0u,
+                          0u, /* gSession1.ifaceIP,                     / * Source * / */
+                          gSession2.ifaceIP, /* gDestMC,                / * Destination * / */
+                          TEST6_INTERVAL,
+                          0u, TRDP_FLAGS_DEFAULT, NULL, NULL, TEST6_PUBLISH_SIZE);
+
+        IF_ERROR("tlp_publish");
+
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL, 0u,
+                            TEST6_COMID, 0u, 0u,
+                            0u, 0u, /* gSession1.ifaceIP,               / * Source * / */
+                            0u, /* gDestMC,                             / * Destination * / */
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                                       /*    default interface                    */
+                            TEST6_INTERVAL * 3, TRDP_TO_DEFAULT);
+
+
+        IF_ERROR("tlp_subscribe");
+
+        /*
+         Enter the main processing loop.
+         */
+        UINT32 sizeCounter = TEST6_START_SIZE;
+        while (sizeCounter <= TEST6_PUBLISH_SIZE)         /*  */
+        {
+            char    data1[1432u];
+            char    data2[1432u];
+            UINT32  dataSize2 = sizeof(data2);
+            TRDP_PD_INFO_T pdInfo;
+
+            //sprintf(data1, "Just a Counter: %08d", counter++);
+
+            err = tlp_put(gSession1.appHandle, pubHandle, (UINT8 *) TEST6_DATA, sizeCounter);
+            IF_ERROR("tlp_put");
+
+            sizeCounter += TEST6_DATA_SIZE_INC;
+
+            vos_threadDelay(100000);
+
+            err = tlp_get(gSession2.appHandle, subHandle, &pdInfo, (UINT8 *) data2, &dataSize2);
+
+
+            if (err == TRDP_NODATA_ERR)
+            {
+                continue;
+            }
+
+            if (err != TRDP_NO_ERR)
+            {
+                //vos_printLog(VOS_LOG_INFO, "### tlp_get error: %s\n", vos_getErrorString((VOS_ERR_T)err));
+                IF_ERROR("tlp_get");
+            }
+            else
+            {
+                fprintf(gFp, "received data (seq: %u, size: %u): %s\n", pdInfo.seqCount, dataSize2, data2);
+            }
+        }
+    }
+
+
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+}
+
+
 
 /**********************************************************************************************************************/
 /* This array holds pointers to the m-th test (m = 1 will execute test1...)                                           */
@@ -1030,6 +1122,7 @@ test_func_t *testArray[] =
     test3,  /* ticket #337 */
 	test4,
     test5,  /* ticket #335 */
+    test6,  /* ticket #347 */
     NULL
 };
 

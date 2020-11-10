@@ -9,7 +9,8 @@
  * @note            Project: TCNOpen TRDP prototype stack
  *
  * @author          Bernd Loehr, NewTec GmbH
- *                  Thorsten Schulz, Universität Rostock
+ * 
+ * @contributors    Thorsten Schulz, Universität Rostock
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,6 +19,7 @@
  *
  * $Id$
  *
+ *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call
  *      TS 2020-08-28: Update RT_THREADS-code and the EDF-scheduler threads. (EDF-params still broken!)
  *      BL 2020-07-29: Ticket #303: UUID creation... #warning if uuid not used
  *      BL 2020-07-27: Ticket #333: Insufficient memory allocation in posix vos_semaCreate
@@ -153,6 +155,87 @@ static int sem_timedwait (sem_t *sem, const struct timespec *abs_timeout)
         }
     }
 
+    return -1;
+}
+
+/* MacOS and iOS have no implementation of clock_nanosleep(), for testing purposes we emulate this.
+    Part of this code is taken from https://metacpan.org/source/ATOOMIC/Time-HiRes-1.9760/HiRes.xs
+        (thanx to Douglas E. Wegscheid, Jarkko Hietaniemi, Andrew Main)
+ */
+
+#include <mach/mach_time.h>
+
+#ifndef TIMER_ABSTIME
+#  define TIMER_ABSTIME   0x01
+#endif
+#define IV_1E9 1000000000
+
+
+static uint64_t absolute_time_init;
+static mach_timebase_info_data_t timebase_info;
+static struct timespec timespec_init;
+
+static int darwin_time_init ()
+{
+    struct timeval tv;
+    int success = 1;
+
+    if (absolute_time_init == 0)
+    {
+        /* mach_absolute_time() cannot fail */
+        absolute_time_init = mach_absolute_time();
+        success = mach_timebase_info(&timebase_info) == KERN_SUCCESS;
+        if (success)
+        {
+            success = gettimeofday(&tv, NULL) == 0;
+            if (success)
+            {
+                timespec_init.tv_sec  = tv.tv_sec;
+                timespec_init.tv_nsec = tv.tv_usec * 1000;
+            }
+        }
+    }
+    return success;
+}
+
+static int clock_nanosleep (
+    clockid_t clock_id, int flags,
+    const struct timespec *rqtp,
+    struct timespec *rmtp)
+{
+    if (darwin_time_init())
+    {
+        switch (clock_id)
+        {
+            case CLOCK_REALTIME:
+            case CLOCK_MONOTONIC:
+            {
+                uint64_t nanos = (uint64_t) rqtp->tv_sec * IV_1E9 + (uint64_t) rqtp->tv_nsec;
+                int success;
+                if ((flags & TIMER_ABSTIME))
+                {
+                    uint64_t back = (uint64_t) timespec_init.tv_sec * IV_1E9 + (uint64_t) timespec_init.tv_nsec;
+                    nanos = nanos > back ? nanos - back : 0;
+                }
+                success = mach_wait_until(mach_absolute_time() + nanos) == KERN_SUCCESS;
+
+                /* In the relative sleep, the rmtp should be filled in with
+                 * the 'unused' part of the rqtp in case the sleep gets
+                 * interrupted by a signal.  But it is unknown how signals
+                 * interact with mach_wait_until().  In the absolute sleep,
+                 * the rmtp should stay untouched. */
+                rmtp->tv_sec  = 0;
+                rmtp->tv_nsec = 0;
+
+                return success;
+            }
+
+            default:
+                break;
+        }
+    }
+
+    errno = EINVAL;
     return -1;
 }
 
@@ -734,8 +817,25 @@ EXT_DECL VOS_ERR_T vos_threadSelf (
 EXT_DECL VOS_ERR_T vos_threadDelay (
     UINT32 delay)
 {
+
+#ifdef __APPLE__
+    if (delay == 0u)
+    {
+        pthread_testcancel();
+
+        /*    yield cpu to other processes   */
+        if (sched_yield() != 0)
+        {
+            return VOS_PARAM_ERR;
+        }
+        return VOS_NO_ERR;
+    }
+    (void) usleep(delay);
+#else
     struct timespec wanted_delay;
     struct timespec remaining_delay;
+    struct timespec current_time;
+    struct timespec target_time;
     int ret;
 
 
@@ -753,17 +853,44 @@ EXT_DECL VOS_ERR_T vos_threadDelay (
 
     wanted_delay.tv_sec     = delay / 1000000u;
     wanted_delay.tv_nsec    = (delay % 1000000) * 1000;
+    // Using absolute time to avoid program block with nanosleep
+    (void)clock_gettime(CLOCK_MONOTONIC, &current_time);
+    target_time.tv_sec    = current_time.tv_sec + wanted_delay.tv_sec;
+    target_time.tv_nsec   = current_time.tv_nsec + wanted_delay.tv_nsec;
+    if (target_time.tv_nsec >= 1000000000)
+    {
+        ++target_time.tv_sec;
+        target_time.tv_nsec -= 1000000000;
+    }
     do
     {
         pthread_testcancel();
-        ret = nanosleep(&wanted_delay, &remaining_delay);
+        ret = clock_nanosleep(
+                              CLOCK_MONOTONIC,
+                              TIMER_ABSTIME,
+                              &target_time,
+                              &remaining_delay);
+        // This nanosleep can block program as remaining delay can be bigger than wanted delay
+        // if another thread is calling to this same function at the same time. It could get
+        // interrupted all time and cannot get away from this loop
+        // Danger code with nanosleep
+        //ret = nanosleep(&wanted_delay, &remaining_delay);
         if (ret == -1 && errno == EINTR)
         {
-            wanted_delay = remaining_delay;
+            (void)clock_gettime(CLOCK_MONOTONIC, &current_time);
+            target_time.tv_sec    = current_time.tv_sec + remaining_delay.tv_sec;
+            target_time.tv_nsec   = current_time.tv_nsec + remaining_delay.tv_nsec;
+            if (target_time.tv_nsec >= 1000000000)
+            {
+                ++target_time.tv_sec;
+                target_time.tv_nsec -= 1000000000;
+            }
+            // Danger code with nanosleep
+            //wanted_delay = remaining_delay;
         }
     }
     while (errno == EINTR);
-
+#endif
     return VOS_NO_ERR;
 }
 
