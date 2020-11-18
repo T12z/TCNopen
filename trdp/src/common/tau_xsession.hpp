@@ -24,11 +24,7 @@
 #ifndef TAU_XXSESSION_H_
 #define TAU_XXSESSION_H_
 
-extern "C" {
-
 #include "tau_xsession.h"
-
-}
 
 /**
  *  A class to wrap access around @see tau_xsession.h functions.

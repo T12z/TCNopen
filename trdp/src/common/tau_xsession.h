@@ -33,6 +33,10 @@
  */
 #include "tau_xsession_defaults.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void (*TAU_XSESSION_PRINT)(const char* lead, const char* msg, int putNL);
 
 /**
@@ -296,5 +300,9 @@ TRDP_ERR_T tau_xsession_lookup_dataset(UINT32 datasetId, TRDP_DATASET_T **ds);
  *  @return  error
  */
 TRDP_ERR_T tau_xsession_lookup_variable(UINT32 dsId, const CHAR8 *name, UINT32 index, TRDP_DATASET_ELEMENT_T **el);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TAU_XSESSION_H_ */

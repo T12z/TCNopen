@@ -24,6 +24,10 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Copy from vos_utils.h, to avoid redefinition issues */
 #if (defined (WIN32) || defined (WIN64))
 
@@ -90,5 +94,8 @@
 #define __TRDP_TIMEDATE48_TICK 17
 #define __TRDP_TIMEDATE64_US   18
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_COMMON_TAU_XMARSHALL_MAP_H_ */
