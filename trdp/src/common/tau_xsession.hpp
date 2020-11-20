@@ -83,7 +83,7 @@ public:
 	/**
 	 *  checks if the object is usable/setup for transmissions. Treat return value as boolean.
 	 */
-	int up() { return tau_xsession_up( our ); }
+	int up() const { return tau_xsession_up( our ); }
 
 	/**
 	 *  Stringify the error for the passed TRDP-error
@@ -95,7 +95,7 @@ public:
 	 *
 	 *  @return  An internal constant string or a NULL-pointer if there is no error.
 	 */
-	const char *lastError() { return lastErr?tau_getResultString(lastErr):(const char *)0; }
+	const char *lastError() const { return lastErr?tau_getResultString(lastErr):(const char *)0; }
 
 	/**
 	 *  Pop the last-most error stash and return it.
