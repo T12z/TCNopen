@@ -15,8 +15,11 @@
 #define MAX_COMPAR          10       /**< Maximum number of elements in the com-parameter-list  of the XML config */
 #define MAX_TELEGRAMS       64       /**< Maximum number of telegrams (pub/sub) supported  */
 #define SANE_MEMSIZE    (32 << 20)   /**< Limiting to 32 MB */
-/* TRDP_TIMER_GRANULARITY 5000u is defined in trdp_private.h, keep it private and define an own derivative */
-#define TAU_XSESSION_TIME_GRANULARITY 2500 /**< allow a certain fuzziness for time-stamps in cycle processing */
+#ifdef TRDP_TIMER_GRANULARITY
+	#define TAU_XSESSION_TIME_GRANULARITY TRDP_TIMER_GRANULARITY
+#else
+	#define TAU_XSESSION_TIME_GRANULARITY 2500 /**< allow a certain fuzziness for time-stamps in cycle processing */
+#endif
 
 #ifndef TRDP_MAX_LABEL_LEN           /* avoid to pull in all of trdp for a SHM client */
 #define TRDP_DEFAULT_MAX_LABEL_LEN 16

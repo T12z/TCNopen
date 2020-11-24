@@ -77,7 +77,7 @@ public:
 	 *  @return    a suitable TRDP_ERR. TRDP_INIT_ERR if load was not called before. Otherwise issues from reading the
 	 *             XML file or initializing the session. Errors will lead to an unusable empty session.
 	 */
-	TRDP_ERR_T init     (const char *busInterfaceName, int offset, int requestgap, void *callbackRef)
+	TRDP_ERR_T init     (const char *busInterfaceName = NULL, int offset = -1, int requestgap = -1, void *callbackRef = NULL)
 		{ return lastErr = tau_xsession_init( &our, busInterfaceName, offset, requestgap, callbackRef ); }
 
 	/**

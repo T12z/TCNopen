@@ -618,7 +618,7 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName,
 	TAU_XSESSION_T *s = (TAU_XSESSION_T *)vos_memAlloc( sizeof(TAU_XSESSION_T) );
 	if (!s) return TRDP_MEM_ERR;
 
-	for (UINT32 i=0; i<_.numIfConfig; i++)
+	for (UINT32 i=0; i<_.numIfConfig && busInterfaceName; i++)
 		if (strcasecmp(busInterfaceName, _.ifConfig[i].ifName) == 0) {
 			if ( !s->pIfConfig )
 				s->pIfConfig = &_.ifConfig[i];
@@ -633,26 +633,33 @@ TRDP_ERR_T tau_xsession_init(TAU_XSESSION_T **our, const char *busInterfaceName,
 		/*  Initialize TRDP sessions    */
 		result = configureSession(s, &_.devDocHnd, callbackRef);
 		//	tlc_openSession(&appHandle, ownIpAddr, leaderIpAddr, pMarshall, pPdDefault, pMdDefault, pProcessConfig);
-	} else
-		vos_printLog(VOS_LOG_ERROR, "Found no interface to match \"%s\" in this XSession configuration.", busInterfaceName);
+	} else {
+		if (busInterfaceName) {
+			vos_printLog(VOS_LOG_ERROR,
+				"Found no interface to match \"%s\" in this XSession configuration.", busInterfaceName);
+		} else {
+			result = TRDP_NO_ERR;
+		}
+	}
 	if (result == TRDP_NO_ERR) {
 		_.use++;
 		s->next = _.session;
 		_.session = s;
-		s->initialized = _.use; /* something non-0 */
-		vos_getTime ( &s->timeToGo );
-		if ((sendOffset >= 0 && sendOffset < (INT32)s->processConfig.cycleTime)
-				|| (requestOffset >= 0 && requestOffset < (INT32)s->processConfig.cycleTime)){
-			VOS_TIMEVAL_T TO = { .tv_usec = s->processConfig.cycleTime};
-			TO.tv_usec -= s->timeToGo.tv_usec % s->processConfig.cycleTime;
-			timeradd( &s->timeToGo, &TO, &s->timeToGo );
-			s->sendOffset = sendOffset;
-			s->requestOffset = requestOffset;
-		} else {
-			s->sendOffset = -1;
-			s->requestOffset = -1;
+		if (s->sessionhandle) {
+			s->initialized = _.use; /* something non-0 */
+			vos_getTime ( &s->timeToGo );
+			if ((sendOffset >= 0 && sendOffset < (INT32)s->processConfig.cycleTime)
+					|| (requestOffset >= 0 && requestOffset < (INT32)s->processConfig.cycleTime)){
+				VOS_TIMEVAL_T TO = { .tv_usec = s->processConfig.cycleTime};
+				TO.tv_usec -= s->timeToGo.tv_usec % s->processConfig.cycleTime;
+				timeradd( &s->timeToGo, &TO, &s->timeToGo );
+				s->sendOffset = sendOffset;
+				s->requestOffset = requestOffset;
+			} else {
+				s->sendOffset = -1;
+				s->requestOffset = -1;
+			}
 		}
-
 		if (our) *our = s;
 	} else {
 		vos_memFree(s);
@@ -951,8 +958,7 @@ TRDP_ERR_T tau_xsession_delete(TAU_XSESSION_T *our) {
 		our->next = NULL;
 	}
 
-	while (tau_xsession_up(s)) {
-
+	while (s)  {
 		/*  Unpublish/unsubscribe all telegrams */
 		for (UINT32 i = 0; i < s->numTelegrams; i++) {
 			/* tlp_unpublish recognizes whether the handle was published */
