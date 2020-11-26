@@ -824,7 +824,7 @@ typedef struct
     interrelated. Single threaded flow:
 
     \image html SingleThreadedWorkflowPD.pdf "Sample client workflow (Single Thread)"
-    \image latex SingleThreadedWorkflowPD.eps "Sample client workflow (Single Thread)" height=15cm
+    \image latex SingleThreadedWorkflowPD.pdf "Sample client workflow (Single Thread)" height=15cm
 
     Usage of the separate process handling (separate threads for PD and MD):
     \image html TRDPSpeedupFlowPDReceive.pdf "Multi-threaded processing of PD Reception"

@@ -649,7 +649,8 @@ endif
 .PHONY: dist bindeb-pkg deb-pkg
 dist: distclean
 	@$(ECHO) "Building a source archive w/o project artifacts in the top-level folder."
-	tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="test" --exclude="resources" --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_$(SRC_VER).orig.tar.xz ../trdp
+	tar --exclude-ignore-recursive=../.gitignore -c -J -f ../libtrdp_$(SRC_VER).debian.tar.xz debian
+	cd .. && tar --exclude="debian" --exclude="bld" --exclude="VSExpress2015" --exclude="Xcode" --exclude="test" --exclude="resources" --exclude-ignore-recursive=.gitignore -c -J -f libtrdp_$(SRC_VER).orig.tar.xz trdp
 
 #these are just a shortcuts for those like me, that always forget
 bindeb-pkg:
