@@ -15,11 +15,12 @@
 #
 #  ABSTRACT      : XML Schema for TRDP configuration configuration
 #
-#  VERSION       : 1.15.0.0
+#  VERSION       : 1.16.0.0
 #
 #  SVN           : $Id$
 #
 #  HISTORY       :
+#                            1.15.0.0  Added optional attributes for SDTv4 support
 #                            1.15.0.0  Added optional attribute 'name' to event, method, field and instance for service oriented interface
 #                            1.14.0.0  IPTCom references removed
 #                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
@@ -990,13 +991,18 @@
     <xs:complexType>
       <xs:attribute name="smi1" type="uint32" use="required"/>
       <xs:attribute name="smi2" type="uint32" default="0" use="optional"/>
-      <xs:attribute name="udv" type="uint16" use="required"/>
+      <xs:attribute name="udv" type="uint16" use="required"/> <!-- 256 equals 1.0-->
       <xs:attribute name="rx-period" type="uint16" use="required"/>
       <xs:attribute name="tx-period" type="uint16" use="required"/>
       <xs:attribute name="n-rxsafe" type="uint8" default="3" use="optional"/>
       <xs:attribute name="n-guard" type="uint16" default="100" use="optional"/>
-      <xs:attribute name="cm-thr" type="uint32" default="10" use="optional"/>
+      <xs:attribute name="cm-thr" type="uint32" default="43" use="optional"/>
 	  <xs:attribute name="lmi-max" type="uint16" default="40" use="optional"/>
+      <xs:attribute name="proto-var" type="uint16" default="2" use="optional"/> <!-- For SDTv4, large payload -->
+      <xs:attribute name="safe-func-id" type="uint16" default="0" use="optional"/> <!-- For SDTv4 -->
+      <xs:attribute name="safe-func-vers" type="uint16" default="0" use="optional"/><!-- For SDTv4 -->
+      <xs:attribute name="safe-channel-id" type="uint16" default="0" use="optional"/><!-- For SDTv4 -->
+      <xs:attribute name="safe-channel-vers" type="uint16" default="0" use="optional"/><!-- For SDTv4 -->
      </xs:complexType>
   </xs:element>
   
