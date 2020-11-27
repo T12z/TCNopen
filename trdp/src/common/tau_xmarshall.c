@@ -643,7 +643,7 @@ EXT_DECL TRDP_ERR_T tau_xinitMarshall ( void * *ppRefCon __unused,
 	vos_qsort(pDataset, numDataSet, sizeof(TRDP_DATASET_T *), compareDataset);
 
 	cMemSizeOfBasicTypes = pTypeMap;
-	cAlignOfBasicTypes   = pTypeMap+20;
+	cAlignOfBasicTypes   = pTypeMap + TAU_XTYPE_MAP_SIZE/2;
 
 	return TRDP_NO_ERR;
 }

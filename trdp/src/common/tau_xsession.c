@@ -197,7 +197,10 @@ static TRDP_ERR_T initMarshalling(const TRDP_XML_DOC_HANDLE_T * pDocHnd, const U
 	/*  Initialize marshalling  */
 	int xmap_valid = !!pXTypeMap;
 	for (int i=1; i<19 && xmap_valid; i++) {
-		if ( !pXTypeMap[i] || !pXTypeMap[i+20] ) xmap_valid = 0;
+		if ( !pXTypeMap[i] || !pXTypeMap[TAU_XTYPE_MAP_SIZE/2+i] ) {
+			xmap_valid = 0;
+			vos_printLog(VOS_LOG_WARNING, "Checking EXTENDED marshall-map failed at entry %d.", i);
+		}
 	}
 	/* basically, take values, sort the arrays, but takes no copy! */
 	if (xmap_valid) {
