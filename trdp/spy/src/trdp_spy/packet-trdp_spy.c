@@ -535,7 +535,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld seconds", nstime.secs);
 						break;
 					case TRDP_TIMEDATE48:
-						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%05ld seconds (=%ld ticks)", nstime.secs, (nstime.nsecs+5000L)/10000L, valu);
+						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%05ld seconds (=%" G_GUINT64_FORMAT " ticks)", nstime.secs, (nstime.nsecs+5000L)/10000L, valu);
 						break;
 					case TRDP_TIMEDATE64:
 						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%06ld seconds", nstime.secs, nstime.nsecs/1000L);
