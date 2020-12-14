@@ -43,12 +43,12 @@ packet-trdp_spy.c: info-missing-h cfile.h
 
 endif
 
+all: trdp_spy.so
+
 info-missing-h:
 	$(info === )
-	$(info If compiling 'packet-trdp_spy.c' fails due to a missing <cfile.h>, which was not packaged in Debian for a while, I will try to pull the file from the web.)
+	$(info If compiling 'packet-trdp_spy.c' fails due to a missing <cfile.h>, which was not packaged in Debian until late 3.2, I will try to pull the file from the web. However, I have to select the right version. Considering, current packages contain the file, I only have to watch old-stable 2.6. If the compilation chokes, check if you have a different version and fix it manually.)
 	$(info === )
-
-all: trdp_spy.so
 
 %.c: %.h
 
@@ -59,7 +59,7 @@ trdp_spy.so: trdpDict.o trdp_env.o packet-trdp_spy.o plugin.o
 	$(CC) $(CPPFLAGS) $(LDFLAGS) -shared -o "$@" $^ $(LIBS)
 	
 cfile.h:
-	wget https://raw.githubusercontent.com/wireshark/wireshark/master-3.2/cfile.h
+	wget https://raw.githubusercontent.com/wireshark/wireshark/master-2.6/cfile.h
 	
 clean: doc-clean
 	$(RM) trdpDict.o trdp_env.o packet-trdp_spy.o plugin.o
