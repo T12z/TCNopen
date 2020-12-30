@@ -32,7 +32,7 @@ endif
 HFILES = $(addsuffix /cfile.h,$(subst -I,,$(IFLAGS)))
 CFILE_EXISTS = $(strip $(foreach hdr,$(HFILES),$(file <$(hdr))))
 
-CPPFLAGS += -DPLUGIN_VERSION=\"2.1.0.0\"
+CPPFLAGS += -DPLUGIN_VERSION=\"2.1.1\"
 CPPFLAGS += -Wall -W -Wextra -Wendif-labels -Wpointer-arith -Warray-bounds -Wformat-security -fwrapv -fno-strict-overflow -fno-delete-null-pointer-checks -Wvla -Waddress -Wattributes -Wdiv-by-zero -Wignored-qualifiers -Wpragmas -Wno-overlength-strings -Wwrite-strings -Wno-long-long -fexcess-precision=fast -Wc++-compat -Wshadow -Wno-pointer-sign -Wold-style-definition -Wstrict-prototypes -Wlogical-op -Wjump-misses-init -fvisibility=hidden
 LDFLAGS  += -Wl,--as-needed -pie -Wl,-soname,trdp_spy.so
 

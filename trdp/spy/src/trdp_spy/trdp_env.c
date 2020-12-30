@@ -117,7 +117,7 @@ gint32 trdp_dissect_width(guint32 type)
 {
 	switch(type)
 		{
-        case TRDP_BOOL8:      //BOOL8,BITSET8,ANTIVALENT8    1	=UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true)
+        case TRDP_BITSET8:    //BITSET8     1
         case TRDP_CHAR8:      //CHAR8		2	char, can be used also as UTF8
         case TRDP_INT8:       //INT8		4	Signed integer, 8 bit
         case TRDP_UINT8:      //UINT8		8	Unsigned integer, 8 bit

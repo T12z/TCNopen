@@ -5,13 +5,17 @@
                    |_| |__|__|____/|__|     |_____|__|    |_|  
                                                                
 
-															   
 This Plugin can be used to display packages containing TRDP (Train Realtime Data Protocol).
 
 You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols->TRDP and load your xml file there) for filtering and displaying.
 
 N E W S
 =======
+2020-12 Thorsten <t12z@tractionpad.de>
+
+ * Updated handling of Bitset type (TRDP-type 1). Antivalents and Bitsets are displayed correctly now. The fall-back
+   handling on numeric type-idents is chosen in the protocol preferences. The config is reloaded automatically.
+
 2020-12 Thorsten <thorsten.schulz@uni-rostock.de>
 
  * Build for Wireshark 3.4 added. Sources compile w/o any changes.
@@ -59,7 +63,7 @@ U S A G E
 On Linux, use your distribution's package manager to install wireshark or wireshark-qt.
 On Windows, download from [1].
 (Compared to earlier releases, you don't need the QtXML library any more.)
-If Wireshark happens to be a version of 2.6.*, 3.0.*, 3.2.* or 3.4.*, you may be lucky with the pre-compiled plugin-libraries, go for version 3.4 (Linux):
+If Wireshark happens to be a version of 2.6.*, 3.0.*, 3.2.* or 3.4.*, you may be lucky with the pre-compiled plugin-libraries. For version 3.4 (Linux) find them here:
 
 cp   plugins/3.4/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/3.4/epan/
 
@@ -123,7 +127,7 @@ $ make -C path-to-tcnopen-trdp/trdp/spy/src/trdp_spy
 Other Linux
 -----------
 
-Find out the the names for the build-dependency pacakges and install them, then proceed with make
+Find out the the names for the build-dependency pacakges and install them, then proceed with make as above.
 
 
 Windows

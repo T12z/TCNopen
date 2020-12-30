@@ -68,7 +68,8 @@ static gint32   Dataset_preCalculate    (Dataset *self, const TrdpDict *dict);
 static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, guint32 referrer);
 
 static Element *Element_new                (const char *typeS, const char *name, const char *unit,
-											const char *array_size, const char *scale, const char *offset, guint index, GError **error);
+											const char *array_size, const char *scale, const char *offset, guint index,
+											guint32 def_bitset_subtype, GError **error);
 static Dataset *Dataset_new                (const char *dsId, const char *aname, GError **error);
 static ComId   *ComId_new                  (const char *id, const char *aname, const char *dsId, GError **error);
 
@@ -84,33 +85,36 @@ static void     ComId_delete               (ComId *self);
  * Though, this will also work
  */
 
-const guint32 Element_idx2Tint[] = {
-		TRDP_BOOL8, TRDP_BITSET8, TRDP_ANTIVALENT8, TRDP_CHAR8, TRDP_UTF16,
-		TRDP_INT8, TRDP_INT16, TRDP_INT32, TRDP_INT64,
-		TRDP_UINT8, TRDP_UINT16, TRDP_UINT32, TRDP_UINT64,
-		TRDP_REAL32, TRDP_REAL64, TRDP_TIMEDATE32, TRDP_TIMEDATE48, TRDP_TIMEDATE64 };
+const ElementType ElBasics[] = {
+	{ "BITSET8", TRDP_BITSET8, TRDP_BITSUBTYPE_BITSET8 }, { "BOOL8", TRDP_BITSET8, TRDP_BITSUBTYPE_BOOL8 }, { "ANTIVALENT8", TRDP_BITSET8, TRDP_BITSUBTYPE_ANTIVALENT8 },
+	{ "CHAR8",   TRDP_CHAR8,  0}, { "UTF16",  TRDP_UTF16,  0 },
+	{ "INT8",    TRDP_INT8,   0}, { "INT16",  TRDP_INT16,  0 }, { "INT32", TRDP_INT32, 0 },           { "INT64",      TRDP_INT64, 0 },
+	{ "UINT8",   TRDP_UINT8,  0}, { "UINT16", TRDP_UINT16, 0 }, { "UINT32", TRDP_UINT32, 0 },         { "UINT64",     TRDP_UINT64, 0 },
+	{ "REAL32",  TRDP_REAL32, 0}, { "REAL64", TRDP_REAL64, 0 }, { "TIMEDATE32", TRDP_TIMEDATE32, 0 }, { "TIMEDATE48", TRDP_TIMEDATE48, 0 }, { "TIMEDATE64", TRDP_TIMEDATE64, 0 },
+};
 
-const char *Element_idx2Tname[] = {
-		"BOOL8", "BITSET8", "ANTIVALENT8", "CHAR8", "UTF16",
-		"INT8",   "INT16", "INT32",  "INT64",
-		"UINT8", "UINT16","UINT32", "UINT64",
-		"REAL32", "REAL64", "TIMEDATE32", "TIMEDATE48",	"TIMEDATE64" };
-
-
-static guint32 decodeType(const char *_type) {
-	guint32 type = (guint32)g_ascii_strtoull(_type, NULL, 10);
-	if (!type)
-		for (gsize i = 0; i < array_length(Element_idx2Tint); i++)
-			if (strcmp(_type, Element_idx2Tname[i]) == 0) return Element_idx2Tint[i];
-
-	return type;
+static ElementType decodeType(const char *type, guint32 subtype) {
+	ElementType numeric;
+	numeric.id = (guint32)g_ascii_strtoull(type, NULL, 10);
+	if (!numeric.id) {
+		for (gsize i = 0; i < array_length(ElBasics); i++)
+			if (strcmp(type, ElBasics[i].name) == 0) {
+				return ElBasics[i];
+			}
+	}
+	if (numeric.id == TRDP_BITSET8) /* there is currently only one case of subtypes */
+		numeric.subtype = subtype;
+	strncpy(numeric.name, type, sizeof(numeric.name)-1);
+	return numeric;
 }
 
-static const char *encodeType(guint32 _type) {
-	for (guint i = 0; i < array_length(Element_idx2Tint); i++)
-		if (_type == Element_idx2Tint[i]) return Element_idx2Tname[i];
-
-	return NULL;
+static void encodeBasicType(ElementType *elt) {
+	for (guint i = 0; elt && i < array_length(ElBasics); i++) {
+		if (elt->id == ElBasics[i].id && elt->subtype == ElBasics[i].subtype) {
+			strncpy(elt->name, ElBasics[i].name, sizeof(elt->name)); /* there are only NULL-terminated strings in ElBasics */
+			break;
+		}
+	}
 }
 
 /*******************************************************************************
@@ -240,7 +244,7 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 					G_MARKUP_COLLECT_INVALID);
 
 			if (!err) {
-				Element *el = Element_new(type, name, unit, array_size, scale, offset, ++element_cnt, &err);
+				Element *el = Element_new(type, name, unit, array_size, scale, offset, ++element_cnt, self->def_bitset_subtype, &err);
 				if (el) {
 					/* update the element in the list */
 					if (!self->mTableDataset->listOfElements)
@@ -279,7 +283,7 @@ GMarkupParser parser = {
  */
 
 
-TrdpDict *TrdpDict_new(const char *xmlconfigFile, GError **error) {
+TrdpDict *TrdpDict_new(const char *xmlconfigFile, guint32 _subtype, GError **error) {
 
 	GError *err = NULL;
 
@@ -292,6 +296,7 @@ TrdpDict *TrdpDict_new(const char *xmlconfigFile, GError **error) {
 		const gchar *contents = g_mapped_file_get_contents(gmf);
 		gsize len = g_mapped_file_get_length(gmf);
 		GMarkupParseContext *xml = g_markup_parse_context_new(&parser, G_MARKUP_PREFIX_ERROR_POSITION, self, NULL);
+		self->def_bitset_subtype = _subtype;
 		if (!g_markup_parse_context_parse(xml, contents, len, &err)) {
 			g_propagate_prefixed_error(error, err, "Parsing \"%s\" failed.\n", xmlconfigFile);
 			self->knowledge = 0; /* it's dubious knowledge, better get rid of it it */
@@ -365,25 +370,25 @@ Dataset * TrdpDict_get_Dataset(const TrdpDict *self, guint32 datasetId) {
 
 static void Element_stringifyType(Element *self, const char *_typeName) {
 	if (!self) return;
-	if (self->type <= TRDP_STANDARDTYPE_MAX) {
-		strncpy(self->typeName, encodeType(self->type), sizeof(self->typeName)-1);
+	if (self->type.id <= TRDP_STANDARDTYPE_MAX) {
+		encodeBasicType(&self->type);
 	} else if (self->linkedDS) {
 		if (*self->linkedDS->name)
-			strncpy(self->typeName, self->linkedDS->name, sizeof(self->typeName)-1);
+			strncpy(self->type.name, self->linkedDS->name, sizeof(self->type.name)-1);
 		else
-			snprintf(self->typeName, sizeof(self->typeName), "%d", self->linkedDS->datasetId);
+			snprintf(self->type.name, sizeof(self->type.name), "%d", self->linkedDS->datasetId);
 	} else {
-		if (_typeName) strncpy(self->typeName, _typeName, sizeof(self->typeName)-1);
+		if (_typeName) strncpy(self->type.name, _typeName, sizeof(self->type.name)-1);
 	}
 }
 
 static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, guint32 referrer) {
-	if (!self || !dict || self->type == referrer)
+	if (!self || !dict || self->type.id == referrer)
 		return FALSE; /* direct recursion is forbidden */
-	if (self->type > TRDP_STANDARDTYPE_MAX) {
+	if (self->type.id > TRDP_STANDARDTYPE_MAX) {
 
 		if (!self->linkedDS) {
-			self->linkedDS = TrdpDict_get_Dataset(dict, self->type);
+			self->linkedDS = TrdpDict_get_Dataset(dict, self->type.id);
 			Element_stringifyType(self, NULL);
 		}
 
@@ -395,11 +400,11 @@ static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, gu
 }
 
 static Element *Element_new(const char *_type, const char *_name, const char *_unit, const char *_array_size,
-		const char *_scale, const char *_offset, guint cnt, GError **error) {
+		const char *_scale, const char *_offset, guint cnt, guint32 def_subtype, GError **error) {
 	gdouble scale;
 	gint32 offset;
 	gint32 array_size;
-	guint32 type;
+	ElementType type;
 	char *endptr = NULL;
 	errno = 0;
 	array_size = _array_size ? (gint32)g_ascii_strtoull(_array_size, &endptr, 10) : 1;
@@ -420,8 +425,8 @@ static Element *Element_new(const char *_type, const char *_name, const char *_u
 				ATTR_SCALE "=\"%s\" What is this? <" TAG_ELEMENT ">'s attribute was unparsible. (%s)", endptr, g_strerror (errno));
 		return NULL;
 	}
-	type = decodeType(_type);
-	if (!type) {
+	type = decodeType(_type, def_subtype);
+	if (!type.id) {
 		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 				ATTR_TYPE "=\"%s\" What is this? <" TAG_ELEMENT ">'s attribute was unparsible.", _type);
 		return NULL;
@@ -437,10 +442,9 @@ static Element *Element_new(const char *_type, const char *_name, const char *_u
 	self->offset = offset;
 	self->type = type;
 
-	self->typeName[0] = 0;
 	Element_stringifyType(self, _type);
 
-	self->width = trdp_dissect_width(self->type);
+	self->width = trdp_dissect_width(self->type.id);
 	return self;
 }
 

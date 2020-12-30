@@ -33,9 +33,7 @@
  * DEFINES
  */
 
-#define TRDP_BOOL8      1   /**< =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true) */
-#define TRDP_BITSET8    TRDP_BOOL8
-#define TRDP_ANTIVALENT8 TRDP_BOOL8
+#define TRDP_BITSET8    1   /**< =UINT8, n:[1..8] bits relevant, see subtype  */
 #define TRDP_CHAR8		2	/**< char, can be used also as UTF8 */
 #define TRDP_UTF16		3	/**< Unicode UTF-16 character */
 #define TRDP_INT8		4	/**< Signed integer, 8 bit */
@@ -51,6 +49,10 @@
 #define TRDP_TIMEDATE32	14	/**< 32 bit UNIX time */
 #define TRDP_TIMEDATE48	15	/**< 48 bit TCN time (32 bit seconds and 16 bit ticks) */
 #define TRDP_TIMEDATE64	16	/**< 32 bit seconds and 32 bit microseconds */
+
+#define TRDP_BITSUBTYPE_BITSET8     0 /**< =UINT8, all 8bits displayed */
+#define TRDP_BITSUBTYPE_BOOL8       1 /**< =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true) */
+#define TRDP_BITSUBTYPE_ANTIVALENT8 2 /**< =UINT8, 2 bit relevant ('01'B -> false, '10'B -> true) */
 
 #define TRDP_STANDARDTYPE_MAX    TRDP_TIMEDATE64 /**< The last standard data type */
 
