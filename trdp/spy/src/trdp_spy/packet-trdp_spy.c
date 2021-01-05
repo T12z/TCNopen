@@ -14,9 +14,9 @@
  * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
+ * @copyright       Copyright Universität Rostock, 2019-2020 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
  *
- * @details Version 2.0 extended to work with complex dataset and makeover for Wireshark 2.6 -- 3
+ * @details Version 2.0 extended to work with complex dataset and makeover for Wireshark 2.6 -- 3.x
  *
  *          Based on work:
  *              Ethereal - Network traffic analyzer
@@ -129,6 +129,7 @@ static gboolean g_char8_is_utf8 = TRUE;
 static gboolean g_0strings = FALSE;
 static gboolean g_time_local = TRUE;
 static gboolean g_time_raw = FALSE;
+static guint g_bitset_subtype = TRDP_BITSUBTYPE_BOOL8;
 
 /* Initialize the subtree pointers */
 static gint ett_trdp_spy = -1;
@@ -141,13 +142,13 @@ static expert_field ei_trdp_userdata_wrong = EI_INIT;
 static expert_field ei_trdp_config_notparsed = EI_INIT;
 static expert_field ei_trdp_padding_not_zero = EI_INIT;
 static expert_field ei_trdp_array_wrong = EI_INIT;
+static expert_field ei_trdp_faulty_antivalent = EI_INIT;
 
 /* static container for dynamic fields and subtree handles */
 static struct {
     wmem_array_t* hf;
     wmem_array_t* ett;
 } trdp_build_dict;
-
 
 static TrdpDict *pTrdpParser;
 
@@ -192,7 +193,7 @@ static void add_crc2tree(tvbuff_t *tvb, proto_tree *trdp_spy_tree, int ref_fcs _
 
 	if (package_crc == calced_crc)
 	{
-		proto_tree_add_uint_format_value(trdp_spy_tree, hf_trdp_spy_fcs_head, tvb, offset, 4, package_crc, "%sCrc: 0x%04x [correct]", descr_text, package_crc);
+		proto_tree_add_uint_format_value(trdp_spy_tree, hf_trdp_spy_fcs_head, tvb, offset, 4, package_crc, "%s Crc: 0x%04x [correct]", descr_text, package_crc);
 
 	}
 	else
@@ -338,7 +339,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 	for (Element *el = ds->listOfElements; el; el=el->next) {
 
 		PRNT(fprintf(stderr, "[%d] Offset %5d ----> Element: type=%2d %s\tname=%s\tarray-size=%d\tunit=%s\tscale=%f\toffset=%d\n", dataset_level,
-				offset, el->type, el->typeName, el->name, el->array_size, el->unit, el->scale, el->offset));
+				offset, el->type.id, el->type.name, el->name, el->array_size, el->unit, el->scale, el->offset));
 
 		// at startup of a new item, check if it is an array or not
 		gint remainder = 0;
@@ -346,7 +347,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 
 		if (!element_count) {// handle variable element count
 
-			if (g_0strings && (el->type == TRDP_CHAR8 || el->type == TRDP_UTF16))	{ /* handle the special elements CHAR8 and UTF16: */
+			if (g_0strings && (el->type.id == TRDP_CHAR8 || el->type.id == TRDP_UTF16))	{ /* handle the special elements CHAR8 and UTF16: */
 
 			} else {
 				element_count = potential_array_size;
@@ -378,9 +379,9 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 		}
 
 		// For an array, inject a new node in the graphical dissector, tree (also the extracted dynamic information, see above are added)
-		userdata_element = ((element_count == 1) || (el->type == TRDP_CHAR8) || (el->type == TRDP_UTF16)) /* for single line */
+		userdata_element = ((element_count == 1) || (el->type.id == TRDP_CHAR8) || (el->type.id == TRDP_UTF16)) /* for single line */
 				? trdp_spy_userdata                                                                     /* take existing branch */
-				: proto_tree_add_subtree_format(trdp_spy_userdata, tvb, offset, TrdpDict_element_size(el, element_count), el->ett_id, &pi, "%s (%d) : %s[%d]", el->typeName, el->type, el->name, element_count);
+				: proto_tree_add_subtree_format(trdp_spy_userdata, tvb, offset, TrdpDict_element_size(el, element_count), el->ett_id, &pi, "%s (%d) : %s[%d]", el->type.name, el->type.id, el->name, element_count);
 
 		do {
 			gint64  vals = 0;
@@ -390,13 +391,41 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 			guint   bytelen = 0;
 			gdouble real64 = 0;
 			nstime_t nstime = {0,0};
+			gchar   bits[9];
 
-			switch(el->type) {
+			switch(el->type.id) {
 
-			case TRDP_BOOL8: //    1
-				valu = tvb_get_guint8(tvb, offset);
-				proto_tree_add_boolean(userdata_element, el->hf_id, tvb, offset, el->width, (guint32)valu);
-				offset += el->width;
+			case TRDP_BITSET8:
+				switch (el->type.subtype) {
+				case TRDP_BITSUBTYPE_BOOL8:
+					valu = tvb_get_guint8(tvb, offset);
+					proto_tree_add_boolean(userdata_element, el->hf_id, tvb, offset, el->width, (guint32)valu);
+					offset += el->width;
+					break;
+				case TRDP_BITSUBTYPE_BITSET8:
+					valu = tvb_get_guint8(tvb, offset);
+					bits[sizeof(bits)-1] = 0;
+					for(int i=sizeof(bits)-1, v=valu; i--; v>>=1) bits[i] = v&1 ? '1' : '.';
+					proto_tree_add_uint_format_value(userdata_element, el->hf_id, tvb, offset, el->width, (guint32)valu, "%#02x ( %s )", (guint32)valu, bits );
+					offset += el->width;
+					break;
+				case TRDP_BITSUBTYPE_ANTIVALENT8:
+					valu = tvb_get_guint8(tvb, offset);
+					switch (valu) {
+					case 1:
+						proto_tree_add_boolean(userdata_element, el->hf_id, tvb, offset, el->width, (guint32)FALSE);
+						break;
+					case 2:
+						proto_tree_add_boolean(userdata_element, el->hf_id, tvb, offset, el->width, (guint32)TRUE);
+						break;
+					default:
+						proto_tree_add_expert_format(userdata_element, pinfo, &ei_trdp_faulty_antivalent, tvb, offset, el->width,
+							 "%#2x is an invalid ANTIVALENT8 value.", (guint32)valu);
+						break;
+					}
+					offset += el->width;
+					break;
+				}
 				break;
 			case TRDP_CHAR8:
 				bytelen = (element_count||!g_0strings) ? (guint)element_count : tvb_strsize(tvb, offset);
@@ -474,15 +503,15 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				nstime.nsecs = (int)vals*1000;
 				break;
 			default:
-				PRNT(fprintf(stderr, "Unique type %d for %s\n", el->type, el->name));
+				PRNT(fprintf(stderr, "Unique type %d for %s\n", el->type.id, el->name));
 				offset = dissect_trdp_generic_body(
-						tvb, pinfo, userdata_element, trdpRootNode, el->type, offset, length-(offset-start_offset), dataset_level+1, el->name, (element_count != 1) ? array_index : -1);
+						tvb, pinfo, userdata_element, trdpRootNode, el->type.id, offset, length-(offset-start_offset), dataset_level+1, el->name, (element_count != 1) ? array_index : -1);
 				if (offset == 0) return offset; /* break dissecting, if things went sideways */
 				break;
 			}
 
 
-			switch (el->type) {
+			switch (el->type.id) {
 //			case TRDP_INT8 ... TRDP_INT64:
 			case TRDP_INT8:
 			case TRDP_INT16:
@@ -530,12 +559,12 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				/* Is it allowed to have offset / scale?? I am not going to scale seconds, but there could be use for an offset, esp. when misused as relative time. */
 				if (g_scaled) nstime.secs += el->offset;
 				if (g_time_raw) {
-					switch (el->type) {
+					switch (el->type.id) {
 					case TRDP_TIMEDATE32:
 						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld seconds", nstime.secs);
 						break;
 					case TRDP_TIMEDATE48:
-						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%05ld seconds (=%ld ticks)", nstime.secs, (nstime.nsecs+5000L)/10000L, valu);
+						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%05ld seconds (=%" G_GUINT64_FORMAT " ticks)", nstime.secs, (nstime.nsecs+5000L)/10000L, valu);
 						break;
 					case TRDP_TIMEDATE64:
 						proto_tree_add_time_format_value(userdata_element, el->hf_id, tvb, offset, el->width, &nstime, "%ld.%06ld seconds", nstime.secs, nstime.nsecs/1000L);
@@ -556,9 +585,9 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				}
 				potential_array_size = -1;
 			} else {
-				PRNT(fprintf(stderr, "[%d / %d], (type=%d) val-u=%" G_GUINT64_FORMAT " val-s=%" G_GINT64_FORMAT ".\n", array_index, element_count, el->type, valu, vals));
+				PRNT(fprintf(stderr, "[%d / %d], (type=%d) val-u=%" G_GUINT64_FORMAT " val-s=%" G_GINT64_FORMAT ".\n", array_index, element_count, el->type.id, valu, vals));
 
-				potential_array_size = (el->type < TRDP_INT8 || el->type > TRDP_UINT64) ? -1 : (el->type >= TRDP_UINT8 ? (gint)valu : (gint)vals);
+				potential_array_size = (el->type.id < TRDP_INT8 || el->type.id > TRDP_UINT64) ? -1 : (el->type.id >= TRDP_UINT8 ? (gint)valu : (gint)vals);
 			}
 
 		} while(array_index);
@@ -851,21 +880,24 @@ static void add_element_reg_info(const char *parentName, Element *el) {
 	abbrev = alnumerize(g_strdup_printf( PROTO_FILTERNAME_TRDP_PDU ".%s.%s", parentName, el->name));
 
 	if (el->scale || el->offset) {
-		blurb = g_strdup_printf("type=%s(%u) *%4g %+0d %s", el->typeName, el->type, el->scale?el->scale:1.0, el->offset, el->unit);
+		blurb = g_strdup_printf("type=%s(%u) *%4g %+0d %s", el->type.name, el->type.id, el->scale?el->scale:1.0, el->offset, el->unit);
 	} else {
-		blurb = g_strdup_printf("type=%s(%u) %s", el->typeName, el->type, el->unit);
+		blurb = g_strdup_printf("type=%s(%u) %s", el->type.name, el->type.id, el->unit);
 	}
 
-	if (!((el->array_size == 1) || (el->type == TRDP_CHAR8) || (el->type == TRDP_UTF16))) {
+	if (!((el->array_size == 1) || (el->type.id == TRDP_CHAR8) || (el->type.id == TRDP_UTF16))) {
 		wmem_array_append_one(trdp_build_dict.ett, pett_id);
 	}
 
-	if (el->scale && g_scaled)
+	if (el->scale && g_scaled) {
 		add_reg_info( &el->hf_id, name, abbrev, FT_DOUBLE, BASE_NONE, blurb );
-	else
-		switch (el->type) {
-	case TRDP_BOOL8:
-		add_reg_info( &el->hf_id, name, abbrev, FT_BOOLEAN, 8, blurb );
+	} else switch (el->type.id) {
+	case TRDP_BITSET8:
+		if (el->type.subtype == TRDP_BITSUBTYPE_BITSET8) {
+			add_reg_info( &el->hf_id, name, abbrev, FT_UINT8, BASE_HEX, blurb );
+		} else {
+			add_reg_info( &el->hf_id, name, abbrev, FT_BOOLEAN, 8, blurb );
+		}
 		break;
 	case TRDP_CHAR8:
 		add_reg_info( &el->hf_id, name, abbrev, el->array_size?FT_STRING:FT_STRINGZ, STR_ASCII, blurb );
@@ -988,7 +1020,7 @@ static void register_trdp_fields(void) {
 			API_TRACE;
 
 			GError *err = NULL;
-			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, &err);
+			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, g_bitset_subtype, &err);
 			API_TRACE;
 			if (err) {
 				report_failure("TRDP | XML configuration failed: [%d] %s", err->code, err->message);
@@ -1099,6 +1131,18 @@ void proto_reg_handoff_trdp(void)
 void proto_register_trdp(void) {
 	module_t *trdp_spy_module;
 
+	enum_val_t *bitsetenumvals;
+	gsize bitset_offset=0;
+	gsize bitset_types=0;
+	while (ElBasics[bitset_offset].id != TRDP_BITSET8) bitset_offset++;
+	while (ElBasics[bitset_offset+bitset_types].id == TRDP_BITSET8) bitset_types++;
+	bitsetenumvals = g_new0(enum_val_t, bitset_types+1);
+	for (gsize i=0; i<bitset_types; i++) {
+		bitsetenumvals[i].description = ElBasics[i].name;
+		bitsetenumvals[i].name = g_ascii_strdown(ElBasics[i].name, -1);
+		bitsetenumvals[i].value = (gint)ElBasics[i].subtype;
+	}
+
 	API_TRACE;
 
 	/* Register the protocol name and description */
@@ -1118,18 +1162,29 @@ void proto_register_trdp(void) {
 			, FALSE
 #endif
 	);
+	prefs_set_preference_effect_fields(trdp_spy_module, "configfile");
+	prefs_register_enum_preference(trdp_spy_module, "bitset.subtype",
+			"Select default sub-type for TRDP-Element type 1",
+			"Type 1 can be interpreted differently, as BOOL, ANTIVALENT or BITSET. Select the fallback, if the element "
+			"type is not given literally.",
+			&g_bitset_subtype, bitsetenumvals, FALSE);
+	prefs_set_preference_effect_fields(trdp_spy_module, "bitset.subtype");
 	prefs_register_bool_preference(trdp_spy_module, "time.local",
 			"Display time-types as local time, untick for UTC / no offsets.",
-			"Time types should be based on UTC. When ticked, Wireshark adds on local timezone offset. Untick if you like UTC to be displayed, or the source is not UTC.", &g_time_local);
+			"Time types should be based on UTC. When ticked, Wireshark adds on local timezone offset. Untick if you "
+			"like UTC to be displayed, or the source is not UTC.", &g_time_local);
 	prefs_register_bool_preference(trdp_spy_module, "time.raw",
 			"Display time-types as raw seconds, not absolute time.",
-			"Time types should be absolute time since the UNIX-Epoch. When ticked, they are shown as seconds.", &g_time_raw);
+			"Time types should be absolute time since the UNIX-Epoch. When ticked, they are shown as seconds.",
+			&g_time_raw);
 	prefs_register_bool_preference(trdp_spy_module, "0strings",
 			"Variable-length CHAR8 and UTF16 arrays are 0-terminated. (non-standard)",
-			"When ticked, the length of a variable-length string (array-size=0) is calculated from searching for a terminator instead of using a previous length element.", &g_0strings);
+			"When ticked, the length of a variable-length string (array-size=0) is calculated from searching for a "
+			"terminator instead of using a previous length element.", &g_0strings);
 	prefs_register_bool_preference(trdp_spy_module, "char8utf8",
 			"Interpret CHAR8 arrays as UTF-8.",
-			"When ticked, CHAR8 arrays are interpreted as UTF-8 string. If it fails, an exception is thrown. Untick if you need to see weird ASCII as C-escapes.", &g_char8_is_utf8);
+			"When ticked, CHAR8 arrays are interpreted as UTF-8 string. If it fails, an exception is thrown. Untick if "
+			"you need to see weird ASCII as C-escapes.", &g_char8_is_utf8);
 	prefs_register_bool_preference(trdp_spy_module, "strings.le",
 			"Interpret UTF-16 strings with Little-Endian wire format. (non-standard)",
 			"When ticked, UTF16 arrays are interpreted as Little-Endian encoding.", &g_strings_are_LE);
@@ -1154,9 +1209,11 @@ void proto_register_trdp(void) {
 			{ &ei_trdp_config_notparsed, { "trdp.config_unparsable", PI_UNDECODED, PI_WARN, "TRDP XML configuration cannot be parsed", EXPFILL }},
 			{ &ei_trdp_padding_not_zero, { "trdp.padding", PI_MALFORMED, PI_WARN, "TRDP Padding not filled with zero", EXPFILL }},
 			{ &ei_trdp_array_wrong, { "trdp.array", PI_MALFORMED, PI_WARN, "Dynamic array has unsupported datatype for length", EXPFILL }},
+			{ &ei_trdp_faulty_antivalent, { "trdp.faulty_antivalent", PI_MALFORMED, PI_WARN, "Data contains faulty antivalent value.", EXPFILL }},
 	};
 
 	expert_trdp = expert_register_protocol(proto_trdp_spy);
 	expert_register_field_array(expert_trdp, ei, array_length(ei));
+
 }
 

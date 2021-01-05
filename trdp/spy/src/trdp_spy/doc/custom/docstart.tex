@@ -1,6 +1,7 @@
 \documentclass[a4paper]{book}
 \usepackage[top=10mm, bottom=50mm, left=18mm, right=10mm]{geometry}
 \usepackage{makeidx}
+\usepackage{fancyhdr}
 \usepackage{natbib}
 \usepackage{graphicx}
 \usepackage{multicol}
@@ -39,6 +40,8 @@
 \lstset{language=C,inputencoding=utf8,basicstyle=\footnotesize,breaklines=true,breakatwhitespace=true,tabsize=4,numbers=left }
 \makeindex
 \setcounter{tocdepth}{3}
+\newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}\cleardoublepage}}
+\newcommand{\+}{\kern0.05em}
 \renewcommand{\footrulewidth}{0.4pt}
 \renewcommand{\familydefault}{\sfdefault}
 \hfuzz=15pt

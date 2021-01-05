@@ -72,6 +72,14 @@
  * }
  * @enddot
  */
+
+/* Assistant type to cater the type duality of a BITSET8 */
+typedef struct ElementType {
+	char name[32];
+	guint32 id;
+	guint32 subtype;
+} ElementType;
+
 typedef struct Element {
 /* R/O */
 	char *name;  /**< Name of the element, maybe a stringified index within the dataset, never NULL */
@@ -79,9 +87,8 @@ typedef struct Element {
 
 /*public:*/
 
-	guint32     type; /**< Numeric type of the variable (see Usermanual, chapter 4.2) or defined at ::TRDP_BOOL8, ::TRDP_UINT8, ::TRDP_UINT16 and so on.*/
-	//	QString     typeName="";   /**< Textual representation of the type (necessary for own datasets, packed recursively) */
-	char        typeName[32];  /**< typeNames are allowed between 1..30 octets */
+	ElementType type; /**< Numeric type of the variable (see Usermanual, chapter 4.2) or defined at ::TRDP_BOOL8, ::TRDP_UINT8, ::TRDP_UINT16 and so on, and its typeName[1..30]*/
+
 	gint32      array_size; /**< Amount this value occurred. 1 is default; 0 indicates a dynamic list (the dynamic list is preceeded by an integer revealing the actual size.) */
 	gdouble     scale;      /**< A factor the given value is scaled */
 	gint32      offset;     /**< Offset that is added to the values. displayed value = scale * raw value + offset */
@@ -167,6 +174,7 @@ typedef struct TrdpDict {
 	guint         knowledge;    /**< number of found ComIds */
 	struct ComId *mTableComId;  /**< first item of linked list of ComId items. Use it to iterate if necessary or use TrdpDict_lookup_ComId for a pointer. */
 	gchar        *xml_file;     /**< cached name of last parsed file */
+	guint32 def_bitset_subtype; /**< default subtype value for numeric bitset types */
 } TrdpDict;
 
 /** @fn  TrdpDict *TrdpDict_new    (const char *xmlconfigFile, gint parent_id, GError **error)
@@ -178,7 +186,7 @@ typedef struct TrdpDict {
  *
  *  @return pointer to the container or NULL on problems. See error then for the cause.
  */
-extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, GError **error);
+extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, guint32 def_subtype, GError **error);
 
 /** @fn  TrdpDict *TrdpDict_delete(TrdpDict *self)
  *
@@ -237,5 +245,7 @@ extern       Dataset *TrdpDict_get_Dataset (const TrdpDict *self, guint32 datase
  * @param  array_size Hand in the dynamic size of the array (kept from the previous element) or set to 1 to use the predefined size from the dictionary.
  * @return -1 on error, or the type-size multiplied by the array-size. */
 extern       gint32   TrdpDict_element_size(const Element  *self, guint32 array_size /* = 1*/);
+
+extern const ElementType ElBasics[];
 
 #endif

@@ -71,8 +71,8 @@
  *
  * @section TRDP_devLinux Development Environment for Linux
  * Following specifications are used for development of the TRDP PD and TRDP MD plug-in for Wireshark.
- * @li Operating System: Debian 10
- * @li Tool : Wireshark v2.6.8, v3.0.1
+ * @li Operating System: GNU/Linux Debian 10
+ * @li Tool : Wireshark v2.6.8, v3.0.1, v3.2
  * @li Programming Language: C
  *
  * @subsection TRDP_compLinux Steps to compile and install Wireshark on Linux:
