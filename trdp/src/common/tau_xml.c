@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2021-02-04: Ticket #359: fixed parsing of 'service-device' elements
  *      SB 2020-06-29: Ticket #338: Attribute Callback always does not work
  *      AR 2020-05-08: Added parsing for attribute 'name' of event, method, field and instance elements used in service oriented interface
  *      SB 2020-01-27: Added parsing for dummyService flag to Service definitions and MD option for events
@@ -2661,11 +2662,11 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                             }
                             else if (vos_strnicmp(tag, "service-device", MAX_TAG_LEN) == 0 && pServiceDevice != NULL )
                             {
+                                UINT32 instanceCount;
+                                UINT32 j;
+
                                 while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                 {
-                                    UINT32 instanceCount;
-                                    UINT32 j;
-
                                     if (vos_strnicmp(attribute, "src-uri", MAX_TOK_LEN) == 0)
                                     {
                                         vos_strncpy(pServiceDevice->hostUri, value, TRDP_MAX_URI_HOST_LEN);
@@ -2678,47 +2679,47 @@ EXT_DECL TRDP_ERR_T tau_readXmlServiceConfig (
                                     {
                                         vos_strncpy(pServiceDevice->redUri, value, TRDP_MAX_URI_HOST_LEN);
                                     }
-                                    trdp_XMLEnter(pDocHnd->pXmlDocument);
+                                }
+                                trdp_XMLEnter(pDocHnd->pXmlDocument);
 
-                                    instanceCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "instance");
+                                instanceCount = (UINT32) trdp_XMLCountStartTag(pDocHnd->pXmlDocument, "instance");
 
-                                    if (instanceCount > 0)
+                                if (instanceCount > 0)
+                                {
+                                    pServiceDevice->pInstance = (TRDP_INSTANCE_T *)vos_memAlloc(instanceCount * sizeof(TRDP_INSTANCE_T));
+
+                                    if (pServiceDevice->pInstance == NULL)
                                     {
-                                        pServiceDevice->pInstance = (TRDP_INSTANCE_T *)vos_memAlloc(instanceCount * sizeof(TRDP_INSTANCE_T));
-
-                                        if (pServiceDevice->pInstance == NULL)
+                                        vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML instance definitions!\n",
+                                                        (unsigned long) (instanceCount * sizeof(TRDP_INSTANCE_T)));
+                                        return TRDP_MEM_ERR;
+                                    }
+                                    pServiceDevice->instanceCnt = instanceCount;
+                                    pInstance        = pServiceDevice->pInstance;
+                                    /* Read the interface params */
+                                    for (j = 0u; j < instanceCount && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "instance") == 0; j++)
+                                    {
+                                        while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
                                         {
-                                            vos_printLog(VOS_LOG_ERROR, "%lu Bytes failed to allocate while reading XML instance definitions!\n",
-                                                         (unsigned long) (instanceCount * sizeof(TRDP_INSTANCE_T)));
-                                            return TRDP_MEM_ERR;
+                                            if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
+                                            {
+                                                pInstance->instanceId = (UINT8) valueInt;
+                                            }
+                                            else if (vos_strnicmp(attribute, "dst-uri", MAX_TOK_LEN) == 0)
+                                            {
+                                                vos_strncpy(pInstance->dstUri, value, TRDP_MAX_URI_HOST_LEN);
+                                            }
+                                            else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
+                                            {
+                                                vos_strncpy(pInstance->instanceName, value, TRDP_MAX_URI_USER_LEN);
+                                            }
                                         }
-                                        pServiceDevice->instanceCnt = instanceCount;
-                                        pInstance        = pServiceDevice->pInstance;
-                                        /* Read the interface params */
-                                        for (j = 0u; j < instanceCount && trdp_XMLSeekStartTag(pDocHnd->pXmlDocument, "instance") == 0; j++)
+                                        if (pInstance != NULL)
                                         {
-                                            while (trdp_XMLGetAttribute(pDocHnd->pXmlDocument, attribute, &valueInt, value) == TOK_ATTRIBUTE)
-                                            {
-                                                if (vos_strnicmp(attribute, "id", MAX_TOK_LEN) == 0)
-                                                {
-                                                    pInstance->instanceId = (UINT8) valueInt;
-                                                }
-                                                else if (vos_strnicmp(attribute, "dst-uri", MAX_TOK_LEN) == 0)
-                                                {
-                                                    vos_strncpy(pInstance->dstUri, value, TRDP_MAX_URI_HOST_LEN);
-                                                }
-                                                else if (vos_strnicmp(attribute, "name", MAX_TOK_LEN) == 0)
-                                                {
-                                                    vos_strncpy(pInstance->instanceName, value, TRDP_MAX_URI_USER_LEN);
-                                                }
-                                            }
-                                            if (pInstance != NULL)
-                                            {
-                                                pInstance++;
-                                            }
+                                            pInstance++;
                                         }
                                     }
-
+                                    
                                     trdp_XMLLeave(pDocHnd->pXmlDocument);
                                 }
                                 pServiceDevice++;
