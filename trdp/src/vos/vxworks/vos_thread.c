@@ -17,6 +17,7 @@
  /*
  * $Id$*
  *
+ *      MM 2021-03-05: Ticket #360 Adaption for VxWorks7
  *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
  *      BL 2019-06-12: Ticket #260: Error in vos_threadCreate() not handled properly (vxworks)
  *      BL 2018-10-29: Ticket #215: use CLOCK_MONOTONIC if available
@@ -200,7 +201,6 @@ EXT_DECL VOS_ERR_T vos_threadCreate (
 {
     int taskID = ERROR; /* intentionally int accd. vxworks doc. no hiding behind C99 types, keep OS API always pure*/
     UINT32 taskStackSize = (UINT32)cDefaultStackSize; /* init the task stack size to the default of 16kB */
-    char errBuf[80];
     VOS_ERR_T result;
     
     if (vosThreadInitialised != TRUE)
@@ -242,9 +242,8 @@ EXT_DECL VOS_ERR_T vos_threadCreate (
         if ( taskID == ERROR )
         {
             /* serious problem - no task created */
-            (void)strerror_r(errno, errBuf);
             vos_printLog(VOS_LOG_ERROR,
-                   "%s taskSpawn() failed VxWorks errno=%#x %s\n",errno, errBuf);
+                   "%s taskSpawn() failed VxWorks errno=%#x %s\n",errno, strerror(errno));
 
             result = VOS_THREAD_ERR;
         }
@@ -1069,14 +1068,12 @@ EXT_DECL void vos_semaGive (
     else
     {
         STATUS errVal;
-        char errBuf[80];
 
         /* release semaphore */
         errVal = semGive((SEM_ID)sema);
         if (errVal == ERROR)
         {
-            (void)strerror_r(errno, errBuf);
-            vos_printLog(VOS_LOG_ERROR, "vos_semaGive() ERROR could not release semaphore errno=%#x %s\n",errno, errBuf);
+            vos_printLog(VOS_LOG_ERROR, "vos_semaGive() ERROR could not release semaphore errno=%#x %s\n",errno, strerror(errno));
         }
     }
     return;

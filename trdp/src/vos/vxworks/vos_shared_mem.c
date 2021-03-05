@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      MM 2021-03-05: Ticket #360 Adaption for VxWorks7
  *      BL 2018-03-22: Ticket #192: Compiler warnings on Windows (minGW)
  */
 
@@ -34,13 +35,9 @@
 #include "vos_mem.h"
 #include "vos_utils.h"
 #include "vos_private.h"    
-#include "smMemLib.h"
 
 #include <vxWorks.h>
 #include <semLib.h>
-#include <semSmLib.h>
-#include <smNameLib.h>
-#include <smObjLib.h>
 #include "sysLib.h"
 
 
