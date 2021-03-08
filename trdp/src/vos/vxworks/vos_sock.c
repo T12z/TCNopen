@@ -17,7 +17,7 @@
  /*
  * $Id$*
  *
- *      MM 2021-03-05: Ticket #360 Adaption for VxWorks7
+ *      MM 2021-03-05: Ticket #360: Adaption for VxWorks7
  *      BL 2019-08-27: Changed send failure from ERROR to WARNING
  *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
  *      SB 2019-02-18: Ticket #227: vos_sockGetMAC() not name dependant anymore
@@ -277,7 +277,11 @@ EXT_DECL UINT32 vos_dottedIP (
     struct in_addr addr;
     /* vxWorks does not regard the const qualifier for first parameter */
     /* casting to non const, helps to get rid of compiler noise        */
+#if _WRS_VXWORKS_MAJOR < 7
     if (inet_aton((CHAR8 *)pDottedIP, &addr) != OK)
+#else
+    if (inet_aton((CHAR8 *)pDottedIP, &addr) == 0)
+#endif
     {
         return VOS_INADDR_ANY;   /* Prevent returning broadcast address on error */
     }
