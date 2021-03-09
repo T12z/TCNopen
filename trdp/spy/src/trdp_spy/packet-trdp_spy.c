@@ -207,7 +207,7 @@ static void add_crc2tree(tvbuff_t *tvb, proto_tree *trdp_spy_tree, int ref_fcs _
 
 /* @fn *static void checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, guint32 start_offset, guint32 offset)
  *
- * @brief Check for correct padding and calculate the CRC checksum
+ * @brief Check for correct padding
  *
  * @param[in]   tvb     Buffer with the captured data
  * @param[in]   pinfo   Necessary to mark status of this packet
@@ -215,7 +215,7 @@ static void add_crc2tree(tvbuff_t *tvb, proto_tree *trdp_spy_tree, int ref_fcs _
  * @param[in]   start_offset    Beginning of the user data, that is secured by the CRC
  * @param[in]   offset  Actual offset where the padding starts
  *
- * @return position in the buffer after the body CRC
+ * @return position in the buffer
  */
 static gint32 checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, guint32 start_offset _U_, guint32 offset)
 {
@@ -223,7 +223,6 @@ static gint32 checkPaddingAndOffset(tvbuff_t *tvb, packet_info *pinfo, proto_tre
 	gint32 isPaddingZero;
 	gint32 i;
 
-	/* Jump to the last 4 byte and check the crc */
 	remainingBytes = tvb_reported_length_remaining(tvb, offset);
 	PRNT2(fprintf(stderr, "The remaining bytes are %d (startoffset=%d, padding=%d)\n", remainingBytes, start_offset, (remainingBytes % 4)));
 
@@ -310,7 +309,6 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 		length = ds ? ds->size : -1;
 
 		if (length < 0) { /* No valid configuration for this ComId available */
-			/* Move position in front of CRC (padding included) */
 			proto_tree_add_expert_format(trdp_spy_userdata, pinfo, &ei_trdp_userdata_empty, tvb, offset, clength, "Userdata should be empty or was incomplete, cannot parse. Check xml-config.");
 			PRNT(fprintf(stderr, "No Dataset, %d byte of userdata -> end offset is %d [dataset-level: %d]\n", clength, offset, dataset_level));
 			offset += clength;
@@ -366,10 +364,10 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				}
 
 				// check if the specified amount could be found in the package
-				remainder = tvb_reported_length_remaining(tvb, offset + TrdpDict_element_size(el, element_count));
-				if (remainder > 0 && remainder < TRDP_FCS_LENGTH /* check space for FCS */) {
+				remainder = tvb_reported_length_remaining(tvb, offset);
+				if (remainder < TrdpDict_element_size(el, element_count)) {
 					expert_add_info_format(pinfo, trdp_spy_tree, &ei_trdp_userdata_wrong, "%s : has %d elements [%d byte each], but only %d left",
-							el->name, element_count, TrdpDict_element_size(el, 1), tvb_reported_length_remaining(tvb, offset));
+							el->name, element_count, TrdpDict_element_size(el, 1), remainder);
 					element_count = 0;
 				}
 			}
@@ -594,7 +592,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 
 	}
 
-	/* Check padding and CRC of the body */
+	/* Check padding of the body */
 	if (!dataset_level)
 		offset = checkPaddingAndOffset(tvb, pinfo, trdpRootNode, start_offset, offset);
 
