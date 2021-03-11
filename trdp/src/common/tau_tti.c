@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      MM 2021-03-11: Ticket #361: add tau_cstinfo header file - needed for alternative make/build
 *      BL 2020-07-10: Ticket #292 tau_getTrnVehCnt( ) not working if OpTrnDir is not already valid
 *      BL 2020-07-09: Ticket #298 Create consist info entry error -> check for false data and empty arrays
 *      BL 2020-07-08: Ticket #297 Store Operation Train Dir error
@@ -73,7 +74,7 @@
 #include "vos_sock.h"
 #include "tau_dnr.h"
 
-#include "tau_cstinfo.c"
+#include "tau_cstinfo.h"
 
 /***********************************************************************************************************************
  * DEFINES
