@@ -17,7 +17,8 @@
  /*
  * $Id$
  *
-*       SB 2019-08-15: Moved TAU_MAX_NO_CACHE_ENTRY to header file
+ *     AHW 2021-04-13: Ticket #367: tau_uri2Addr: Cashed DNS ooly invalid if both etbTopoCnt and opTrnTopoCnt are changed 
+.*      SB 2019-08-15: Moved TAU_MAX_NO_CACHE_ENTRY to header file
  *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
  *      SB 2019-03-01: Ticket #237: tau_initDnr: Fixed comparison of readHostFile return value
  *      SB 2019-02-11: Ticket #237: tau_initDnr: Parameter waitForDnr to reduce wait times added
@@ -1255,10 +1256,11 @@ EXT_DECL TRDP_ERR_T tau_uri2Addr (
                                                     compareURI);
             if ((pTemp != NULL) &&
                 ((pTemp->fixedEntry == TRUE) ||
-                (pTemp->etbTopoCnt == appHandle->etbTopoCnt) ||                    /* Do the topocounts match? */
-                    (pTemp->opTrnTopoCnt == appHandle->opTrnTopoCnt) ||
-                    ((appHandle->etbTopoCnt == 0u) && (appHandle->opTrnTopoCnt == 0u))) &&   /* Or do we not care?       */
-                    (pTemp->ipAddr != 0))                                                 /* 0 is only a placeholder */
+                 /* #367: Do both topocounts match? */
+                 ((pTemp->etbTopoCnt == appHandle->etbTopoCnt) && (pTemp->opTrnTopoCnt == appHandle->opTrnTopoCnt)) ||
+                 /* Or do we not care?       */
+                 ((appHandle->etbTopoCnt == 0u) && (appHandle->opTrnTopoCnt == 0u))) &&  
+                (pTemp->ipAddr != 0))                                                     /* 0 is only a placeholder */
             {
                 *pAddr = pTemp->ipAddr;
                 return TRDP_NO_ERR;
