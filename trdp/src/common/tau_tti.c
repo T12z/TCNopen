@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*     AHW 2021-04-13: Ticket #366: tau_getOwnIds: OwnIds invalid resolved to a group name
 *      MM 2021-03-11: Ticket #361: add tau_cstinfo header file - needed for alternative make/build
 *      BL 2020-07-10: Ticket #292 tau_getTrnVehCnt( ) not working if OpTrnDir is not already valid
 *      BL 2020-07-09: Ticket #298 Create consist info entry error -> check for false data and empty arrays
@@ -1830,7 +1831,8 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
         /* we traverse the consist info's functions */
         for (index = 0; index < appHandle->pTTDB->cstInfo[0]->fctCnt; index++)
         {
-            if (ownIP == appHandle->pTTDB->cstInfo[0]->pFctInfoList[index].fctId)
+            if ((ownIP == appHandle->pTTDB->cstInfo[0]->pFctInfoList[index].fctId) &&
+               (appHandle->pTTDB->cstInfo[0]->pFctInfoList[index].grp == 0) )      /* #366 check that it isn't a group address */
             {
                 /* Get the name */
                 if (pDevId != NULL)
