@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*     AHW 2021-04-13: Ticket #362: ttiStoreTrnNetDir: trnNetDir read from wrong address
 *     AHW 2021-04-13: Ticket #363: tau_getOwnIds: noOfCachedCst never assigned to actual value, never set to 0
 *     AHW 2021-04-13: Ticket #364: ttiCreateCstInfoEntry: all vehInfo, cltrInfo, etbInfo entries are copied to index 0. The idx counter are not used.
 *     AHW 2021-04-13: Ticket #365: ttiCreateCstInfoEntry: all fctInfo entries are copied to index 0. The idx counter are not used.
@@ -430,10 +431,11 @@ static void ttiStoreTrnNetDir (
         return;
     }
 
-    /* 4 Bytes up to cstCnt plus number of Consists  */
+    /* 4 Bytes up to cstCnt plus number of Consists  #362 */
     size = appHandle->pTTDB->trnNetDir.entryCnt * sizeof(TRDP_TRAIN_NET_DIR_ENTRY_T);
+    pData += 4;                  /* jump to trnNetDir */
     memcpy(&appHandle->pTTDB->trnNetDir.trnNetDir[0], pData, size);
-    pData += 4 + size;              /* jump to etbTopoCnt  */
+    pData += size;               /* jump to etbTopoCnt  */
 
     /* unmarshall manually and update the etbTopoCount   */
     appHandle->pTTDB->trnNetDir.etbTopoCnt = vos_ntohl((*(UINT32 *)pData));   /* copy etbTopoCnt as well    */
