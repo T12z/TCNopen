@@ -26,7 +26,8 @@
 /*
 * $Id$
 *
-*     AHW 2021-04-13: Ticket #365: ttiCreateCstInfoEntry: all fctInfo enteris are copied to index 0. The idx counter are not used.
+*     AHW 2021-04-13: Ticket #364: ttiCreateCstInfoEntry: all vehInfo, cltrInfo, etbInfo entries are copied to index 0. The idx counter are not used.
+*     AHW 2021-04-13: Ticket #365: ttiCreateCstInfoEntry: all fctInfo entries are copied to index 0. The idx counter are not used.
 *     AHW 2021-04-13: Ticket #366: tau_getOwnIds: OwnIds invalid resolved to a group name
 *      MM 2021-03-11: Ticket #361: add tau_cstinfo header file - needed for alternative make/build
 *      BL 2020-07-10: Ticket #292 tau_getTrnVehCnt( ) not working if OpTrnDir is not already valid
@@ -546,9 +547,10 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     }
     for (idx = 0u; idx < pDest->etbCnt; idx++)
     {
-        pDest->pEtbInfoList->etbId      = *pData++;
-        pDest->pEtbInfoList->cnCnt      = *pData++;
-        pDest->pEtbInfoList->reserved01 = vos_ntohs(*(UINT16 *)pData);
+        /* #364 Use idx */
+        pDest->pEtbInfoList[idx].etbId      = *pData++;
+        pDest->pEtbInfoList[idx].cnCnt      = *pData++;
+        pDest->pEtbInfoList[idx].reserved01 = vos_ntohs(*(UINT16 *)pData);
         pData += sizeof(UINT16);
     }
     /* pData += sizeof(TRDP_ETB_INFO_T) * pDest->etbCnt; */ /* Incremented while copying */
@@ -577,22 +579,23 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     /* copy the vehicle list */
     for (idx = 0u; idx < pDest->vehCnt; idx++)
     {
-        memcpy(pDest->pVehInfoList->vehId, pData, sizeof(TRDP_NET_LABEL_T));
+       /* #364 use idx */
+        memcpy(pDest->pVehInfoList[idx].vehId, pData, sizeof(TRDP_NET_LABEL_T));
         pData += sizeof(TRDP_NET_LABEL_T);
-        memcpy(pDest->pVehInfoList->vehType, pData, sizeof(TRDP_NET_LABEL_T));
+        memcpy(pDest->pVehInfoList[idx].vehType, pData, sizeof(TRDP_NET_LABEL_T));
         pData += sizeof(TRDP_NET_LABEL_T);
-        pDest->pVehInfoList->vehOrient          = *pData++;
-        pDest->pVehInfoList->cstVehNo           = *pData++;
-        pDest->pVehInfoList->tractVeh           = *pData++;
-        pDest->pVehInfoList->reserved01         = *pData++;
-        pDest->pVehInfoList->vehProp.ver.ver    = *pData++;
-        pDest->pVehInfoList->vehProp.ver.rel    = *pData++;
-        pDest->pVehInfoList->vehProp.len        = vos_ntohs(*(UINT16 *)pData);
+        pDest->pVehInfoList[idx].vehOrient          = *pData++;
+        pDest->pVehInfoList[idx].cstVehNo           = *pData++;
+        pDest->pVehInfoList[idx].tractVeh           = *pData++;
+        pDest->pVehInfoList[idx].reserved01         = *pData++;
+        pDest->pVehInfoList[idx].vehProp.ver.ver    = *pData++;
+        pDest->pVehInfoList[idx].vehProp.ver.rel    = *pData++;
+        pDest->pVehInfoList[idx].vehProp.len        = vos_ntohs(*(UINT16 *)pData);
         pData += sizeof(UINT16);
-        if (pDest->pVehInfoList->vehProp.len != 0u)
+        if (pDest->pVehInfoList[idx].vehProp.len != 0u)
         {
-            memcpy(pDest->pVehInfoList->vehProp.prop, pData, pDest->pVehInfoList->vehProp.len);
-            pData += pDest->pVehInfoList->vehProp.len;
+            memcpy(pDest->pVehInfoList[idx].vehProp.prop, pData, pDest->pVehInfoList[idx].vehProp.len);
+            pData += pDest->pVehInfoList[idx].vehProp.len;
         }
     }
 
@@ -666,11 +669,12 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
 
         for (idx = 0u; idx < pDest->cltrCstCnt; idx++)
         {
-            memcpy(pDest->pCltrCstInfoList->cltrCstUUID, pData, sizeof(TRDP_UUID_T));
+            /* #364 Use idx */
+            memcpy(pDest->pCltrCstInfoList[idx].cltrCstUUID, pData, sizeof(TRDP_UUID_T));
             pData += sizeof(TRDP_UUID_T);
-            pDest->pCltrCstInfoList->cltrCstOrient  = *pData++;
-            pDest->pCltrCstInfoList->cltrCstNo      = *pData++;
-            pDest->pCltrCstInfoList->reserved01     = vos_ntohs(*(UINT16 *)pData);
+            pDest->pCltrCstInfoList[idx].cltrCstOrient  = *pData++;
+            pDest->pCltrCstInfoList[idx].cltrCstNo      = *pData++;
+            pDest->pCltrCstInfoList[idx].reserved01     = vos_ntohs(*(UINT16 *)pData);
             pData += sizeof(UINT16);
         }
 
