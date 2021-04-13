@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*     AHW 2021-04-13: Ticket #363: tau_getOwnIds: noOfCachedCst never assigned to actual value, never set to 0
 *     AHW 2021-04-13: Ticket #364: ttiCreateCstInfoEntry: all vehInfo, cltrInfo, etbInfo entries are copied to index 0. The idx counter are not used.
 *     AHW 2021-04-13: Ticket #365: ttiCreateCstInfoEntry: all fctInfo entries are copied to index 0. The idx counter are not used.
 *     AHW 2021-04-13: Ticket #366: tau_getOwnIds: OwnIds invalid resolved to a group name
@@ -743,7 +744,11 @@ static void ttiStoreCstInfo (
 
     /* We do convert and allocate more memory for the several parts of the consist info inside. */
 
-    if (ttiCreateCstInfoEntry(appHandle->pTTDB->cstInfo[curEntry], pData, dataSize) != TRDP_NO_ERR)
+    if (ttiCreateCstInfoEntry(appHandle->pTTDB->cstInfo[curEntry], pData, dataSize) == TRDP_NO_ERR)
+    {
+        appHandle->pTTDB->noOfCachedCst++;   /* #363 */
+    }
+    else
     {
         vos_memFree(appHandle->pTTDB->cstInfo[curEntry]);
         appHandle->pTTDB->cstSize[curEntry] = 0u;
@@ -809,7 +814,7 @@ static void ttiMDCallback (
                         vos_memFree(appHandle->pTTDB->cstInfo[i]);
                         appHandle->pTTDB->cstInfo[i] = NULL;
                     }
-                    ;
+                    appHandle->pTTDB->noOfCachedCst = 0;   /* #363 */
                 }
                 for (i = 0; i < TTI_CACHED_CONSISTS; i++)
                 {
@@ -1000,6 +1005,7 @@ EXT_DECL TRDP_ERR_T tau_initTTIaccess (
     {
         return TRDP_MEM_ERR;
     }
+    appHandle->pTTDB->noOfCachedCst = 0; /* #363 */
 
     /*  subscribe to PD 100 */
 
@@ -1102,6 +1108,7 @@ EXT_DECL void tau_deInitTTI (
                 appHandle->pTTDB->cstInfo[i] = NULL;
             }
         }
+
         (void) tlm_delListener(appHandle, appHandle->pTTDB->md101Listener1);
         (void) tlp_unsubscribe(appHandle, appHandle->pTTDB->pd100SubHandle1);
         (void) tlm_delListener(appHandle, appHandle->pTTDB->md101Listener2);
