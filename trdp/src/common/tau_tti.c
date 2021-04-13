@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*     AHW 2021-04-13: Ticket #365: ttiCreateCstInfoEntry: all fctInfo enteris are copied to index 0. The idx counter are not used.
 *     AHW 2021-04-13: Ticket #366: tau_getOwnIds: OwnIds invalid resolved to a group name
 *      MM 2021-03-11: Ticket #361: add tau_cstinfo header file - needed for alternative make/build
 *      BL 2020-07-10: Ticket #292 tau_getTrnVehCnt( ) not working if OpTrnDir is not already valid
@@ -622,16 +623,17 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
 
         for (idx = 0u; idx < pDest->fctCnt; idx++)
         {
+           /* #365 Use idx  */
             memcpy(pDest->pFctInfoList->fctName, pData, sizeof(TRDP_NET_LABEL_T));
             pData += sizeof(TRDP_NET_LABEL_T);
-            pDest->pFctInfoList->fctId = vos_ntohs(*(UINT16 *)pData);
+            pDest->pFctInfoList[idx].fctId = vos_ntohs(*(UINT16 *)pData);
             pData += sizeof(UINT16);
-            pDest->pFctInfoList->grp        = *pData++;
-            pDest->pFctInfoList->reserved01 = *pData++;
-            pDest->pFctInfoList->cstVehNo   = *pData++;
-            pDest->pFctInfoList->etbId      = *pData++;
-            pDest->pFctInfoList->cnId       = *pData++;
-            pDest->pFctInfoList->reserved02 = *pData++;
+            pDest->pFctInfoList[idx].grp       = *pData++;
+            pDest->pFctInfoList[idx].reserved01 = *pData++;
+            pDest->pFctInfoList[idx].cstVehNo   = *pData++;
+            pDest->pFctInfoList[idx].etbId      = *pData++;
+            pDest->pFctInfoList[idx].cnId       = *pData++;
+            pDest->pFctInfoList[idx].reserved02 = *pData++;
         }
         /* pData += sizeof(TRDP_FUNCTION_INFO_T) * pDest->fctCnt; */ /* Incremented while copying */
     }
