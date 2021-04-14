@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*     AHW 2021-04-14: Ticket #368 tau_tti: tau getOwnIds: error in index handling in vehInfoList
 *     AHW 2021-04-13: Ticket #362: ttiStoreTrnNetDir: trnNetDir read from wrong address
 *     AHW 2021-04-13: Ticket #363: tau_getOwnIds: noOfCachedCst never assigned to actual value, never set to 0
 *     AHW 2021-04-13: Ticket #364: ttiCreateCstInfoEntry: all vehInfo, cltrInfo, etbInfo entries are copied to index 0. The idx counter are not used.
@@ -42,7 +43,7 @@
 *      BL 2019-06-17: Ticket #161 Increase performance
 *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
 *      V 2.0.0 --------- ^^^ -----------
-*      V 1.4.2 --------- vvv -----------
+*      V 1.4.2 --------- vvv -----------                             
 *      BL 2019-06-11: Ticket #253 Incorrect storing of TTDB_STATIC_CONSIST_INFO_REPLY from network packet into local copy
 *      BL 2019-05-15: Ticket #254 API of TTI to get OwnOpCstNo and OwnTrnCstNo
 *      BL 2019-05-15: Ticket #255 opTrnState of pTTDB isn't copied completely
@@ -630,7 +631,7 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
         for (idx = 0u; idx < pDest->fctCnt; idx++)
         {
            /* #365 Use idx  */
-            memcpy(pDest->pFctInfoList->fctName, pData, sizeof(TRDP_NET_LABEL_T));
+            memcpy(pDest->pFctInfoList[idx].fctName, pData, sizeof(TRDP_NET_LABEL_T));
             pData += sizeof(TRDP_NET_LABEL_T);
             pDest->pFctInfoList[idx].fctId = vos_ntohs(*(UINT16 *)pData);
             pData += sizeof(UINT16);
@@ -746,18 +747,15 @@ static void ttiStoreCstInfo (
 
     /* We do convert and allocate more memory for the several parts of the consist info inside. */
 
-    if (ttiCreateCstInfoEntry(appHandle->pTTDB->cstInfo[curEntry], pData, dataSize) == TRDP_NO_ERR)
+    if (ttiCreateCstInfoEntry(appHandle->pTTDB->cstInfo[curEntry], pData, dataSize) != TRDP_NO_ERR)
     {
-        appHandle->pTTDB->noOfCachedCst++;   /* #363 */
-    }
-    else
-    {
-        vos_memFree(appHandle->pTTDB->cstInfo[curEntry]);
+          vos_memFree(appHandle->pTTDB->cstInfo[curEntry]);
         appHandle->pTTDB->cstSize[curEntry] = 0u;
         vos_printLogStr(VOS_LOG_ERROR, "Parts of consist info could not be stored!");
         return;
     }
     appHandle->pTTDB->cstSize[curEntry] = sizeof(TRDP_CONSIST_INFO_T);
+    appHandle->pTTDB->noOfCachedCst = curEntry + 1;   /* #363 */
 }
 
 /**********************************************************************************************************************/
@@ -816,8 +814,9 @@ static void ttiMDCallback (
                         vos_memFree(appHandle->pTTDB->cstInfo[i]);
                         appHandle->pTTDB->cstInfo[i] = NULL;
                     }
-                    appHandle->pTTDB->noOfCachedCst = 0;   /* #363 */
                 }
+                appHandle->pTTDB->noOfCachedCst = 0;   /* #363 */
+
                 for (i = 0; i < TTI_CACHED_CONSISTS; i++)
                 {
                     if (appHandle->pTTDB->trnDir.cstList[i].cstTopoCnt == 0)
@@ -1859,7 +1858,7 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
                 if (pVehId != NULL)
                 {
                     UINT8 vehNo = appHandle->pTTDB->cstInfo[0]->pFctInfoList[index].cstVehNo;
-                    memcpy(pVehId, appHandle->pTTDB->cstInfo[0]->pVehInfoList[vehNo].vehId, TRDP_MAX_LABEL_LEN);
+                    memcpy(pVehId, appHandle->pTTDB->cstInfo[0]->pVehInfoList[vehNo-1].vehId, TRDP_MAX_LABEL_LEN);  /* #368 */
                 }
                 break;
             }
