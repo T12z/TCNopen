@@ -43,7 +43,7 @@
    </mapped-device-list>
 
    <com-parameter-list>
-      <com-parameter id="1" qos="5" ttl="64" TSN="TRUE" vlanId="15" /><!-- Suitable for PD communication (found this configuration in Usermanual) -->
+      <com-parameter id="1" qos="5" ttl="64" tsn="TRUE" vlan="15" /><!-- Suitable for PD communication (found this configuration in Usermanual) -->
       <com-parameter id="2" qos="3" ttl="64" /><!-- Suitable for MD communication (found this configuration in Usermanual) -->
    </com-parameter-list>
    
