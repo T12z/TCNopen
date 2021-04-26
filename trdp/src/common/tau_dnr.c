@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      AÖ 2021-04-26: Ticket #296: updateTCNDNSentry: vos_threadDelay() used instead of vos_semaTake() if we run single threaded
  *     AHW 2021-04-13: Ticket #367: tau_uri2Addr: Cashed DNS ooly invalid if both etbTopoCnt and opTrnTopoCnt are changed 
 .*      SB 2019-08-15: Moved TAU_MAX_NO_CACHE_ENTRY to header file
  *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
@@ -945,20 +946,29 @@ static void updateTCNDNSentry (
     /* how do we get the reply? */
     if (pDNR->useTCN_DNS == TRDP_DNR_OWN_THREAD)
     {
+        TRDP_TIME_T          replyTimeOut;
+        const TRDP_TIME_T    dnsReqTimeOut = {TCN_DNS_REQ_TO_US / 1000000, TCN_DNS_REQ_TO_US % 1000000 };
         /* we must call tlc_process on our own, if we run single threaded */
 
         (void) tlc_process(appHandle, NULL, NULL);   /* force sending message data */
+       
+        /* Calculate a timeout */
+        vos_getTime(&replyTimeOut);
+        /* Set timeout to 2 x TCN_DNS_REQ_TO_US */
+        vos_addTime(&replyTimeOut, &dnsReqTimeOut);
+        vos_addTime(&replyTimeOut, &dnsReqTimeOut);
 
-        for (i = 0; i < 2; i++)
+        while (TRUE)
         {
 
             /* switch context for the reply */
 
             TRDP_FDS_T          rfds;
             INT32               noDesc;
-            TRDP_TIME_T         tv = {0, 0};
-            const TRDP_TIME_T   max_tv  = {0, 100000};
+            TRDP_TIME_T         tv = { 0, 0 };
+            const TRDP_TIME_T   max_tv  = { 0, 100000 };
             INT32               rv;
+            TRDP_TIME_T         timeNow;
 
             FD_ZERO(&rfds);
 
@@ -969,22 +979,23 @@ static void updateTCNDNSentry (
                 tv = max_tv;
             }
 
+            /* wait for the reply */
             rv = vos_select(noDesc + 1, &rfds, NULL, NULL, &tv);
 
-            (void) tlc_process(appHandle, &rfds, &rv);
+            (void)tlc_process(appHandle, &rfds, &rv);
 
-            /* wait 1s for the reply */
-
-            if (vos_semaTake(dnsSema, TCN_DNS_REQ_TO_US) == VOS_NO_ERR)
+            if (vos_semaTake(dnsSema, 0) == VOS_NO_ERR)
             {
                 /* reply arrived */
                 break;
             }
-            else
+
+            vos_getTime(&timeNow);
+            if (vos_cmpTime(&timeNow, &replyTimeOut) == 1)
             {
                 /* reply timed out */
                 vos_printLogStr(VOS_LOG_WARNING, "TCN-DNS request timed out!\n");
-                continue;
+                break;
             }
         }
     }
