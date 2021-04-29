@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      SB 2021-02-04: Ticket #359: fixed parsing of 'service-device' elements
  *      SB 2020-06-29: Ticket #338: Attribute Callback always does not work
  *      AR 2020-05-08: Added parsing for attribute 'name' of event, method, field and instance elements used in service oriented interface
@@ -180,6 +181,7 @@ static void setDefaultInterfaceValues (
     {
         memset(pProcessConfig->hostName, 0, sizeof(TRDP_LABEL_T));
         memset(pProcessConfig->leaderName, 0, sizeof(TRDP_LABEL_T));
+        memset(pProcessConfig->type, 0, sizeof(TRDP_LABEL_T));          /* #349 */
         pProcessConfig->cycleTime   = TRDP_PROCESS_DEFAULT_CYCLE_TIME;
         pProcessConfig->options     = TRDP_PROCESS_DEFAULT_OPTIONS | TRDP_OPTION_DEFAULT_CONFIG;
         pProcessConfig->priority    = TRDP_PROCESS_DEFAULT_PRIORITY;
@@ -1126,6 +1128,10 @@ static TRDP_ERR_T readXmlDatasets (
                     {
                         (*papDataset)[idx]->id = valueInt;
                     }
+                    else if (vos_strnicmp(attribute, "name", TRDP_EXTRA_LABEL_LEN) == 0)          /* #349 */
+                    {
+                       vos_strncpy((*papDataset)[idx]->name, value, (UINT32)strlen(value) + 1u);
+                    }
                 }
 
                 while (trdp_XMLSeekStartTag(pXML, "element") == 0)
@@ -1376,6 +1382,10 @@ EXT_DECL TRDP_ERR_T tau_readXmlInterfaceConfig (
                 else if (vos_strnicmp(attribute, "leader-name", MAX_TOK_LEN) == 0)
                 {
                     vos_strncpy(pProcessConfig->leaderName, value, TRDP_MAX_LABEL_LEN);
+                }
+                else if (vos_strnicmp(attribute, "type", MAX_TOK_LEN) == 0)             /* #349 */
+                {
+                   vos_strncpy(pProcessConfig->type, value, TRDP_MAX_LABEL_LEN);
                 }
             }
         }

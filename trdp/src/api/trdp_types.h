@@ -12,9 +12,10 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2020. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2021. All rights reserved.
  */
 /*
+ *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      BL 2020-07-10: Ticket #321 Move TRDP_TIMER_GRANULARITY to public API
  *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
  *      BL 2019-08-23: Option flag added to detect default process config (needed for HL + cyclic thread)
@@ -112,6 +113,8 @@ extern "C" {
 typedef VOS_IP4_ADDR_T TRDP_IP_ADDR_T;
 
 typedef CHAR8 TRDP_LABEL_T[TRDP_MAX_LABEL_LEN + 1];
+
+typedef CHAR8 TRDP_EXTRA_LABEL_T[TRDP_EXTRA_LABEL_LEN + 1];
 
 typedef CHAR8 TRDP_NET_LABEL_T[TRDP_MAX_LABEL_LEN];         /**< Definition for usage in network packets,
                                                                 not necessarily \0 terminated! */
@@ -368,6 +371,7 @@ typedef struct TRDP_DATASET
     UINT32                  id;         /**< dataset identifier > 1000                                  */
     UINT16                  reserved1;  /**< Reserved for future use, must be zero                      */
     UINT16                  numElement; /**< Number of elements                                         */
+    TRDP_EXTRA_LABEL_T      name;       /**< Dataset name #349                                          */
     TRDP_DATASET_ELEMENT_T  pElement[]; /**< Pointer to a dataset element, used as array                */
 } TRDP_DATASET_T;
 
@@ -738,11 +742,12 @@ typedef UINT8 TRDP_OPTION_T;
  */
 typedef struct
 {
-    TRDP_LABEL_T    hostName;       /**< Host name  */
-    TRDP_LABEL_T    leaderName;     /**< Leader name dependant on redundancy concept   */
-    UINT32          cycleTime;      /**< TRDP main process cycle time in us  */
-    UINT32          priority;       /**< TRDP main process priority (0-255, 0=default, 255=highest)   */
-    TRDP_OPTION_T   options;        /**< TRDP options */
+    TRDP_LABEL_T        hostName;       /**< Host name  */
+    TRDP_LABEL_T        leaderName;     /**< Leader name dependant on redundancy concept   */
+    TRDP_LABEL_T        type;           /**< process type #349 */
+    UINT32              cycleTime;      /**< TRDP main process cycle time in us  */
+    UINT32              priority;       /**< TRDP main process priority (0-255, 0=default, 255=highest)   */
+    TRDP_OPTION_T       options;        /**< TRDP options */
 } TRDP_PROCESS_CONFIG_T;
 
 /**********************************************************************************************************************/
