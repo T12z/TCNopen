@@ -893,7 +893,6 @@ static void updateTCNDNSentry (
     UINT32          querySize;
     TAU_DNR_DATA_T  *pDNR   = (TAU_DNR_DATA_T *) appHandle->pUser;
     VOS_SEMA_T      dnsSema;
-    unsigned int    i;
 
     static UINT8 sTCN_DNS_Buffer[sizeof(TRDP_DNS_REQUEST_T)];
 

@@ -142,6 +142,23 @@ EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandl
                                              TRDP_ECSP_CONF_REQUEST_T  *pEcspConfRequest);
 
 
+/**********************************************************************************************************************/
+/**    Function to retrieve ECSP confirmation/correction reply
+ *
+ *  @param[in]      appHandle           Application Handle
+ *  @param[in]      pUserRef            user reference returned with reply
+ *  @param[in/out]  pMsg                Pointer to message info data
+ *  @param[in/out]  pEcspConfReply      Pointer to confirmation reply data
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_NOINIT_ERR module not initialised
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_requestEcspConfirmReply(TRDP_APP_SESSION_T      appHandle,
+                                                const void* pUserRef,
+                                                TRDP_MD_INFO_T* pMsg,
+                                                TRDP_ECSP_CONF_REPLY_T* pEcspConfReply);
+
 #ifdef __cplusplus
 }
 #endif
