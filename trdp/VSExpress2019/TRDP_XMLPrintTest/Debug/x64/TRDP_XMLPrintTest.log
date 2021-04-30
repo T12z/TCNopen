@@ -1,3 +1,0 @@
-﻿  trdp-xmlprint-test.c
-getopt.obj : warning LNK4075: /EDITANDCONTINUE wird aufgrund der Angabe von /INCREMENTAL:NO ignoriert.
-  TRDP_XMLPrintTest.vcxproj -> C:\Users\arweiss\Documents\Projekte\TCNOpen\TCNOpenSF\trdp\VSExpress2019\Debug\x64\TRDP_XMLPrintTest.exe
