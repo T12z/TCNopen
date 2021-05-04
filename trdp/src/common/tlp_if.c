@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$
 *
+*     AHW 2021-05-04: Ticket #354 Sequence counter synchronization error working in redundancy mode
 *      BL 2020-07-27: Ticket #304 The reception of any incorrect message causes it to exit the loop
 *      BL 2020-07-10: Ticket #328 tlp_put() writes out of memory for TSN telegrams
 *      BL 2020-07-10: Ticket #315 tlp_publish and heap allocation failed leads to wrong error behaviour
@@ -334,6 +335,7 @@ EXT_DECL TRDP_ERR_T tlp_setRedundant (
                     if (TRUE == leader)
                     {
                         iterPD->privFlags = (TRDP_PRIV_FLAGS_T) (iterPD->privFlags & ~(TRDP_PRIV_FLAGS_T)TRDP_REDUNDANT);
+                        iterPD->curSeqCnt = 0xffffffffu;           /* #354 start with defined topo counter */
                     }
                     else
                     {

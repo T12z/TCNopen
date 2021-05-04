@@ -12,7 +12,7 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
  * $Id$
@@ -67,7 +67,7 @@
 #define TRDP_VERSION    2
 #define TRDP_RELEASE    1
 #define TRDP_UPDATE     22
-#define TRDP_EVOLUTION  54              /* Evolution > 0 denotes trunk! */
+#define TRDP_EVOLUTION  55              /* Evolution > 0 denotes trunk! */
 #endif
 
 /* Version as a string, this can also be for example 1.2.3.4.RC1 */
