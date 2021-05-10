@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$
 *
+*     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
 *
 */
@@ -689,7 +690,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTSN (
 {
     return vos_sockReceiveUDP(sock, pBuffer, pSize,
                               pSrcIPAddr, pSrcIPPort,
-                              pDstIPAddr, peek);
+                              pDstIPAddr, NULL, peek);
 }
 
 /**********************************************************************************************************************/

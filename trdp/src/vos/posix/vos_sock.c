@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$
 *
+*     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING
 *      SB 2019-07-11: Added includes linux/if_vlan.h and linux/sockios.h
 *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
@@ -105,8 +106,44 @@ struct ifreq    gIfr;
  * LOCAL FUNCTIONS
  */
 
-BOOL8       vos_getMacAddress (UINT8        *pMacAddr,
-                               const char   *pIfName);
+/**********************************************************************************************************************/
+/** Get the IP address of local network interface.
+ *
+ *  @param[in]      index    interface index
+ *
+ *  @retval         IP address of interface
+ *  @retval         0 if index not found
+ */
+UINT32 vos_getInterfaceIP (UINT32 index)
+{
+    static VOS_IF_REC_T ifAddrs[VOS_MAX_NUM_IF]  = {0};
+    static UINT32                       ifCount  = 0u;
+    VOS_ERR_T                               err  = VOS_NO_ERR;
+    UINT32                                    i  = 0u;
+
+    if (ifCount == 0u)
+    {
+		ifCount = VOS_MAX_NUM_IF;
+		err = vos_getInterfaces(&ifCount, ifAddrs);
+
+		if (err != VOS_NO_ERR)
+		{
+			ifCount = 0u;
+			return 0u;
+		}
+    }
+
+    for (i = 0; i < ifCount; i++)
+    {
+        if (ifIndexs[i] == index)
+        {
+            return ifAddrs[i].ipAddr;
+        }
+    }
+
+    return 0u;
+}
+
 
 /**********************************************************************************************************************/
 /** Get the MAC address for a named interface.
@@ -454,6 +491,9 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                     strncpy((char *) ifAddrs[count].name, cursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
                     ifAddrs[count].name[VOS_MAX_IF_NAME_SIZE - 1] = 0;
                 }
+                /* Store interface index */
+                ifAddrs[count].ifIndex = if_nametoindex(ifAddrs[count].name);
+
                 vos_printLog(VOS_LOG_INFO, "IP-Addr for '%s': %u.%u.%u.%u\n",
                              ifAddrs[count].name,
                              (unsigned int)(ifAddrs[count].ipAddr >> 24) & 0xFF,
@@ -556,8 +596,9 @@ EXT_DECL BOOL8 vos_netIfUp (
 EXT_DECL VOS_ERR_T vos_sockInit (void)
 {
     memset(&gIfr, 0, sizeof(gIfr));
+	vos_getInterfaceIP(0);
     vosSockInitialised = TRUE;
-
+	
     return VOS_NO_ERR;
 }
 
@@ -1187,6 +1228,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  *  @param[out]     pSrcIPAddr      pointer to source IP
  *  @param[out]     pSrcIPPort      pointer to source port
  *  @param[out]     pDstIPAddr      pointer to dest IP
+ *  @param[out]     pSrcIFAddr      pointer to source network interface IP
  *  @param[in]      peek            if true, leave data in queue
  *
  *  @retval         VOS_NO_ERR      no error
@@ -1203,6 +1245,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pSrcIPAddr,
     UINT16  *pSrcIPPort,
     UINT32  *pDstIPAddr,
+	UINT32  *pSrcIFAddr,
     BOOL8   peek)
 {
     union
@@ -1256,18 +1299,28 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
                         struct in_addr *pia = (struct in_addr *)CMSG_DATA(cmsg);
                         *pDstIPAddr = (UINT32)vos_ntohl(pia->s_addr);
                         /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
+						
+                        if (pSrcIFAddr != NULL)
+                        {
+                            *pSrcIFAddr = vos_getInterfaceIP(pia->ipi_ifindex);  /* #322 */
+                        }
                     }
 #elif defined(IP_PKTINFO)
                     if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_PKTINFO)
                     {
                         struct in_pktinfo *pia = (struct in_pktinfo *)CMSG_DATA(cmsg);
                         *pDstIPAddr = (UINT32)vos_ntohl(pia->ipi_addr.s_addr);
+						
                         /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
+						
+						if (pSrcIFAddr != NULL)
+                        {
+                            *pSrcIFAddr = vos_getInterfaceIP(pia->ipi_ifindex);  /* #322 */
+                        }
                     }
 #endif
                 }
             }
-
 
             if (pSrcIPAddr != NULL)
             {

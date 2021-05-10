@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      BL 2019-08-27: Changed send failure from ERROR to WARNING
  *      BL 2019-02-22: lwip patch: recvfrom to return destIP
  *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
@@ -873,6 +874,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  *  @param[out]     pSrcIPAddr      pointer to source IP
  *  @param[out]     pSrcIPPort      pointer to source port
  *  @param[out]     pDstIPAddr      pointer to dest IP
+ *  @param[out]     pSrcIFAddr      pointer to source network interface IP
  *  @param[in]      peek            if true, leave data in queue
  *
  *  @retval         VOS_NO_ERR      no error
@@ -889,6 +891,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pSrcIPAddr,
     UINT16  *pSrcIPPort,
     UINT32  *pDstIPAddr,
+	UINT32  *pSrcIFAddr,
     BOOL8   peek)
 {
     struct sockaddr_in si_other;

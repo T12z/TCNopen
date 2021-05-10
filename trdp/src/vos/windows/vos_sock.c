@@ -13,11 +13,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$*
 *
+*     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING
 *      BL 2019-01-29: Ticket #233: DSCP Values not standard conform
@@ -56,6 +57,7 @@
 #include <Ws2tcpip.h>
 #include <MSWSock.h>
 #include <lm.h>
+#include <netioapi.h>
 #include <iphlpapi.h>
 
 #include "vos_utils.h"
@@ -421,6 +423,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                     {
                         ifAddrs[addrCnt].ipAddr = vos_dottedIP(inet_ntoa(pSockAddress->sin_addr));
                     }
+
                     /* Store MAC address */
                     if (pAdapter->PhysicalAddressLength != sizeof(ifAddrs[addrCnt].mac))
                     {
@@ -430,12 +433,16 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                     {
                         memcpy(ifAddrs[addrCnt].mac, pAdapter->PhysicalAddress, sizeof(ifAddrs[addrCnt].mac));
                     }
+
                     /* Store adapter name */
-                    for (i = 0; i < sizeof(ifAddrs[addrCnt].name); i++)
+                    for (i = 0; i < sizeof(ifAddrs[addrCnt].name); i++ )
                     {
-                        ifAddrs[addrCnt].name[i] = (CHAR8)pAdapter->Description[i];
+                        ifAddrs[addrCnt].name[i] = (CHAR8)pAdapter->Description[i];   /* Description */
                     }
                     ifAddrs[addrCnt].name[VOS_MAX_IF_NAME_SIZE - 1] = '\0';
+
+                    /* Store interface index */
+                    ifAddrs[addrCnt].ifIndex = (UINT32)pAdapter->IfIndex;
 
                     /* Store subnet mask */
                     netMask = 0;
@@ -444,6 +451,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                         netMask += 1 << (31 - i);
                     }
                     ifAddrs[addrCnt].netMask = netMask;
+
                     /* Store link state */
                     if (pAdapter->OperStatus == IfOperStatusUp)
                     {
@@ -453,6 +461,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                     {
                         ifAddrs[addrCnt].linkState = FALSE;
                     }
+
                     /* increment number of addresses stored */
                     addrCnt++;
                     pAddress = pAddress->Next;
@@ -510,6 +519,44 @@ EXT_DECL INT32 vos_select (
 
 /*    Sockets    */
 
+
+/**********************************************************************************************************************/
+/** Get the IP address of local network interface.
+ *
+ *  @param[in]      index    interface index
+ *
+ *  @retval         IP address of interface
+ *  @retval         0 if index not found
+ */
+UINT32 vos_getInterfaceIP(UINT32 index)
+{
+    static VOS_IF_REC_T ifAddrs[VOS_MAX_NUM_IF] = { 0 };
+    static UINT32       ifCount = 0u;
+    VOS_ERR_T           err = VOS_NO_ERR;
+    UINT32              i = 0u;
+
+   if (ifCount == 0u)
+    {
+        ifCount = VOS_MAX_NUM_IF;
+        err = vos_getInterfaces(&ifCount, ifAddrs);
+        if (err != VOS_NO_ERR)
+        {
+            ifCount = 0u;
+            return 0u;
+        }
+    }
+
+    for (i = 0; i < ifCount; i++)
+    {
+        if (ifAddrs[i].ifIndex == index)
+        {
+            return ifAddrs[i].ipAddr;
+        }
+    }
+
+    return 0u;
+}
+
 /**********************************************************************************************************************/
 /** Initialize the socket library.
  *  Must be called once before any other call
@@ -533,6 +580,7 @@ EXT_DECL VOS_ERR_T vos_sockInit (void)
     }
 
     memset(mac, 0, sizeof(mac));
+    vos_getInterfaceIP(0);
     vosSockInitialised = TRUE;
 
     return VOS_NO_ERR;
@@ -549,7 +597,6 @@ EXT_DECL void vos_sockTerm (void)
     vosSockInitialised = FALSE;
     (void) WSACleanup();
 }
-
 
 /**********************************************************************************************************************/
 /** Return the MAC address of the default adapter.
@@ -1168,6 +1215,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  *  @param[out]     pSrcIPAddr      pointer to source IP
  *  @param[out]     pSrcIPPort      pointer to source port
  *  @param[out]     pDstIPAddr      pointer to dest IP
+ *  @param[out]     pSrcIFAddr      pointer to source network interface IP
  *  @param[in]      peek            if true, leave data in queue
  *
  *  @retval         VOS_NO_ERR      no error
@@ -1184,6 +1232,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pSrcIPAddr,
     UINT16  *pSrcIPPort,
     UINT32  *pDstIPAddr,
+    UINT32  *pSrcIFAddr,    /* #322 */
     BOOL8   peek)
 {
     struct sockaddr_in  srcAddr;
@@ -1223,8 +1272,6 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
 
         if (rcvSize != SOCKET_ERROR)
         {
-
-            if (pDstIPAddr != NULL)
             {
                 WSACMSGHDR *pCMsgHdr;
 
@@ -1233,10 +1280,21 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
                     pCMsgHdr->cmsg_type == IP_PKTINFO)
                 {
                     struct in_pktinfo *pPktInfo = (struct in_pktinfo *) WSA_CMSG_DATA(pCMsgHdr);
-                    *pDstIPAddr = (UINT32) vos_ntohl(pPktInfo->ipi_addr.S_un.S_addr);
-                    /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
+
+                    if (pDstIPAddr != NULL)
+                    {
+                        *pDstIPAddr = (UINT32)vos_ntohl(pPktInfo->ipi_addr.S_un.S_addr);
+                        /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
+                    }
+
+                    /* #322 */
+                    if (pSrcIFAddr != NULL)
+                    {
+                        *pSrcIFAddr = vos_getInterfaceIP(pPktInfo->ipi_ifindex);
+                    }
                 }
             }
+
             if (pSrcIPAddr != NULL)
             {
                 *pSrcIPAddr = (UINT32) vos_ntohl(srcAddr.sin_addr.s_addr);

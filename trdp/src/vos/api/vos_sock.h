@@ -12,12 +12,13 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
  * $Id$
  *
-*       AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
+ *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
+ *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2019-09-10: Ticket #278 Don't check if a socket is < 0
  *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
  *      V 2.0.0 --------- ^^^ -----------
@@ -94,7 +95,7 @@ extern "C" {
 #ifdef IFNAMSIZ
 #define VOS_MAX_IF_NAME_SIZE    IFNAMSIZ
 #else
-#define VOS_MAX_IF_NAME_SIZE    16
+#define VOS_MAX_IF_NAME_SIZE   40
 #endif
 #endif
 #ifndef VOS_MAX_NUM_IF              /**< The maximum number of IP interface adapters that can be handled by VOS */
@@ -159,6 +160,7 @@ typedef struct
     VOS_IP4_ADDR_T  netMask;                    /**< subnet mask                    */
     UINT8           mac[VOS_MAC_SIZE];          /**< interface adapter MAC address  */
     BOOL8           linkState;                  /**< link down (false) / link up (true) */
+    UINT32          ifIndex;                    /**< interface index                */
 /*    UINT16          vlanId; */
 } VOS_IF_REC_T;
 
@@ -489,6 +491,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  *  @param[out]     pSrcIPAddr      pointer to source IP
  *  @param[out]     pSrcIPPort      pointer to source port
  *  @param[out]     pDstIPAddr      pointer to dest IP
+ *  @param[out]     pSrcIFAddr      pointer to source network interface IP
  *  @param[in]      peek            if true, leave data in queue
  *
  *  @retval         VOS_NO_ERR      no error
@@ -505,6 +508,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pSrcIPAddr,
     UINT16  *pSrcIPPort,
     UINT32  *pDstIPAddr,
+    UINT32  *pSrcIFAddr,
     BOOL8   peek);
 
 /**********************************************************************************************************************/

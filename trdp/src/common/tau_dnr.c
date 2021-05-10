@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
  /*
  * $Id$
  *
+ *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      AÖ 2021-04-26: Ticket #296: updateTCNDNSentry: vos_threadDelay() used instead of vos_semaTake() if we run single threaded
  *     AHW 2021-04-13: Ticket #367: tau_uri2Addr: Cashed DNS ooly invalid if both etbTopoCnt and opTrnTopoCnt are changed 
 .*      SB 2019-08-15: Moved TAU_MAX_NO_CACHE_ENTRY to header file
@@ -622,7 +623,7 @@ static void updateDNSentry (
             size = TAU_MAX_DNS_BUFFER_SIZE;
 
             /* Get what was announced */
-            (void) vos_sockReceiveUDP(my_socket, packetBuffer, &size, &pDNR->dnsIpAddr, &pDNR->dnsPort, NULL, FALSE);
+            (void) vos_sockReceiveUDP(my_socket, packetBuffer, &size, &pDNR->dnsIpAddr, &pDNR->dnsPort, NULL, NULL, FALSE); /* 322 */
 
             FD_CLR(my_socket, &rfds); /*lint !e573 !e502 !e505 Signed/unsigned mix in std-header */
 

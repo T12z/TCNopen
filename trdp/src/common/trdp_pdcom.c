@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *     AHW 2021-04-30: Ticket #369 Variable sized arrays are not supported if marshall is active
 *      BL 2020-11-03: Ticket #347 Allow dynamic sized arrays for PD (Ticket #207 undone)
 *      BL 2020-07-29: Ticket #332 Error reading from TSN PD header
@@ -745,6 +746,7 @@ TRDP_ERR_T  trdp_pdReceive (
     int                 informUser      = FALSE;
     int                 isTSN           = FALSE;
     TRDP_ADDRESSES_T    subAddresses    = { 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    UINT32              srcIfAddr = 0u;
     TRDP_MSG_T          msgType;
 #ifdef TSN_SUPPORT
     PD2_HEADER_T        *pTSNFrameHead = (PD2_HEADER_T *) pNewFrameHead;
@@ -757,10 +759,18 @@ TRDP_ERR_T  trdp_pdReceive (
                                           &subAddresses.srcIpAddr,
                                           NULL,
                                           &subAddresses.destIpAddr,
+                                          &srcIfAddr,   /* #322 */
                                           FALSE);
     if ( err != TRDP_NO_ERR)
     {
         return err;
+    }
+
+    /* #322 */
+    if ((appHandle->realIP != 0u) && (srcIfAddr != 0) && (appHandle->realIP != srcIfAddr))
+    {
+        /* Packet does not belong to this session, ignore packet */
+        return TRDP_NO_ERR;
     }
 
     /*  Is packet sane?    */

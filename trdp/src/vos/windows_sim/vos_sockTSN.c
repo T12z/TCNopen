@@ -14,11 +14,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019-2021. All rights reserved.
  */
 /*
 * $Id$
 *
+*     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, Requires SimTecc from 2020 or later
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
@@ -193,7 +194,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTSN (
 {
     return vos_sockReceiveUDP(sock, pBuffer, pSize,
                               pSrcIPAddr, pSrcIPPort,
-                              pDstIPAddr, peek);
+                              pDstIPAddr, NULL, peek);
 }
 
 #endif

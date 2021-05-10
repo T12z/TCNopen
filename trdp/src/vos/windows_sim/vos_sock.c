@@ -20,6 +20,7 @@
 /*
 * $Id$*
 *
+*     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, removed old SimTecc workarounds, Requires SimTecc from 2020 or later
 *      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
 *      AÖ 2019-12-18: Ticket #295: vos_sockSendUDP some times report err 183 in Windows Sim
@@ -473,6 +474,8 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
     ifAddrs[0].netMask = 0;
     memcpy(ifAddrs[0].mac, ifMac, sizeof(ifMac));
     strcpy_s(ifAddrs[0].name, VOS_MAX_IF_NAME_SIZE, ifName);
+    ifAddrs[0].ifIndex = 0;
+
     *pAddrCnt = 1;
 
     return VOS_NO_ERR;
@@ -1087,6 +1090,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  *  @param[out]     pSrcIPAddr      pointer to source IP
  *  @param[out]     pSrcIPPort      pointer to source port
  *  @param[out]     pDstIPAddr      pointer to dest IP
+ *  @param[out]     pSrcIFAddr      pointer to source network interface IP
  *  @param[in]      peek            if true, leave data in queue
  *
  *  @retval         VOS_NO_ERR      no error
@@ -1103,6 +1107,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pSrcIPAddr,
     UINT16  *pSrcIPPort,
     UINT32  *pDstIPAddr,
+	UINT32  *pSrcIFAddr,
     BOOL8   peek)
 {
     struct sockaddr_in  srcAddr;

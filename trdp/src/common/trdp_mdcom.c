@@ -15,11 +15,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
  /*
  * $Id$
  *
+ *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      BL 2020-11-03: Ticket #346 UDP MD: In case of wrong data length (too big) in the header the package won't be released
  *      BL 2020-08-10: Ticket #335 MD UDP notifications sometimes dropped
  *      BL 2020-07-30: Ticket #336 MD structures handling in multithread application
@@ -1375,6 +1376,7 @@ static TRDP_ERR_T trdp_mdRecvUDPPacket (TRDP_SESSION_PT appHandle, SOCKET mdSock
                                           &pElement->addr.srcIpAddr,
                                           &pElement->replyPort,
                                           &pElement->addr.destIpAddr,
+                                          NULL,   /* #322 */
                                           TRUE);
 
     /* does the announced data fit into our (small) allocated buffer?   */
@@ -1397,7 +1399,9 @@ static TRDP_ERR_T trdp_mdRecvUDPPacket (TRDP_SESSION_PT appHandle, SOCKET mdSock
                                               (UINT8 *)pElement->pPacket,
                                               &size,
                                               NULL,
-                                              NULL, NULL,
+                                              NULL,
+                                              NULL,
+                                              NULL,   /* #322 */
                                               FALSE);
                     return TRDP_MEM_ERR;
                 }
@@ -1415,6 +1419,7 @@ static TRDP_ERR_T trdp_mdRecvUDPPacket (TRDP_SESSION_PT appHandle, SOCKET mdSock
                                                       &pElement->addr.srcIpAddr,
                                                       &pElement->replyPort,
                                                       &pElement->addr.destIpAddr,
+                                                      NULL,   /* #322 */
                                                       FALSE);
         }
         else
@@ -1430,13 +1435,13 @@ static TRDP_ERR_T trdp_mdRecvUDPPacket (TRDP_SESSION_PT appHandle, SOCKET mdSock
 
             /* header information can't be read - throw the packet away reading some bytes */
             size = sizeof(MD_HEADER_T);
-            (void) vos_sockReceiveUDP(
-                mdSock,
-                (UINT8 *)pElement->pPacket,
-                &size,
-                &pElement->addr.srcIpAddr,
-                &pElement->replyPort, &pElement->addr.destIpAddr,
-                FALSE);
+            (void) vos_sockReceiveUDP(mdSock,
+                                      (UINT8 *)pElement->pPacket,
+                                      &size,
+                                      &pElement->addr.srcIpAddr,
+                                      &pElement->replyPort, &pElement->addr.destIpAddr,
+                                      NULL,   /* #322 */
+                                      FALSE);
 
             return TRDP_NODATA_ERR;
         }
