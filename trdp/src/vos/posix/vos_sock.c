@@ -135,7 +135,7 @@ UINT32 vos_getInterfaceIP (UINT32 index)
 
     for (i = 0; i < ifCount; i++)
     {
-        if (ifIndexs[i] == index)
+        if (ifAddrs[i].ifIndex == index)
         {
             return ifAddrs[i].ipAddr;
         }
