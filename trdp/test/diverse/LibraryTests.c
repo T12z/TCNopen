@@ -47,6 +47,43 @@
 #include "vos_utils.h"
 #include "vos_mem.h"
 
+#include "trdp_types.h"
+#include "trdp_if_light.h"
+
+
+/**********************************************************************************************************************/
+/** callback routine for TRDP logging/error output
+ *
+ *  @param[in]        pRefCon          user supplied context pointer
+ *  @param[in]        category         Log category (Error, Warning, Info etc.)
+ *  @param[in]        pTime            pointer to NULL-terminated string of time stamp
+ *  @param[in]        pFile            pointer to NULL-terminated string of source module
+ *  @param[in]        LineNumber       line
+ *  @param[in]        pMsgStr          pointer to NULL-terminated string
+ *  @retval         none
+ */
+void dbgOut (
+    void        *pRefCon,
+    TRDP_LOG_T  category,
+    const CHAR8 *pTime,
+    const CHAR8 *pFile,
+    UINT16      LineNumber,
+    const CHAR8 *pMsgStr)
+{
+    const char *catStr[] = {"**Error:", "Warning:", "   Info:", "  Debug:", "   User:"};
+    CHAR8       *pF = strrchr(pFile, VOS_DIR_SEP);
+
+    if (category != VOS_LOG_DBG)
+    {
+        printf("%s %s %s:%d %s",
+               pTime,
+               catStr[category],
+               (pF == NULL)? "" : pF + 1,
+               LineNumber,
+               pMsgStr);
+    }
+}
+
 int testTimeCompare()
 {
     VOS_TIMEVAL_T time1 = { 1 /*sec */, 2 /* usec */ };
@@ -276,33 +313,42 @@ int testInterfaces()
         return 1;
     }
 
-    for (i = 0; i < ifCnt; i++)
-    {
-        CHAR8 ipString[16];
-        CHAR8 maskString[16];
-
-        vos_strncpy(ipString, vos_ipDotted(ifAddrs[i].ipAddr), 16);
-        vos_strncpy(maskString, vos_ipDotted(ifAddrs[i].netMask), 16);
-
-        printf(" Interface %d:\nName: %s IP: %s SubnetMask: %s MAC: %.2X:%.2X:%.2X:%.2X:%.2X:%.2X\n\n",
-                i,
-                ifAddrs[i].name,
-                ipString,
-                maskString,
-                ifAddrs[i].mac[0],
-                ifAddrs[i].mac[1],
-                ifAddrs[i].mac[2],
-                ifAddrs[i].mac[3],
-                ifAddrs[i].mac[4],
-                ifAddrs[i].mac[5]);
-    }
+//    for (i = 0; i < ifCnt; i++)
+//    {
+//        CHAR8 ipString[16];
+//        CHAR8 maskString[16];
+//
+//        vos_strncpy(ipString, vos_ipDotted(ifAddrs[i].ipAddr), 16);
+//        vos_strncpy(maskString, vos_ipDotted(ifAddrs[i].netMask), 16);
+//
+//        printf(" Interface %d:\nName: %s IP: %s SubnetMask: %s MAC: %.2X:%.2X:%.2X:%.2X:%.2X:%.2X\n\n",
+//                i,
+//                ifAddrs[i].name,
+//                ipString,
+//                maskString,
+//                ifAddrs[i].mac[0],
+//                ifAddrs[i].mac[1],
+//                ifAddrs[i].mac[2],
+//                ifAddrs[i].mac[3],
+//                ifAddrs[i].mac[4],
+//                ifAddrs[i].mac[5]);
+//    }
 
     return 0; /* all time tests succeeded */
 }
 
 int main(int argc, char *argv[])
 {
-    printf("Starting tests\n");
+    /*    Init the library  */
+    if (tlc_init(&dbgOut,                              /* no logging    */
+                 NULL,
+                NULL))
+    {
+        printf("Initialization error\n");
+        return 1;
+    }
+
+	printf("Starting tests\n");
     if (testInterfaces())
     {
         printf("Interface test failed\n");
