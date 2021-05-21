@@ -3268,7 +3268,7 @@ TRDP_ERR_T trdp_mdReply (const TRDP_MSG_T           msgType,
     TRDP_IP_ADDR_T  destIpAddr;
     TRDP_URI_USER_T *destURI    = NULL;
     UINT32          sequenceCounter;
-    TRDP_ERR_T      errv = TRDP_NOLIST_ERR;
+    TRDP_ERR_T      errv = TRDP_NOSESSION_ERR;  /* Ticket #281 */
     MD_ELE_T        *pSenderElement = NULL;
     BOOL8 newSession = FALSE;
 
