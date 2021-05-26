@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
  /*
  * $Id$
  *
+ *     AHW 2021-05-26: Ticket #322: Subscriber multicast message routing in multi-home device
  *      BL 2020-07-27: Ticket #333: Insufficient memory allocation in posix vos_semaCreate
  *
  */
@@ -47,7 +48,7 @@ extern "C" {
 /* The VOS version can be predefined as CFLAG   */
 #ifndef VOS_VERSION
 #define VOS_VERSION            2u
-#define VOS_RELEASE            0u
+#define VOS_RELEASE            1u    /* 322: interface change in vos_sockReceiveUDP() */
 #define VOS_UPDATE             1u
 #define VOS_EVOLUTION          0u
 #endif

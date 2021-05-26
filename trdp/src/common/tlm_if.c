@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$
 *
+*     AHW 2021-05-26: Ticket #370 Number of Listeners in MD statistics not counted correctly
 *      BL 2020-09-08: Ticket #343 userStatus parameter size in tlm_reply and tlm_replyQuery
 *      BL 2020-08-10: Ticket #309 revisited: tlm_abortSession shall return noError if morituri is not set
 *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
@@ -634,6 +635,7 @@ EXT_DECL TRDP_ERR_T tlm_delListener (
                                    FALSE,
                                    mcGroup);
             }
+
             /* deletes listener sessions */
             for (pIterMD = appHandle->pMDRcvQueue; pIterMD != NULL; pIterMD = pIterMD->pNext)
             {
@@ -643,19 +645,20 @@ EXT_DECL TRDP_ERR_T tlm_delListener (
                     pIterMD->morituri = TRUE;
                 }
             }
+
+            /* Statistics #370 */
+            if ((pDelete->pktFlags & TRDP_FLAGS_TCP) != 0)
+            {
+                appHandle->stats.tcpMd.numList--;
+            }
+            else
+            {
+                appHandle->stats.udpMd.numList--;
+            }
+
             /* free memory space for element */
             vos_memFree(pDelete);
         }
-    }
-
-    /* Statistics */
-    if ((appHandle->mdDefault.flags & TRDP_FLAGS_TCP) != 0 )
-    {
-        appHandle->stats.tcpMd.numList--;
-    }
-    else
-    {
-        appHandle->stats.udpMd.numList--;
     }
 
     /* Release mutex */

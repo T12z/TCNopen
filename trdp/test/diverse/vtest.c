@@ -11,12 +11,13 @@
  * @author          Christoph Schneider, Bombardier Transportation GmbH
  *
  *
- * @remarks         All rights reserved. Reproduction, modification, use or disclosure
- *                  to third parties without express authority is forbidden,
- *                  Copyright Bombardier Transportation GmbH, Germany, 2013.
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  *
  * $Id$
  *
+ *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      AÖ 2019-11-12: Ticket #290: Add support for Virtualization on Windows, changed thread names to unique ones
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
  */
@@ -1480,6 +1481,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
    UINT32 mcIF = ipCfg.mcIP;
    UINT32 destIP = ipCfg.dstIP;
    UINT32 srcIP = ipCfg.srcIP;
+   UINT32 srcIFIP = 0;
    UINT32 portPD = TRDP_PD_UDP_PORT; /* according to IEC 61375-2-3 CDV A.2 */
    UINT32 portMD = TRDP_MD_UDP_PORT; /* according to IEC 61375-2-3 CDV A.2 */
    UINT8 sndBuf = sndBufStartVal;
@@ -1565,7 +1567,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
       /*************************/
       /*ok here we first (re-)receive our own mc udp that was sent just above */
       vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockReceive() retVal bisher = %u\n", retVal);
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockreceiveUDP() ERROR!\n");
@@ -1576,11 +1578,12 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] UDP MC received: %u\n", rcvBuf);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Source: %s : %i\n", vos_ipDotted(gTestIP), gTestPort);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Destination: %s\n", vos_ipDotted(destIP));
+         vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] IF IP: %s\n", vos_ipDotted(srcIFIP));
          received = TRUE;
       }
       /*and now here we get the response from our counterpart */
       vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockReceive() retVal bisher = %u\n", retVal);
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockReceiveUDP() ERROR!\n");
@@ -1596,6 +1599,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] UDP MC received: %u\n", rcvBuf);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Source: %s : %i\n", vos_ipDotted(gTestIP), gTestPort);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Destination: %s\n", vos_ipDotted(destIP));
+         vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] IF IP: %s\n", vos_ipDotted(srcIFIP));
          received = TRUE;
       }
    }
@@ -1639,6 +1643,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    UINT8 sndBuf = sndBufStartVal;
    UINT32 sndIP = 0;
    UINT32 rcvIP = 0;
+   UINT32 srcIFIP = 0;
    UINT16 rcvPort = 0;
    UINT8 rcvBuf = 0;
    UINT8 rcvBufExp = rcvBufExpVal;
@@ -1700,7 +1705,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       /* receive UDP */
       /***************/
       vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
@@ -1715,6 +1720,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvBuf %u != %u\n", rcvBuf, rcvBufExpVal);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvIP %u != %u\n", rcvIP, srcIP);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvPort %u != %u\n", rcvPort, portPD);
+            vos_printLog(VOS_LOG_USR, "[SOCK_UDP] IF IP: %s\n", vos_ipDotted(srcIFIP));
          }
          else
          {
@@ -1790,7 +1796,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       /* receive UDP */
       /***************/
       vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
@@ -1805,12 +1811,14 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvBuf %u != %u\n", rcvBuf, rcvBufExpVal);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvIP %u != %u\n", rcvIP, srcIP);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvPort %u != %u\n", rcvPort, portMD);
+            vos_printLog(VOS_LOG_USR, "[SOCK_UDP] IF IP: %s\n", vos_ipDotted(srcIFIP));
          }
          else
          {
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] UDP received: %u\n", rcvBuf);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] Source: %s : %i\n", vos_ipDotted(rcvIP), rcvPort);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] Destination: %s\n", vos_ipDotted(destIP));
+            vos_printLog(VOS_LOG_USR, "[SOCK_UDP] IF IP: %s\n", vos_ipDotted(srcIFIP));
          }
       }
    }
