@@ -93,15 +93,15 @@ UINT32 vos_getInterfaceIP (UINT32 index)
 
     if (ifCount == 0u)
     {
-		ifCount = VOS_MAX_NUM_IF;
-		err = vos_getInterfaces(&ifCount, ifAddrs);
+        ifCount = VOS_MAX_NUM_IF;
+        err = vos_getInterfaces(&ifCount, ifAddrs);
 
-		if (err != VOS_NO_ERR)
-		{
-			ifCount = 0u;
-			return 0u;
-		}
-	}
+        if (err != VOS_NO_ERR)
+        {
+            ifCount = 0u;
+            return 0u;
+        }
+    }
 
     for (i = 0; i < ifCount; i++)
     {
@@ -493,7 +493,7 @@ EXT_DECL BOOL8 vos_netIfUp (
 EXT_DECL VOS_ERR_T vos_sockInit (void)
 {
     memset(&gIfr, 0, sizeof(gIfr));
-    vos_getInterfaceIP(0);
+    (void) vos_getInterfaceIP(0);
     vosSockInitialised = TRUE;
 
     return VOS_NO_ERR;
@@ -1158,7 +1158,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
 
                         if (pSrcIFAddr != NULL)
                         {
-                            *pSrcIFAddr = vos_getInterfaceIP(pia->ipi_ifindex);  /* #322  */
+                            *pSrcIFAddr = (UINT32)vos_ntohl(pia->s_addr);  /* #322  */
                         }
                     }
                     #elif defined(IP_PKTINFO)

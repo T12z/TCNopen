@@ -535,7 +535,7 @@ UINT32 vos_getInterfaceIP(UINT32 index)
     VOS_ERR_T           err = VOS_NO_ERR;
     UINT32              i = 0u;
 
-   if (ifCount == 0u)
+    if (ifCount == 0u)
     {
         ifCount = VOS_MAX_NUM_IF;
         err = vos_getInterfaces(&ifCount, ifAddrs);
@@ -580,7 +580,7 @@ EXT_DECL VOS_ERR_T vos_sockInit (void)
     }
 
     memset(mac, 0, sizeof(mac));
-    vos_getInterfaceIP(0);
+    (void) vos_getInterfaceIP(0);
     vosSockInitialised = TRUE;
 
     return VOS_NO_ERR;

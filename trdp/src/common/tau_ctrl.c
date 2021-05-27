@@ -12,7 +12,7 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$
@@ -103,7 +103,7 @@ static void ecspConfRepMDCallback(
                 memcpy(&priv_ecspConfReplyMdInfo, pMsg, sizeof(TRDP_MD_INFO_T));
 
                 /* #356 unmarshal manually */
-                memcpy(&priv_ecspConfReply.deviceName, &pTelegram->deviceName, sizeof(TRDP_NET_LABEL_T));
+                memcpy(priv_ecspConfReply.deviceName, pTelegram->deviceName, sizeof(TRDP_NET_LABEL_T));
                 priv_ecspConfReply.reqSafetyCode = vos_ntohl(pTelegram->reqSafetyCode);
                 priv_ecspConfReply.reserved01 = pTelegram->reserved01;
                 priv_ecspConfReply.status = pTelegram->status;
@@ -302,7 +302,7 @@ EXT_DECL TRDP_ERR_T tau_setEcspCtrl ( TRDP_APP_SESSION_T    appHandle,
         telegram.version.ver = pEcspCtrl->version.ver;
         telegram.reserved01 = pEcspCtrl->reserved01;
         telegram.leadVehOfCst = pEcspCtrl->leadVehOfCst;
-        memcpy(&telegram.deviceName,pEcspCtrl->deviceName, sizeof(TRDP_NET_LABEL_T));
+        memcpy(telegram.deviceName, pEcspCtrl->deviceName, sizeof(TRDP_NET_LABEL_T));
         telegram.inhibit = pEcspCtrl->inhibit;
         telegram.leadingReq = pEcspCtrl->leadingReq;
         telegram.leadingDir = pEcspCtrl->leadingDir;
@@ -422,7 +422,7 @@ EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandl
         telegram.version.ver = pEcspConfRequest->version.ver;
         telegram.command = pEcspConfRequest->command;
         telegram.reserved01 = pEcspConfRequest->reserved01;
-        memcpy(&telegram.deviceName, pEcspConfRequest->deviceName, sizeof(TRDP_NET_LABEL_T));
+        memcpy(telegram.deviceName, pEcspConfRequest->deviceName, sizeof(TRDP_NET_LABEL_T));
         telegram.opTrnTopoCnt = vos_htonl(pEcspConfRequest->opTrnTopoCnt);
         telegram.reserved02 = vos_htons(pEcspConfRequest->reserved02);
         telegram.confVehCnt = vos_htons(pEcspConfRequest->confVehCnt);
