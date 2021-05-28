@@ -967,19 +967,19 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
     /*  Include struct in_pktinfo in the message "ancilliary" control data.
         This way we can get the destination IP address for received UDP packets */
     sockOptValue = 1;
-#if defined(IP_RECVDSTADDR)
-    if (setsockopt(sock, IPPROTO_IP, IP_RECVDSTADDR, &sockOptValue, sizeof(sockOptValue)) == -1)
-    {
-        char buff[VOS_MAX_ERR_STR_SIZE];
-        STRING_ERR(buff);
-        vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_RECVDSTADDR failed (Err: %s)\n", buff);
-    }
-#elif defined(IP_PKTINFO)
+#if defined(IP_PKTINFO)
     if (setsockopt(sock, IPPROTO_IP, IP_PKTINFO, &sockOptValue, sizeof(sockOptValue)) == -1)
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
         vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_PKTINFO failed (Err: %s)\n", buff);
+    }
+#elif defined(IP_RECVDSTADDR)
+    if (setsockopt(sock, IPPROTO_IP, IP_RECVDSTADDR, &sockOptValue, sizeof(sockOptValue)) == -1)
+    {
+        char buff[VOS_MAX_ERR_STR_SIZE];
+        STRING_ERR(buff);
+        vos_printLog(VOS_LOG_WARNING, "setsockopt() IP_RECVDSTADDR failed (Err: %s)\n", buff);
     }
 #else
     vos_printLogStr(VOS_LOG_WARNING, "setsockopt() Source address filtering is not available on platform!\n");
@@ -1264,6 +1264,11 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
         return VOS_PARAM_ERR;
     }
 
+    if (pSrcIFAddr != NULL)
+    {
+       *pSrcIFAddr = 0;  /* #322  */
+    }
+
     /* clear our address buffers */
     memset(&msg, 0, sizeof(msg));
     memset(&control_un, 0, sizeof(control_un));
@@ -1292,19 +1297,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
             {
                 for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL; cmsg = CMSG_NXTHDR(&msg, cmsg))
                 {
-#if defined(IP_RECVDSTADDR)
-                    if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_RECVDSTADDR)
-                    {
-                        struct in_addr *pia = (struct in_addr *)CMSG_DATA(cmsg);
-                        *pDstIPAddr = (UINT32)vos_ntohl(pia->s_addr);
-                        /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
-
-                        if (pSrcIFAddr != NULL)
-                        {
-                            *pSrcIFAddr = (UINT32)vos_ntohl(pia->s_addr);  /* #322 */
-                        }
-                    }
-#elif defined(IP_PKTINFO)
+#if defined(IP_PKTINFO)
                     if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_PKTINFO)
                     {
                         struct in_pktinfo *pia = (struct in_pktinfo *)CMSG_DATA(cmsg);
@@ -1316,6 +1309,13 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
                         {
                             *pSrcIFAddr = vos_getInterfaceIP(pia->ipi_ifindex);  /* #322 */
                         }
+                    }
+#elif defined(IP_RECVDSTADDR)
+                    if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_RECVDSTADDR)
+                    {
+                        struct in_addr *pia = (struct in_addr *)CMSG_DATA(cmsg);
+                        *pDstIPAddr = (UINT32)vos_ntohl(pia->s_addr);
+                        /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
                     }
 #endif
                 }

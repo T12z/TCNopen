@@ -1247,6 +1247,11 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
         return VOS_PARAM_ERR;
     }
 
+    if (pSrcIFAddr != NULL)
+    {
+       *pSrcIFAddr = 0;  /* #322  */
+    }
+
     memset(&srcAddr, 0, sizeof (struct sockaddr_in));
     memset(&controlBuffer [0], 0, CMSGSize);
 
