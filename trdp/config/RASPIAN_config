@@ -1,16 +1,16 @@
 #//
-#// $Id$
+#// $Id: $
 #//
-#// DESCRIPTION    Config file to make TRDP for POSIX_X86 target
+#// DESCRIPTION    Config file to make TRDP for Raspberry Pi 32 Bit
 #//
-#// AUTHOR         Christoph Schneider, Bombardier Transportation GmbH
+#// AUTHOR         Bernd Loehr, NewTec GmbH
 #//
 #// All rights reserved. Reproduction, modification, use or disclosure
 #// to third parties without express authority is forbidden.
-#// Copyright Bombardier Transportation GmbH, Germany, 2013-2021.
+#// Copyright NewTec GmbH, Germany, 2021.
 #//
 
-ARCH = posix
+ARCH = raspian
 TARGET_VOS = posix
 TARGET_OS = POSIX
 TCPREFIX = 
