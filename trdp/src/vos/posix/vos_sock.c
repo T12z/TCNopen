@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      BL 2021-06-11: Enhanced error handling on empty getifaddrs() returned list (segfault on Raspberry Pi)
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING
 *      SB 2019-07-11: Added includes linux/if_vlan.h and linux/sockios.h
@@ -94,6 +95,12 @@ const CHAR8 *cDefaultIface = "en0";
 const CHAR8 *cDefaultIface = "eth0";
 #endif
 
+/* Hack for macOS and iOS */
+#if defined(__APPLE__) && !defined(SOL_IP)
+#define SOL_IP SOL_SOCKET
+#warning "SOL_IP undeclared"
+#endif
+
 /***********************************************************************************************************************
  *  LOCALS
  */
@@ -101,6 +108,9 @@ const CHAR8 *cDefaultIface = "eth0";
 BOOL8           vosSockInitialised = FALSE;
 
 struct ifreq    gIfr;
+
+UINT32 vos_getInterfaceIP (UINT32 index);
+BOOL8 vos_getMacAddress (UINT8 *pMacAddr, const char  *pIfName);
 
 /***********************************************************************************************************************
  * LOCAL FUNCTIONS
@@ -462,9 +472,8 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
     UINT32          *pAddrCnt,
     VOS_IF_REC_T    ifAddrs[])
 {
-    int success;
-    struct ifaddrs  *addrs;
-    struct ifaddrs  *cursor;
+    struct ifaddrs  *pAddrs = NULL;
+    struct ifaddrs  *pCursor = NULL;
     unsigned int    count = 0;
 
     if (pAddrCnt == NULL ||
@@ -474,21 +483,26 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
         return VOS_PARAM_ERR;
     }
 
-    success = getifaddrs(&addrs) == 0;
-    if (success)
+    if (getifaddrs(&pAddrs) == -1)
     {
-        cursor = addrs;
-        while (cursor != 0 && count < *pAddrCnt)
+        char buff[VOS_MAX_ERR_STR_SIZE];
+        STRING_ERR(buff);
+        vos_printLog(VOS_LOG_WARNING, "getifaddrs() failed (Err: %s)\n", buff);
+    }
+    else if (pAddrs != NULL)
+    {
+        pCursor = pAddrs;
+        while (pCursor != NULL && count < *pAddrCnt)
         {
-            if (cursor->ifa_addr != NULL && cursor->ifa_addr->sa_family == AF_INET)
+            if (pCursor->ifa_addr != NULL && pCursor->ifa_addr->sa_family == AF_INET)
             {
-                memcpy(&ifAddrs[count].ipAddr, &cursor->ifa_addr->sa_data[2], 4);
+                memcpy(&ifAddrs[count].ipAddr, &pCursor->ifa_addr->sa_data[2], 4);
                 ifAddrs[count].ipAddr = vos_ntohl(ifAddrs[count].ipAddr);
-                memcpy(&ifAddrs[count].netMask, &cursor->ifa_netmask->sa_data[2], 4);
+                memcpy(&ifAddrs[count].netMask, &pCursor->ifa_netmask->sa_data[2], 4);
                 ifAddrs[count].netMask = vos_ntohl(ifAddrs[count].netMask);
-                if (cursor->ifa_name != NULL)
+                if (pCursor->ifa_name != NULL)
                 {
-                    strncpy((char *) ifAddrs[count].name, cursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
+                    strncpy((char *) ifAddrs[count].name, pCursor->ifa_name, VOS_MAX_IF_NAME_SIZE);
                     ifAddrs[count].name[VOS_MAX_IF_NAME_SIZE - 1] = 0;
                 }
                 /* Store interface index */
@@ -511,7 +525,7 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                                  (unsigned int)ifAddrs[count].mac[4],
                                  (unsigned int)ifAddrs[count].mac[5]);
                 }
-                if (cursor->ifa_flags & IFF_RUNNING)
+                if (pCursor->ifa_flags & IFF_RUNNING)
                 {
                     ifAddrs[count].linkState = TRUE;
                 }
@@ -521,14 +535,15 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                 }
                 count++;
             }
-            cursor = cursor->ifa_next;
+            pCursor = pCursor->ifa_next;
         }
 
-        freeifaddrs(addrs);
+        freeifaddrs(pAddrs);
     }
     else
     {
-        return VOS_PARAM_ERR;
+        vos_printLogStr(VOS_LOG_WARNING, "getifaddrs() returned no interfaces!\n");
+        return VOS_UNKNOWN_ERR;
     }
 
     *pAddrCnt = count;
@@ -547,36 +562,36 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
 EXT_DECL BOOL8 vos_netIfUp (
     VOS_IP4_ADDR_T ifAddress)
 {
-    struct ifaddrs  *addrs;
-    struct ifaddrs  *cursor;
+    struct ifaddrs  *pAddrs;
+    struct ifaddrs  *pCursor;
     VOS_IF_REC_T    ifAddrs;
 
     ifAddrs.linkState = FALSE;
 
-    if (getifaddrs(&addrs) == 0)
+    if (getifaddrs(&pAddrs) == 0)
     {
-        cursor = addrs;
-        while (cursor != 0)
+        pCursor = pAddrs;
+        while (pCursor != 0)
         {
-            if (cursor->ifa_addr != NULL && cursor->ifa_addr->sa_family == AF_INET)
+            if (pCursor->ifa_addr != NULL && pCursor->ifa_addr->sa_family == AF_INET)
             {
-                memcpy(&ifAddrs.ipAddr, &cursor->ifa_addr->sa_data[2], 4);
+                memcpy(&ifAddrs.ipAddr, &pCursor->ifa_addr->sa_data[2], 4);
                 ifAddrs.ipAddr = vos_ntohl(ifAddrs.ipAddr);
                 /* Exit if first (default) interface matches */
                 if (ifAddress == VOS_INADDR_ANY || ifAddress == ifAddrs.ipAddr)
                 {
-                    if (cursor->ifa_flags & IFF_UP)
+                    if (pCursor->ifa_flags & IFF_UP)
                     {
                         ifAddrs.linkState = TRUE;
                     }
-                    /* vos_printLog(VOS_LOG_INFO, "cursor->ifa_flags = 0x%x\n", cursor->ifa_flags); */
+                    /* vos_printLog(VOS_LOG_INFO, "pCursor->ifa_flags = 0x%x\n", pCursor->ifa_flags); */
                     break;
                 }
             }
-            cursor = cursor->ifa_next;
+            pCursor = pCursor->ifa_next;
         }
 
-        freeifaddrs(addrs);
+        freeifaddrs(pAddrs);
 
     }
     return ifAddrs.linkState;
