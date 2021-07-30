@@ -17,8 +17,9 @@
 /*
 * $Id$
 *
+*      SB 2021-07-30: Ticket #356 Bugfix related to marshalled value used in loop condition
 *     AHW 2021-04-29: Ticket #356 Conflicting tau_ctrl_types packed definitions with marshalling
-*      AÖ 2019-11-14: Ticket #294 tau_requestEcspConfirm invalid call to tlm_request
+*      AÃ– 2019-11-14: Ticket #294 tau_requestEcspConfirm invalid call to tlm_request
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
 *      BL 2019-06-17: Ticket #162 Independent handling of PD and MD to reduce jitter
 *      BL 2019-06-17: Ticket #161 Increase performance
@@ -427,7 +428,7 @@ EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandl
         telegram.reserved02 = vos_htons(pEcspConfRequest->reserved02);
         telegram.confVehCnt = vos_htons(pEcspConfRequest->confVehCnt);
 
-        for (i = 0; i < telegram.confVehCnt; i++)
+        for (i = 0; i < pEcspConfRequest->confVehCnt; i++) /* #356 using host endianness confVehCnt */
         {
             memcpy(&telegram.confVehList[i], &pEcspConfRequest->confVehList[i], sizeof(TRDP_OP_VEHICLE_T));
         }
