@@ -18,6 +18,7 @@
 /*
 * $Id$*
 *
+*     AHW 2021-08-04: Ticket #372: Possible infinite loop in vos_getInterfaces()
 *     AHW 2021-05-06: Ticket #322: Subscriber multicast message routing in multi-home device
 *      BL 2019-09-10: Ticket #278: Don't check if a socket is < 0
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING
@@ -404,17 +405,23 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
     pAdapter = pAdapterList;
 
     /* Iterate adapter list */
-    while (pAdapter != NULL)
+    while ((pAdapter != NULL) && (retVal == VOS_NO_ERR))
     {
         UINT8 i = 0;
         /* Only consider ethernet adapters (no loopback adapters etc.) */
         if (pAdapter->IfType == MIB_IF_TYPE_ETHERNET)
         {
             pAddress = pAdapter->FirstUnicastAddress;
-            while (pAddress != NULL)
+            while ((pAddress != NULL) && (retVal == VOS_NO_ERR))
             {
                 /* store interface information if address will fit into output array */
-                if (addrCnt < *pAddrCnt)
+                if (addrCnt >= *pAddrCnt)
+                {
+                    /* Information does not fit in provided field #372 */
+                    retVal = VOS_PARAM_ERR;
+                    addrCnt--;
+                }
+                else
                 {
                     /* Store IP address */
                     PSOCKADDR_IN pSockAddress = NULL;
@@ -461,13 +468,14 @@ EXT_DECL VOS_ERR_T vos_getInterfaces (
                     {
                         ifAddrs[addrCnt].linkState = FALSE;
                     }
-
                     /* increment number of addresses stored */
                     addrCnt++;
-                    pAddress = pAddress->Next;
                 }
+                /* next address to read #372 */
+                pAddress = pAddress->Next;
             }
         }
+        /* next adapter to read */
         pAdapter = pAdapter->Next;
     }
     *pAddrCnt = addrCnt;
