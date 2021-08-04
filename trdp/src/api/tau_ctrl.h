@@ -128,7 +128,7 @@ EXT_DECL TRDP_ERR_T tau_getEcspStat ( TRDP_APP_SESSION_T   appHandle,
  *
  *  @param[in]      appHandle           Application Handle
  *  @param[in]      pUserRef            user reference returned with reply
- *  @param[in]      pfCbFunction        Pointer to callback function, NULL for default
+ *  @param[in]      pfCbFunction        Optional pointer to callback function, NULL for default
  *  @param[in]      pEcspConfRequest    Pointer to confirmation data       
  *
  *  @retval         TRDP_NO_ERR     no error

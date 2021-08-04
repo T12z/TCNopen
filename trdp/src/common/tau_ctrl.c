@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     AHW 2021-08-03: Ticket #373 tau_requestEcspConfirm callback not working
 *      SB 2021-07-30: Ticket #356 Bugfix related to marshalled value used in loop condition
 *     AHW 2021-04-29: Ticket #356 Conflicting tau_ctrl_types packed definitions with marshalling
 *      AÖ 2019-11-14: Ticket #294 tau_requestEcspConfirm invalid call to tlm_request
@@ -58,14 +59,14 @@
  *   Locals
  */
 
-static TRDP_PUB_T       priv_pubHandle  = 0;            /*    Our identifier to the publication                     */
-static TRDP_SUB_T       priv_subHandle  = 0;            /*    Our identifier to the subscription                    */
-static TRDP_LIS_T       priv_md123Listener   = 0;       /*    Listener to ECSP confirm/correction reply            */
-static TRDP_IP_ADDR_T   priv_ecspIpAddr = 0u;           /*    ECSP IP address                                       */
+static TRDP_PUB_T             priv_pubHandle  = 0;            /*    Our identifier to the publication                 */
+static TRDP_SUB_T             priv_subHandle  = 0;            /*    Our identifier to the subscription                */
+static TRDP_LIS_T             priv_md123Listener   = 0;       /*    Listener to ECSP confirm/correction reply         */
+static TRDP_IP_ADDR_T         priv_ecspIpAddr = 0u;           /*    ECSP IP address                                   */
 static TRDP_ECSP_CONF_REPLY_T priv_ecspConfReply;
-static TRDP_MD_INFO_T   priv_ecspConfReplyMdInfo;
+static TRDP_MD_INFO_T         priv_ecspConfReplyMdInfo;
 static TRDP_MD_CALLBACK_T     priv_pfEcspConfReplyCbFunction = NULL;
-static BOOL8            priv_ecspCtrlInitialised = FALSE;
+static BOOL8                  priv_ecspCtrlInitialised = FALSE;
 
 
 /**********************************************************************************************************************/
@@ -197,26 +198,6 @@ EXT_DECL TRDP_ERR_T tau_initEcspCtrl ( TRDP_APP_SESSION_T   appHandle,
     {
         vos_printLogStr(VOS_LOG_ERROR, "tlp_subscribe() failed !\n");
         err = tlp_unsubscribe(appHandle, priv_pubHandle);
-        return err;
-    }
-
-    err = tlm_addListener(appHandle,
-                          &priv_md123Listener,
-                          NULL,
-                          ecspConfRepMDCallback,
-                          TRUE,
-                          TRDP_ECSP_CONF_REP_COMID,
-                          0,
-                          0,
-                          VOS_INADDR_ANY, VOS_INADDR_ANY,
-                          appHandle->realIP,
-                          TRDP_FLAGS_CALLBACK, NULL, NULL);
-
-    if (err != TRDP_NO_ERR)
-    {
-        vos_printLogStr(VOS_LOG_ERROR, "tlm_add_listener() failed !\n");
-        err = tlp_unsubscribe(appHandle, priv_pubHandle);
-        err = tlp_unsubscribe(appHandle, priv_subHandle);
         return err;
     }
 
@@ -392,7 +373,7 @@ EXT_DECL TRDP_ERR_T tau_getEcspStat ( TRDP_APP_SESSION_T    appHandle,
  *
  *  @param[in]      appHandle           Application Handle
  *  @param[in]      pUserRef            user reference returned with reply
- *  @param[in]      pfCbFunction        Pointer to callback function, NULL for default
+ *  @param[in]      pfCbFunction        Optional pointer to callback function, NULL for default
  *  @param[in]      pEcspConfRequest    Pointer to confirmation data
  *
  *  @retval         TRDP_NO_ERR     no error
@@ -442,14 +423,11 @@ EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandl
         pTelegramSafetyTrail->userDataVersion.rel = pSafetyTrail->userDataVersion.rel;
         pTelegramSafetyTrail->userDataVersion.ver = pSafetyTrail->userDataVersion.ver;
 
-        if (result == TRDP_NO_ERR)
-        {
-           priv_pfEcspConfReplyCbFunction = pfCbFunction;
-        }
-
+        priv_pfEcspConfReplyCbFunction = pfCbFunction;
+        
         result = tlm_request( appHandle,                      /* appHandle */
                               pUserRef,                       /* pUserRef */
-                              pfCbFunction,                   /* callback function */
+                              ecspConfRepMDCallback,          /* callback function #373 */
                               &sessionId, /*lint !e545 Return of UINT8 array */  /* pSessionId */
                               TRDP_ECSP_CONF_REQ_COMID,       /* comId */
                               0,                              /* etbTopoCnt */
