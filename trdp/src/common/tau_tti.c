@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      SB 2021-08-05: Ticket #365 etbCnt, vehCnt and fctCnt already rotated when retrieved from appHandle->pTTDB->cstInfo in tau_getCstInfo
 *     AHW 2021-04-14: Ticket #368 tau_tti: tau getOwnIds: error in index handling in vehInfoList
 *     AHW 2021-04-13: Ticket #362: ttiStoreTrnNetDir: trnNetDir read from wrong address
 *     AHW 2021-04-13: Ticket #363: tau_getOwnIds: noOfCachedCst never assigned to actual value, never set to 0
@@ -1682,9 +1683,6 @@ EXT_DECL TRDP_ERR_T tau_getCstInfo (
     if (l_index < TTI_CACHED_CONSISTS)
     {
         *pCstInfo           = *appHandle->pTTDB->cstInfo[l_index];
-        pCstInfo->etbCnt    = vos_ntohs(pCstInfo->etbCnt);
-        pCstInfo->vehCnt    = vos_ntohs(pCstInfo->vehCnt);
-        pCstInfo->fctCnt    = vos_ntohs(pCstInfo->fctCnt);
     }
     else    /* not found, get it and return directly */
     {
