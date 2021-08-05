@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2021-08-05: Ticket #356 copying safetyTrail in tau_requestEcspConfirm from proper position in struct
 *     AHW 2021-08-03: Ticket #373 tau_requestEcspConfirm callback not working
 *      SB 2021-07-30: Ticket #356 Bugfix related to marshalled value used in loop condition
 *     AHW 2021-04-29: Ticket #356 Conflicting tau_ctrl_types packed definitions with marshalling
@@ -414,7 +415,8 @@ EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandl
             memcpy(&telegram.confVehList[i], &pEcspConfRequest->confVehList[i], sizeof(TRDP_OP_VEHICLE_T));
         }
 
-        pSafetyTrail         = (TRDP_ETB_CTRL_VDP_T*) &pEcspConfRequest->confVehList[i];
+        /* #356 copy safety trail from host struct */
+        pSafetyTrail         = (TRDP_ETB_CTRL_VDP_T*) &pEcspConfRequest->safetyTrail;
         pTelegramSafetyTrail = (TRDP_ETB_CTRL_VDP_T*) &telegram.confVehList[i];
         pTelegramSafetyTrail->reserved01 = vos_htonl(pSafetyTrail->reserved01);
         pTelegramSafetyTrail->reserved02 = vos_htons(pSafetyTrail->reserved02);
