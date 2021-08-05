@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *      SB 2021-08-05: Ticket #281 TRDP_NOSESSION_ERR should be returned from tlm_reply() and tlm_replyQuery() in case of incorrect session (id)
  *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      BL 2020-11-03: Ticket #346 UDP MD: In case of wrong data length (too big) in the header the package won't be released
  *      BL 2020-08-10: Ticket #335 MD UDP notifications sometimes dropped
@@ -269,14 +270,14 @@ static void trdp_mdManageSessionId (TRDP_UUID_T pSessionId, MD_ELE_T *pMdElement
  *  @param[out]     pretrievedMdElement pointer to looked up element
  *
  *  @retval         TRDP_NO_ERR           no error
- *  @retval         TRDP_NOLIST_ERR       no match found error
+ *  @retval         TRDP_NOSESSION_ERR    no match found error
  */
 static TRDP_ERR_T trdp_mdLookupElement (MD_ELE_T                *pinitialMdElement,
                                         const TRDP_MD_ELE_ST_T  elementState,
                                         const TRDP_UUID_T       pSessionId,
                                         MD_ELE_T                * *pretrievedMdElement)
 {
-    TRDP_ERR_T errv = TRDP_NOLIST_ERR; /* init error code indicating no matching MD_ELE_T in list */
+    TRDP_ERR_T errv = TRDP_NOSESSION_ERR; /* init error code indicating no matching MD_ELE_T in list */ /* Ticket #281 */
     if ((pinitialMdElement != NULL)
         &&
         (pSessionId != NULL))
