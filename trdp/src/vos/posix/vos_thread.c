@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      SB 2021-08-09: Lint warnings
  *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call
  *      BL 2020-07-29: Ticket #303: UUID creation... #warning if uuid not used
  *      BL 2020-07-27: Ticket #333: Insufficient memory allocation in posix vos_semaCreate
@@ -990,7 +991,7 @@ EXT_DECL void vos_getRealTime (
         (void) clock_gettime(clkid, &currentTime);
 
         pTime->tv_sec   = currentTime.tv_sec;
-        pTime->tv_usec  = (unsigned) currentTime.tv_nsec / 1000llu;
+        pTime->tv_usec  = (unsigned) currentTime.tv_nsec / 1000LLu;
 
     }
 }
@@ -1015,7 +1016,7 @@ EXT_DECL void vos_getNanoTime (
 
         (void) clock_gettime(CLOCK_REALTIME, &currentTime);
 
-        *pTime = (uint64_t)currentTime.tv_sec * 1000000000llu + (uint64_t)currentTime.tv_nsec;
+        *pTime = (uint64_t)currentTime.tv_sec * 1000000000LLu + (uint64_t)currentTime.tv_nsec;
     }
 }
 

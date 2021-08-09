@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2021-08-09: Lint warnings
 *      BL 2021-06-11: Enhanced error handling on empty getifaddrs() returned list (segfault on Raspberry Pi)
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      BL 2019-08-27: Changed send failure from ERROR to WARNING
@@ -64,7 +65,8 @@
 #endif
 
 #ifdef __linux
-#   include <linux/if.h>
+//#   include <linux/if.h>
+#   include <net/if.h> // needed for if_nametoindex
 #   include <byteswap.h>
 #   include <linux/if_vlan.h>
 #   include <linux/sockios.h>
@@ -109,7 +111,7 @@ BOOL8           vosSockInitialised = FALSE;
 
 struct ifreq    gIfr;
 
-UINT32 vos_getInterfaceIP (UINT32 index);
+UINT32 vos_getInterfaceIP (UINT32 ifIndex);
 BOOL8 vos_getMacAddress (UINT8 *pMacAddr, const char  *pIfName);
 
 /***********************************************************************************************************************
@@ -124,7 +126,7 @@ BOOL8 vos_getMacAddress (UINT8 *pMacAddr, const char  *pIfName);
  *  @retval         IP address of interface
  *  @retval         0 if index not found
  */
-UINT32 vos_getInterfaceIP (UINT32 index)
+UINT32 vos_getInterfaceIP (UINT32 ifIndex)
 {
     static VOS_IF_REC_T ifAddrs[VOS_MAX_NUM_IF]  = {0};
     static UINT32                       ifCount  = 0u;
@@ -145,7 +147,7 @@ UINT32 vos_getInterfaceIP (UINT32 index)
 
     for (i = 0; i < ifCount; i++)
     {
-        if (ifAddrs[i].ifIndex == index)
+        if (ifAddrs[i].ifIndex == ifIndex)
         {
             return ifAddrs[i].ipAddr;
         }

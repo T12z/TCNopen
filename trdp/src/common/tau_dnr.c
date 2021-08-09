@@ -17,8 +17,9 @@
  /*
  * $Id$
  *
+ *      SB 2021-08-09: Lint warnings
  *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
- *      AÖ 2021-04-26: Ticket #296: updateTCNDNSentry: vos_threadDelay() used instead of vos_semaTake() if we run single threaded
+ *      AÃ– 2021-04-26: Ticket #296: updateTCNDNSentry: vos_threadDelay() used instead of vos_semaTake() if we run single threaded
  *     AHW 2021-04-13: Ticket #367: tau_uri2Addr: Cashed DNS ooly invalid if both etbTopoCnt and opTrnTopoCnt are changed 
 .*      SB 2019-08-15: Moved TAU_MAX_NO_CACHE_ENTRY to header file
  *      SB 2019-08-13: Ticket #268 Handling Redundancy Switchover of DNS/ECSP server
@@ -420,8 +421,8 @@ static void parseResponse (
     CHAR8   name[256];
     TAU_RES_RECORD_T answers[20] /*, auth[20], addit[20]*/;    /* the replies from the DNS server */
 
-    size = size;
-    id = id;
+    (void)size;
+    (void)id;
 
     /* move ahead of the dns header and the query field */
     pReader = pPacket + sizeof(TAU_DNS_HEADER_T) + querySize;
@@ -788,7 +789,7 @@ static void parseUpdateTCNResponse (
     UINT32  i;
     TAU_DNR_ENTRY_T *pTemp;
 
-    size = size;
+    (void)size;
 
     for (i = 0u; i < pReply->tcnUriCnt; i++)
     {
@@ -851,7 +852,7 @@ static void dnrMDCallback (
          return;
     }
 
-    pRefCon = pRefCon;
+    (void)pRefCon;
 
     /* we await TCN-DNS reply */
     if ((pMsg->comId == TCN_DNS_REP_COMID) &&
