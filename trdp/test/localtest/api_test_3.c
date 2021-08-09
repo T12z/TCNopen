@@ -18,6 +18,8 @@
  *
  * $Id$
  *
+ *      SB 2021-08-09: Compiler warnings
+ * 
  */
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -370,7 +372,7 @@ static TRDP_APP_SESSION_T test_init (
     pSession->threadIdRxPD  = 0;
     pSession->threadIdTxPD  = 0;
     pSession->threadIdMD    = 0;
-    TRDP_PROCESS_CONFIG_T procConf = {"Test", "me", cycleTime, 0, TRDP_OPTION_NONE};
+    TRDP_PROCESS_CONFIG_T procConf = {"Test", "me", "", cycleTime, 0, TRDP_OPTION_NONE};
 
     /* Initialise only once! */
     if (dbgout != NULL)

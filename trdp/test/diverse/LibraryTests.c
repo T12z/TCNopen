@@ -14,6 +14,7 @@
  *
  * $Id$
  *
+ *      SB 2021-08-09: Compiler warnings
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
  */
 
@@ -296,7 +297,7 @@ int testInterfaces()
 {
     VOS_IF_REC_T    ifAddrs[VOS_MAX_NUM_IF];
     UINT32          ifCnt = sizeof(ifAddrs)/sizeof(VOS_IF_REC_T);
-    UINT32          i;
+//    UINT32          i;
 
     vos_sockInit();
 

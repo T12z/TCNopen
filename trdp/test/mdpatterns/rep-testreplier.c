@@ -15,6 +15,8 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2014. All rights reserved.
  *
  * $Id$
+ * 
+ *      SB 2021-08-09: Compiler warnings
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
  *
  */  
@@ -253,7 +255,7 @@ int main(int argc, char** argv)
                                         17225u,
                                         0u,
                                         20u};/*have some space for sessions*/
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"MD_REPLIER", "", 0, 0, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"MD_REPLIER", "", "", 0, 0, TRDP_OPTION_BLOCK};
 
     printf("TRDP message data repetition test program REPLIER, version 0\n");
 

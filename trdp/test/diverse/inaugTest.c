@@ -12,9 +12,11 @@
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
- *
+ * 
  * $Id$
  *
+ *      SB 2021-08-09: Compiler warnings
+ * 
  */
 
 /***********************************************************************************************************************
@@ -435,7 +437,7 @@ int main (int argc, char * *argv)
     TRDP_MD_CONFIG_T        mdConfiguration = {myMDcallBack, NULL, TRDP_MD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
                                                 10000000, 10000000, 10000000, 10000000, 0, 0, 5};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", "", 0, 0, TRDP_OPTION_BLOCK};
     int             rv = 0;
     unsigned int    ip[4];
     int             ch;

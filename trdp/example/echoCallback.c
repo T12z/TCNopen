@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      SB 2021-08-09: Compiler warnings
  *      BL 2019-07-30: Ticket #162 Independent handling of PD and MD to reduce jitter
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2018-02-02: Example renamed: cmdLineSelect -> echoCallback
@@ -277,7 +278,7 @@ int main (int argc, char * *argv)
                                                 0u, 0u, 0u, 0u, 0u, 0u, 0u};
 
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_BLOCK};
     int                     rv = 0;
     unsigned int            ip[4];
     UINT32                  destIP = 0;

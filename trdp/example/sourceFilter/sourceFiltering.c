@@ -13,8 +13,10 @@
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright NewTec GmbH, 2018. All rights reserved.
- *
+ * 
  * $Id$
+ * 
+  *      SB 2021-08-09: Compiler warnings
  *
  */
 
@@ -230,7 +232,7 @@ int main (int argc, char * *argv)
     TRDP_ERR_T              err             = TRDP_NO_ERR;
     TRDP_PD_CONFIG_T        pdConfiguration = {pdCallBack, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
                                                         10000000, TRDP_TO_SET_TO_ZERO, 0};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"subscriber", "", 0, 0, TRDP_OPTION_NONE};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"subscriber", "", "", 0, 0, TRDP_OPTION_NONE};
     TRDP_IP_ADDR_T          ownIP           = VOS_INADDR_ANY;
 
     int     rv      = 0;
