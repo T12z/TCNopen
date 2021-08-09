@@ -177,7 +177,7 @@ example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(O
 
 tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
 
-test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull $(OUTDIR)/localtest2 $(OUTDIR)/localtest3  
+test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull $(OUTDIR)/localtest2 $(OUTDIR)/localtest3 $(OUTDIR)/localtest4 $(OUTDIR)/pdMcRouting $(OUTDIR)/mdDataLength
 
 pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_responder $(OUTDIR)/testSub
 
@@ -464,6 +464,14 @@ $(OUTDIR)/localtest3:   localtest/api_test_3.c  $(OUTDIR)/libtrdp.a $(addprefix 
 			$(LDFLAGS)
 			@$(STRIP) $@
 
+$(OUTDIR)/localtest4:   localtest/api_test_4.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdp \
+			$(LDFLAGS)
+			@$(STRIP) $@
+
 $(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdp.a $(addprefix $(OUTDIR)/,$(notdir $(TRDP_OPT_OBJS)))
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
@@ -479,6 +487,22 @@ $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 				$(LDFLAGS) $(CFLAGS) $(INCLUDES) \
 				-o $@
 			@$(STRIP) $@
+
+$(OUTDIR)/pdMcRouting: $(OUTDIR)/libtrdp.a pdMcRoutingTest.c
+			@$(ECHO) ' ### Building PD MC routing test receiver application $(@F)'
+			$(CC) test/diverse/pdMcRoutingTest.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/mdDataLength: $(OUTDIR)/libtrdp.a mdDataLengthTest.c
+			@$(ECHO) ' ### Building PD MC routing test receiver application $(@F)'
+			$(CC) test/diverse/mdDataLengthTest.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@		
 
 ###############################################################################
 #
