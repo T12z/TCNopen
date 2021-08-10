@@ -65,8 +65,7 @@
 #endif
 
 #ifdef __linux
-//#   include <linux/if.h>
-#   include <net/if.h> // needed for if_nametoindex
+#   include <net/if.h> // Lint warnings
 #   include <byteswap.h>
 #   include <linux/if_vlan.h>
 #   include <linux/sockios.h>

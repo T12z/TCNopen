@@ -19,6 +19,8 @@
  * $Id$
  *
  * Changes:
+ * 
+ *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
  *      BL 2016-02-10: Debug print: tabs before size output
@@ -585,55 +587,46 @@ EXT_DECL void vos_memFree (void *pMemBlock)
 /**********************************************************************************************************************/
 /** Return used and available memory (of memory area above).
  *
- *  @param[out]     pAllocatedMemory    Pointer to allocated memory size
- *  @param[out]     pFreeMemory         Pointer to free memory size
- *  @param[out]     pMinFree            Pointer to minimal free memory size in statistics interval
- *  @param[out]     pNumAllocBlocks     Pointer to number of allocated memory blocks
- *  @param[out]     pNumAllocErr        Pointer to number of allocation errors
- *  @param[out]     pNumFreeErr         Pointer to number of free errors
- *  @param[out]     blockSize           Pointer to list of memory block sizes
- *  @param[out]     usedBlockSize       Pointer to list of used memoryblocks
+ *  @param[out]     pMemCount           Pointer to memory statistics structure
  *  @retval         VOS_NO_ERR          no error
+ *  @retval         VOS_PARAM_ERR       parameter error (nullpointer)
  *  @retval         VOS_INIT_ERR        module not initialised
  */
 
-EXT_DECL VOS_ERR_T vos_memCount (
-    UINT32  *pAllocatedMemory,
-    UINT32  *pFreeMemory,
-    UINT32  *pMinFree,
-    UINT32  *pNumAllocBlocks,
-    UINT32  *pNumAllocErr,
-    UINT32  *pNumFreeErr,
-    UINT32  blockSize[VOS_MEM_NBLOCKSIZES],
-    UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES])
+EXT_DECL VOS_ERR_T vos_memCount (VOS_MEM_STATISTICS_T * pMemCount)
 {
     UINT32 i;
+
+    if (NULL == pMemCount)
+    {
+        return VOS_PARAM_ERR;
+    }
 
     if (gMem.memSize == 0 && gMem.pArea == NULL)
     {
         /* normal heap memory is used */
-        *pAllocatedMemory   = 0;
-        *pFreeMemory        = 0;
-        *pMinFree           = 0;
-        *pNumAllocBlocks    = 0;
-        *pNumAllocErr       = 0;
-        *pNumFreeErr        = 0;
+        pMemCount->total            = 0;
+        pMemCount->free             = 0;
+        pMemCount->minFree          = 0;
+        pMemCount->numAllocBlocks   = 0;
+        pMemCount->numAllocErr      = 0;
+        pMemCount->numFreeErr       = 0;
 
-        memset(blockSize, 0, sizeof(blockSize[VOS_MEM_NBLOCKSIZES]));
-        memset(usedBlockSize, 0, sizeof(usedBlockSize[VOS_MEM_NBLOCKSIZES]));
+        memset(pMemCount->blockSize, 0, sizeof(pMemCount->blockSize));
+        memset(pMemCount->usedBlockSize, 0, sizeof(pMemCount->usedBlockSize));
     }
 
-    *pAllocatedMemory   = gMem.memSize;
-    *pFreeMemory        = gMem.memCnt.freeSize;
-    *pMinFree           = gMem.memCnt.minFreeSize;
-    *pNumAllocBlocks    = gMem.memCnt.allocCnt;
-    *pNumAllocErr       = gMem.memCnt.allocErrCnt;
-    *pNumFreeErr        = gMem.memCnt.freeErrCnt;
+    pMemCount->total            = gMem.memSize;
+    pMemCount->free             = gMem.memCnt.freeSize;
+    pMemCount->minFree          = gMem.memCnt.minFreeSize;
+    pMemCount->numAllocBlocks   = gMem.memCnt.allocCnt;
+    pMemCount->numAllocErr      = gMem.memCnt.allocErrCnt;
+    pMemCount->numFreeErr       = gMem.memCnt.freeErrCnt;
 
     for (i = 0; i < (UINT32) VOS_MEM_NBLOCKSIZES; i++)
     {
-        usedBlockSize[i]    = gMem.memCnt.blockCnt[i];
-        blockSize[i]        = gMem.freeBlock[i].size;
+        pMemCount->usedBlockSize[i] = gMem.memCnt.blockCnt[i];
+        pMemCount->blockSize[i]     = gMem.freeBlock[i].size;
     }
 
     return VOS_NO_ERR;

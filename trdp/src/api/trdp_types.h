@@ -15,6 +15,7 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2021. All rights reserved.
  */
 /*
+ *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      BL 2020-07-10: Ticket #321 Move TRDP_TIMER_GRANULARITY to public API
  *      BL 2019-10-15: Ticket #282 Preset index table size and depth to prevent memory fragmentation
@@ -412,17 +413,7 @@ typedef struct
 
 
 /** Structure containing all general memory statistics information. */
-typedef struct
-{
-    UINT32  total;                                      /**< total memory size */
-    UINT32  free;                                       /**< free memory size */
-    UINT32  minFree;                                    /**< minimal free memory size in statistics interval */
-    UINT32  numAllocBlocks;                             /**< allocated memory blocks */
-    UINT32  numAllocErr;                                /**< allocation errors */
-    UINT32  numFreeErr;                                 /**< free errors */
-    UINT32  blockSize[VOS_MEM_NBLOCKSIZES];             /**< preallocated memory blocks */
-    UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];         /**< used memory blocks */
-} GNU_PACKED TRDP_MEM_STATISTICS_T;
+typedef VOS_MEM_STATISTICS_T TRDP_MEM_STATISTICS_T;
 
 
 /** Structure containing all general PD statistics information. */

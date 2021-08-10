@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *      SB 2021-08-09: Compiler warnings
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  *      BL 2014-06-02: oversized data changed
@@ -401,27 +402,20 @@ int main (int argc, char * *argv)
 
         if (count++ > 20)
         {
-            UINT32  allocatedMemory;
-            UINT32  freeMemory;
-            UINT32  minFree;
-            UINT32  numAllocBlocks;
-            UINT32  numAllocErr;
-            UINT32  numFreeErr;
-            UINT32  allocBlockSize[VOS_MEM_NBLOCKSIZES];
-            UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];
-            vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr,
-                         allocBlockSize, usedBlockSize);
-            printf("\nMemory usage:\n");
-            printf(" allocatedMemory:    %u\n", allocatedMemory);
-            printf(" freeMemory:        %u\n", freeMemory);
-            printf(" minFree:            %u\n", minFree);
-            printf(" numAllocBlocks:    %u\n", numAllocBlocks);
-            printf(" numAllocErr:        %u\n", numAllocErr);
-            printf(" numFreeErr:        %u\n", numFreeErr);
-            printf(" allocBlockSize:    ");
-            for (i = 0; i < VOS_MEM_NBLOCKSIZES; i++)
+            VOS_MEM_STATISTICS_T memStatistics;
+
+            vos_memCount(&memStatistics);
+            printf("\nMemory usage (%s):\n", argv[0]);
+            printf("    allocatedMemory:    %u\n", memStatistics.total);
+            printf("    freeMemory:         %u\n", memStatistics.free);
+            printf("    minFree:            %u\n", memStatistics.minFree);
+            printf("    numAllocBlocks:     %u\n", memStatistics.numAllocBlocks);
+            printf("    numAllocErr:        %u\n", memStatistics.numAllocErr);
+            printf("    numFreeErr:         %u\n", memStatistics.numFreeErr);
+            printf("    BlockSizes:         ");
+            for (i = 0; i < (int)VOS_MEM_NBLOCKSIZES; i++)
             {
-                printf("%08u ", allocBlockSize[i]);
+                printf("%d x %u, ", memStatistics.usedBlockSize[i], memStatistics.blockSize[i]);
             }
             printf("\n\n");
             count = 0;
