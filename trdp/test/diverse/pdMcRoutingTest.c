@@ -22,8 +22,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
+
+#if defined (POSIX)
 #include <unistd.h>
+#include <sys/select.h>
+#elif (defined (WIN32) || defined (WIN64))
+#include "getopt.h"
+#endif
 
 #include "trdp_if_light.h"
 #include "vos_thread.h"
@@ -335,7 +340,7 @@ int main(int argc, char *argv[])
     session1.expectedData.size = sizeof(session1.receivedData.buffer);
     session2.expectedData.size = sizeof(session2.receivedData.buffer);
 
-    while ((ch = getopt(argc, argv, "t:o:h?vec:")) != -1)
+    while ((ch = getopt(argc, argv, "f:s:m:c:h?vp")) != -1)
     {
         switch (ch)
         {
@@ -463,7 +468,7 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        for (UINT32 counter = 10u; counter > 0; counter++)
+        for (UINT32 counter = 10u; counter > 0; counter--)
         {
             printf("Waiting for publisher (%u)\n", counter);
             session1.receivedData.size = sizeof(session1.receivedData.buffer);
@@ -490,7 +495,7 @@ int main(int argc, char *argv[])
             vos_threadDelay(1000000u);
         }
 
-        if (FALSE != running)
+        if (FALSE == running)
         {
             printf("Connection to publisher(s) failed.\n");
             test_deinit(&session1, &session2);
@@ -504,7 +509,7 @@ int main(int argc, char *argv[])
             session1.appHandle,
             &session1.publisher,
             NULL, NULL,
-            0u, COM_ID,
+            0u, comId,
             0u, 0u,
             session1.ifaceIP,
             mcIpAddress,
@@ -525,7 +530,7 @@ int main(int argc, char *argv[])
             session2.appHandle,
             &session2.publisher,
             NULL, NULL,
-            0u, COM_ID,
+            0u, comId,
             0u, 0u,
             session2.ifaceIP,
             mcIpAddress,
@@ -541,6 +546,7 @@ int main(int argc, char *argv[])
             test_deinit(&session1, &session2);
             return 1;
         }
+        running = TRUE;
     }
 
     while (FALSE != running)
