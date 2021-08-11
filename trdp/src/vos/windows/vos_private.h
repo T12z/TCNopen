@@ -49,7 +49,7 @@ extern "C" {
 #define VOS_VERSION     2u
 #define VOS_RELEASE     1u /* 322: interface change in vos_sockReceiveUDP() */
 #define VOS_UPDATE      0u
-#define VOS_EVOLUTION   2u
+#define VOS_EVOLUTION   0u
 
 #define MAX_SEM_COUNT  10
 
