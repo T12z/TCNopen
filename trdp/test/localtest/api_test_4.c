@@ -1783,6 +1783,122 @@ static int test5()
     CLEANUP;
 }
 
+
+/**********************************************************************************************************************/
+/** test6: PD publish and subscribe
+ *
+ *  @retval         0        no error
+ *  @retval         1        some error
+ */
+static int test6 ()
+{
+    PREPARE("Ticket #355: Red group shall not send directly after publish", "test");
+
+    /* ------------------------- test code starts here --------------------------- */
+
+    {
+        TRDP_PUB_T  pubHandle;
+        TRDP_SUB_T  subHandle;
+
+#define TEST6_COMID     0u
+#define TEST6_INTERVAL  100000u
+#define TEST6_DATA      "Hello World!"
+#define TEST6_DATA_LEN  24u
+
+        /*    Copy the packet into the internal send queue, prepare for sending.    */
+
+        err = tlp_publish(gSession1.appHandle, &pubHandle, NULL, NULL, 0u, TEST6_COMID, 0u, 0u,
+                          0u, /* gSession1.ifaceIP,                   / * Source * / */
+                          gSession2.ifaceIP, /* gDestMC,               / * Destination * / */
+                          TEST6_INTERVAL,
+                          5u, /* redId */
+						  TRDP_FLAGS_DEFAULT, NULL, NULL, TEST6_DATA_LEN);
+
+        IF_ERROR("tlp_publish");
+
+        err = tlp_subscribe(gSession2.appHandle, &subHandle, NULL, NULL, 0u,
+                            TEST6_COMID, 0u, 0u,
+                            0u, 0u, /* gSession1.ifaceIP,                  / * Source * / */
+                            0u, /* gDestMC,                            / * Destination * / */
+                            TRDP_FLAGS_DEFAULT,
+                            NULL,                      /*    default interface                    */
+                            TEST6_INTERVAL * 3, TRDP_TO_DEFAULT);
+
+
+        IF_ERROR("tlp_subscribe");
+
+        /*
+             Finished setup.
+         */
+        tlc_updateSession(gSession1.appHandle);
+        tlc_updateSession(gSession2.appHandle);
+
+        /*
+         Enter the main processing loop.
+         */
+        int counter = 0;
+        while (counter < 60)         /* 6 seconds */
+        {
+            char    data1[1432u];
+            char    data2[1432u];
+            UINT32  dataSize2 = sizeof(data2);
+            TRDP_PD_INFO_T pdInfo;
+
+            sprintf(data1, "Just a Counter: %08d", counter++);
+
+            err = tlp_put(gSession1.appHandle, pubHandle, (UINT8 *) data1, (UINT32) strlen(data1));
+            IF_ERROR("tlp_put");
+
+            vos_threadDelay(100000);
+
+            err = tlp_get(gSession2.appHandle, subHandle, &pdInfo, (UINT8 *) data2, &dataSize2);
+
+
+            if (err == TRDP_NODATA_ERR)
+            {
+            	fprintf(gFp, "no data received\n");
+            	continue;
+            }
+
+            if (err != TRDP_NO_ERR)
+            {
+                vos_printLog(VOS_LOG_INFO, "### tlp_get error: %s\n", vos_getErrorString((VOS_ERR_T)err));
+
+                gFailed = 1;
+                /* goto end; */
+
+            }
+            else
+            {
+                if (memcmp(data1, data2, dataSize2) == 0)
+                {
+                    fprintf(gFp, "received data matches (seq: %u, size: %u)\n", pdInfo.seqCount, dataSize2);
+                }
+            }
+
+			if(counter == 20)
+			{
+				tlp_setRedundant(gSession1.appHandle, 5, TRUE);
+				fprintf(gFp, "set leader\n");
+			}
+			if(counter == 30)
+			{
+				tlp_setRedundant(gSession1.appHandle, 5, FALSE);
+				fprintf(gFp, "set follower\n");
+			}
+			if(counter == 40)
+			{
+				tlp_setRedundant(gSession1.appHandle, 5, TRUE);
+				fprintf(gFp, "set leader\n");
+			}
+        }
+
+    }
+    /* ------------------------- test code ends here --------------------------- */
+
+    CLEANUP;
+
+}
 /**********************************************************************************************************************/
 /* This array holds pointers to the m-th test (m = 1 will execute test2...)                                           */
 /**********************************************************************************************************************/
@@ -1793,7 +1909,7 @@ test_func_t *testArray[] = {
     test3, /* Ticket #362 / #363 / #364 / #365 / #366: OwnIds invalid resolved to a group name */   
     test4, /* Ticket #356: PD: Conflicting tau_ctrl_types packed definitions with marshalling */
     test5, /* Ticket #347: Allow dynamic sized arrays for PD */
-    NULL,  /*  */
+	test6,  /* Ticket #355: Redundancy group shall not send directly after publish but only after group is set to leader */
     NULL,  /*  */
     NULL,  /*  */
     NULL,  /*  */
