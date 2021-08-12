@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     IBO 2021-08-12: Ticket #355 Redundant PD default state should be follower
 *     AHW 2021-05-04: Ticket #354 Sequence counter synchronization error working in redundancy mode
 *      BL 2020-07-27: Ticket #304 The reception of any incorrect message causes it to exit the loop
 *      BL 2020-07-10: Ticket #328 tlp_put() writes out of memory for TSN telegrams
@@ -662,7 +663,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
              This will only happen, if publish() is called while we are in redundant mode */
             if (0 != redId)
             {
-                BOOL8 isLeader = TRUE;
+                BOOL8 isLeader = FALSE; /* #355 now FALSE instead of TRUE as default */
 
                 ret = tlp_getRedundant(appHandle, redId, &isLeader);
                 if (ret == TRDP_NO_ERR && FALSE == isLeader)
