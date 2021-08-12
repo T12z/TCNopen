@@ -65,9 +65,9 @@
 /* The TRDP version can be predefined as CFLAG   */
 #ifndef TRDP_VERSION
 #define TRDP_VERSION    2
-#define TRDP_RELEASE    1
+#define TRDP_RELEASE    2
 #define TRDP_UPDATE     22
-#define TRDP_EVOLUTION  82              /* Evolution > 0 denotes trunk! */
+#define TRDP_EVOLUTION  97              /* Evolution > 0 denotes trunk! */
 #endif
 
 /* Version as a string, this can also be for example 1.2.3.4.RC1 */
