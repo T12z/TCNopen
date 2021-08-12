@@ -5,38 +5,24 @@
                    |_| |__|__|____/|__|     |_____|__|    |_|  
                                                                
 
+															   
 This Plugin can be used to display packages containing TRDP (Train Realtime Data Protocol).
 
 You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols->TRDP and load your xml file there) for filtering and displaying.
 
 N E W S
 =======
-2020-12 Thorsten <t12z@tractionpad.de>
-
- * Updated handling of Bitset type (TRDP-type 1). Antivalents and Bitsets are displayed correctly now. The fall-back
-   handling on numeric type-idents is chosen in the protocol preferences. The config is reloaded automatically.
-
-2020-12 Thorsten <thorsten.schulz@uni-rostock.de>
-
- * Build for Wireshark 3.4 added. Sources compile w/o any changes.
-
-2020-02 Thorsten <thorsten.schulz@uni-rostock.de>
-
- * Added deb/dpkg based packaging for Linux.
- 
- * Added Makefile for Linux building. Needs libwireshark-dev as dependency and doxygen for HTML-docs.
- 
- * Doxygen PDF generation repaired. However, only the HTML output is included in the packaging to minimize build-dep.
-
 2020-01 Thorsten <thorsten.schulz@uni-rostock.de>
 
  * Build for Wireshark 3.2 added. Sources compile w/o any changes.
+ 
  
 2019-06 Thorsten <thorsten.schulz@uni-rostock.de>
 
  * Update on time types representation.
  
  * Time display can be fine-tuned in the TRDP-Spy preferences.
+ 
  
 2019-04 Thorsten <thorsten.schulz@uni-rostock.de>
 
@@ -63,16 +49,17 @@ U S A G E
 On Linux, use your distribution's package manager to install wireshark or wireshark-qt.
 On Windows, download from [1].
 (Compared to earlier releases, you don't need the QtXML library any more.)
-If Wireshark happens to be a version of 2.6.*, 3.0.*, 3.2.* or 3.4.*, you may be lucky with the pre-compiled plugin-libraries. For version 3.4 (Linux) find them here:
+If Wireshark happens to be a version of 2.6.* or 3.0.*, you may be lucky with the pre-compiled plugin-libraries, go (Linux):
 
-cp   plugins/3.4/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/3.4/epan/
+cp   plugins/2.6/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/2.6/epan/
+cp   plugins/3.0/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/3.0/epan/
 
 Or copy with a file manager of your choice.
 On Windows, obviously, take the *.dll files instead. The folder path for user plugins can be found when running Wireshark, go into [Help]->About Wireshark->Folders and check where "Personal Plugins" should go. You can double click on the path to open your platform's file-manager. Then put it into the sub-folder "epan" and restart Wireshark.
 
 Now, when Wireshark started, check in the [Help]-menu --> About Wireshark and open the [Plugins] tab. Somewhere in the middle there should be trdp_spy.so. If not, check the [Folder] tab if your wireshark expects user-plugins somewhere else.
 
-Again, to make the most of the Wireshark dissector, provide your trdp-xml file in [Edit]->Preferences->Protocols->TRDP. If it cannot dissect your capture data, then you most probably have an issue in that xml file, e.g., buggy XML syntax, misspelled trdp-type or logical errors. A lot of errors will be reported on loading. If the problem persists, check again, just more thoroughly ;)
+Again, to make the most of the Wireshark dissector, provide your trdp-xml file in [Edit]->Preferences->Protocols->TRDP. If it cannot dissect your capture data, then you most probably have an issue in that xml file, e.g. buggy XML syntax, misspelled trdp-type or logical errors. A lot of errors will be reported on loading. If the problem persists, check again, just more thoroughly ;)
 
 Within that preference page you can also check whether integer/real values are displayed scaled according to the xml description, or raw. This also has an effect, when you filter for a certain value.
 E.g.,
@@ -114,24 +101,45 @@ B U I L D I N G
 Debian & Ubuntu
 ---------------
 
-Either build the deb-packages from the top level of trdp
+Do this somewhere outside of this tcnopen source tree!!
+ __e.g.__  mkdir ~/build && cd ~/build
 
-$ make bindeb-pkg
+$ apt source wireshark
+$ sudo apt build-dep wireshark
+$
+$ ### pull in trdp-spy sources
+$ cd wireshark-*
+$ ln -s path-to-tcnopen-trdp/trdp/spy/src/CMakeListsCustom.txt
+$ cd plugins/epan
+$ ln -s path-to-tcnopen-trdp/trdp/spy/src/trdp_spy
+$ cd ../../
+$
+$ dpkg-buildpackage -us -uc -rfakeroot   # (give this a few minutes ...)
+$ ls */run/plugins/*/epan/trdp_spy.so
 
-Or, first install the build dependencies, and then run the Makefile
+This builds all wireshark packages (folder above), which you may need to install. And you should've also found the built trd_spy dissector.
 
-$ sudo apt install libwireshark-dev libglib2.0-dev
-$ make -C path-to-tcnopen-trdp/trdp/spy/src/trdp_spy
+If you don't want / cannot to use dpkg-buildpackage, you can instead, in the root-wireshark-source folder
+
+$ mkdir obj && cd obj
+$ cmake ..
+$ make trdp_spy
+
+Obviously, if you need to build all of wireshark, call make w/o the target-parameter
 
 
 Other Linux
 -----------
 
-Find out the the names for the build-dependency pacakges and install them, then proceed with make as above.
+Instead of apt, you can pull the latest stable release from [1], extract it and follow the Debian-example from line 3. When you call cmake, it will most probably tell you, which dependencies you still need to install.
+
+[1] http://www.wireshark.org/download.html
 
 
 Windows
 -------
+
+Actually, there is some similarity to the Linux approach, thanks to CMake, and in fact, you could build Linux and Windows binaries from the same prepared source tree! Anyways,
 
 Download the source code from wireshark for the project's homepage [1].
 Follow the wireshark preparation instructions [2], resembling the following:
@@ -150,16 +158,39 @@ Open the VS2017 prompt (search Start menu for "x64 Native Tools [..]") and chang
 > cd obj-x86_64-win
 > set QT5_BASE_DIR=C:\Qt\5.12.2\msvc2017_64
 > cmake -G "Visual Studio 15 2017 Win64" ..
-> msbuild /m /p:Configuration=RelWithDebInfo Plugins.vcxproj
+> msbuild /m /p:Configuration=RelWithDebInfo Wireshark.sln
 
 
 [1] https://www.wireshark.org/download.html
 [2] https://www.wireshark.org/docs/wsdg_html_chunked/ChSetupWin32.html#ChWin32Build
 [3] https://sourceforge.net/projects/winflexbison/files/
 
-Last modified by Thorsten, 2020-Dec
+Last modified by Thorsten, 2019-April
 
 --
 notes to self for rebuilding:
 Windows:
-# Does not build on net-share anymore (as of 2020-01), must make local copy for building. Otherwise same thing.
+set QT5_BASE_DIR=C:\Qt\5.12.2\msvc2017_64
+P:
+cd P:\build\wireshark-3.0*
+set WIRESHARK_BASE_DIR=%CD%
+cd obj-x86_64-win
+msbuild /m /p:Configuration=RelWithDebInfo Wireshark.sln
+cd P:\build\wireshark-2.6*
+set WIRESHARK_BASE_DIR=%CD%
+cd obj-x86_64-win
+msbuild /m /p:Configuration=RelWithDebInfo Wireshark.sln
+
+Linux:
+cd ~/Projekte/build/wireshark-2.6*/obj-x86_64-linux-gnu && make trdp_spy
+cd ~/Projekte/build/wireshark-3.0*/obj-x86_64-linux-gnu && make trdp_spy
+
+cd ~/Projekte/tcnopen-trdp/trdp/spy
+cp ~/Projekte/build/wireshark-2.6*/obj-x86_64-linux-gnu/run/plugins/*/epan/trdp_spy.so plugins/2.6/epan/
+cp ~/Projekte/build/wireshark-2.6*/obj-x86_64-win/run/RelWithDebInfo/plugins/*/epan/trdp_spy.dll plugins/2.6/epan/
+cp ~/Projekte/build/wireshark-3.0*/obj-x86_64-linux-gnu/run/plugins/*/epan/trdp_spy.so plugins/3.0/epan/
+cp ~/Projekte/build/wireshark-3.0*/obj-x86_64-win/run/RelWithDebInfo/plugins/*/epan/trdp_spy.dll plugins/3.0/epan/
+
+cd ~/Projekte/tcnopen-trdp/
+# git commit -a trdp/spy
+
