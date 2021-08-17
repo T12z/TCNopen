@@ -296,7 +296,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 
 		pi = proto_tree_add_item(trdp_spy_tree, hf_trdp_spy_userdata, tvb, offset, clength, FALSE);
 
-		PRNT(fprintf(stderr, "Searching for comid %d\n", trdp_spy_comid));
+		PRNT(fprintf(stderr, "Searching for comid %u\n", trdp_spy_comid));
 		const ComId *com = TrdpDict_lookup_ComId(pTrdpParser, trdp_spy_comid);
 
 		if ( !com ) {
@@ -318,7 +318,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 		}
 	} else {
 
-		PRNT(fprintf(stderr, "Searching for dataset %d\n", trdp_spy_comid));
+		PRNT(fprintf(stderr, "Searching for dataset %u\n", trdp_spy_comid));
 		ds = TrdpDict_get_Dataset(pTrdpParser, trdp_spy_comid /* <- datasetID */);
 
 		length = ds ? ds->size : -1;
@@ -328,10 +328,10 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 		}
 	}
 
-	PRNT(fprintf(stderr, "%s aka %d ([%d] octets)\n", ds->name, ds->datasetId, length));
+	PRNT(fprintf(stderr, "%s aka %u ([%d] octets)\n", ds->name, ds->datasetId, length));
 	trdp_spy_userdata = (arr_idx >= 0) ?
 		  proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, length ? length : -1, ds->ett_id, &pi, "%s.%d", title, arr_idx)
-		: proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, length ? length : -1, ds->ett_id, &pi, "%s (%d): %s", ds->name, ds->datasetId, title);
+		: proto_tree_add_subtree_format(trdp_spy_tree, tvb, offset, length ? length : -1, ds->ett_id, &pi, "%s (%u): %s", ds->name, ds->datasetId, title);
 
 	array_index = 0;
 	formated_value = 0;
@@ -736,7 +736,7 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
 	if (col_get_writable(pinfo->cinfo, COL_INFO))
 	{
 		/* Display a info line */
-		col_append_fstr(pinfo->cinfo, COL_INFO, "comId: %5d ",trdp_spy_comid);
+		col_append_fstr(pinfo->cinfo, COL_INFO, "comId: %5u ",trdp_spy_comid);
 
 		if ((!strcmp(trdp_spy_string,"Pr")))
 		{
@@ -788,8 +788,9 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
 			} else if (comId->linkedDS) {
 				if ( *comId->linkedDS->name ) {
 					col_append_fstr(pinfo->cinfo, COL_INFO, " -> [%s]", comId->linkedDS->name );
-				} else
-					col_append_fstr(pinfo->cinfo, COL_INFO, " -> [%d]", comId->linkedDS->datasetId );
+				} else {
+					col_append_fstr(pinfo->cinfo, COL_INFO, " -> [%u]", comId->linkedDS->datasetId );
+				}
 			}
 		}
 
