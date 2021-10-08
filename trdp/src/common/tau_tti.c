@@ -664,7 +664,32 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
 
                 if (pDest->pVehInfoList[idx].pVehProp == NULL)
                 {
-                   return TRDP_MEM_ERR;
+                    UINT8 i;
+
+                    for (i = idx; i > 0; i--)
+                    {
+                        if (pDest->pVehInfoList[i-1].pVehProp == NULL)
+                        {
+                            vos_memFree(pDest->pVehInfoList[i-1].pVehProp);
+                            pDest->pVehInfoList[i-1].pVehProp = NULL;
+                        }
+                    }
+
+                    if (pDest->pVehInfoList != NULL)
+                    {
+                        vos_memFree(pDest->pVehInfoList);
+                        pDest->pVehInfoList = NULL;
+                    }
+
+                    if (pDest->pCstProp != NULL)
+                    {
+                        vos_memFree(pDest->pCstProp);
+                        pDest->pCstProp = NULL;
+                    }
+
+                    vos_memFree(pDest->pEtbInfoList);
+                    pDest->pEtbInfoList = NULL;
+                    return TRDP_MEM_ERR;
                 }
             }
             else
