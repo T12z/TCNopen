@@ -26,7 +26,10 @@
 /*
 * $Id$
 *
-       SB 2021-08-09: Lint warnings
+*     AHW 2021-10-07: Ticket #379 tau_tti: tau getOwnIds returns TRDP_NO_ERR even if nothing found in cst info
+*     AHW 2021-10-07: Ticket #378 tau_tti: ttiConsistInfoEntry writes static vehicle properties out of memory
+*     AHW 2021-10-07: Ticket #377 tau_tti: tau getOwnIds doesn't check the cache correct
+*      SB 2021-08-09: Lint warnings
 *      SB 2021-08-05: Ticket #365 etbCnt, vehCnt and fctCnt already rotated when retrieved from appHandle->pTTDB->cstInfo in tau_getCstInfo
 *     AHW 2021-04-14: Ticket #368 tau_tti: tau getOwnIds: error in index handling in vehInfoList
 *     AHW 2021-04-13: Ticket #362: ttiStoreTrnNetDir: trnNetDir read from wrong address
@@ -464,8 +467,23 @@ static void ttiStoreTrnNetDir (
 static void ttiFreeCstInfoEntry (
     TRDP_CONSIST_INFO_T *pData)
 {
+    if (pData->pCstProp != NULL)
+    {
+        vos_memFree(pData->pCstProp);
+        pData->pCstProp = NULL;
+    }
+
     if (pData->pVehInfoList != NULL)
     {
+        UINT8 idx = 0;
+
+        for (idx = 0; idx < pData->vehCnt; idx++)
+        {
+           if (pData->pVehInfoList[idx].pVehProp != NULL)
+           {
+               vos_memFree(pData->pVehInfoList[idx].pVehProp);
+           }
+        }
         vos_memFree(pData->pVehInfoList);
     }
     if (pData->pEtbInfoList != NULL)
@@ -526,13 +544,36 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     pData += sizeof(TRDP_UUID_T);
     pDest->reserved02 = vos_ntohl(*(UINT32 *)pData);
     pData += sizeof(UINT32);
-    pDest->cstProp.ver.ver  = *pData++;
-    pDest->cstProp.ver.rel  = *pData++;
-    pDest->cstProp.len      = vos_ntohs(*(UINT16 *)pData);
-    pData += sizeof(UINT16);
-    pDest->cstProp.prop[0] = 0;         /* Note: properties are not supported */
-    pData += pDest->cstProp.len;        /* we need to account for them anyway */
-    pDest->cstProp.len  = 0;
+    {
+       TRDP_SHORT_VERSION_T    ver;            /**< properties version information, application defined #378 */
+       UINT16                  len;
+
+       ver.ver = *pData++;
+       ver.rel = *pData++;
+       len = vos_ntohs(*(UINT16*)pData);
+       pData += sizeof(UINT16);
+
+       if((len > 0) && (len <= TRDP_MAX_PROP_LEN))
+       {
+           pDest->pCstProp = (TRDP_PROP_T *) vos_memAlloc(len + sizeof(TRDP_PROP_T));
+
+           if (pDest->pCstProp == NULL)
+           {
+               return TRDP_MEM_ERR;
+           }
+       }
+       else
+       {
+           len = 0;
+           pDest->pCstProp->prop[0] = 0;
+       }
+
+       pDest->pCstProp->ver.ver = ver.ver;
+       pDest->pCstProp->ver.rel = ver.rel;
+       pDest->pCstProp->len = len;
+       memcpy(pDest->pCstProp->prop, pData, len);
+       pData += len;                     /* we need to account for them anyway */
+    }
     pDest->reserved03   = vos_ntohs(*(UINT16 *)pData);
     pData += sizeof(UINT16);
 
@@ -548,6 +589,13 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     pDest->pEtbInfoList = (TRDP_ETB_INFO_T *) vos_memAlloc(sizeof(TRDP_ETB_INFO_T) * pDest->etbCnt);
     if (pDest->pEtbInfoList == NULL)
     {
+        if (pDest->pCstProp != NULL)
+        {
+           vos_memFree(pDest->pCstProp);
+           pDest->pCstProp = NULL;
+        }
+
+        pDest->pCstProp = NULL;
         pDest->etbCnt = 0;
         return TRDP_MEM_ERR;
     }
@@ -578,6 +626,12 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
     {
         pDest->vehCnt   = 0;
         pDest->etbCnt   = 0;
+        if (pDest->pCstProp != NULL)
+        {
+            vos_memFree(pDest->pCstProp);
+            pDest->pCstProp = NULL;
+        }
+
         vos_memFree(pDest->pEtbInfoList);
         pDest->pEtbInfoList = NULL;
         return TRDP_MEM_ERR;
@@ -594,14 +648,36 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
         pDest->pVehInfoList[idx].cstVehNo           = *pData++;
         pDest->pVehInfoList[idx].tractVeh           = *pData++;
         pDest->pVehInfoList[idx].reserved01         = *pData++;
-        pDest->pVehInfoList[idx].vehProp.ver.ver    = *pData++;
-        pDest->pVehInfoList[idx].vehProp.ver.rel    = *pData++;
-        pDest->pVehInfoList[idx].vehProp.len        = vos_ntohs(*(UINT16 *)pData);
-        pData += sizeof(UINT16);
-        if (pDest->pVehInfoList[idx].vehProp.len != 0u)
+
         {
-            memcpy(pDest->pVehInfoList[idx].vehProp.prop, pData, pDest->pVehInfoList[idx].vehProp.len);
-            pData += pDest->pVehInfoList[idx].vehProp.len;
+            TRDP_SHORT_VERSION_T    ver;            /**< properties version information, application defined #378 */
+            UINT16                  len;
+
+            ver.ver = *pData++;
+            ver.rel = *pData++;
+            len = vos_ntohs(*(UINT16*)pData);
+            pData += sizeof(UINT16);
+
+            if ((len > 0) && (len <= TRDP_MAX_PROP_LEN))
+            {
+                pDest->pVehInfoList[idx].pVehProp = (TRDP_PROP_T*)vos_memAlloc(len + sizeof(TRDP_PROP_T));
+
+                if (pDest->pVehInfoList[idx].pVehProp == NULL)
+                {
+                   return TRDP_MEM_ERR;
+                }
+            }
+            else
+            {
+                len = 0;
+                pDest->pVehInfoList[idx].pVehProp->prop[0] = 0;
+            }
+
+            pDest->pVehInfoList[idx].pVehProp->ver.ver = ver.ver;
+            pDest->pVehInfoList[idx].pVehProp->ver.rel = ver.rel;
+            pDest->pVehInfoList[idx].pVehProp->len = len;
+            memcpy(pDest->pVehInfoList[idx].pVehProp->prop, pData, len);
+            pData += len;                     /* we need to account for them anyway */
         }
     }
 
@@ -620,10 +696,30 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
         pDest->pFctInfoList = (TRDP_FUNCTION_INFO_T *) vos_memAlloc(sizeof(TRDP_FUNCTION_INFO_T) * pDest->fctCnt);
         if (pDest->pFctInfoList == NULL)
         {
+            if (pDest->pCstProp != NULL)
+            {
+                vos_memFree(pDest->pCstProp);
+                pDest->pCstProp = NULL;
+            }
+
             pDest->fctCnt   = 0;
             pDest->etbCnt   = 0;
             vos_memFree(pDest->pEtbInfoList);
             pDest->pEtbInfoList = NULL;
+
+            {
+                UINT8 idx = 0;
+
+                for (idx = 0; idx < pDest->vehCnt; idx++)
+                {
+                    if (pDest->pVehInfoList[idx].pVehProp != NULL)
+                    {
+                       vos_memFree(pDest->pVehInfoList[idx].pVehProp);
+                       pDest->pVehInfoList[idx].pVehProp = NULL;
+                    }
+                }
+            }
+
             pDest->vehCnt       = 0;
             vos_memFree(pDest->pVehInfoList);
             pDest->pVehInfoList = NULL;
@@ -660,10 +756,28 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
         pDest->pCltrCstInfoList = (TRDP_CLTR_CST_INFO_T *) vos_memAlloc(sizeof(TRDP_CLTR_CST_INFO_T) * pDest->cltrCstCnt);
         if (pDest->pCltrCstInfoList == NULL)
         {
+            if (pDest->pCstProp != NULL)
+            {
+                vos_memFree(pDest->pCstProp);
+                pDest->pCstProp = NULL;
+            }
+
             pDest->cltrCstCnt   = 0;
             pDest->etbCnt       = 0;
             vos_memFree(pDest->pEtbInfoList);
             pDest->pEtbInfoList = NULL;
+            {
+                UINT8 idx = 0;
+
+                for (idx = 0; idx < pDest->vehCnt; idx++)
+                {
+                    if (pDest->pVehInfoList[idx].pVehProp != NULL)
+                    {
+                        vos_memFree(pDest->pVehInfoList[idx].pVehProp);
+                        pDest->pVehInfoList[idx].pVehProp = NULL;
+                    }
+                }
+            }
             pDest->vehCnt       = 0;
             vos_memFree(pDest->pVehInfoList);
             pDest->pVehInfoList = NULL;
@@ -741,6 +855,7 @@ static void ttiStoreCstInfo (
 
     /* Allocate space for the consist info */
     appHandle->pTTDB->cstInfo[curEntry] = (TRDP_CONSIST_INFO_T *) vos_memAlloc(sizeof(TRDP_CONSIST_INFO_T));
+
     if (appHandle->pTTDB->cstInfo[curEntry] == NULL)
     {
         vos_printLogStr(VOS_LOG_ERROR, "Consist info could not be stored!");
@@ -748,10 +863,9 @@ static void ttiStoreCstInfo (
     }
 
     /* We do convert and allocate more memory for the several parts of the consist info inside. */
-
     if (ttiCreateCstInfoEntry(appHandle->pTTDB->cstInfo[curEntry], pData, dataSize) != TRDP_NO_ERR)
     {
-          vos_memFree(appHandle->pTTDB->cstInfo[curEntry]);
+        vos_memFree(appHandle->pTTDB->cstInfo[curEntry]);
         appHandle->pTTDB->cstSize[curEntry] = 0u;
         vos_printLogStr(VOS_LOG_ERROR, "Parts of consist info could not be stored!");
         return;
@@ -1811,11 +1925,18 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
     TRDP_LABEL_T        *pVehId,
     TRDP_LABEL_T        *pCstId)
 {
+    TRDP_ERR_T retVal = TRDP_NODATA_ERR;     /* 379 */
+
     if ((appHandle == NULL) ||
-        (appHandle->pTTDB == NULL))
+        (appHandle->pTTDB == NULL) ||
+        (pDevId == NULL) ||                 /* #379 */
+        (pVehId == NULL) ||                 /* #379 */
+        (pCstId == NULL)                    /* #379 */
+       )
     {
         return TRDP_PARAM_ERR;
     }
+
     /* if not already there, get the network directory */
     if ((appHandle->pTTDB->trnNetDir.entryCnt == 0) ||
         (appHandle->pTTDB->opTrnState.ownTrnCstNo == 0))            /* from PD 100  */
@@ -1825,7 +1946,7 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
     }
 
     /* if not already there, get the consist info for our consist */
-    if (appHandle->pTTDB->noOfCachedCst == 0)                 /* own Consist info  */
+    if (appHandle->pTTDB->cstInfo[0] == NULL)                 /* own Consist info, #377  */
     {    /* not found, get it and return immediately */
         ttiRequestTTDBdata(appHandle, TRDP_TTDB_STATIC_CST_INF_REQ_COMID,
                            appHandle->pTTDB->trnNetDir.trnNetDir[appHandle->pTTDB->opTrnState.ownTrnCstNo - 1].cstUUID);
@@ -1833,7 +1954,6 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
     }
 
     /* here we should have all the infos we need to fullfill the request */
-
     if (pDevId != NULL)
     {
         unsigned int    idx;
@@ -1848,27 +1968,29 @@ EXT_DECL TRDP_ERR_T tau_getOwnIds (
                (appHandle->pTTDB->cstInfo[0]->pFctInfoList[idx].grp == 0) )      /* #366 check that it isn't a group address */
             {
                 /* Get the name */
-                if (pDevId != NULL)
-                {
-                    memcpy(pDevId, appHandle->pTTDB->cstInfo[0]->pFctInfoList[idx].fctName, TRDP_MAX_LABEL_LEN);
-                }
+                memcpy(pDevId, appHandle->pTTDB->cstInfo[0]->pFctInfoList[idx].fctName, TRDP_MAX_LABEL_LEN);
 
                 /* Get the vehicle name this device is in */
-                if (pVehId != NULL)
                 {
                     UINT8 vehNo = appHandle->pTTDB->cstInfo[0]->pFctInfoList[idx].cstVehNo;
+
                     memcpy(pVehId, appHandle->pTTDB->cstInfo[0]->pVehInfoList[vehNo-1].vehId, TRDP_MAX_LABEL_LEN);  /* #368 */
                 }
+
+                retVal = TRDP_NO_ERR;
+
                 break;
             }
         }
     }
+
     /* Get the consist label (UIC identifier) */
-    if (pCstId != NULL)
+    if (retVal == TRDP_NO_ERR)
     {
         memcpy(pCstId, appHandle->pTTDB->cstInfo[0]->cstId, TRDP_MAX_LABEL_LEN);
     }
-    return TRDP_NO_ERR;
+
+    return retVal;         /* 379 */
 }
 
 /**********************************************************************************************************************/

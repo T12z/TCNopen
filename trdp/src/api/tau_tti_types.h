@@ -19,6 +19,7 @@
  /*
  * $Id$
  *
+ *     AHW 2021-10-07: Ticket #378 tau_tti: ttiConsistInfoEntry writes static vehicle properties out of memory
  *      BL 2017-11-13: Ticket #176 TRDP_LABEL_T breaks field alignment -> TRDP_NET_LABEL_T
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
  *
@@ -47,6 +48,7 @@ extern "C" {
 
 #define TRDP_MAX_CST_CNT 63u                 /**< max number of consists per train */
 #define TRDP_MAX_VEH_CNT 63u                 /**< max number of vehicles per train */
+#define TRDP_MAX_PROP_LEN 32768u             /**< maximum length of property information #378 */
 
 /***********************************************************************************************************************
  * TYPEDEFS
@@ -139,7 +141,7 @@ typedef struct
                                                  '01'B = vehicle is not a traction vehicle
                                                  '10'B = vehicle is a traction vehicle */
     UINT8                   reserved01;     /**< for future use (= 0) */
-    TRDP_PROP_T             vehProp;        /**< static vehicle properties */ 
+    TRDP_PROP_T            *pVehProp;       /**< static vehicle properties #378 */ 
 } TRDP_VEHICLE_INFO_T;
 
 
@@ -158,7 +160,7 @@ typedef struct
     TRDP_NET_LABEL_T        cstOwner;       /**< consist owner, e.g. "trenitalia.it", "sncf.fr", "db.de" */
     TRDP_UUID_T             cstUUID;        /**< consist UUID  */
     UINT32                  reserved02;     /**< reserved for future use (= 0) */
-    TRDP_PROP_T             cstProp;        /**< static consist properties */
+    TRDP_PROP_T            *pCstProp;       /**< static consist properties #378 */
     UINT16                  reserved03;     /**< reserved for future use (= 0) */
     UINT16                  etbCnt;         /**< number of ETB's, range: 1..4 */
     TRDP_ETB_INFO_T        *pEtbInfoList;   /**< ETB information list for the consist
