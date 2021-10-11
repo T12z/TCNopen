@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*      AO 2021-10-11: Ticket #378 tau_tti: bug fig
 *     AHW 2021-10-07: Ticket #379 tau_tti: tau getOwnIds returns TRDP_NO_ERR even if nothing found in cst info
 *     AHW 2021-10-07: Ticket #378 tau_tti: ttiConsistInfoEntry writes static vehicle properties out of memory
 *     AHW 2021-10-07: Ticket #377 tau_tti: tau getOwnIds doesn't check the cache correct
@@ -553,26 +554,23 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
        len = vos_ntohs(*(UINT16*)pData);
        pData += sizeof(UINT16);
 
-       if((len > 0) && (len <= TRDP_MAX_PROP_LEN))
+       if (len > TRDP_MAX_PROP_LEN)
        {
-           pDest->pCstProp = (TRDP_PROP_T *) vos_memAlloc(len + sizeof(TRDP_PROP_T));
-
-           if (pDest->pCstProp == NULL)
-           {
-               return TRDP_MEM_ERR;
-           }
+           //Out of range
+           return TRDP_PACKET_ERR;
        }
-       else
+
+       pDest->pCstProp = (TRDP_PROP_T *) vos_memAlloc(len + sizeof(TRDP_PROP_T));
+       if (pDest->pCstProp == NULL)
        {
-           len = 0;
-           pDest->pCstProp->prop[0] = 0;
+           return TRDP_MEM_ERR;
        }
 
        pDest->pCstProp->ver.ver = ver.ver;
        pDest->pCstProp->ver.rel = ver.rel;
        pDest->pCstProp->len = len;
        memcpy(pDest->pCstProp->prop, pData, len);
-       pData += len;                     /* we need to account for them anyway */
+       pData += len;
     }
     pDest->reserved03   = vos_ntohs(*(UINT16 *)pData);
     pData += sizeof(UINT16);
@@ -657,52 +655,58 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
             ver.rel = *pData++;
             len = vos_ntohs(*(UINT16*)pData);
             pData += sizeof(UINT16);
+            TRDP_ERR_T err = TRDP_NO_ERR;
 
-            if ((len > 0) && (len <= TRDP_MAX_PROP_LEN))
+            if (len > TRDP_MAX_PROP_LEN)
+            {
+                err = TRDP_PACKET_ERR;
+            }
+
+            if (err == TRDP_NO_ERR)
             {
                 pDest->pVehInfoList[idx].pVehProp = (TRDP_PROP_T*)vos_memAlloc(len + sizeof(TRDP_PROP_T));
-
                 if (pDest->pVehInfoList[idx].pVehProp == NULL)
                 {
-                    UINT8 i;
-
-                    for (i = idx; i > 0; i--)
-                    {
-                        if (pDest->pVehInfoList[i-1].pVehProp == NULL)
-                        {
-                            vos_memFree(pDest->pVehInfoList[i-1].pVehProp);
-                            pDest->pVehInfoList[i-1].pVehProp = NULL;
-                        }
-                    }
-
-                    if (pDest->pVehInfoList != NULL)
-                    {
-                        vos_memFree(pDest->pVehInfoList);
-                        pDest->pVehInfoList = NULL;
-                    }
-
-                    if (pDest->pCstProp != NULL)
-                    {
-                        vos_memFree(pDest->pCstProp);
-                        pDest->pCstProp = NULL;
-                    }
-
-                    vos_memFree(pDest->pEtbInfoList);
-                    pDest->pEtbInfoList = NULL;
-                    return TRDP_MEM_ERR;
+                    err = TRDP_MEM_ERR;
                 }
             }
-            else
+
+            if (err != TRDP_NO_ERR)
             {
-                len = 0;
-                pDest->pVehInfoList[idx].pVehProp->prop[0] = 0;
+                //There is an error, clear the alocated memory
+                UINT8 i;
+
+                for (i = idx; i > 0; i--)
+                {
+                    if (pDest->pVehInfoList[i-1].pVehProp != NULL)
+                    {
+                        vos_memFree(pDest->pVehInfoList[i-1].pVehProp);
+                        pDest->pVehInfoList[i-1].pVehProp = NULL;
+                    }
+                }
+
+                if (pDest->pVehInfoList != NULL)
+                {
+                    vos_memFree(pDest->pVehInfoList);
+                    pDest->pVehInfoList = NULL;
+                }
+
+                if (pDest->pCstProp != NULL)
+                {
+                    vos_memFree(pDest->pCstProp);
+                    pDest->pCstProp = NULL;
+                }
+
+                vos_memFree(pDest->pEtbInfoList);
+                pDest->pEtbInfoList = NULL;
+                return err;
             }
 
             pDest->pVehInfoList[idx].pVehProp->ver.ver = ver.ver;
             pDest->pVehInfoList[idx].pVehProp->ver.rel = ver.rel;
             pDest->pVehInfoList[idx].pVehProp->len = len;
             memcpy(pDest->pVehInfoList[idx].pVehProp->prop, pData, len);
-            pData += len;                     /* we need to account for them anyway */
+            pData += len;
         }
     }
 

@@ -19,6 +19,7 @@
  /*
  * $Id$
  *
+ *      AO 2021-10-10: Ticket #378 tau_tti: in TRDP_PROP_T changed prop[1] to prop[]
  *     AHW 2021-10-07: Ticket #378 tau_tti: ttiConsistInfoEntry writes static vehicle properties out of memory
  *      BL 2017-11-13: Ticket #176 TRDP_LABEL_T breaks field alignment -> TRDP_NET_LABEL_T
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
@@ -103,7 +104,7 @@ typedef struct
                                                  application defined, must be a multiple
                                                  of 4 octets for alignment reasons 
                                                  value range: 0..32768  */
-    UINT8                   prop[1];        /**< properties, application defined */
+    UINT8                   prop[];        /**< properties, application defined */
 } TRDP_PROP_T;
 
 
