@@ -677,6 +677,12 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
                 {
                     err = TRDP_MEM_ERR;
                 }
+
+                pDest->pVehInfoList[idx].pVehProp->ver.ver = ver.ver;
+                pDest->pVehInfoList[idx].pVehProp->ver.rel = ver.rel;
+                pDest->pVehInfoList[idx].pVehProp->len = len;
+                memcpy(pDest->pVehInfoList[idx].pVehProp->prop, pData, len);
+                pData += len;
             }
             else
             {
@@ -714,11 +720,6 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
                 return err;
             }
 
-            pDest->pVehInfoList[idx].pVehProp->ver.ver = ver.ver;
-            pDest->pVehInfoList[idx].pVehProp->ver.rel = ver.rel;
-            pDest->pVehInfoList[idx].pVehProp->len = len;
-            memcpy(pDest->pVehInfoList[idx].pVehProp->prop, pData, len);
-            pData += len;
         }
     }
 
