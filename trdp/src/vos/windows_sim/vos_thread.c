@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      AÖ 2021-12-17: Ticket #384: Added #include <windows.h>
 *      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
 *      AÖ 2019-12-17: Ticket #306: Improve TerminateThread in SIM 
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
@@ -45,6 +46,7 @@
 #include "vos_mem.h"
 #include "vos_utils.h"
 #include "vos_private.h"
+#include <windows.h>
 #include "TimeSync.h"
 
 /*  Load TimeSync library
