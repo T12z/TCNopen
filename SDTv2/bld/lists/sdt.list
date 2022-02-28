@@ -1,0 +1,12 @@
+set(SRC ${SRC}
+        ../../src/sdt_ipt.c
+		../../src/sdt_mutex.c
+		../../src/sdt_mvb.c
+		../../src/sdt_uic.c
+		../../src/sdt_validator.c
+		../../src/sdt_wtb.c
+        )
+
+
+
+

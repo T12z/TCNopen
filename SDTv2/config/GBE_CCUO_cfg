@@ -1,0 +1,31 @@
+#
+# Copyright     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+#               If a copy of the MPL was not distributed with this file, 
+#               You can obtain one at http://mozilla.org/MPL/2.0/.
+#               Copyright Alstom Transport SA or its subsidiaries and others, 2010-2022. All rights reserved.
+# 
+# Component     SDTv2 Library
+#
+# File          GBE_CCUO_cfg
+#
+# Requirements  SDT_LIB-REQ-018
+#
+# Abstract      Build definitions for CCU-O under CSS3
+#
+
+
+CSS_RTS_PATH=$(CSS_PATH)
+TCPATH = $(TOOL_PATH)/
+
+ARCH      = vxworks-ppc-css3-ccuo
+CPU       = PPC603
+TARGET_OS = VXWORKS
+TOOLCHAIN = ppc
+
+SDTLIBFEATURES = -DSDT_ENABLE_IPT \
+                 -DSDT_ENABLE_MVB \
+                 -DUSE_MAPPING
+LINT_SYSINCLUDE_DIRECTIVES = -DCPU=$(CPU) -i $(WIND_BASE)/target/h +libh types.h
+PLATFORM_CPPFLAGS = $(SDTLIBFEATURES) \
+                    -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/wrn/coreip -DCPU=$(CPU) \
+                    -fstrength-reduce -fno-builtin -mlongcall -fsigned-char  
