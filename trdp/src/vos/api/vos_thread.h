@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AÖ 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting
 *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API 
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file

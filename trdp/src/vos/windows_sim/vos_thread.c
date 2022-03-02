@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      AÖ 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting, moved common functionality to vos_threadRegisterMain
 *      AÖ 2021-12-17: Ticket #386: Support for TimeSync multicore
 *      AÖ 2021-12-17: Ticket #385: Increase MAX_TIMESYNC_PREFIX_STRING from 20 to 64
 *      AÖ 2021-12-17: Ticket #384: Added #include <windows.h>
