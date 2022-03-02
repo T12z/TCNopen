@@ -268,6 +268,20 @@ EXT_DECL VOS_ERR_T vos_threadIsActive (
 
 #ifdef SIM
 /**********************************************************************************************************************/
+/** Register a existing TimeSync thread.
+*  All threads has to be registered in TimeSync for proper timing handeling.
+*  This is for funcitons that is already under TimeSync control to register
+*
+*  @param[in]      pName           Pointer to name of the thread (optional)
+*  @param[in]      timeSyncHandle  Handle to TimeSync
+*  @retval         VOS_NO_ERR      no error
+*  @retval         VOS_INIT_ERR    failed to init
+*/
+EXT_DECL VOS_ERR_T vos_threadRegisterExisting(
+    const CHAR* pName,
+    long timeSyncHandle);
+
+/**********************************************************************************************************************/
 /** Register a thread.
 *  All threads has to be registered in TimeSync for proper timing handeling.
 *  Only main thread has to call this funciton all other threads handle this internaly
