@@ -10,11 +10,13 @@
  *
  * @author          Florian Weispfenning, Bombardier Transportation
  * @author          Thorsten Schulz, Universität Rostock
+ * @author          Thorsten Schulz, Stadler Deutschland GmbH
  *
  * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  * @copyright       Copyright Universität Rostock, 2019-2020 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
+ * @copyright       Copyright Stadler Deutschland GmbH, 2022 (Updates to support multiple dictionaries.)
  *
  * @details Version 2.0 extended to work with complex dataset and makeover for Wireshark 2.6 -- 3.x
  *
@@ -75,6 +77,12 @@
 #define tvb_get_ntohis( tvb, offset) ((gint16) tvb_get_ntohs( tvb, offset))
 #define tvb_get_ntohil( tvb, offset) ((gint32) tvb_get_ntohl( tvb, offset))
 #define tvb_get_ntohi64(tvb, offset) ((gint64) tvb_get_ntoh64(tvb, offset))
+#endif
+
+#if (VERSION_MAJOR > 3) || (VERSION_MAJOR == 3 && VERSION_MINOR > 4)
+#define VER_3_6_WMEM wmem_packet_scope(),
+#else
+#define VER_3_6_WMEM
 #endif
 
 /* Initialize the protocol and registered fields */
@@ -430,7 +438,7 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				slen = (element_count||!g_0strings) ? bytelen : (bytelen-1);
 				text = (g_char8_is_utf8 && element_count > 1) ?
 						  tvb_get_string_enc(wmem_packet_scope(), tvb, offset, slen, ENC_UTF_8)
-						: (guint8 *)tvb_format_text(tvb, offset, slen);
+							: (guint8 *)tvb_format_text( VER_3_6_WMEM tvb, offset, slen);
 
 				if (element_count == 1)
 					proto_tree_add_string(userdata_element, el->hf_id, tvb, offset, bytelen, text);
@@ -721,7 +729,7 @@ int dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree, void *data
 	}
 
 	// Read required values from the package:
-	trdp_spy_string = (gchar *) tvb_format_text(tvb, TRDP_HEADER_OFFSET_TYPE, 2);
+	trdp_spy_string = (gchar *) tvb_format_text( VER_3_6_WMEM tvb, TRDP_HEADER_OFFSET_TYPE, 2);
 	trdp_spy_comid = tvb_get_ntohl(tvb, TRDP_HEADER_OFFSET_COMID);
 
 	/* Telegram that fits into one packet, or the header of huge telegram, that was reassembled */
@@ -1018,14 +1026,19 @@ static void register_trdp_fields(void) {
 			API_TRACE;
 
 			GError *err = NULL;
-			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, g_bitset_subtype, &err);
+			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, g_bitset_subtype, FALSE, &err);
 			API_TRACE;
 			if (err) {
-				report_failure("TRDP | XML configuration failed: [%d] %s", err->code, err->message);
+				report_failure("TRDP | XML input failed [%d]:\n%s", err->code, err->message);
 				g_error_free(err);
 			} else {
 				if (trdp_filter_expression_tmp) /* re-apply our old filter, at least try */
 					plugin_if_apply_filter(trdp_filter_expression_tmp, FALSE);
+				/*
+					gchar *s = TrdpDict_summary(self);
+					fprintf(stderr, "%s\n", s);
+					g_free(s);
+				*/
 			}
 		} else {
 			PRNT2(fprintf(stderr, "TRDP dictionary is '%s' (changed=%d).\n", gbl_trdpDictionary_1, preference_changed));
@@ -1161,6 +1174,7 @@ void proto_register_trdp(void) {
 #endif
 	);
 	prefs_set_preference_effect_fields(trdp_spy_module, "configfile");
+	prefs_register_static_text_preference(trdp_spy_module, "xml_summary", "If you need to include multiple files, chose a file, then manually remove the filename part above only leaving the folder path. You cannot choose a folder by itself in the dialog. Be sure, not to have conflicting versions of datasets or com-ids in that target folder - the file parser will be pesky.", NULL);
 	prefs_register_enum_preference(trdp_spy_module, "bitset.subtype",
 			"Select default sub-type for TRDP-Element type 1",
 			"Type 1 can be interpreted differently, as BOOL, ANTIVALENT or BITSET. Select the fallback, if the element "
@@ -1195,7 +1209,6 @@ void proto_register_trdp(void) {
 	prefs_register_uint_preference(trdp_spy_module, "md.udptcp.port",
 			"MD message Port",
 			"UDP and TCP port for MD messages (Default port is " TRDP_DEFAULT_STR_MD_PORT ")", 10 /*base */, &g_md_port);
-
 
 	/* Register expert information */
 	expert_module_t* expert_trdp;
