@@ -1759,7 +1759,7 @@ int trdp_checkSequenceCounter (
  *  @retval         TRUE  - listener URI is in addressing range of destination URI
  */
 
-BOOL8 trdp_isAddressed (const TRDP_URI_USER_T listUri, const TRDP_URI_USER_T destUri)
+BOOL8 trdp_isAddressed (const char *listUri, const char *destUri)
 {
     return (vos_strnicmp(listUri, destUri, TRDP_USR_URI_SIZE) == 0);
 }

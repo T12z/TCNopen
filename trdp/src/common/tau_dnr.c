@@ -1219,7 +1219,7 @@ EXT_DECL TRDP_IP_ADDR_T tau_getOwnAddr (
 EXT_DECL TRDP_ERR_T tau_uri2Addr (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_IP_ADDR_T      *pAddr,
-    const TRDP_URI_T    pUri)
+    const CHAR8         *pUri)
 {
     TAU_DNR_DATA_T  *pDNR;
     TAU_DNR_ENTRY_T *pTemp;
@@ -1284,7 +1284,7 @@ EXT_DECL TRDP_ERR_T tau_uri2Addr (
 
 EXT_DECL TRDP_IP_ADDR_T tau_ipFromURI (
     TRDP_APP_SESSION_T    appHandle,
-    const TRDP_URI_HOST_T uri)
+    const CHAR8           *uri)
 {
     TRDP_IP_ADDR_T ipAddr = VOS_INADDR_ANY;
 

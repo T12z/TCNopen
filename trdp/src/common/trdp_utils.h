@@ -198,8 +198,8 @@ int trdp_checkSequenceCounter (
     TRDP_MSG_T      msgType);
 
 BOOL8 trdp_isAddressed (
-    const TRDP_URI_USER_T   listUri,
-    const TRDP_URI_USER_T   destUri);
+    const char      *listUri,
+    const char      *destUri);
 
 
 BOOL8 trdp_validTopoCounters (

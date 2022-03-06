@@ -361,7 +361,7 @@ EXT_DECL TRDP_ERR_T tlm_reply (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   srcURI);
+    const CHAR8             *srcURI);
 
 EXT_DECL TRDP_ERR_T tlm_replyQuery (
     TRDP_APP_SESSION_T      appHandle,
@@ -372,7 +372,7 @@ EXT_DECL TRDP_ERR_T tlm_replyQuery (
     const TRDP_SEND_PARAM_T *pSendParam,
     const UINT8             *pData,
     UINT32                  dataSize,
-    const TRDP_URI_USER_T   srcURI);
+    const CHAR8             *srcURI);
 
 #endif /* MD_SUPPORT    */
 

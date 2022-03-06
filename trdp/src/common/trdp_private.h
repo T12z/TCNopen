@@ -259,8 +259,8 @@ typedef struct
     INT32   replyStatus;                        /**< 0 = OK                                                 */
     UINT8   sessionID[16u];                     /**< UUID as a byte stream                                  */
     UINT32  replyTimeout;                       /**< in us                                                  */
-    UINT8   sourceURI[32u];                     /**< User part of URI                                       */
-    UINT8   destinationURI[32u];                /**< User part of URI                                       */
+    UINT8   sourceURI[TRDP_USR_URI_SIZE];       /**< User part of URI                                       */
+    UINT8   destinationURI[TRDP_USR_URI_SIZE];  /**< User part of URI                                       */
     UINT32  frameCheckSum;                      /**< CRC32 of header                                        */
 } GNU_PACKED MD_HEADER_T;
 
