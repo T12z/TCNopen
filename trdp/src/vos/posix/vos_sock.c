@@ -65,7 +65,7 @@
 #endif
 
 #ifdef __linux
-#   include <linux/if.h>
+#   include <net/if.h>
 #   include <byteswap.h>
 #   include <linux/if_vlan.h>
 #   include <linux/sockios.h>

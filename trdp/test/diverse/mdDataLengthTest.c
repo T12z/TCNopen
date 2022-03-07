@@ -75,7 +75,7 @@ static TRDP_APP_SESSION_T test_init(
     TRDP_TEST_SESSION_T *pSession,
     const char *         name,
     TRDP_MEM_CONFIG_T   *pMemConfig);
-static void trdp_loop(void *pArg);
+static void *trdp_loop(void *pArg);
 static void test_deinit(
     TRDP_TEST_SESSION_T *pSession1,
     TRDP_TEST_SESSION_T *pSession2);
@@ -93,7 +93,7 @@ void mdTestCallback(
  *
  *  @retval         none
  */
-static void trdp_loop(void *pArg)
+static void *trdp_loop(void *pArg)
 {
     TRDP_TEST_SESSION_T *pSession = (TRDP_TEST_SESSION_T *)pArg;
     /*
@@ -160,6 +160,7 @@ static void trdp_loop(void *pArg)
 
     (void)tlc_closeSession(pSession->appHandle);
     pSession->appHandle = NULL;
+	return NULL;
 }
 
 /**********************************************************************************************************************/

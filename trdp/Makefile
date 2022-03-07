@@ -79,6 +79,7 @@ TRDP_OPT_OBJS += trdp_xml.o \
 		tau_marshall.o \
 		tau_dnr.o \
 		tau_tti.o \
+		tau_cstinfo.o \
 		tau_ctrl.o \
 		tau_xsession.o \
 		tau_xmarshall.o
@@ -585,7 +586,7 @@ $(OUTDIR)/pdMcRouting: $(OUTDIR)/libtrdp.a pdMcRoutingTest.c
 			@$(ECHO) ' ### Building PD MC routing test receiver application $(@F)'
 			$(CC) test/diverse/pdMcRoutingTest.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@
 
@@ -593,7 +594,7 @@ $(OUTDIR)/mdDataLength: $(OUTDIR)/libtrdp.a mdDataLengthTest.c
 			@$(ECHO) ' ### Building PD MC routing test receiver application $(@F)'
 			$(CC) test/diverse/mdDataLengthTest.c \
 			    -ltrdp \
-			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 			    -o $@
 			@$(STRIP) $@		
 

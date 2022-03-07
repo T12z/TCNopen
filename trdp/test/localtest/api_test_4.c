@@ -127,7 +127,8 @@ TRDP_THREAD_SESSION_T gSession2 = {NULL, 0x0A000365u, 0, 0};
     {                                                                                                  \
         0x00, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF, 0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF \
     }
-#define CST_1_ID "SBahn 150"
+/* this is used as TRDP_LABEL_T, so it must be filled up to the full expected length */
+#define CST_1_ID "SBahn 150\0\0\0\0\0\0\0"
 
 #define CST_2_UUID                                                                                     \
     {                                                                                                  \
@@ -641,7 +642,7 @@ static void dbgOut(
  *
  *  @retval         none
  */
-static void trdp_loop(void *pArg)
+static void *trdp_loop(void *pArg)
 {
     TRDP_THREAD_SESSION_T *pSession = (TRDP_THREAD_SESSION_T *)pArg;
     /*
@@ -708,6 +709,7 @@ static void trdp_loop(void *pArg)
 
     (void)tlc_closeSession(pSession->appHandle);
     pSession->appHandle = NULL;
+	return NULL;
 }
 
 /**********************************************************************************************************************/
@@ -1442,7 +1444,7 @@ static int test3()
             memset(&expectedVehInfo, 0, sizeof(expectedVehInfo));
             memcpy(&expectedVehInfo, &gCstInfo.test_ar_VehInfoList[counter], sizeof(gCstInfo.test_ar_VehInfoList[counter]));
 
-            expectedVehInfo.vehProp.len = SWAP_16(expectedVehInfo.vehProp.len);
+            expectedVehInfo.pVehProp->len = SWAP_16(expectedVehInfo.pVehProp->len);
 
             /** @TODO: check, if Padding needs to be considered */
             if (memcmp(&expectedVehInfo, &consistInfo.pVehInfoList[counter], sizeof(TRDP_VEHICLE_INFO_T)) != 0)

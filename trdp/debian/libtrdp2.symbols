@@ -52,6 +52,7 @@ libtau-hp.so.2 libtrdp2 #MINVER#
  tau_readXmlMappedInterfaceConfig@Base 2.0
  tau_readXmlServiceConfig@Base 2.0
  tau_requestEcspConfirm@Base 2.0
+ tau_requestEcspConfirmReply@Base 2.0-111
  tau_setEcspCtrl@Base 2.0
  tau_terminateEcspCtrl@Base 2.0
  tau_unmarshall@Base 2.0
@@ -143,6 +144,7 @@ libtau.so.2 libtrdp2 #MINVER#
  tau_readXmlMappedInterfaceConfig@Base 2.0
  tau_readXmlServiceConfig@Base 2.0
  tau_requestEcspConfirm@Base 2.0
+ tau_requestEcspConfirmReply@Base 2.0-111
  tau_setEcspCtrl@Base 2.0
  tau_terminateEcspCtrl@Base 2.0
  tau_unmarshall@Base 2.0
@@ -328,6 +330,7 @@ libtrdp-hp.so.2 libtrdp2 #MINVER#
  vos_divTime@Base 2.0
  vos_dottedIP@Base 2.0
  vos_getErrorString@Base 2.0
+ vos_getInterfaceIP@Base 2.0-111
  vos_getInterfaces@Base 2.0
  vos_getMacAddress@Base 2.0
  vos_getNanoTime@Base 2.0
@@ -542,6 +545,7 @@ libtrdp.so.2 libtrdp2 #MINVER#
  vos_divTime@Base 2.0
  vos_dottedIP@Base 2.0
  vos_getErrorString@Base 2.0
+ vos_getInterfaceIP@Base 2.0-111
  vos_getInterfaces@Base 2.0
  vos_getMacAddress@Base 2.0
  vos_getNanoTime@Base 2.0

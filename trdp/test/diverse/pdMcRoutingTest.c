@@ -86,7 +86,7 @@ static TRDP_APP_SESSION_T test_init(
     TRDP_PRINT_DBG_T     dbgout,
     TRDP_TEST_SESSION_T *pSession,
     const char *         name);
-static void trdp_loop(void *pArg);
+static void *trdp_loop(void *pArg);
 static void test_deinit(
     TRDP_TEST_SESSION_T *pSession1,
     TRDP_TEST_SESSION_T *pSession2);
@@ -99,7 +99,7 @@ static int receiveAndCheckData(TRDP_TEST_SESSION_T *pSession, UINT32 id);
  *
  *  @retval         none
  */
-static void trdp_loop(void *pArg)
+static void *trdp_loop(void *pArg)
 {
     TRDP_TEST_SESSION_T *pSession = (TRDP_TEST_SESSION_T *)pArg;
     /*
@@ -166,6 +166,7 @@ static void trdp_loop(void *pArg)
 
     (void)tlc_closeSession(pSession->appHandle);
     pSession->appHandle = NULL;
+	return NULL;
 }
 
 /**********************************************************************************************************************/

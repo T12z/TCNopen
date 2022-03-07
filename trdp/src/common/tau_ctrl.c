@@ -383,7 +383,7 @@ EXT_DECL TRDP_ERR_T tau_getEcspStat ( TRDP_APP_SESSION_T    appHandle,
  *
  */
 EXT_DECL TRDP_ERR_T tau_requestEcspConfirm ( TRDP_APP_SESSION_T         appHandle,
-                                             const void                 *pUserRef,
+                                             void                       *pUserRef,
                                              TRDP_MD_CALLBACK_T         pfCbFunction,
                                              TRDP_ECSP_CONF_REQUEST_T   *pEcspConfRequest)
 {

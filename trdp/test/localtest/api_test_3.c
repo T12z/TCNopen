@@ -491,7 +491,7 @@ static void test_deinit (
  */
 
 
-static int test1 ()
+static __unused int test1 ()
 {
     PREPARE1("SRM offer ### obsolete! ###"); /* allocates appHandle1, failed = 0, err */
 
@@ -880,7 +880,9 @@ static int test3 ()
                              pdInfo.seqCount,
                              pdInfo.msgType >> 8,
                              pdInfo.msgType & 0xFF);
-                vos_printLog(VOS_LOG_USR, "Data: %*s\n", dataSize, buffer);
+                UINT8 logbuffer[248]; /* GCC is a bit bitchy about buffer checks and vos_printLog is limited. Be nice */
+                memcpy(logbuffer, buffer, dataSize>sizeof(logbuffer) ? sizeof(logbuffer) : dataSize);
+                vos_printLog(VOS_LOG_USR, "Data: %*s\n", dataSize>sizeof(logbuffer) ? (UINT32)sizeof(logbuffer) : dataSize, logbuffer);
                 //break;
             }
             else
@@ -968,7 +970,7 @@ static void  test5CBFunction (
         fprintf(gFp, "->> Unsolicited Message received (type = %c%c)\n", pMsg->msgType >> 8, pMsg->msgType & 0xFF);
         gFailed = 1;
     }
-end:
+
     return;
 }
 
