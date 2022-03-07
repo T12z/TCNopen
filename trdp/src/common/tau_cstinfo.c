@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      MM 2021-03-11: Ticket #361: add tau_cstinfo header file - needed for alternative make/build
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
  *      BL 2017-04-28: Ticket #155: Kill trdp_proto.h - move definitions to iec61375-2-3.h
  *      BL 2016-02-24: C89 compatibility (thanks to Robert)
@@ -29,6 +30,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "tau_cstinfo.h"
 #include "trdp_if_light.h"
 #include "tau_tti.h"
 #include "vos_sock.h"
@@ -45,16 +47,6 @@
 /***********************************************************************************************************************
  * Local Functions
  */
-
-UINT16 cstInfoGetPropSize (TRDP_CONSIST_INFO_T *pCstInfo);
-void cstInfoGetProperty (TRDP_CONSIST_INFO_T *pCstInfo, UINT8 *pValue);
-void cstInfoGetETBInfo (TRDP_CONSIST_INFO_T *pCstInfo,
-                        UINT32              l_index,
-                        TRDP_ETB_INFO_T     *pValue);
-UINT32  cstInfoGetVehInfoSize (UINT8 *pVehList);
-void cstInfoGetVehInfo (TRDP_CONSIST_INFO_T *pCstInfo, UINT32 l_index, TRDP_VEHICLE_INFO_T *pValue, UINT32 *pSize);
-void cstInfoGetFctInfo (TRDP_CONSIST_INFO_T *pCstInfo, UINT32 l_index, TRDP_FUNCTION_INFO_T *pValue, UINT32 *pSize);
-void cstInfoGetCltrCstInfo (TRDP_CONSIST_INFO_T *pCstInfo, UINT32 l_index, TRDP_FUNCTION_INFO_T *pValue, UINT32 *pSize);
 
 /**********************************************************************************************************************/
 /**    Getter function to retrieve a value from the consist info telegram value.

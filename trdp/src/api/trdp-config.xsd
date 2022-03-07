@@ -3,40 +3,41 @@
 <xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:annotation>
     <xs:documentation>
-#=====================================================================================================
-#         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-#         If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#         Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2019. All rights reserved..
-#=====================================================================================================
-#
-#  PRODUCT       : TRDP
-#
-#  MODULE        : trdp-config.xsd
-#
-#  ABSTRACT      : XML Schema for TRDP configuration configuration
-#
-#  VERSION       : 1.16.0.0
-#
-#  SVN           : $Id$
-#
-#  HISTORY       :
-#                            1.15.0.0  Added optional attributes for SDTv4 support
-#                            1.15.0.0  Added optional attribute 'name' to event, method, field and instance for service oriented interface
-#                            1.14.0.0  IPTCom references removed
-#                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
-#                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)
-#                            1.11.0.0  Ticket #106: User needs to be informed on every received PD packet
-#                            1.10.0.0  sink/source attribute for telegrams added
-#                            1.9.0.0   debug parameters updated
-#                            1.8.0.0   BITSET8, ANTIVALENT8 added
-#                            1.7.0.0   id of data-set must start at 1000
-#                            1.6.0.0   pre-defined data types updated
-#                            1.5.0.0   type of dataset can be again a number or a textual description of the standard types or the name of another dataset
-#                            1.4.0.0   type of dataset must be a number, not a textual description
-#                            1.3.0.0   trdp-process, md-com-parameter, pd-com-parameter moved from device-configuration to bus-interface
-#                            1.2.0.0   Support of optional attribute "callback" for md/pd-com-parameter, md/pd-parameter
-#=====================================================================================================
-</xs:documentation>
+       #=====================================================================================================
+       #         This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+       #         If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+       #         Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved..
+       #=====================================================================================================
+       #
+       #  PRODUCT       : TRDP
+       #
+       #  MODULE        : trdp-config.xsd
+       #
+       #  ABSTRACT      : XML Schema for TRDP configuration configuration
+       #
+       #  VERSION       : 1.16.0.0
+       #
+       #  SVN           : $Id$
+       #
+       #  HISTORY       :
+       #                            1.16.0.0  Ticket #349 support for parsing "dataset name" and "device type"
+       #                            1.15.0.0  Added optional attributes for SDTv4 support
+       #                            1.15.0.0  Added optional attribute 'name' to event, method, field and instance for service oriented interface
+       #                            1.14.0.0  IPTCom references removed
+       #                            1.13.0.0  Ticket #264: Added definitions for service oriented interface
+       #                            1.12.0.0  Added optional TSN/VLAN definitions for send parameters (com-parameters)
+       #                            1.11.0.0  Ticket #106: User needs to be informed on every received PD packet
+       #                            1.10.0.0  sink/source attribute for telegrams added
+       #                            1.9.0.0   debug parameters updated
+       #                            1.8.0.0   BITSET8, ANTIVALENT8 added
+       #                            1.7.0.0   id of data-set must start at 1000
+       #                            1.6.0.0   pre-defined data types updated
+       #                            1.5.0.0   type of dataset can be again a number or a textual description of the standard types or the name of another dataset
+       #                            1.4.0.0   type of dataset must be a number, not a textual description
+       #                            1.3.0.0   trdp-process, md-com-parameter, pd-com-parameter moved from device-configuration to bus-interface
+       #                            1.2.0.0   Support of optional attribute "callback" for md/pd-com-parameter, md/pd-parameter
+       #=====================================================================================================
+    </xs:documentation>
   </xs:annotation>
   
   <xs:simpleType name="name-type">
@@ -135,7 +136,7 @@
         <xs:element ref="com-parameter-list" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="service-list" minOccurs="0" maxOccurs="1"/>
      </xs:all>
-     <xs:attribute name="type" type="name8">
+     <xs:attribute name="type" type="name15" use="optional">
         <xs:annotation>
           <xs:documentation>Type of the device, e.g. "VCU-C", informal only.</xs:documentation>
         </xs:annotation>

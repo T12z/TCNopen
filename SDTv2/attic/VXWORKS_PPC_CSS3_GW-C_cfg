@@ -1,0 +1,55 @@
+#
+# Copyright     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+#               If a copy of the MPL was not distributed with this file, 
+#               You can obtain one at http://mozilla.org/MPL/2.0/.
+#               Copyright Alstom Transport SA or its subsidiaries and others, 2010-2022. All rights reserved.
+#
+# Component     SDTv2 Library
+#
+# File          VXWORKS_PPC_CSS3_GW-C_cfg
+#
+# Requirements  NA - only for testing purposes
+#
+# Abstract      Build definitions for GW-C under CSS3
+#
+
+# Setup all relevant variables for the VxWorks 6.6 toolchain if not already provided as env. variables
+ifndef WIND_PLATFORM
+WIND_PLATFORM=vxworks-6.6
+endif
+
+ifndef WIND_HOST_TYPE
+WIND_HOST_TYPE=x86-linux2
+endif
+
+ifndef WIND_HOME
+WIND_HOME=/opt/cross/vxworks-6.6
+endif
+
+# setup default for CSS RTS Path (points to local installed CSS sources)
+ifeq ($(strip $(CSS_RTS_PATH)),)
+   CSS_RTS_PATH=/opt/cross/css3
+endif
+
+# as a 'standard' VxWorks installation shall be assumed the following variables only depend from the
+# variables above
+WIND_BASE=$(WIND_HOME)/$(WIND_PLATFORM)
+WIND_GNU_PATH=$(WIND_HOME)/gnu/4.1.2-vxworks-6.6
+TCPATH = $(WIND_HOME)/gnu/4.1.2-vxworks-6.6/x86-linux2/bin/
+
+# end of Windriver VxWorks specific environment settings 
+
+ARCH      = vxworks-ppc-css3-gwc
+CPU       = PPC603
+TARGET_OS = VXWORKS
+TOOLCHAIN = ppc
+
+SDTLIBFEATURES = -DSDT_ENABLE_IPT \
+                 -DSDT_ENABLE_MVB \
+                 -DSDT_ENABLE_WTB \
+                 -DSDT_SECURE 
+#                -DUSE_MAPPING
+LINT_SYSINCLUDE_DIRECTIVES = -DCPU=$(CPU) -i $(WIND_BASE)/target/h +libh types.h
+PLATFORM_CPPFLAGS = $(SDTLIBFEATURES) \
+                    -I$(WIND_BASE)/target/h -I$(WIND_BASE)/target/h/wrn/coreip -DCPU=$(CPU) \
+                    -fstrength-reduce -fno-builtin -mlongcall -fsigned-char  

@@ -1,0 +1,5 @@
+C:\SVN\nt\Trainsolutions\trunk\Prototypes\system\TCNOpenTest\v2.1.0.0\trdp\VSExpress2019\Debug\x64\
+
+C:\SVN\nt\Trainsolutions\trunk\Prototypes\system\TCNOpenTest\v2.1.0.0\trdp\VSExpress2019\x64\Debug\TRDP_LocalTest4.exe -o 10.0.1.26 -i 10.0.1.1 -m0
+
+

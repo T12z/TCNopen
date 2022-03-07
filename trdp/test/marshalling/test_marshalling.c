@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      IB 2021-08-09: Ticket #374 'init added for TRDP_EXTRA_LABEL_T name' in datasets using TRDP_DATASET_T
  *      SB 2019-05-24: Ticket #252 Bug in unmarshalling/marshalling of TIMEDATE48 and TIMEDATE64
  *      BL 2018-09-05: Ticket #211 XML handling: Dataset Name should be stored in TRDP_DATASET_ELEMENT_T
  *      BL 2018-04-27: Testing ticket #197
@@ -31,6 +32,7 @@ TRDP_DATASET_T  gDataSet1990 =
     1990,       /*    dataset/com ID  */
     0,          /*    reserved        */
     2,          /*    No of elements, var size    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_UINT8,
@@ -50,6 +52,7 @@ TRDP_DATASET_T  gDataSet1991 =
     1991,       /*    dataset/com ID  */
     0,          /*    reserved        */
     2,          /*    No of elements, var size    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_UINT8,
@@ -69,6 +72,7 @@ TRDP_DATASET_T  gDataSet1992 =
     1992,       /*    dataset/com ID  */
     0,          /*    reserved        */
     2,          /*    No of elements, var size    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_UINT8,
@@ -88,6 +92,7 @@ TRDP_DATASET_T  gDataSet1993 =
     1993,       /*    dataset/com ID  */
     0,          /*    reserved        */
     2,          /*    No of elements, var size    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_UINT8,
@@ -107,6 +112,7 @@ TRDP_DATASET_T  gDataSet1000 =
     1000,       /*    dataset/com ID  */
     0,          /*    reserved        */
     65,         /*    No of elements    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_BOOL8,         /*    data type         */
@@ -441,6 +447,7 @@ TRDP_DATASET_T  gDataSet1001 =
     1001,       /*    dataset/com ID  */
     0,          /*    reserved        */
     3,          /*    No of elements, var size    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_TIMEDATE64,    /*    Array    */
@@ -465,6 +472,7 @@ TRDP_DATASET_T  gDataSet2002 =
     2002,       /*    dataset/com ID  */
     0,          /*    reserved        */
     3,          /*    No of elements, var size    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_CHAR8,
@@ -489,6 +497,7 @@ TRDP_DATASET_T  gDataSet2003 =
     2003,       /*    dataset/com ID  */
     0,          /*    reserved        */
     3,          /*    No of elements, var size    */
+	{'\0'},          /*    name */
     {           /*    TRDP_DATASET_ELEMENT_T[]    */
         {
             TRDP_UINT32,

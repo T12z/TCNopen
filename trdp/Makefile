@@ -77,6 +77,8 @@ TRDP_OBJS += trdp_pdcom.o \
 TRDP_OPT_OBJS += trdp_xml.o \
 		tau_xml.o \
 		tau_marshall.o \
+		tau_dnr.o \
+		tau_tti.o \
 		tau_ctrl.o \
 		tau_xsession.o \
 		tau_xmarshall.o
@@ -105,9 +107,8 @@ LDFLAGS += -L$(OUTDIR)
 ifeq ($(MD_SUPPORT),0)
 	CFLAGS += -DMD_SUPPORT=0
 else
-	TRDP_OBJS += trdp_mdcom.o tlm_if.o
-	TRDP_OPT_OBJS += tau_dnr.o tau_tti.o
-
+	TRDP_OBJS += trdp_mdcom.o
+	TRDP_OBJS += tlm_if.o
 	CFLAGS += -DMD_SUPPORT=1
 endif
 
@@ -184,28 +185,30 @@ SRC_VER = $(SRC_VER_MAJ).$(SRC_VER_REL)
 
 all:		$(TARGETS)
 
+#This is a bit of a useless concept, to have a virtual target for the output. Leave it here to make sync with upstream less painful
+outdir:
 $(OUTDIR) $(OUTDIR_HP):
 	@$(MD)  $@
 
-libtrdp:	$(OUTDIR)/libtrdp.a
+libtrdp:	outdir $(OUTDIR)/libtrdp.a
 
-libtrdpap:	$(OUTDIR)/libtrdpap.a
+libtrdpap:	outdir $(OUTDIR)/libtrdpap.a
 
 example:	$(OUTDIR)/echoCallback $(OUTDIR)/receivePolling $(OUTDIR)/sendHello $(OUTDIR)/receiveHello $(OUTDIR)/sendData $(OUTDIR)/sourceFiltering
 
 tsn:		$(OUTDIR)/sendTSN $(OUTDIR)/receiveTSN
 
-test:		$(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull
+test:		outdir $(OUTDIR)/getStats $(OUTDIR)/vostest $(OUTDIR)/MCreceiver $(OUTDIR)/test_mdSingle $(OUTDIR)/inaugTest $(OUTDIR)/localtest $(OUTDIR)/pdPull $(OUTDIR)/localtest2 $(OUTDIR)/localtest3 $(OUTDIR)/localtest4 $(OUTDIR)/pdMcRouting $(OUTDIR)/mdDataLength  
 
-pdtest:		$(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_responder $(OUTDIR)/testSub
+pdtest:		outdir $(OUTDIR)/trdp-pd-test $(OUTDIR)/pd_responder $(OUTDIR)/testSub
 
-mdtest:		$(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-test-fast $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
+mdtest:		outdir $(OUTDIR)/trdp-md-test $(OUTDIR)/trdp-md-test-fast $(OUTDIR)/trdp-md-reptestcaller $(OUTDIR)/trdp-md-reptestreplier #$(OUTDIR)/mdTest4
 
-vtests:		$(OUTDIR)/vtest
+vtests:		outdir $(OUTDIR)/vtest
 
-xml:		$(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
+xml:		outdir $(OUTDIR)/trdp-xmlprint-test $(OUTDIR)/trdp-xmlpd-test
 
-highperf:	$(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2 $(OUTDIR)/trdp-pd-test-fast
+highperf:	outdir $(OUTDIR)/trdp-xmlpd-test-fast $(OUTDIR)/localtest2 $(OUTDIR)/trdp-pd-test-fast
 
 marshall:	$(OUTDIR)/test_marshalling
 
@@ -550,15 +553,23 @@ $(OUTDIR)/localtest3:   localtest/api_test_3.c  $(OUTDIR)/libtrdpap.a
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
-				-ltrdp \
+				-ltrdpap \
 				$(LDFLAGS) $(LDLIBS)
+			@$(STRIP) $@
+
+$(OUTDIR)/localtest4:   localtest/api_test_4.c  $(OUTDIR)/libtrdpap.a
+			@$(ECHO) ' ### Building local loop test tool $(@F)'
+			$(CC) $^  \
+				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
+				-ltrdpap \
+			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
 $(OUTDIR)/test_marshalling:   marshalling/test_marshalling.c  $(OUTDIR)/libtrdpap.a
 			@$(ECHO) ' ### Building local loop test tool $(@F)'
 			$(CC) $^  \
 				$(CFLAGS)  -Wno-unused-variable $(INCLUDES) -o $@\
-				-ltrdp \
+				-ltrdpap \
 			$(LDFLAGS) $(LDLIBS)
 			@$(STRIP) $@
 
@@ -569,6 +580,22 @@ $(OUTDIR)/MCreceiver: $(OUTDIR)/libtrdp.a
 				$(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LDLIBS) \
 				-o $@
 			@$(STRIP) $@
+
+$(OUTDIR)/pdMcRouting: $(OUTDIR)/libtrdp.a pdMcRoutingTest.c
+			@$(ECHO) ' ### Building PD MC routing test receiver application $(@F)'
+			$(CC) test/diverse/pdMcRoutingTest.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@
+
+$(OUTDIR)/mdDataLength: $(OUTDIR)/libtrdp.a mdDataLengthTest.c
+			@$(ECHO) ' ### Building PD MC routing test receiver application $(@F)'
+			$(CC) test/diverse/mdDataLengthTest.c \
+			    -ltrdp \
+			    $(LDFLAGS) $(CFLAGS) $(INCLUDES) \
+			    -o $@
+			@$(STRIP) $@		
 
 ###############################################################################
 #

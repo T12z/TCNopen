@@ -11,13 +11,15 @@
  * @author          Christoph Schneider, Bombardier Transportation GmbH
  *
  *
- * @remarks         All rights reserved. Reproduction, modification, use or disclosure
- *                  to third parties without express authority is forbidden,
- *                  Copyright Bombardier Transportation GmbH, Germany, 2013.
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  *
  * $Id$
  *
- *      AÖ 2019-11-12: Ticket #290: Add support for Virtualization on Windows, changed thread names to unique ones
+ *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
+ *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
+ *      AÃ– 2019-11-12: Ticket #290: Add support for Virtualization on Windows, changed thread names to unique ones
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
  */
 
@@ -102,21 +104,14 @@ MEM_ERR_T L3_test_mem_alloc()
    vos_memFree(ptr); /* undo mem_alloc */
 
    {
-      UINT32  allocatedMemory = 0;
-      UINT32  freeMemory = 0;
-      UINT32  minFree = 0;
-      UINT32  numAllocBlocks = 0;
-      UINT32  numAllocErr = 0;
-      UINT32  numFreeErr = 0;
-      UINT32  blockSize[VOS_MEM_NBLOCKSIZES];
-      UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];
+      VOS_MEM_STATISTICS_T memStatistics;
 
-      vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
-      if (allocatedMemory != RESERVED_MEMORY
-         || freeMemory != RESERVED_MEMORY
-         || numAllocBlocks != 0
-         || numAllocErr != 0
-         || numFreeErr != 0)
+      vos_memCount(&memStatistics);
+      if (memStatistics.total != RESERVED_MEMORY
+         || memStatistics.free != RESERVED_MEMORY
+         || memStatistics.numAllocBlocks != 0
+         || memStatistics.numAllocErr != 0
+         || memStatistics.numFreeErr != 0)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[MEM_ALLOC] vos_memFree() error\n");
          retVal = MEM_ALLOC_ERR;
@@ -204,21 +199,14 @@ MEM_ERR_T L3_test_mem_queue()
    }
 
    {
-      UINT32  allocatedMemory = 0;
-      UINT32  freeMemory = 0;
-      UINT32  minFree = 0;
-      UINT32  numAllocBlocks = 0;
-      UINT32  numAllocErr = 0;
-      UINT32  numFreeErr = 0;
-      UINT32  blockSize[VOS_MEM_NBLOCKSIZES];
-      UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];
+      VOS_MEM_STATISTICS_T memStatistics;
 
-      vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
-      if (allocatedMemory != RESERVED_MEMORY
-         || freeMemory != RESERVED_MEMORY
-         || numAllocBlocks != 0
-         || numAllocErr != 0
-         || numFreeErr != 0)
+      vos_memCount(&memStatistics);
+      if (memStatistics.total != RESERVED_MEMORY
+         || memStatistics.free != RESERVED_MEMORY
+         || memStatistics.numAllocBlocks != 0
+         || memStatistics.numAllocErr != 0
+         || memStatistics.numFreeErr != 0)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[MEM_QUEUE] vos_memFree() error\n");
          retVal = MEM_QUEUE_ERR;
@@ -302,63 +290,56 @@ MEM_ERR_T L3_test_mem_count()
 {
    MEM_ERR_T retVal = MEM_NO_ERR;
    UINT8 *ptr1 = 0, *ptr2 = 0;
-   UINT32  allocatedMemory = 0;
-   UINT32  freeMemory = 0;
-   UINT32  minFree = 0;
-   UINT32  numAllocBlocks = 0;
-   UINT32  numAllocErr = 0;
-   UINT32  numFreeErr = 0;
-   UINT32  blockSize[VOS_MEM_NBLOCKSIZES];
-   UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];
+   VOS_MEM_STATISTICS_T memStatistics;
 
    vos_printLogStr(VOS_LOG_USR, "[MEM_COUNT] start...\n");
-   vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
-   if (allocatedMemory != RESERVED_MEMORY
-      || freeMemory != RESERVED_MEMORY
-      || numAllocBlocks != 0
-      || numAllocErr != 0
-      || numFreeErr != 0)
+    vos_memCount(&memStatistics);
+   if (memStatistics.total != RESERVED_MEMORY
+      || memStatistics.free != RESERVED_MEMORY
+      || memStatistics.numAllocBlocks != 0
+      || memStatistics.numAllocErr != 0
+      || memStatistics.numFreeErr != 0)
    {
       vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 1 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    ptr1 = (UINT8*)vos_memAlloc(8);
-   vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
-   if (allocatedMemory != RESERVED_MEMORY
-      || numAllocBlocks != 1
-      || numAllocErr != 0
-      || numFreeErr != 0)
+    vos_memCount(&memStatistics);
+   if (memStatistics.total != RESERVED_MEMORY
+      || memStatistics.numAllocBlocks != 1
+      || memStatistics.numAllocErr != 0
+      || memStatistics.numFreeErr != 0)
    {
       vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 2 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    ptr2 = (UINT8*)vos_memAlloc(1600);
-   vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
-   if (allocatedMemory != RESERVED_MEMORY
-      || numAllocBlocks != 2
-      || numAllocErr != 0
-      || numFreeErr != 0)
+    vos_memCount(&memStatistics);
+   if (memStatistics.total != RESERVED_MEMORY
+      || memStatistics.numAllocBlocks != 2
+      || memStatistics.numAllocErr != 0
+      || memStatistics.numFreeErr != 0)
    {
       vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 3 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    vos_memFree(ptr1);
-   vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
-   if (allocatedMemory != RESERVED_MEMORY
-      || numAllocBlocks != 1
-      || numAllocErr != 0
-      || numFreeErr != 0)
+    vos_memCount(&memStatistics);
+   if (memStatistics.total != RESERVED_MEMORY
+      || memStatistics.numAllocBlocks != 1
+      || memStatistics.numAllocErr != 0
+      || memStatistics.numFreeErr != 0)
    {
       vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 4 Error\n");
       retVal = MEM_COUNT_ERR;
    }
    vos_memFree(ptr2);
-   vos_memCount(&allocatedMemory, &freeMemory, &minFree, &numAllocBlocks, &numAllocErr, &numFreeErr, blockSize, usedBlockSize);
-   if (allocatedMemory != RESERVED_MEMORY
-      || freeMemory != RESERVED_MEMORY
-      || numAllocBlocks != 0
-      || numAllocErr != 0
-      || numFreeErr != 0)
+    vos_memCount(&memStatistics);
+   if (memStatistics.total != RESERVED_MEMORY
+      || memStatistics.free != RESERVED_MEMORY
+      || memStatistics.numAllocBlocks != 0
+      || memStatistics.numAllocErr != 0
+      || memStatistics.numFreeErr != 0)
    {
       vos_printLogStr(VOS_LOG_ERROR, "[MEM_COUNT] Test 5 Error\n");
       retVal = MEM_COUNT_ERR;
@@ -1480,6 +1461,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
    UINT32 mcIF = ipCfg.mcIP;
    UINT32 destIP = ipCfg.dstIP;
    UINT32 srcIP = ipCfg.srcIP;
+   UINT32 srcIFIP = 0;
    UINT32 portPD = TRDP_PD_UDP_PORT; /* according to IEC 61375-2-3 CDV A.2 */
    UINT32 portMD = TRDP_MD_UDP_PORT; /* according to IEC 61375-2-3 CDV A.2 */
    UINT8 sndBuf = sndBufStartVal;
@@ -1565,7 +1547,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
       /*************************/
       /*ok here we first (re-)receive our own mc udp that was sent just above */
       vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockReceive() retVal bisher = %u\n", retVal);
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockreceiveUDP() ERROR!\n");
@@ -1576,11 +1558,12 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] UDP MC received: %u\n", rcvBuf);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Source: %s : %i\n", vos_ipDotted(gTestIP), gTestPort);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Destination: %s\n", vos_ipDotted(destIP));
+         vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] IF IP: %s\n", vos_ipDotted(srcIFIP));
          received = TRUE;
       }
       /*and now here we get the response from our counterpart */
       vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockReceive() retVal bisher = %u\n", retVal);
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &gTestIP, &gTestPort, &destIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockReceiveUDP() ERROR!\n");
@@ -1596,6 +1579,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] UDP MC received: %u\n", rcvBuf);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Source: %s : %i\n", vos_ipDotted(gTestIP), gTestPort);
          vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] Destination: %s\n", vos_ipDotted(destIP));
+         vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] IF IP: %s\n", vos_ipDotted(srcIFIP));
          received = TRUE;
       }
    }
@@ -1639,6 +1623,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    UINT8 sndBuf = sndBufStartVal;
    UINT32 sndIP = 0;
    UINT32 rcvIP = 0;
+   UINT32 srcIFIP = 0;
    UINT16 rcvPort = 0;
    UINT8 rcvBuf = 0;
    UINT8 rcvBufExp = rcvBufExpVal;
@@ -1700,7 +1685,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       /* receive UDP */
       /***************/
       vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
@@ -1715,6 +1700,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvBuf %u != %u\n", rcvBuf, rcvBufExpVal);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvIP %u != %u\n", rcvIP, srcIP);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvPort %u != %u\n", rcvPort, portPD);
+            vos_printLog(VOS_LOG_USR, "[SOCK_UDP] IF IP: %s\n", vos_ipDotted(srcIFIP));
          }
          else
          {
@@ -1790,7 +1776,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       /* receive UDP */
       /***************/
       vos_printLogStr(VOS_LOG_USR, "[SOCK_UDP] vos_sockReceiveUDP()\n");
-      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, FALSE);
+      res = vos_sockReceiveUDP(sockDesc, &rcvBuf, &bufSize, &rcvIP, &rcvPort, &sndIP, &srcIFIP, FALSE);
       if (res != VOS_NO_ERR)
       {
          vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] UDP Receive Error\n");
@@ -1805,12 +1791,14 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvBuf %u != %u\n", rcvBuf, rcvBufExpVal);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvIP %u != %u\n", rcvIP, srcIP);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] rcvPort %u != %u\n", rcvPort, portMD);
+            vos_printLog(VOS_LOG_USR, "[SOCK_UDP] IF IP: %s\n", vos_ipDotted(srcIFIP));
          }
          else
          {
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] UDP received: %u\n", rcvBuf);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] Source: %s : %i\n", vos_ipDotted(rcvIP), rcvPort);
             vos_printLog(VOS_LOG_USR, "[SOCK_UDP] Destination: %s\n", vos_ipDotted(destIP));
+            vos_printLog(VOS_LOG_USR, "[SOCK_UDP] IF IP: %s\n", vos_ipDotted(srcIFIP));
          }
       }
    }

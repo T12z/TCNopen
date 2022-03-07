@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      SB 2021-08-09: Lint warnings
 *      BL 2020-07-29: tlc_init() marks version info with 'trunk' (if vers.evo != 0)
 *      BL 2020-01-10: Undoing svn revision output, would reflect file revision, only.
 *      BL 2019-11-06: Ticket #289: Changed the max. returnedwait time of tlc_getInterval to 1s (instead of 1000s)

@@ -1,0 +1,24 @@
+#//
+#// $Id: $
+#//
+#// DESCRIPTION    Config file to make TRDP for Raspberry Pi 32 Bit
+#//
+#// AUTHOR         Bernd Loehr, NewTec GmbH
+#//
+#// All rights reserved. Reproduction, modification, use or disclosure
+#// to third parties without express authority is forbidden.
+#// Copyright NewTec GmbH, Germany, 2021.
+#//
+
+ARCH = raspian
+TARGET_VOS = posix
+TARGET_OS = POSIX
+TCPREFIX = 
+TCPOSTFIX = 
+DOXYPATH = /usr/local/bin/
+
+CFLAGS += -O2 -Wall -fstrength-reduce -fno-builtin -fsigned-char -pthread -fPIC -DL_ENDIAN
+LDFLAGS += -lrt
+
+CFLAGS +=  -DHAS_UUID
+LDFLAGS += -luuid

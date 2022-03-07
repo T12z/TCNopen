@@ -12,11 +12,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$
 *
+*     AHW 2021-05-26: Ticket #322: Subscriber multicast message routing in multi-home device
 *      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows, copy from windows VOS
 */
@@ -46,7 +47,7 @@ extern "C" {
  */
 
 #define VOS_VERSION     1u
-#define VOS_RELEASE     0u
+#define VOS_RELEASE     1u  /* 322: interface change in vos_sockReceiveUDP() */
 #define VOS_UPDATE      0u
 #define VOS_EVOLUTION   0u
 

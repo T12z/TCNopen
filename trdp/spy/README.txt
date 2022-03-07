@@ -19,6 +19,10 @@ N E W S
 
  * Unfortunately, I noticed parsing TCP streams is generally broken, probably was before. I never needed it. Leave an issue in the tracker if it really needs changing.
 
+2021-08 Florian <florian.weispfenning@alstomgroup.com>
+
+ * 	fix for #371 ComIDs > 2147483647 wrong displayed
+ 
 2020-12 Thorsten <t12z@tractionpad.de>
 
  * Updated handling of Bitset type (TRDP-type 1). Antivalents and Bitsets are displayed correctly now. The fall-back

@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *      BL 2019-02-01: Ticket #234 Correcting Statistics ComIds & defines
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2017-11-17: superfluous session->redID replaced by sndQueue->redId
@@ -466,7 +467,6 @@ void    trdp_UpdateStats (
     VOS_ERR_T       ret;
     VOS_TIMEVAL_T   temp, temp2;
     TIMEDATE32      diff;
-    TRDP_MEM_STATISTICS_T mem; /* use a local buffer to assure aligned pointers to memCount() */
 
     /*  Get a new time stamp    */
     vos_getTime(&temp2);
@@ -483,19 +483,10 @@ void    trdp_UpdateStats (
 
 
     /*  Update memory statsp    */
-    ret = vos_memCount(&mem.total,
-                       &mem.free,
-                       &mem.minFree,
-                       &mem.numAllocBlocks,
-                       &mem.numAllocErr,
-                       &mem.numFreeErr,
-                       mem.blockSize,
-                       mem.usedBlockSize);
+    ret = vos_memCount(&appHandle->stats.mem);
     if (ret != VOS_NO_ERR)
     {
         vos_printLog(VOS_LOG_ERROR, "vos_memCount() failed (Err: %d)\n", ret);
-    } else {
-        appHandle->stats.mem = mem;
     }
 
     appHandle->stats.pd.numMissed = 0u;

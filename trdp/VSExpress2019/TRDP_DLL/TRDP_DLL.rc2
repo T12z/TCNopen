@@ -1,0 +1,84 @@
+/**********************************************************************************************************************/
+/**
+ * @file            TRDP_DLL.rc2
+ *
+ * @brief           Resource file for TRDP DLL
+ *
+ * @details         This file contain resource information that is not updated by editor.
+ *
+ * @note            Project: TCNOpen TRDP prototype stack & FDF/DbD
+ *
+ * @author          Anders Öberg, Bombardier Transportation GmbH
+ *
+ * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019. All rights reserved.
+ *
+ *
+ * $Id: TRDP_DLL.rc2 2127 2019-11-14 09:24:28Z andersoberg $
+ *
+ *      AÖ 2019-11-14: Ticket #293 Add version to TCNOpen dll 
+ */
+#pragma code_page(65001)
+
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+
+#include "winres.h"
+#include "trdp_private.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+#define STR_HELPER(x) #x
+#define VERSION_STRING(v,r,u,e) STR_HELPER(v) "." STR_HELPER(r) "." STR_HELPER(u) "." STR_HELPER(e)
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United Kingdom) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION TRDP_VERSION, TRDP_RELEASE, TRDP_UPDATE, TRDP_EVOLUTION
+ PRODUCTVERSION TRDP_VERSION, TRDP_RELEASE, TRDP_UPDATE, TRDP_EVOLUTION
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "CompanyName", "Open source @ Sourceforge"
+            VALUE "FileDescription", "TCNOpen library"
+            VALUE "FileVersion", TRDP_VERSION_STR
+            VALUE "InternalName", "TRDP_DLL.dll"
+            VALUE "LegalCopyright", "Copyright (C) 2019"
+            VALUE "OriginalFilename", "TRDP_DLL.dll"
+            VALUE "ProductName", "TCNOpen"
+            VALUE "ProductVersion", TRDP_VERSION_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+#endif    // English (United Kingdom) resources
+/////////////////////////////////////////////////////////////////////////////
+
+

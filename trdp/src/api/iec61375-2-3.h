@@ -10,10 +10,12 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2021. All rights reserved.
  */
  /*
  * $Id$
  *
+ *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      BL 2020-02-26: Ticket #320 Wrong ETB_CTRL_TO_US value
  *      BL 2020-02-26: Ticket #319 Protocol Version is defined twice
  *      BL 2019-08-15: Ticket #273 Units for certain standard timeout values inconsistent
@@ -140,6 +142,8 @@
 #define TRDP_MAX_MD_RETRIES                 2u
 
 #define TRDP_MAX_LABEL_LEN                  16u                         /**< label length incl. terminating '0'     */
+
+#define TRDP_EXTRA_LABEL_LEN                100u                        /**< long label length incl. terminating '0' #349 */
 
 /*  An uri is a string of the following form:
     trdp://[user part]@[host part]
