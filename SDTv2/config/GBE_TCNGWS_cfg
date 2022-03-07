@@ -1,0 +1,31 @@
+#
+# Copyright     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+#               If a copy of the MPL was not distributed with this file, 
+#               You can obtain one at http://mozilla.org/MPL/2.0/.
+#               Copyright Alstom Transport SA or its subsidiaries and others, 2010-2022. All rights reserved.
+# 
+# Component     SDTv2 Library
+#
+# File          TI_ARM_cfg
+#
+# Requirements  SDT_LIB-REQ-xxx
+#
+# Abstract      Build definitions for GW WTB board
+#
+
+ARCH        = ti-arm-gw-s
+CPU         = ARM
+TARGET_OS   = ARM_TI
+TOOLCHAIN   = 
+
+SDTLIBFEATURES = -DSDT_ENABLE_IPT \
+                 -DSDT_ENABLE_MVB \
+                 -DSDT_SECURE 
+
+
+PLATFORM_CPPFLAGS = -mv7R4 -g --elf --abi=eabi --code_state=32 --enum_type=int --float_support=VFPv3D16 --issue_remarks --verbose_diagnostics --obj_extension=.o $(SDTLIBFEATURES) 
+                     
+
+
+
+

@@ -18,6 +18,7 @@
  /*
  * $Id$
  *
+ *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *      BL 2019-09-06: Default pre-allocated blocks for HIGH_PERF raised again
  *      BL 2019-08-15: Default pre-allocated blocks for HIGH_PERF raised
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
@@ -109,6 +110,26 @@ typedef enum
 typedef struct VOS_QUEUE *VOS_QUEUE_T;
 typedef struct VOS_QUEUE_ELEM *VOS_QUEUE_ELEM_T;
 
+#if (defined (WIN32) || defined (WIN64))
+#pragma pack(push, 1)
+#endif
+/** Structure containing all general memory statistics information. */
+typedef struct
+{
+    UINT32  total;                                      /**< total memory size */
+    UINT32  free;                                       /**< free memory size */
+    UINT32  minFree;                                    /**< minimal free memory size in statistics interval */
+    UINT32  numAllocBlocks;                             /**< allocated memory blocks */
+    UINT32  numAllocErr;                                /**< allocation errors */
+    UINT32  numFreeErr;                                 /**< free errors */
+    UINT32  blockSize[VOS_MEM_NBLOCKSIZES];             /**< preallocated memory blocks */
+    UINT32  usedBlockSize[VOS_MEM_NBLOCKSIZES];         /**< used memory blocks */
+} GNU_PACKED VOS_MEM_STATISTICS_T;
+
+#if (defined (WIN32) || defined (WIN64))
+#pragma pack(pop)
+#endif
+
 /***********************************************************************************************************************
  * PROTOTYPES
  */
@@ -170,27 +191,13 @@ EXT_DECL void vos_memFree (
 /**********************************************************************************************************************/
 /** Return used and available memory (of memory area above).
  *
- *  @param[out]     pAllocatedMemory    Pointer to allocated memory size
- *  @param[out]     pFreeMemory         Pointer to free memory size
- *  @param[out]     pMinFree            Pointer to minimal free memory size in statistics interval
- *  @param[out]     pNumAllocBlocks     Pointer to number of allocated memory blocks
- *  @param[out]     pNumAllocErr        Pointer to number of allocation errors
- *  @param[out]     pNumFreeErr         Pointer to number of free errors
- *  @param[out]     blockSize           Pointer to list of memory block sizes
- *  @param[out]     usedBlockSize       Pointer to list of used memoryblocks
+ *  @param[out]     pMemCount           Pointer to memory statistics structure
  *  @retval         VOS_NO_ERR          no error
+ *  @retval         VOS_PARAM_ERR       parameter error (nullpointer)
  *  @retval         VOS_INIT_ERR        module not initialised
  */
 
-EXT_DECL VOS_ERR_T vos_memCount(
-    UINT32  * pAllocatedMemory,
-    UINT32  * pFreeMemory,
-    UINT32  * pMinFree,
-    UINT32  * pNumAllocBlocks,
-    UINT32  * pNumAllocErr,
-    UINT32  * pNumFreeErr,
-    UINT32 blockSize[VOS_MEM_NBLOCKSIZES],
-    UINT32 usedBlockSize[VOS_MEM_NBLOCKSIZES]);
+EXT_DECL VOS_ERR_T vos_memCount(VOS_MEM_STATISTICS_T * pMemCount);
 
 /**********************************************************************************************************************/
 /*  Sorting/Searching                                                                                                 */

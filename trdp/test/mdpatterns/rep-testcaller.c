@@ -15,6 +15,8 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2014. All rights reserved.
  *
  * $Id$
+ * 
+ *      SB 2021-08-09: Compiler warnings
  *      BL 2018-01-29: Ticket #188 Typo in the TRDP_VAR_SIZE definition
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
  *
@@ -312,7 +314,7 @@ int main(int argc, char** argv)
                                         0, 
                                         5};
 
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"MD_CALLER", "", 0, 0, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"MD_CALLER", "", "", 0, 0, TRDP_OPTION_BLOCK};
 
     printf("TRDP message data repetition test program CALLER, version 0\n");
 

@@ -45,7 +45,7 @@ extern "C" {
 /* The VOS version can be predefined as CFLAG   */
 #ifndef VOS_VERSION
 #define VOS_VERSION            2u
-#define VOS_RELEASE            0u
+#define VOS_RELEASE            1u /* 322: interface change in vos_sockReceiveUDP() */
 #define VOS_UPDATE             0u
 #define VOS_EVOLUTION          0u
 #endif

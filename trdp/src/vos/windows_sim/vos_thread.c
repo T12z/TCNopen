@@ -20,6 +20,10 @@
 /*
 * $Id$
 *
+*      AÖ 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting, moved common functionality to vos_threadRegisterMain
+*      AÖ 2021-12-17: Ticket #386: Support for TimeSync multicore
+*      AÖ 2021-12-17: Ticket #385: Increase MAX_TIMESYNC_PREFIX_STRING from 20 to 64
+*      AÖ 2021-12-17: Ticket #384: Added #include <windows.h>
 *      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
 *      AÖ 2019-12-17: Ticket #306: Improve TerminateThread in SIM 
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
@@ -45,6 +49,7 @@
 #include "vos_mem.h"
 #include "vos_utils.h"
 #include "vos_private.h"
+#include <windows.h>
 #include "TimeSync.h"
 
 /*  Load TimeSync library
@@ -62,7 +67,7 @@ const UINT32    cMutextMagic        = 0x1234FEDC;
 #define USECS_PER_MSEC  1000u
 #define MSECS_PER_SEC   1000u
 
-#define MAX_TIMESYNC_PREFIX_STRING 20
+#define MAX_TIMESYNC_PREFIX_STRING 64
 
 #define TS_MAX_DELAY_TIME_US 1000000
 
@@ -159,9 +164,10 @@ EXT_DECL VOS_ERR_T vos_threadRegisterPrivate(const CHAR* pName, VOS_THREAD_T thr
 *  @param[in]      bStart          Start TimeSync, if false the main tread has to perform start
 *
 *  @retval         VOS_NO_ERR      no error
+*  @param[in]      timeSyncHandle  Handle to TimeSync
 *  @retval         VOS_THREAD_ERR  error in thread
 */
-EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart)
+EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart, long timeSyncHandle)
 {
     VOS_TIMESYNC_TLS_T* pTimeSyncTLS;
     VOS_THREAD_T self;
@@ -208,35 +214,44 @@ EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart)
                 strcpy_s(timeSyncName, UNITMAXNAME, vosTimeSyncPrefix);
                 strcat_s(timeSyncName, UNITMAXNAME, listOfThreads[i].threadName);
 
-                /* Time sync register */
-                tsHandel = TSregister(timeSyncName, 1);
-
-                if (tsHandel == -1)
+                if (timeSyncHandle == -1)
                 {
-                    vos_printLog(VOS_LOG_ERROR,
-                        "vos_threadRegister() failed (TSregister error)\n");
-                    ret = VOS_INIT_ERR;
-                    break;
+                    /* Time sync register */
+                    tsHandel = TimeSyncRegisterUnitEx(timeSyncName, 1, -1, 10000 * TIMESYNC_OFFSET_US);
+
+                    if (tsHandel == -1)
+                    {
+                        vos_printLog(VOS_LOG_ERROR,
+                            "vos_threadRegister() failed (TSregister error)\n");
+                        ret = VOS_INIT_ERR;
+                        break;
+                    }
+
+                    hTerminateSema = CreateSemaphore(
+                        NULL,           // default security attributes
+                        0,              // initial count
+                        1,              // maximum count
+                        NULL);          // unnamed semaphore
+
+                    if (hTerminateSema == NULL)
+                    {
+                        vos_printLog(VOS_LOG_ERROR,
+                            "vos_threadRegister() failed (CreateSemaphore error)\n");
+                        ret = VOS_INIT_ERR;
+                        break;
+                    }
+                    listOfThreads[i].hTerminateSema = hTerminateSema;
+                    pTimeSyncTLS->terminateSemaphore = hTerminateSema;
+                    listOfThreads[i].tsHandle = tsHandel;
+                    pTimeSyncTLS->handle = tsHandel;
                 }
-
-                hTerminateSema = CreateSemaphore(
-                                                NULL,           // default security attributes
-                                                0,              // initial count
-                                                1,              // maximum count
-                                                NULL);          // unnamed semaphore
-
-                if (hTerminateSema == NULL)
+                else
                 {
-                    vos_printLog(VOS_LOG_ERROR,
-                        "vos_threadRegister() failed (CreateSemaphore error)\n");
-                    ret = VOS_INIT_ERR;
-                    break;
+                    listOfThreads[i].hTerminateSema = NULL;
+                    pTimeSyncTLS->terminateSemaphore = NULL;
+                    listOfThreads[i].tsHandle = timeSyncHandle;
+                    pTimeSyncTLS->handle = timeSyncHandle;
                 }
-
-                listOfThreads[i].hTerminateSema = hTerminateSema;
-                pTimeSyncTLS->terminateSemaphore = hTerminateSema;
-                listOfThreads[i].tsHandle = tsHandel;
-                pTimeSyncTLS->handle = tsHandel;
 
                 ret = VOS_NO_ERR;
                 break;
@@ -347,6 +362,99 @@ void vos_threadUnregister(BOOL bTerminate)
 }
 
 /**********************************************************************************************************************/
+/** Register a thread.
+*  All threads has to be registered in TimeSync for proper timing handeling.
+*  Only main thread has to call this funciton all other threads handle this internaly
+*
+*  @param[in]      pName           Pointer to name of the thread (optional)
+*  @param[in]      bStart          Start TimeSync, if false the main tread has to perform start
+*  @param[in]      timeSyncHandle  Handle to TimeSync
+*  @retval         VOS_NO_ERR      no error
+*  @retval         VOS_INIT_ERR    failed to init
+*/
+EXT_DECL VOS_ERR_T vos_threadRegisterMain(const CHAR* pName, BOOL bStart, long timeSyncHandle)
+{
+    VOS_THREAD_T self;
+    VOS_ERR_T ret = VOS_NO_ERR;
+
+    /* Check thread name */
+    if (strlen(pName) >= MAX_THREAD_NAME)
+    {
+        vos_printLog(VOS_LOG_ERROR, "vos_threadRegister To long name (max %d).\n", (MAX_THREAD_NAME - 1));
+        return VOS_THREAD_ERR;
+    }
+
+    /* Get thread ID */
+    if (vos_threadSelf(&self) != VOS_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_ERROR, "vos_threadRegister error (Can't get thread id)!\n");
+        return VOS_PARAM_ERR;
+    }
+
+    /* Enter critical section */
+    if (WaitForSingleObject(vosThreadListMutex, INFINITE) != WAIT_OBJECT_0)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (mutexLock).\n");
+        return VOS_THREAD_ERR;
+    }
+
+    /* Check max number of threads */
+    if (vosThreadCount >= VOS_MAX_THREAD_CNT)
+    {
+        //vos_printLog(VOS_LOG_ERROR, "vos_threadRegister No more threads are available (max %d).\n", VOS_MAX_THREAD_CNT);
+        ret = VOS_THREAD_ERR;
+    }
+
+    if (ret == VOS_NO_ERR)
+    {
+        /* Check if name is unique */
+        for (int i = 0; i < MAX_NR_OF_THREADS; i++)
+        {
+            if (listOfThreads[i].threadId == 0)
+            {
+                continue;
+            }
+            if (strcmp(listOfThreads[i].threadName, pName) == 0)
+            {
+                //vos_printLog(VOS_LOG_ERROR, "vos_threadRegister Thread name NOT unique (%s).\n", pName);
+                ret = VOS_PARAM_ERR;
+                break;
+            }
+        }
+    }
+
+    if (ret == VOS_NO_ERR)
+    {
+        if (vos_threadRegisterPrivate(pName, self) != VOS_NO_ERR)
+        {
+            //vos_printLog(VOS_LOG_ERROR, "vos_threadRegister error (Can't get thread id)!\n");
+            ret = VOS_PARAM_ERR;
+        }
+    }
+
+    /* Leave critical section */
+    if (ReleaseMutex(vosThreadListMutex) == 0)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (mutexUnlock).\n");
+        return VOS_THREAD_ERR;
+    }
+
+    if (ret != VOS_NO_ERR)
+    {
+        return ret;
+    }
+
+    if (vos_threadRegisterLocal(bStart, timeSyncHandle) != VOS_NO_ERR)
+    {
+        vos_printLog(VOS_LOG_ERROR,
+            "vos_threadRegister() failed (vos_threadRegisterLocal error)\n");
+        return VOS_INIT_ERR;
+    }
+
+    return VOS_NO_ERR;
+}
+
+/**********************************************************************************************************************/
 /** Start a thread function.
 *  This function registers a thread and then start it.
 *
@@ -363,7 +471,7 @@ static void vos_startThread(VOS_THREAD_START_T* pParameters)
 
     vos_memFree(pParameters);
 
-    if (vos_threadRegisterLocal(TRUE) != VOS_NO_ERR)
+    if (vos_threadRegisterLocal(TRUE, -1) != VOS_NO_ERR)
     {
         vos_printLog(VOS_LOG_ERROR,
             "vos_startThread() failed (vos_threadRegisterLocal error)\n");
@@ -413,7 +521,7 @@ static void vos_runCyclicThread (
 
     vos_memFree(pParameters);
 
-    if (vos_threadRegisterLocal(TRUE) != VOS_NO_ERR)
+    if (vos_threadRegisterLocal(TRUE, -1) != VOS_NO_ERR)
     {
         LPVOID lpvData;
 
@@ -744,6 +852,20 @@ EXT_DECL VOS_ERR_T vos_setTimeSyncPrefix(const CHAR* pPrefix)
 /**********************************************************************************************************************/
 /** Register a thread.
 *  All threads has to be registered in TimeSync for proper timing handeling.
+*  This is for funcitons that is already under TimeSync control to register
+*
+*  @param[in]      pName           Pointer to name of the thread (optional)
+*  @param[in]      timeSyncHandle  Handle to TimeSync
+*  @retval         VOS_NO_ERR      no error
+*  @retval         VOS_INIT_ERR    failed to init
+*/
+EXT_DECL VOS_ERR_T vos_threadRegisterExisting(const CHAR* pName, long timeSyncHandle) {
+    vos_threadRegisterMain(pName, FALSE, timeSyncHandle);
+}
+
+/**********************************************************************************************************************/
+/** Register a thread.
+*  All threads has to be registered in TimeSync for proper timing handeling.
 *  Only main thread has to call this funciton all other threads handle this internaly
 *
 *  @param[in]      pName           Pointer to name of the thread (optional)
@@ -751,89 +873,9 @@ EXT_DECL VOS_ERR_T vos_setTimeSyncPrefix(const CHAR* pPrefix)
 *  @retval         VOS_NO_ERR      no error
 *  @retval         VOS_INIT_ERR    failed to init
 */
-EXT_DECL VOS_ERR_T vos_threadRegister(const CHAR* pName, BOOL bStart)
-{
-    VOS_THREAD_T self;
-    VOS_ERR_T ret = VOS_NO_ERR;
-
-    /* Check thread name */
-    if (strlen(pName) >= MAX_THREAD_NAME)
-    {
-        vos_printLog(VOS_LOG_ERROR, "vos_threadRegister To long name (max %d).\n", (MAX_THREAD_NAME - 1));
-        return VOS_THREAD_ERR;
-    }
-
-    /* Get thread ID */
-    if (vos_threadSelf(&self) != VOS_NO_ERR)
-    {
-        vos_printLog(VOS_LOG_ERROR, "vos_threadRegister error (Can't get thread id)!\n");
-        return VOS_PARAM_ERR;
-    }
-
-    /* Enter critical section */
-    if (WaitForSingleObject(vosThreadListMutex, INFINITE) != WAIT_OBJECT_0)
-    {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (mutexLock).\n");
-        return VOS_THREAD_ERR;
-    }
-
-        /* Check max number of threads */
-        if (vosThreadCount >= VOS_MAX_THREAD_CNT)
-        {
-            //vos_printLog(VOS_LOG_ERROR, "vos_threadRegister No more threads are available (max %d).\n", VOS_MAX_THREAD_CNT);
-            ret = VOS_THREAD_ERR;
-        }
-
-        if (ret == VOS_NO_ERR)
-        {
-            /* Check if name is unique */
-            for (int i = 0; i < MAX_NR_OF_THREADS; i++)
-            {
-                if (listOfThreads[i].threadId == 0)
-                {
-                    continue;
-                }
-                if (strcmp(listOfThreads[i].threadName, pName) == 0)
-                {
-                    //vos_printLog(VOS_LOG_ERROR, "vos_threadRegister Thread name NOT unique (%s).\n", pName);
-                    ret = VOS_PARAM_ERR;
-                    break;
-                }
-            }
-        }
-
-        if (ret == VOS_NO_ERR)
-        {
-            if (vos_threadRegisterPrivate(pName, self) != VOS_NO_ERR)
-            {
-                //vos_printLog(VOS_LOG_ERROR, "vos_threadRegister error (Can't get thread id)!\n");
-                ret = VOS_PARAM_ERR;
-            }
-        }
-
-    /* Leave critical section */
-    if (ReleaseMutex(vosThreadListMutex) == 0)
-    {
-        vos_printLogStr(VOS_LOG_ERROR, "vos_threadRegister failed (mutexUnlock).\n");
-        return VOS_THREAD_ERR;
-    }
-
-    if (ret != VOS_NO_ERR)
-    {
-        return ret;
-    }
-
-    if (vos_threadRegisterLocal(bStart) != VOS_NO_ERR)
-    {
-        vos_printLog(VOS_LOG_ERROR,
-            "vos_threadRegister() failed (vos_threadRegisterLocal error)\n");
-        return VOS_INIT_ERR;
-    }
-
-    return VOS_NO_ERR;
+EXT_DECL VOS_ERR_T vos_threadRegister(const CHAR* pName, BOOL bStart) {
+    vos_threadRegisterMain(pName, bStart, -1);
 }
-
-
 
 /**********************************************************************************************************************/
 /** Terminate a thread.

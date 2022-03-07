@@ -1,0 +1,154 @@
+/*******************************************************************************
+ *  COPYRIGHT     : This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, 
+ *                  You can obtain one at http://mozilla.org/MPL/2.0/.
+ *                  Copyright Alstom Transport SA or its subsidiaries and others, 2011-2022. All rights reserved. 
+ *******************************************************************************
+ * %PCMS_HEADER_SUBSTITUTION_START%
+ * COMPONENT:   TCMS Platform
+ *
+ * ITEM-SPEC:   %PID%
+ *
+ * FILE:        %PM%
+ *
+ * REQ DOC:     <Requirements document identity>
+ * REQ ID:      <list of requirement identities>
+ *
+ * ABSTRACT:    PC-lint configuration file for TCMS safety critical SW.
+ *
+ * $Id: rules.lnt 4503 2011-10-05 19:44:37Z jaerikss $
+ *
+ *******************************************************************************
+ * HISTORY:
+ *
+ %PL%
+ *%PCMS_HEADER_SUBSTITUTION_END%
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Include paths
+ */
+
+/*******************************************************************************
+ * Deprecate use of variables, functions and macros associated with variable
+ * argument lists
+ */
+-deprecate(function, va_start, Violates MISRA 2004 Required Rule 16.1)
+-deprecate(macro, va_start, Violates MISRA 2004 Required Rule 16.1)
+-deprecate(function, va_end, Violates MISRA 2004 Required Rule 16.1)
+-deprecate(macro, va_end, Violates MISRA 2004 Required Rule 16.1)
+
+/* Rule 9.2 (req) **********************************/
+   /*
+      We extend rule 9.2 by also requiring that the number
+      of brace enclosed non-zero initializers shall exact match
+      the number of items in the aggregate. Initializing only the
+      first item to zero, = { 0 }, is considered compliant.
+   */
+
+    +e785                   /* too few initializers for aggregate */
+    +elib(785)
+    -e943
+    -elib(943)
+    -append(785,[MISRA 2004 Rule 9.2])
+
+/*******************************************************************************
+ * Target specific configuration
+ */
+
+/* Conversion between nominally compatible pointer is allowed. */
+-epn
+
+/* MISRA-C:2004 allows 31 characters in identifiers. Info 793 warns when
+ * the number of characters in external identifiers exceeds 6. This is resolved
+ * by suppressing Info 793 and requiring PC-lint to report if identifiers are
+ * identical in the first 31 characters, i.e. the first 31 characters are
+ * significant. If any pair of identifiers are identical in the first 31
+ * characters, PC-lint do treat them as identical, but issues Warning 621 on the
+ * name clash.
+ */
+-e793
+-idlen(31)
+
+ /* Parent warnings that may be ignored. */
+ -"esym(635, SIGN8)"
+
+
+
+/*******************************************************************************
+ * Enable all messages related to repeated inclusion of header files. Most
+ * important is to warn about missing include guards. However, by enforcing the
+ * use of include guards, header files may be included repeatedly.
+ */
+-e537
++e451
++e967
+
+/*******************************************************************************
+ * Taking the address was previously officially illegal (K&R C). It is, however,
+ * legal according to ANSI/ISO C, and therefore, it is accepted in this code.
+ */
+-e545
+
+/*******************************************************************************
+ * MISRA-C:2004 required rule 16.9 states that "a function identifier shall
+ * only be used with either a preceding '&', or with a parenthesized parameter
+ * list, which may be empty". However, PC-lint defaults to report suspicious use
+ * of '&', when '&' precedes a function identifier. Therefore, we have to
+ * suppress message 546 to enforce rule 16.9.
+ */
+-e546
+
+/*******************************************************************************
+ * Enumerations are used to identify objects, enumerate states, enumerate
+ * error/status codes, etc. However, as these enum types are often used in
+ * switch-case constructs, PC-lint will report on enum being converted to int.
+ * This conversion is generally not dangerous, and therefore, we can accept to
+ * suppress it. The dangerous conversion, from an integer type to an enum type
+ * will still be detected. This does _not_ violate any rule in MISRA-C:2004 or
+ * 3EST207-5130 C Programming Convention.
+ */
+-e641
+
+/*******************************************************************************
+ * There are cases where enum arithmetic is used to get information regarding
+ * an object from the enumerated IDs. This PC-lint suppression is considered a
+ * very minor deviation from the PC-lint strict model and it also does _not_
+ * violate any rule in MISRA-C:2004 or 3EST207-5130 C Programming Convention.
+ */
+-e656
+
+/*******************************************************************************
+ * Additional deprecated identifiers, and prohibited headers.
+ */
+-deprecate(function, __gh_errno_ptr, Violates MISRA-C:2004 Rule 20.5)
+-deprecate(variable, errno, Violates MISRA-C:2004 Rule 20.5)
+-deprecate(macro, errno, Violates MISRA-C:2004 Rule 20.5)
+
++e829
++elib(829)
+-headerwarn(errno.h)
+/* -append(829(errno.h), Violates MISRA 2004 Rule 20.5) */
+-elib(829)
+
+
+/*******************************************************************************
+ * 20108
+ */
++e922
+-append(922, Violates 3EST 207-5130 Rule 20108)
+
+
+/*******************************************************************************
+ * 20401
+ */
++e317
+-append(317, Violates 3EST 207-5130 Rule 20401)
+
+
+/*******************************************************************************
+ * 21101
+ */
++e910
+-append(910, Violates 3EST 207-5130 Rule 21101)
+

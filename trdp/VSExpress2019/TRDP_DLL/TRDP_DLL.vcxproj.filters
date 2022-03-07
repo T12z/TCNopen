@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\src\common\tau_ctrl.c" />
+    <ClCompile Include="..\..\src\common\tau_dnr.c" />
+    <ClCompile Include="..\..\src\common\tau_marshall.c" />
+    <ClCompile Include="..\..\src\common\tau_tti.c" />
+    <ClCompile Include="..\..\src\common\tau_xml.c" />
+    <ClCompile Include="..\..\src\common\tlc_if.c" />
+    <ClCompile Include="..\..\src\common\tlm_if.c" />
+    <ClCompile Include="..\..\src\common\tlp_if.c" />
+    <ClCompile Include="..\..\src\common\trdp_dllmain.c" />
+    <ClCompile Include="..\..\src\common\trdp_mdcom.c" />
+    <ClCompile Include="..\..\src\common\trdp_pdcom.c" />
+    <ClCompile Include="..\..\src\common\trdp_stats.c" />
+    <ClCompile Include="..\..\src\common\trdp_utils.c" />
+    <ClCompile Include="..\..\src\common\trdp_xml.c" />
+    <ClCompile Include="..\..\src\vos\common\vos_mem.c" />
+    <ClCompile Include="..\..\src\vos\common\vos_utils.c" />
+    <ClCompile Include="..\..\src\vos\windows\vos_shared_mem.c">
+      <Filter>vos_windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\vos\windows\vos_sock.c">
+      <Filter>vos_windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\vos\windows\vos_thread.c">
+      <Filter>vos_windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\vos\windows_sim\vos_shared_mem.c">
+      <Filter>vos_windowsSim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\vos\windows_sim\vos_sock.c">
+      <Filter>vos_windowsSim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\vos\windows_sim\vos_sockTSN.c">
+      <Filter>vos_windowsSim</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\vos\windows_sim\vos_thread.c">
+      <Filter>vos_windowsSim</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\api\iec61375-2-3.h" />
+    <ClInclude Include="..\..\src\api\tau_ctrl.h" />
+    <ClInclude Include="..\..\src\api\tau_dnr.h" />
+    <ClInclude Include="..\..\src\api\tau_marshall.h" />
+    <ClInclude Include="..\..\src\api\tau_tti.h" />
+    <ClInclude Include="..\..\src\api\tau_xml.h" />
+    <ClInclude Include="..\..\src\api\trdp_if_light.h" />
+    <ClInclude Include="..\..\src\api\trdp_serviceRegistry.h" />
+    <ClInclude Include="..\..\src\api\trdp_tsn_def.h" />
+    <ClInclude Include="..\..\src\api\trdp_types.h" />
+    <ClInclude Include="..\..\src\common\tlc_if.h" />
+    <ClInclude Include="..\..\src\common\trdp_mdcom.h" />
+    <ClInclude Include="..\..\src\common\trdp_pdcom.h" />
+    <ClInclude Include="..\..\src\common\trdp_private.h" />
+    <ClInclude Include="..\..\src\common\trdp_stats.h" />
+    <ClInclude Include="..\..\src\common\trdp_utils.h" />
+    <ClInclude Include="..\..\src\vos\api\vos_mem.h" />
+    <ClInclude Include="..\..\src\vos\api\vos_shared_mem.h" />
+    <ClInclude Include="..\..\src\vos\api\vos_sock.h" />
+    <ClInclude Include="..\..\src\vos\api\vos_thread.h" />
+    <ClInclude Include="..\..\src\vos\api\vos_types.h" />
+    <ClInclude Include="..\..\src\vos\api\vos_utils.h" />
+    <ClInclude Include="..\..\src\vos\windows_sim\vos_private.h">
+      <Filter>vos_windowsSim</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\vos\windows\vos_private.h">
+      <Filter>vos_windows</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="TRDP_DLL.rc2">
+      <Filter>Resource</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="vos_windowsSim">
+      <UniqueIdentifier>{b0d65c8f-ed6d-492d-8f5e-4c19c38f6ed0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vos_windows">
+      <UniqueIdentifier>{5492f8a2-1247-4412-8615-9c0928efc84a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{c6b7a3dd-a23a-409f-867d-0bdcaae26d33}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TRDP_DLL.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

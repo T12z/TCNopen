@@ -1,0 +1,49 @@
+#
+# Copyright     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+#               If a copy of the MPL was not distributed with this file, 
+#               You can obtain one at http://mozilla.org/MPL/2.0/.
+#               Copyright Alstom Transport SA or its subsidiaries and others, 2010-2022. All rights reserved.
+#
+# Component     SDTv2 Library
+#
+# File          VXWORKS_68K_CSS1_cfg
+#
+# Requirements  SDT_LIB-REQ-022
+#
+# Abstract      Build definitions for LIM under CSS1
+#
+
+# Setup all relevant variables for the VxWorks 6.6 toolchain if not already provided as env. variables
+ifndef WIND_PLATFORM
+WIND_PLATFORM=vxworks
+endif
+
+ifndef WIND_HOST_TYPE
+WIND_HOST_TYPE=x86-linux2
+endif
+
+ifndef WIND_HOME
+WIND_HOME=/opt/cross/vxworks
+endif
+
+# as a 'standard' VxWorks installation shall be assumed the following variables only depend from the
+# variables above
+WIND_BASE=/opt/cross/Tornado_101_68k
+
+TCPATH = $(WIND_HOME)/bin/
+
+# end of Windriver VxWorks specific environment settings 
+
+ARCH      = vxworks-68k-css1
+CPU       = MC68020
+TARGET_OS = CSS
+TOOLCHAIN = 68k
+
+SDTLIBFEATURES = -DSDT_ENABLE_MVB \
+                 -DSDT_SECURE 
+LINT_SYSINCLUDE_DIRECTIVES = -DO_CSS -DO_BE -DO_VCU6U_GP -DCPU=$(CPU) -i css1 
+PLATFORM_CPPFLAGS = $(SDTLIBFEATURES) \
+                    -DO_CSS -DO_BE -DO_VCU6U_GP -Icss1 -I$(WIND_BASE)/target/h -m68020 -DCPU=$(CPU) \
+                    -msoft-float -mnobitfield -fstrength-reduce -fno-builtin \
+                    -Winline -Waggregate-return \
+                    -Wstrict-prototypes -Wmissing-prototypes

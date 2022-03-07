@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      SB 2021-08-09: Lint warnings
  *      BL 2019-06-11: Ticket #259: Shared memory name fixed
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-05-03: Ticket #193 Unused parameter warnings
@@ -167,7 +168,7 @@ EXT_DECL VOS_ERR_T vos_sharedClose (
     VOS_SHRD_T  handle,
     const UINT8 *pMemoryArea)
 {
-    pMemoryArea = pMemoryArea;
+    (void)pMemoryArea;
 
     if (close(handle->fd) == -1)
     {

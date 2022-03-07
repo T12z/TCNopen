@@ -12,11 +12,13 @@
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2020. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
 * $Id$
 *
+*     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
+*     AHW 2021-04-30: Ticket #369 Variable sized arrays are not supported if marshall is active
 *      BL 2020-11-03: Ticket #347 Allow dynamic sized arrays for PD (Ticket #207 undone)
 *      BL 2020-07-29: Ticket #332 Error reading from TSN PD header
 *      BL 2020-07-27: Ticket #304 ... stats count for no subscription added
@@ -201,9 +203,15 @@ TRDP_ERR_T trdp_pdPut (
     }
     else if ((pData != NULL) && (dataSize != 0u))
     {
-        if (pPacket->dataSize == 0u)
+        /* We must check the packet size! */
+        if (dataSize > TRDP_MAX_PD_DATA_SIZE)   /*  Ticket #207: datasize differs -> Ticket #347    */
+        {                                       /*          var. size is allowed now!               */
+            return TRDP_PARAM_ERR;
+        }
+
+        if ((pPacket->dataSize == 0u) || (pPacket->grossSize < trdp_packetSizePD(dataSize)))
         {
-            /* late data, enlarge packet buffer and copy existing header info */
+            /* late data or larger data, enlarge packet buffer and copy existing header info */
             PD_PACKET_T *pTemp;
 
             pPacket->dataSize   = dataSize;
@@ -217,32 +225,10 @@ TRDP_ERR_T trdp_pdPut (
             memcpy(pTemp, pPacket->pFrame, trdp_packetSizePD(0u));
             vos_memFree(pPacket->pFrame);
             pPacket->pFrame = pTemp;
-            /* complete header info, set dataset length */
-            pPacket->pFrame->frameHead.datasetLength = vos_htonl(pPacket->dataSize);
         }
 
         if (!(pPacket->pktFlags & TRDP_FLAGS_MARSHALL) || (marshall == NULL))
         {
-
-            /* We must check the packet size! */
-            if (dataSize > TRDP_MAX_PD_DATA_SIZE)   /*  Ticket #207: datasize differs -> Ticket #347    */
-            {                                       /*          var. size is allowed now!               */
-                return TRDP_PARAM_ERR;
-            }
-            /* If new data size is larger than former size, we must reallocate the transmit buffer */
-            if (pPacket->grossSize  < trdp_packetSizePD(dataSize))
-            {
-                PD_PACKET_T *pTemp;
-                pTemp = (PD_PACKET_T *) vos_memAlloc(trdp_packetSizePD(dataSize));
-                if (pTemp == NULL)
-                {
-                    return TRDP_MEM_ERR;
-                }
-                /* copy existing header info */
-                memcpy(pTemp, pPacket->pFrame, trdp_packetSizePD(0u));
-                vos_memFree(pPacket->pFrame);
-                pPacket->pFrame = pTemp;
-            }
             memcpy(pPacket->pFrame->data, pData, dataSize);
             pPacket->dataSize   = dataSize;
             pPacket->grossSize  = trdp_packetSizePD(dataSize);
@@ -263,8 +249,10 @@ TRDP_ERR_T trdp_pdPut (
             }
             pPacket->dataSize   = dataSize;
             pPacket->grossSize  = trdp_packetSizePD(dataSize);
-            pPacket->pFrame->frameHead.datasetLength = vos_htonl(pPacket->dataSize);
         }
+
+        /* complete header info, set dataset length */
+        pPacket->pFrame->frameHead.datasetLength = vos_htonl(pPacket->dataSize);
 
         if (TRDP_NO_ERR == ret)
         {
@@ -758,6 +746,7 @@ TRDP_ERR_T  trdp_pdReceive (
     int                 informUser      = FALSE;
     int                 isTSN           = FALSE;
     TRDP_ADDRESSES_T    subAddresses    = { 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    UINT32              srcIfAddr = 0u;
     TRDP_MSG_T          msgType;
 #ifdef TSN_SUPPORT
     PD2_HEADER_T        *pTSNFrameHead = (PD2_HEADER_T *) pNewFrameHead;
@@ -770,10 +759,18 @@ TRDP_ERR_T  trdp_pdReceive (
                                           &subAddresses.srcIpAddr,
                                           NULL,
                                           &subAddresses.destIpAddr,
+                                          &srcIfAddr,   /* #322 */
                                           FALSE);
     if ( err != TRDP_NO_ERR)
     {
         return err;
+    }
+
+    /* #322 */
+    if ((appHandle->realIP != 0u) && (srcIfAddr != 0) && (appHandle->realIP != srcIfAddr))
+    {
+        /* Packet does not belong to this session, ignore packet */
+        return TRDP_NO_ERR;
     }
 
     /*  Is packet sane?    */

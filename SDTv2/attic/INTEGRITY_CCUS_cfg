@@ -1,0 +1,85 @@
+#
+# Copyright     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+#               If a copy of the MPL was not distributed with this file, 
+#               You can obtain one at http://mozilla.org/MPL/2.0/.
+#               Copyright Alstom Transport SA or its subsidiaries and others, 2010-2022. All rights reserved.
+#
+# Component     SDTv2 Library
+#
+# File          INTEGRITY_CCUS_cfg
+#
+# Requirements  SDT_LIB-REQ-015
+#
+# Abstract      Build definitions for CCU-S under INTEGRITY
+#
+
+ARCH        = integrity-ppc-ccu-s
+CPU         = PPC860
+TARGET_OS   = INTEGRITY
+TOOLCHAIN   = ppc
+
+LINT_SYSINCLUDE_DIRECTIVES = -DOS_INTEGRITY
+
+SDTLIBFEATURES = -DSDT_ENABLE_IPT \
+                 -DSDT_ENABLE_MVB \
+                 -DSDT_ENABLE_WTB \
+                 -DSDT_SECURE 
+
+
+PLATFORM_CPPFLAGS = -cpu=ppc5200 -MD  \
+                    -DOS_INTEGRITY \
+                    $(SDTLIBFEATURES) 
+
+INT_LIB_A =libsdt_a.a
+
+INT_LIB_B =libsdt_b.a
+
+SDT_LIB_A_CFLAGS = -Dsdt_get_sdsink_parameters=sdt_get_sdsink_parameters_A \
+                   -Dsdt_set_sdsink_parameters=sdt_set_sdsink_parameters_A \
+                   -Dsdt_set_uic_fillvalue=sdt_set_uic_fillvalue_A \
+                   -Dsdt_get_uic_fillvalue=sdt_get_uic_fillvalue_A \
+                   -Dsdt_get_counters=sdt_get_counters_A \
+                   -Dsdt_reset_counters=sdt_reset_counters_A \
+                   -Dsdt_get_errno=sdt_get_errno_A \
+                   -Dsdt_get_ssc=sdt_get_ssc_A \
+                   -Dsdt_get_sid=sdt_get_sid_A \
+                   -Dsdt_set_sid=sdt_set_sid_A \
+                   -Dsdt_get_validator=sdt_get_validator_A \
+                   -Dsdt_validate_pd=sdt_validate_pd_A \
+                   -Dsdt_mutex_lock=sdt_mutex_lock_A \
+                   -Dsdt_mutex_unlock=sdt_mutex_unlock_A \
+                   -Dsdt_mvb_secure_pd=sdt_mvb_secure_pd_A \
+                   -Dsdt_mvb_validate_pd=sdt_mvb_validate_pd_A \
+                   -Dsdt_ipt_secure_pd=sdt_ipt_secure_pd_A \
+                   -Dsdt_ipt_validate_pd=sdt_ipt_validate_pd_A \
+                   -Dsdt_wtb_validate_pd=sdt_wtb_validate_pd_A \
+                   -Dsdt_wtb_secure_pd=sdt_wtb_secure_pd_A  \
+                   -Dsdt_uic_validate_pd=sdt_uic_validate_pd_A \
+                   -Dsdt_uic_secure_pd=sdt_uic_secure_pd_A  \
+                   -Dsdt_uic_ed5_secure_pd=sdt_uic_ed5_secure_pd_A  \
+                   -Dsdt_gen_sid=sdt_gen_sid_A 
+
+SDT_LIB_B_CFLAGS = -Dsdt_get_sdsink_parameters=sdt_get_sdsink_parameters_B \
+                   -Dsdt_set_sdsink_parameters=sdt_set_sdsink_parameters_B \
+                   -Dsdt_set_uic_fillvalue=sdt_set_uic_fillvalue_B \
+                   -Dsdt_get_uic_fillvalue=sdt_get_uic_fillvalue_B \
+                   -Dsdt_get_counters=sdt_get_counters_B \
+                   -Dsdt_reset_counters=sdt_reset_counters_B \
+                   -Dsdt_get_errno=sdt_get_errno_B \
+                   -Dsdt_get_ssc=sdt_get_ssc_B \
+                   -Dsdt_get_sid=sdt_get_sid_B \
+                   -Dsdt_set_sid=sdt_set_sid_B \
+                   -Dsdt_get_validator=sdt_get_validator_B \
+                   -Dsdt_validate_pd=sdt_validate_pd_B \
+                   -Dsdt_mutex_lock=sdt_mutex_lock_B \
+                   -Dsdt_mutex_unlock=sdt_mutex_unlock_B \
+                   -Dsdt_mvb_secure_pd=sdt_mvb_secure_pd_B \
+                   -Dsdt_mvb_validate_pd=sdt_mvb_validate_pd_B \
+                   -Dsdt_ipt_secure_pd=sdt_ipt_secure_pd_B \
+                   -Dsdt_ipt_validate_pd=sdt_ipt_validate_pd_B \
+                   -Dsdt_wtb_validate_pd=sdt_wtb_validate_pd_B \
+                   -Dsdt_wtb_secure_pd=sdt_wtb_secure_pd_B \
+                   -Dsdt_uic_validate_pd=sdt_uic_validate_pd_B \
+                   -Dsdt_uic_secure_pd=sdt_uic_secure_pd_B \
+                   -Dsdt_uic_ed5_secure_pd=sdt_uic_ed5_secure_pd_B  \
+                   -Dsdt_gen_sid=sdt_gen_sid_B 

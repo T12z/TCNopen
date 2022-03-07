@@ -17,9 +17,11 @@
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          Copyright UniControls, a.s., 2013. All rights reserved.
+ *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2021. All rights reserved.
  *
  * $Id$
  *
+ *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      BL 2020-07-16: Ticket #334 dirent.h not part of delivery
  */
 
@@ -43,7 +45,7 @@ static void printProcessConfig(TRDP_PROCESS_CONFIG_T  * pProcessConfig)
     const char * strProcOptions[2] = {"TRDP_OPTION_BLOCK", "TRDP_OPTION_TRAFFIC_SHAPING"};
     UINT32  i;
     printf("  Process (session) configuration\n");
-    printf("    Host: %s, Leader: %s\n", pProcessConfig->hostName, pProcessConfig->leaderName);
+    printf("    Host: %s, Leader: %s Type: %s\n", pProcessConfig->hostName, pProcessConfig->leaderName, pProcessConfig->type);
     printf("    Priority: %u, CycleTime: %u\n",
         pProcessConfig->priority, pProcessConfig->cycleTime);
     printf("    Options:");
@@ -173,8 +175,8 @@ static void printDatasets(
     for (idxDs=0; idxDs < numDataset; idxDs++)
     {
         pDataset = apDataset[idxDs];
-        printf("  Dataset Id: %u, Elements: %u\n", 
-            pDataset->id, pDataset->numElement);
+        printf("  Dataset Id: %u, Dataset name: %s Elements: %u\n", 
+            pDataset->id, pDataset->name, pDataset->numElement);
         for (idxElem = 0; idxElem < pDataset->numElement; idxElem++)
         {
             if (pDataset->pElement[idxElem].type <= 16)

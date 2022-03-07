@@ -1,0 +1,198 @@
+/*******************************************************************************
+ *  COPYRIGHT     : This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, 
+ *                  You can obtain one at http://mozilla.org/MPL/2.0/.
+ *                  Copyright Alstom Transport SA or its subsidiaries and others, 2011-2022. All rights reserved. 
+ *******************************************************************************
+ * %PCMS_HEADER_SUBSTITUTION_START%
+ * COMPONENT:   TCMS Platform
+ *
+ * ITEM-SPEC:   %PID%
+ *
+ * FILE:        %PM%
+ *
+ * REQ DOC:     <Requirements document identity>
+ * REQ ID:      <list of requirement identities>
+ *
+ * ABSTRACT:    PC-lint configuration file for general options used
+ *              by HMI-S project.
+ *
+ * $Id:  $
+ *
+ *******************************************************************************
+ * HISTORY:
+ *
+ %PL%
+ *%PCMS_HEADER_SUBSTITUTION_END%
+ ******************************************************************************/
+
+
+/* Please note -- this is a representative set of error suppression
+ *                options.  Please adjust to suit your own policies
+ *                See  manual (chapter LIVING WITH LINT)
+ *                for further details.
+ */
+
+
+/*******************************************************************************
+ * Common options to be used when executing PC-lint on source code in the HMI-S
+ * project.
+ */
+
+/* Common defs and output formatting */
+-d"CPU=PPC860"
+-d"__STDC__=1"
+-d"CPU_FAMILY=PPC"
+-d"CERT=1"
+-d"VXWORKS"
+-d"HMI411"
+-width(79,8)
+-"format=%(%f %l %)%t %n:\n\t%m"
+-"format4a=%(%f %l %)%t %n:\n\t%m"
+-"format4b=%(%f %l %)%t %n:\n\t%m"
+ 
+/* Enable continue analysis on error. */
++fce
+
+/* Enable strong hierarchy down. */
++fhd
+
+/* Disable type hierarchy using IBM graphic characters (only plain ASCII). */
+-fhg
+
+/* Enable strong type hierarchy based on typedef statements. */
++fhs
+
+/* Enable integer model for enumerations (enums semantically regarded as
+   integers). */
++fie
+
+/* Initializations are _not_ considered a write (no warning issued if an
+   initialized may be written without preceding access. */
+-fiw
+
+/* Initializtion by zero is _not_ considered a write. */
+-fiz
+
+/* Enable long long is a permitted type (S64 and U64 can be used). */
++fll
+
+/* */
++flm
+
+/* Enable reference location in messages. */
++frl
+
+/* No class of header files is considered a library header by default. */
++libclass(all)
+
+/* No headers are presumed to be bypassed. */
++bypclass()
+
+/* Specify number of passes that PC-lint shall perform over the code. */
+-passes(4,,)
+
+/* Do not stop on "unable to open include file" ==> generates error 7 instead. */
+-e322
+
+
+
+/*******************************************************************************
+ * Size and alignment options for the VxWorks build environment.
+ */
+
+/* Number of bits in a byte = 8. */
+-sb8
+
+/* The size of char is 1 byte. */
+-sc1
+
+/* The size of short is 2 bytes. */
+-ss2
+
+/* The size of int is 4 bytes. */
+-si4
+
+/* The size of long is 4 bytes. */
+-sl4
+
+/* The size of pointers is 4 bytes. */
+-sp4
+
+ 
+/*******************************************************************************
+ * Common include paths (setup environment variables WIND_BASE)
+ */
+-i"%WIND_BASE%/target/h"
+-i"%WIND_BASE%/target/h/arch/ppc"
+-i"%WIND_BASE%/target/config/Bombardier870_cert"
+-i"%WIND_BASE%/target/h/drv/timer"
+
+
+/*******************************************************************************
+ * Ignoring lint complaints for VxWorks
+ */
+
+/* Error messages only (when processing library code.) */ 
+-wlib(1)
+
+/* Library paths of VxWorks */ 
++libdir("%WIND_BASE%/target/h")
++libdir("%WIND_BASE%/target/h/drv/timer")
++libdir("%WIND_BASE%/target/h/arch/ppc")
++libdir("%WIND_BASE%/target/config/Bombardier870_cert")
+
+
+/******************************************************************************
+ * Global Deviations 
+ */
+ 
+/* In order to make the code more readable and to confirm with
+ * C Coding Convention, Rule 20701 there is a need to define
+ * certain macros which may have the value 0 (zero).
+ * By doing so PC-lint complains about certain operations,
+ * e.g. ‘+’ and ‘|’ operations including these macros.
+ * Since the use of theses macros don’t break any Misra-rules,
+ * and is conformant to the coding conventions the PC-lint warnings
+ * have been turned OFF for theses macros. */
+-"emacro(835, HMI411_SAFETY_CORE_VERSION)"
+-"emacro(835, HMI411_SAFETY_CORE_RELEASE)"
+-"emacro(835, HMI411_SAFETY_CORE_UPDATE)"
+-"emacro(835, HMI411_SAFETY_CORE_BUILD)"
+-"emacro(835, HMI411_SAF_VRUB_SAF_VERSION)"
+-"emacro(835, HMI411_SAF_VRUB_SAF_RELEASE)"
+-"emacro(835, HMI411_SAF_VRUB_SAF_UPDATE)"
+-"emacro(835, HMI411_SAF_VRUB_SAF_BUILD)"
+-"emacro(835, HMI411_SAF_VRUB_GSA_VERSION)"
+-"emacro(835, HMI411_SAF_VRUB_GSA_RELEASE)"
+-"emacro(835, HMI411_SAF_VRUB_GSA_UPDATE)"
+-"emacro(835, HMI411_SAF_VRUB_GSA_BUILD)"
+-"emacro(835, KTD_CONSID_FILE_HDR_ADDR)"
+ 
+
+/* Remove lint info for unreferenced variables in SAF/SA API (TCMS_PLATF_RDR_64) */
+-efunc(715, adm_handleAppDefinedMessages)
+-efunc(715, sa_validatePixel)
+-efunc(715, sa_checkInterval)
+-efunc(715, sa_cyclicUpdate)
+
+/* Remove lint info for exception handler lint warnings (TCMS_PLATF_RDR_65) */
+-efunc(715, excHandler)
+
+
+/* Remove lint info for operating system and BSP lint warnings (TCMS_PLATF_RDR_67) */
+-"emacro(961, SP_CFG_IMG_RAM_ADR)"
+-"emacro(961, SP_IDLE_IMG_HDR_RAM_ADR)"
+-"emacro(834, SP_IDLE_IMG_HDR_RAM_ADR)"
+-"emacro(961, SP_OPER_IMG_HDR_RAM_ADR)"
+-"emacro(834, SP_OPER_IMG_HDR_RAM_ADR)"
+
+-"emacro(960, KTD_CONSID_FILE_HDR_ADDR)"
+-"emacro(834, KTD_CONSID_FILE_HDR_ADDR)"
+-"emacro(960, KTD_CONSID_FILE_ADDR)"
+
+-"emacro(960, KTD_ID_FILE_HDR_ADDR)"
+-"emacro(834, KTD_ID_FILE_HDR_ADDR)"
+
+-"emacro(960, KTD_COM_FILE_HDR_ADDR)"
+-"emacro(834, KTD_COM_FILE_HDR_ADDR)"

@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AÖ 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting
 *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API 
 *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
@@ -267,6 +268,20 @@ EXT_DECL VOS_ERR_T vos_threadIsActive (
     VOS_THREAD_T thread);
 
 #ifdef SIM
+/**********************************************************************************************************************/
+/** Register a existing TimeSync thread.
+*  All threads has to be registered in TimeSync for proper timing handeling.
+*  This is for funcitons that is already under TimeSync control to register
+*
+*  @param[in]      pName           Pointer to name of the thread (optional)
+*  @param[in]      timeSyncHandle  Handle to TimeSync
+*  @retval         VOS_NO_ERR      no error
+*  @retval         VOS_INIT_ERR    failed to init
+*/
+EXT_DECL VOS_ERR_T vos_threadRegisterExisting(
+    const CHAR* pName,
+    long timeSyncHandle);
+
 /**********************************************************************************************************************/
 /** Register a thread.
 *  All threads has to be registered in TimeSync for proper timing handeling.

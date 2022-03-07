@@ -1,0 +1,209 @@
+/*******************************************************************************
+ *  COPYRIGHT     : This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+ *                  If a copy of the MPL was not distributed with this file, 
+ *                  You can obtain one at http://mozilla.org/MPL/2.0/.
+ *                  Copyright Alstom Transport SA or its subsidiaries and others, 2011-2022. All rights reserved. 
+ *******************************************************************************
+ * %PCMS_HEADER_SUBSTITUTION_START%
+ * COMPONENT:   TCMS Platform
+ *
+ * ITEM-SPEC:   %PID%
+ *
+ * FILE:        %PM%
+ *
+ * REQ DOC:     <Requirements document identity>
+ * REQ ID:      <list of requirement identities>
+ *
+ * ABSTRACT:    PC-lint configuration file for TCMS safety critical SW.
+ *
+ * $Id: rules.lnt 2681 2011-06-19 12:14:07Z jaerikss $
+ *
+ *******************************************************************************
+ * HISTORY:
+ *
+ %PL%
+ *%PCMS_HEADER_SUBSTITUTION_END%
+ ******************************************************************************/
+
+
+/*******************************************************************************
+ * MISRA-C:2004 configuration
+ */
+%LINT_CONFIG_DIR%\au-misra2.lnt
+
+/*******************************************************************************
+ * PC-lint options
+ */
+%LINT_CONFIG_DIR%\options.lnt  -si4 -sp4
+
+/*******************************************************************************
+ * Include paths
+ */
+
+/*******************************************************************************
+ * Deprecate use of variables, functions and macros associated with variable
+ * argument lists
+ */
+-deprecate(function, va_start, Violates MISRA 2004 Required Rule 16.1)
+-deprecate(macro, va_start, Violates MISRA 2004 Required Rule 16.1)
+-deprecate(function, va_end, Violates MISRA 2004 Required Rule 16.1)
+-deprecate(macro, va_end, Violates MISRA 2004 Required Rule 16.1)
+
+/* Rule 9.2 (req) **********************************/
+   /*
+      We extend rule 9.2 by also requiring that the number
+      of brace enclosed non-zero initializers shall exact match
+      the number of items in the aggregate. Initializing only the
+      first item to zero, = { 0 }, is considered compliant.
+   */
+
+    +e785                   /* too few initializers for aggregate */
+    +elib(785)
+    -e943
+    -elib(943)
+    -append(785,[MISRA 2004 Rule 9.2])
+
+/*******************************************************************************
+ * Target specific configuration
+ */
+
+/* Conversion between nominally compatible pointer is allowed. */
+-epn
+
+ /* Parent warnings that may be ignored. */
+ -"esym(635, SIGN8)"
+
+/* utl_crc32 always returns Success, not necessary to check return value. */
+-"esym(534, utl_crc32)"
+
+/* sleep, and usleep always returns 0. */
+-"esym(534, usleep)"
+-"esym(534, sleep)"
+
+/*******************************************************************************
+ * Tasks can never be made static (message 765) and are never explicitly called
+ * (message 714).
+ */
+-"esym(714, application)"
+-"esym(714, apiMonitor)"
+-"esym(714, execControl)"
+-"esym(714, ev_task)"
+-"esym(714, failSafe_task)"
+-"esym(714, main)"
+-"esym(714, safeCommunication_task)"
+-"esym(714, scheduler_task)"
+-"esym(714, sto_task)"
+-"esym(714, startUp)"
+
+-"esym(765, application)"
+-"esym(765, apimonitor)"
+-"esym(765, execControl)"
+-"esym(765, ev_task)"
+-"esym(765, failSafe_task)"
+-"esym(765, main)"
+-"esym(765, safeCommunication_task)"
+-"esym(765, scheduler_task)"
+-"esym(765, sto_task)"
+-"esym(765, startUp)"
+
+/*******************************************************************************
+ * Enable all messages related to repeated inclusion of header files. Most
+ * important is to warn about missing include guards. However, by enforcing the
+ * use of include guards, header files may be included repeatedly.
+ */
+-e537
++e451
++e967
+
+/*******************************************************************************
+ * Taking the address was previously officially illegal (K&R C). It is, however,
+ * legal according to ANSI/ISO C, and therefore, it is accepted in this code.
+ */
+-e545
+
+/*******************************************************************************
+ * MISRA-C:2004 required rule 16.9 states that "a function identifier shall
+ * only be used with either a preceding '&', or with a parenthesized parameter
+ * list, which may be empty". However, PC-lint defaults to report suspicious use
+ * of '&', when '&' precedes a function identifier. Therefore, we have to
+ * suppress message 546 to enforce rule 16.9.
+ */
+-e546
+
+/*******************************************************************************
+ * Enumerations are used to identify objects, enumerate states, enumerate
+ * error/status codes, etc. However, as these enum types are often used in
+ * switch-case constructs, PC-lint will report on enum being converted to int.
+ * This conversion is generally not dangerous, and therefore, we can accept to
+ * suppress it. The dangerous conversion, from an integer type to an enum type
+ * will still be detected. This does _not_ violate any rule in MISRA-C:2004 or
+ * 3EST207-5130 C Programming Convention.
+ */
+-e641
+
+/*******************************************************************************
+ * There are cases where enum arithmetic is used to get information regarding
+ * an object from the enumerated IDs. This PC-lint suppression is considered a
+ * very minor deviation from the PC-lint strict model and it also does _not_
+ * violate any rule in MISRA-C:2004 or 3EST207-5130 C Programming Convention.
+ */
+-e656
+
+/*******************************************************************************
+ * MISRA-C:2004 required rules 13.7 and 14.1 states that TBD.
+ */
+-emacro(506,SYS_ASSERT)
+-emacro(731,SYS_ASSERT)
+-emacro(774,SYS_ASSERT)
+-emacro(960,SYS_ASSERT)
+
+-emacro(960,SYS_FATAL_FAILURE)
+-emacro(931, SUP_IS_EXEC_MODE)
+-emacro(960, SUP_IS_EXEC_MODE)
+-emacro(931, SUP_COMPL_VAL_OK)
+-emacro(960, SUP_COMPL_VAL_OK)
+
+/*******************************************************************************
+ * DevID-0009
+ */
+-"esym(534, memcpy)"    /* Returns a pointer to the destination argument. */
+-"esym(534, memset)"    /* Returns a pointer to the destination argument. */
+
+-"esym(534, exec_startScheduler)"       /* Always returns Success */
+-"esym(534, rpcclient_init)"            /* Always returns Success */
+-"esym(534, rsfdb_init)"                /* Always returns Success */
+
+
+/*******************************************************************************
+ * Additional deprecated identifiers, and prohibited headers.
+ */
+-deprecate(function, __gh_errno_ptr, Violates MISRA-C:2004 Rule 20.5)
+-deprecate(variable, errno, Violates MISRA-C:2004 Rule 20.5)
+-deprecate(macro, errno, Violates MISRA-C:2004 Rule 20.5)
+
++e829
++elib(829)
+-headerwarn(errno.h)
+-append(829(errno.h), Violates MISRA 2004 Rule 20.5)
+
+
+/*******************************************************************************
+ * 20108
+ */
++e922
+-append(922, Violates 3EST 207-5130 Rule 20108)
+
+
+/*******************************************************************************
+ * 20401
+ */
++e317
+-append(317, Violates 3EST 207-5130 Rule 20401)
+
+
+/*******************************************************************************
+ * 21101
+ */
++e910
+-append(910, Violates 3EST 207-5130 Rule 21101)
+

@@ -17,6 +17,8 @@
  /*
  * $Id$*
  *
+ *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
+ *      MM 2021-03-05: Ticket #360: Adaption for VxWorks7
  *      BL 2019-08-27: Changed send failure from ERROR to WARNING
  *      BL 2019-06-12: Ticket #238 VOS: Public API headers include private header file
  *      SB 2019-02-18: Ticket #227: vos_sockGetMAC() not name dependant anymore
@@ -72,7 +74,47 @@ struct ifreq    gIfr;
 
 /***********************************************************************************************************************
  * LOCAL FUNCTIONS
- *//**********************************************************************************************************************/
+ */
+
+/**********************************************************************************************************************/
+/** Get the IP address of local network interface.
+ *
+ *  @param[in]      index    interface index
+ *
+ *  @retval         IP address of interface
+ *  @retval         0 if index not found
+ */
+UINT32 vos_getInterfaceIP (UINT32 index)
+{
+    static VOS_IF_REC_T ifAddrs[VOS_MAX_NUM_IF]  = {0};
+    static UINT32                       ifCount  = 0u;
+    VOS_ERR_T                               err  = VOS_NO_ERR;
+    UINT32                                    i  = 0u;
+
+    if (ifCount == 0u)
+    {
+        ifCount = VOS_MAX_NUM_IF;
+        err = vos_getInterfaces(&ifCount, ifAddrs);
+
+        if (err != VOS_NO_ERR)
+        {
+            ifCount = 0u;
+            return 0u;
+        }
+    }
+
+    for (i = 0; i < ifCount; i++)
+    {
+        if (ifIndexs[i] == index)
+        {
+            return ifAddrs[i].ipAddr;
+        }
+    }
+
+    return 0u;
+}
+
+/**********************************************************************************************************************/
 /** Get the MAC address for a named interface.
  *
  *  @param[out]         pMacAddr   pointer to array of MAC address to return
@@ -186,7 +228,7 @@ VOS_ERR_T vos_sockSetBuffer (SOCKET sock)
     return VOS_NO_ERR;
 }
 
-#ifdef htonll
+#ifndef htonll
 /**********************************************************************************************************************/
 /** Swap 64 bit value if necessary.
  *
@@ -276,7 +318,11 @@ EXT_DECL UINT32 vos_dottedIP (
     struct in_addr addr;
     /* vxWorks does not regard the const qualifier for first parameter */
     /* casting to non const, helps to get rid of compiler noise        */
+#if _WRS_VXWORKS_MAJOR < 7
     if (inet_aton((CHAR8 *)pDottedIP, &addr) != OK)
+#else
+    if (inet_aton((CHAR8 *)pDottedIP, &addr) == 0)
+#endif
     {
         return VOS_INADDR_ANY;   /* Prevent returning broadcast address on error */
     }
@@ -447,6 +493,7 @@ EXT_DECL BOOL8 vos_netIfUp (
 EXT_DECL VOS_ERR_T vos_sockInit (void)
 {
     memset(&gIfr, 0, sizeof(gIfr));
+    (void) vos_getInterfaceIP(0);
     vosSockInitialised = TRUE;
 
     return VOS_NO_ERR;
@@ -778,19 +825,19 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
     /*  Include struct in_pktinfo in the message "ancilliary" control data.
         This way we can get the destination IP address for received UDP packets */
     sockOptValue = 1;
-#if defined(IP_RECVDSTADDR)
-    if (setsockopt(sock, IPPROTO_IP, IP_RECVDSTADDR, (char *)&sockOptValue, sizeof(sockOptValue)) == -1)
-    {
-        char buff[VOS_MAX_ERR_STR_SIZE];
-        STRING_ERR(buff);
-        vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_RECVDSTADDR failed (Err: %s)\n", buff);
-    }
-#elif defined(IP_PKTINFO)
+#if defined(IP_PKTINFO)
     if (setsockopt(sock, IPPROTO_IP, IP_PKTINFO, (char *)&sockOptValue, sizeof(sockOptValue)) == -1)
     {
         char buff[VOS_MAX_ERR_STR_SIZE];
         STRING_ERR(buff);
         vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_PKTINFO failed (Err: %s)\n", buff);
+    }
+#elif defined(IP_RECVDSTADDR)
+    if (setsockopt(sock, IPPROTO_IP, IP_RECVDSTADDR, (char *)&sockOptValue, sizeof(sockOptValue)) == -1)
+    {
+        char buff[VOS_MAX_ERR_STR_SIZE];
+        STRING_ERR(buff);
+        vos_printLog(VOS_LOG_ERROR, "setsockopt() IP_RECVDSTADDR failed (Err: %s)\n", buff);
     }
 #endif
 
@@ -1037,6 +1084,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  *  @param[out]     pSrcIPAddr      pointer to source IP
  *  @param[out]     pSrcIPPort      pointer to source port
  *  @param[out]     pDstIPAddr      pointer to dest IP
+ *  @param[out]     pSrcIFAddr      pointer to source network interface IP
  *  @param[in]      peek            if true, leave data in queue
  *
  *  @retval         VOS_NO_ERR      no error
@@ -1053,6 +1101,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     UINT32  *pSrcIPAddr,
     UINT16  *pSrcIPPort,
     UINT32  *pDstIPAddr,
+    UINT32  *pSrcIFAddr,
     BOOL8   peek)
 {
     union
@@ -1070,6 +1119,11 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     if (sock == -1 || pBuffer == NULL || pSize == NULL)
     {
         return VOS_PARAM_ERR;
+    }
+
+    if (pSrcIFAddr != NULL)
+    {
+       *pSrcIFAddr = 0;  /* #322  */
     }
 
     /* clear our address buffers */
@@ -1100,18 +1154,23 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
             {
                 for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL; cmsg = CMSG_NXTHDR(&msg, cmsg))
                 {
-                    #if defined(IP_RECVDSTADDR)
-                    if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_RECVDSTADDR)
-                    {
-                        struct in_addr *pia = (struct in_addr *)CMSG_DATA(cmsg);
-                        *pDstIPAddr = (UINT32)vos_ntohl(pia->s_addr);
-                        /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
-                    }
-                    #elif defined(IP_PKTINFO)
+                    #if defined(IP_PKTINFO)
                     if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_PKTINFO)
                     {
                         struct in_pktinfo *pia = (struct in_pktinfo *)CMSG_DATA(cmsg);
                         *pDstIPAddr = (UINT32)vos_ntohl(pia->ipi_addr.s_addr);
+                        /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
+
+                        if (pSrcIFAddr != NULL)
+                        {
+                            *pSrcIFAddr = vos_getInterfaceIP(pia->ipi_ifindex);  /* #322  */
+                        }
+                    }
+                    #elif defined(IP_RECVDSTADDR)
+                    if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_RECVDSTADDR)
+                    {
+                        struct in_addr *pia = (struct in_addr *)CMSG_DATA(cmsg);
+                        *pDstIPAddr = (UINT32)vos_ntohl(pia->s_addr);
                         /* vos_printLog(VOS_LOG_DBG, "udp message dest IP: %s\n", vos_ipDotted(*pDstIPAddr)); */
                     }
                     #endif
@@ -1151,7 +1210,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
             STRING_ERR(buff);
             vos_printLog(VOS_LOG_ERROR, "recvmsg() failed (Err: %s)\n", buff);
             return VOS_IO_ERR;
-        }
+         }
     }
     else if (rcvSize == 0)
     {

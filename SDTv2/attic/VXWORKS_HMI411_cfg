@@ -1,0 +1,48 @@
+#
+# Copyright     This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+#               If a copy of the MPL was not distributed with this file, 
+#               You can obtain one at http://mozilla.org/MPL/2.0/.
+#               Copyright Alstom Transport SA or its subsidiaries and others, 2010-2022. All rights reserved.
+#
+# Component     SDTv2 Library
+#
+# File          VXWORKS_HMI411_cfg
+#
+# Requirements  SDT_LIB-REQ-016
+#
+# Abstract      Build definitions for HMI411 SP
+#
+
+# Setup all relevant variables for the VxWorks 6.6 toolchain if not already provided as env. variables
+ifndef WIND_PLATFORM
+WIND_PLATFORM=vxworks-6.6
+endif
+
+ifndef WIND_HOST_TYPE
+WIND_HOST_TYPE=x86-win32
+endif
+
+ifndef WIND_HOME
+WIND_HOME=/opt/cross/vxworks-6.6
+endif
+
+# as a 'standard' VxWorks installation shall be assumed the following variables only depend from the
+# variables above
+WIND_BASE=D:/WIND_BASE
+WIND_GNU_PATH=$(WIND_HOME)/gnu/4.1.2-vxworks-6.6
+TCPATH = $(WIND_BASE)/host/$(WIND_HOST_TYPE)/bin/
+
+
+
+ARCH        = vxworks-ppc-hmi411
+CPU         = PPC860
+TARGET_OS   = VXWORKS
+TOOLCHAIN   = ppc
+
+
+SDTLIBFEATURES = -DSDT_ENABLE_IPT \
+                 -DSDT_SECURE 
+LINT_SYSINCLUDE_DIRECTIVES = -DCPU=$(CPU) -i $(WIND_BASE)/target/h +libh types.h
+PLATFORM_CPPFLAGS = $(SDTLIBFEATURES) \
+                    -I$(WIND_BASE)/target/h -DCPU=$(CPU)
+
