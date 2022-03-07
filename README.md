@@ -4,7 +4,7 @@ This is a "private" fork of TCNopen (Components for IEC61375 standardised commun
 **Now awesome**: 
 Debian packaging is there! See below for news on 2020.
 
-I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Compiled binaries are available for versions [2.6](trdp/spy/plugins/2.6/epan), [3.0](trdp/spy/plugins/3.0/epan), [3.2](trdp/spy/plugins/3.2/epan) and [3.4](trdp/spy/plugins/3.4/epan). It now really works for Datasets, Arrays, Strings and filtering on names. Try it out! Create an issue if it doesn't work for you. Please be verbose if I misinterpreted the standard somewhere.
+I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Compiled binaries are available for versions [2.6](trdp/spy/plugins/2.6/epan), [3.0](trdp/spy/plugins/3.0/epan), [3.2](trdp/spy/plugins/3.2/epan), [3.4](trdp/spy/plugins/3.4/epan) and [3.6](trdp/spy/plugins/3.6/epan). It now really works for Datasets, Arrays, Strings and filtering on names. Try it out! Create an issue if it doesn't work for you. Please be verbose if I misinterpreted the standard somewhere. From the latest revision (only available for Wireshark 3.6) you can load a folder full of XML-configs.
 
 ## Goal of fork
  - The [master](https://github.com/T12z/TCNopen/tree/master) for me to play around.
@@ -32,7 +32,12 @@ I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Comp
  - How build the Debian packages? Install the build-dependencies (Build-Depends: debhelper (>= 12.8), doxygen, libwireshark-dev (>= 2.6), libglib2.0-dev, graphviz), go into tcnopen-trdp/trdp and run "make bindeb-pkg" to build the lib and the wireshark plugin packages. Install them with "sudo dpkg -i ../*.deb". Wireshark will find its plugin automatically and your Linux compiler should find the headers also. Only need to add -ltrdp -ltau or -ltrdp-hp -ltau-hp to the linker of your applications.
  With this, I will not pre-build the Wireshark plugins anymore. Please checkout the upstream branch for older pre-build plugin binaries 2.6, 3.0 and 3.2.
  - Actually, I added the plugins for 3.4 for convenience for a last time.
- 
+
+## In 2021 and 2022
+ I moved jobs and now work for Stadler Rail. I am not using TRDP on any recurring basis anymore in my position (rather MQTT, VDV301 ...). So this repo will wind down even further in updates.
+ Some upgrades and bugfixes in the SPY were pushed. Building for Windows is still quite annoying and eats precious time.
+ The upstream project still receives active development but focuses on many goals. When I pull their additions, I notice that warning-free Linux compilation is not their primary focus, which also makes keeping up tiring. You'll also notice some [differences](https://github.com/T12z/TCNopen/compare/upstream...master) between [upstream](https://github.com/T12z/TCNopen/tree/upstream) and [master](https://github.com/T12z/TCNopen/tree/master)
+
 ## Missing
  - Regular Updates. This is NOT in sync nor latest update from original sourceforge SVN
  - Support. I am no TRDP expert, neither have I project funds to work on TRDP
