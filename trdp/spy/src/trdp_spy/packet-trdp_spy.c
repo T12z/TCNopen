@@ -411,7 +411,10 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				case TRDP_BITSUBTYPE_BITSET8:
 					valu = tvb_get_guint8(tvb, offset);
 					bits[sizeof(bits)-1] = 0;
-					for(int i=sizeof(bits)-1, guint64 v=valu; i--; v>>=1) bits[i] = v&1 ? '1' : '.';
+					do {
+						guint64 v=valu;
+						for(int i=sizeof(bits)-1; i--; v>>=1) bits[i] = v&1 ? '1' : '.';
+					} while(0); /* to properly wrap the v variable scope */
 					proto_tree_add_uint_format_value(userdata_element, el->hf_id, tvb, offset, el->width, (guint32)valu, "%#02x ( %s )", (guint32)valu, bits );
 					offset += el->width;
 					break;
