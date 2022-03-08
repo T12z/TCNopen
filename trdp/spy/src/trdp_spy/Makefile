@@ -19,6 +19,7 @@ LDFLAGS  += $(shell pkg-config wireshark --libs-only-other)
 LIBS     += $(shell pkg-config wireshark --libs-only-l)
 PLUGINDIR = $(shell pkg-config wireshark --variable=plugindir)
 INSTALL   = install
+WSVER     = $(shell basename $(PLUGINDIR))
 
 CPPFLAGS += -I. $(IFLAGS)
 INSTALL  += -D -t
@@ -32,7 +33,7 @@ endif
 HFILES = $(addsuffix /cfile.h,$(subst -I,,$(IFLAGS)))
 CFILE_EXISTS = $(strip $(foreach hdr,$(HFILES),$(file <$(hdr))))
 
-CPPFLAGS += -DPLUGIN_VERSION=\"2.1.1\"
+CPPFLAGS += -DPLUGIN_VERSION=\"2.2.1\"
 CPPFLAGS += -Wall -W -Wextra -Wendif-labels -Wpointer-arith -Warray-bounds -Wformat-security -fwrapv -fno-strict-overflow -fno-delete-null-pointer-checks -Wvla -Waddress -Wattributes -Wdiv-by-zero -Wignored-qualifiers -Wpragmas -Wno-overlength-strings -Wwrite-strings -Wno-long-long -fexcess-precision=fast -Wc++-compat -Wshadow -Wno-pointer-sign -Wold-style-definition -Wstrict-prototypes -Wlogical-op -Wjump-misses-init -fvisibility=hidden
 LDFLAGS  += -Wl,--as-needed -pie -Wl,-soname,trdp_spy.so
 
@@ -69,6 +70,9 @@ distclean: clean
 
 install: trdp_spy.so
 	$(INSTALL) $(DESTDIR)$(PLUGINDIR)/epan trdp_spy.so
+
+plugin: trdp_spy.so
+	$(INSTALL) ../../plugins/$(WSVER)/epan trdp_spy.so
 
 install-html: doc-html
 	$(INSTALL) $(DESTDIR)/html-ref doc/html/*.html doc/html/*.png doc/html/*.js doc/html/*.map doc/html/*.css

@@ -10,11 +10,13 @@
  *
  * @author          Florian Weispfenning, Bombardier Transportation
  * @author          Thorsten Schulz, Universität Rostock
+ * @author          Thorsten Schulz, Stadler Deutschland GmbH
  *
  * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
+ * @copyright       Copyright Stadler Deutschland GmbH, 2022 (Updates to support multiple dictionaries.)
  *
  * $Id: $
  *
@@ -116,6 +118,8 @@ typedef struct Dataset {
 /* public */
 	guint32 datasetId;       /**< Unique identification of one dataset */
 	gint    ett_id;          /**< GUI-id for packet subtree */
+	gint   duplicates;       /**< incremented on multiple instances */
+	gchar  *source;          /**< file name of first appearance for debugging */
 
 	struct Element *listOfElements; /**< All elements, this dataset consists of. */
 	struct Element *lastOfElements; /**< other end of the Bratwurst */
@@ -150,11 +154,12 @@ typedef struct ComId {
 	guint32  dataset;    /**< Id for a dataset ( @link #Dataset see Dataset structure @endlink) */
 	gint32   size;       /**< cached size derived from linked dataset */
 	gint     ett_id;     /**< GUI-id for root-subtree */
+	gint     duplicates; /**< incremented on multiple instances */
+	gchar    *source;    /**< file name of first appearance for debugging */
 
 	struct Dataset *linkedDS; /**< cached dataset for id in #dataset */
 	struct ComId   *next;     /**< next comId item in linked list */
 } ComId;
-
 
 /** @struct TrdpDict
  *
@@ -172,6 +177,7 @@ typedef struct TrdpDict {
 
 /* pub-R/O */
 	guint         knowledge;    /**< number of found ComIds */
+	guint         datasets;     /**< number of Datasets */
 	struct ComId *mTableComId;  /**< first item of linked list of ComId items. Use it to iterate if necessary or use TrdpDict_lookup_ComId for a pointer. */
 	gchar        *xml_file;     /**< cached name of last parsed file */
 	guint32 def_bitset_subtype; /**< default subtype value for numeric bitset types */
@@ -182,11 +188,12 @@ typedef struct TrdpDict {
  *  @brief Create a new TrdpDict container
  *
  *  @param xmlconfigFile  Path to xml file on disk.
+ *  @param readAllInPath  when set, will discard the filename in xmlconfigFile and read all files in the path
  *  @param error          Will be set to non-null on any error.
  *
  *  @return pointer to the container or NULL on problems. See error then for the cause.
  */
-extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, guint32 def_subtype, GError **error);
+extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, guint32 def_subtype, gboolean readAllInPath, GError **error);
 
 /** @fn  TrdpDict *TrdpDict_delete(TrdpDict *self)
  *
@@ -222,7 +229,7 @@ extern gchar    *TrdpDict_summary(const TrdpDict *self);
  *
  *  @return  pointer to the ComId item in the dictionary or NULL if not found
  */
-extern const ComId   *TrdpDict_lookup_ComId(const TrdpDict *self, guint32 comId);
+extern       ComId   *TrdpDict_lookup_ComId(const TrdpDict *self, guint32 comId);
 
 /** @fn  Dataset *TrdpDict_get_Dataset (const TrdpDict *self, guint32 datasetId)
  *

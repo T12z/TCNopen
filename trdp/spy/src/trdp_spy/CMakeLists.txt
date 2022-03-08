@@ -29,7 +29,7 @@ set ( CMAKE_VERBOSE_MAKEFILE true )
 include(WiresharkPlugin)
 
 # Plugin name and version info (major minor micro extra)
-set_module_info(trdp_spy 2 1 1 0)
+set_module_info(trdp_spy 2 2 1 0)
 
 set(DISSECTOR_SRC
     packet-trdp_spy.c
