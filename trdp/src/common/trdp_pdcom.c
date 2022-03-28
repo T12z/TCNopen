@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     AHW 2022-03-24: Ticket #391 Allow PD request without reply
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *     AHW 2021-04-30: Ticket #369 Variable sized arrays are not supported if marshall is active
 *      BL 2020-11-03: Ticket #347 Allow dynamic sized arrays for PD (Ticket #207 undone)
@@ -740,7 +741,7 @@ TRDP_ERR_T  trdp_pdReceive (
 {
     PD_HEADER_T         *pNewFrameHead      = &appHandle->pNewFrame->frameHead;
     PD_ELE_T            *pExistingElement   = NULL;
-    PD_ELE_T            *pPulledElement;
+    PD_ELE_T            *pPulledElement     = NULL;
     TRDP_ERR_T          err             = TRDP_NO_ERR;
     UINT32              recSize         = TRDP_MAX_PD_PACKET_SIZE;
     int                 informUser      = FALSE;
@@ -989,15 +990,22 @@ TRDP_ERR_T  trdp_pdReceive (
                 }
                 else
                 {
-                    UINT32 replyComId = vos_ntohl(pNewFrameHead->replyComId);
-
-                    if (replyComId == 0u)
+                    if ((pNewFrameHead->replyComId == 0u) && (pNewFrameHead->replyIpAddress == 0))
                     {
-                        replyComId = vos_ntohl(pNewFrameHead->comId);
+                       informUser = TRUE;   /* #391 request without reply */
                     }
+                    else
+                    {
+                        UINT32 replyComId = vos_ntohl(pNewFrameHead->replyComId);
 
-                    /*  Find requested publish element  */
-                    pPulledElement = trdp_queueFindComId(appHandle->pSndQueue, replyComId);
+                        if (replyComId == 0u)
+                        {
+                            replyComId = vos_ntohl(pNewFrameHead->comId);
+                        }
+
+                        /*  Find requested publish element  */
+                        pPulledElement = trdp_queueFindComId(appHandle->pSndQueue, replyComId);
+                    }
                 }
 
                 if (pPulledElement != NULL)

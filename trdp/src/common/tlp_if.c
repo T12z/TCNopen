@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     AHW 2022-03-24: Ticket #391 Allow PD request without reply
 *     IBO 2021-08-12: Ticket #355 Redundant PD default state should be follower
 *     AHW 2021-05-04: Ticket #354 Sequence counter synchronization error working in redundancy mode
 *      BL 2020-07-27: Ticket #304 The reception of any incorrect message causes it to exit the loop
@@ -1044,14 +1045,14 @@ EXT_DECL TRDP_ERR_T tlp_request (
 
     /*    Check params    */
     if ((appHandle == NULL)
-        || (subHandle == NULL)
+        || ((subHandle == NULL) && ((replyComId != 0) || (replyIpAddr != 0)))  /* #391 allow reply request without reply */
         || ((comId == 0u) && (replyComId == 0u))
         || (destIpAddr == 0u))
     {
         return TRDP_PARAM_ERR;
     }
 
-    if (pSubPD->magic != TRDP_MAGIC_SUB_HNDL_VALUE)
+    if ((pSubPD != NULL) && (pSubPD->magic != TRDP_MAGIC_SUB_HNDL_VALUE))     /* #391 allow reply request without reply */
     {
         return TRDP_NOSUB_ERR;
     }
@@ -1188,9 +1189,12 @@ EXT_DECL TRDP_ERR_T tlp_request (
         if (ret == TRDP_NO_ERR && pReqElement != NULL)
         {
 
-            if (replyComId == 0u)
+            if (pSubPD != NULL)   /* #391 only if reply requested */
             {
-                replyComId = pSubPD->addr.comId;
+                if (replyComId == 0u)
+                {
+                    replyComId = pSubPD->addr.comId;
+                }
             }
 
             pReqElement->addr.destIpAddr    = destIpAddr;
@@ -1208,12 +1212,15 @@ EXT_DECL TRDP_ERR_T tlp_request (
             /*  This flag triggers sending in tlc_process (one shot)  */
             pReqElement->privFlags |= TRDP_REQ_2B_SENT;
 
-            /*    Set the current time and start time out of subscribed packet  */
-            if (timerisset(&pSubPD->interval))
+            if (pSubPD != NULL)   /* #391 only if reply requested */
             {
-                vos_getTime(&pSubPD->timeToGo);
-                vos_addTime(&pSubPD->timeToGo, &pSubPD->interval);
-                pSubPD->privFlags &= (unsigned)~TRDP_TIMED_OUT;   /* Reset time out flag (#151) */
+                /*    Set the current time and start time out of subscribed packet  */
+                if (timerisset(&pSubPD->interval))
+                {
+                    vos_getTime(&pSubPD->timeToGo);
+                    vos_addTime(&pSubPD->timeToGo, &pSubPD->interval);
+                    pSubPD->privFlags &= (unsigned)~TRDP_TIMED_OUT;   /* Reset time out flag (#151) */
+                }
             }
         }
 
