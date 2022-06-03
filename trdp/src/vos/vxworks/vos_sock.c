@@ -17,6 +17,7 @@
  /*
  * $Id$*
  *
+ *      MM 2022-05-30: Ticket #326: fixed handling of destination (own) address on UDP receive
  *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      MM 2021-03-05: Ticket #360: Adaption for VxWorks7
  *      BL 2019-08-27: Changed send failure from ERROR to WARNING
@@ -66,7 +67,7 @@
  *  LOCALS
  */
 
-const CHAR8     *cDefaultIface = "fec";
+
 
 BOOL8           vosSockInitialised = FALSE;
 
@@ -105,7 +106,7 @@ UINT32 vos_getInterfaceIP (UINT32 index)
 
     for (i = 0; i < ifCount; i++)
     {
-        if (ifIndexs[i] == index)
+        if (0 == index)
         {
             return ifAddrs[i].ipAddr;
         }
@@ -1154,8 +1155,8 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
             {
                 for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL; cmsg = CMSG_NXTHDR(&msg, cmsg))
                 {
-                    #if defined(IP_PKTINFO)
-                    if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_PKTINFO)
+                    #if defined(IP_PKTINFO) && defined(IPPROTO_IP)
+                    if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO)
                     {
                         struct in_pktinfo *pia = (struct in_pktinfo *)CMSG_DATA(cmsg);
                         *pDstIPAddr = (UINT32)vos_ntohl(pia->ipi_addr.s_addr);

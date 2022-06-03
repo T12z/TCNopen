@@ -17,7 +17,8 @@
  /*
  * $Id$*
  *
- *      MM 2021-03-05: Ticket #360 Adaption for VxWorks7
+ *      MM 2022-05-30: Ticket #326: Implementation of missing thread functionality
+ *      MM 2021-03-05: Ticket #360: Adaption for VxWorks7
  *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
  *      BL 2019-06-12: Ticket #260: Error in vos_threadCreate() not handled properly (vxworks)
  *      BL 2018-10-29: Ticket #215: use CLOCK_MONOTONIC if available
@@ -97,17 +98,40 @@ INT32           vosThreadInitialised = FALSE;
 void vos_cyclicThread (
     UINT32              interval,
     VOS_THREAD_FUNC_T   pFunction,
+    VOS_TIMEVAL_T       *pStartTime,
     void                *pArguments)
 {
     VOS_TIMEVAL_T priorCall;
     VOS_TIMEVAL_T afterCall;
+    VOS_TIMEVAL_T now;
     UINT32 execTime;
     UINT32 waitingTime;
+    
     for (;; )
     {
+        if (pStartTime != NULL)
+        {
+            /* Synchronize with starttime */
+            vos_getTime(&now);                      /* get initial time */
+            vos_subTime(&now, pStartTime);
+    
+            /* Wait for multiples of interval */
+    
+            execTime    = ((UINT32)now.tv_usec % interval);
+            waitingTime = interval - execTime;
+            if (waitingTime > interval)
+            {
+                vos_printLog(VOS_LOG_ERROR,
+                             "waiting time > interval:  %u > %u usec!\n",
+                             (unsigned int) waitingTime, (unsigned int) interval);
+            }
+    
+            /* Idle for the difference */
+            (void) vos_threadDelay(waitingTime);
+        }
         vos_getTime(&priorCall);  /* get initial time */
         pFunction(pArguments);    /* perform thread function */
-        vos_getTime(&afterCall);  /* get time after function ghas returned */
+        vos_getTime(&afterCall);  /* get time after function has returned */
         /* subtract in the pattern after - prior to get the runtime of function() */
         vos_subTime(&afterCall,&priorCall);
         /* afterCall holds now the time difference within a structure not compatible with interval */
@@ -178,27 +202,31 @@ EXT_DECL void vos_threadTerm (void)
  *
  *  @param[out]     pThread         Pointer to returned thread handle
  *  @param[in]      pName           Pointer to name of the thread (optional)
- *  @param[in]      policy          UNUSED in VxWorks
- *  @param[in]      priority        Scheduling priority (0...255 (lowest), default 0)
- *  @param[in]      interval        Interval for cyclic threads in us (optional)
+ *  @param[in]      policy          Scheduling policy (FIFO, Round Robin or other)
+ *  @param[in]      priority        Scheduling priority (1...255 (highest), default 0)
+ *  @param[in]      interval        Interval for cyclic threads in us (optional, range 0...999999)
+ *  @param[in]      pStartTime      Starting time for cyclic threads (optional for real time threads)
  *  @param[in]      stackSize       Minimum stacksize, default 0: 16kB
  *  @param[in]      pFunction       Pointer to the thread function
  *  @param[in]      pArguments      Pointer to the thread function parameters
  *  @retval         VOS_NO_ERR      no error
  *  @retval         VOS_INIT_ERR    module not initialised
+ *  @retval         VOS_NOINIT_ERR  invalid handle
  *  @retval         VOS_PARAM_ERR   parameter out of range/invalid
  *  @retval         VOS_THREAD_ERR  thread creation error
  */
-EXT_DECL VOS_ERR_T vos_threadCreate (
+
+EXT_DECL VOS_ERR_T vos_threadCreateSync (
     VOS_THREAD_T            *pThread,
     const CHAR8             *pName,
     VOS_THREAD_POLICY_T     policy,
     VOS_THREAD_PRIORITY_T   priority,
     UINT32                  interval,
+    VOS_TIMEVAL_T           *pStartTime,
     UINT32                  stackSize,
     VOS_THREAD_FUNC_T       pFunction,
     void                    *pArguments)
-{
+{   
     int taskID = ERROR; /* intentionally int accd. vxworks doc. no hiding behind C99 types, keep OS API always pure*/
     UINT32 taskStackSize = (UINT32)cDefaultStackSize; /* init the task stack size to the default of 16kB */
     VOS_ERR_T result;
@@ -214,13 +242,43 @@ EXT_DECL VOS_ERR_T vos_threadCreate (
     }
 
     *pThread = NULL;
-
+    
+    /* Set the stack size, if caller chose not to use the default of 16kB*/
+    if (stackSize > 0)
+    {
+        taskStackSize = stackSize;
+    }
+    
     if (interval > 0U)
     {
-        vos_printLog(VOS_LOG_ERROR,
-                     "%s cyclic threads not implemented yet\n",
-                     pName);
-        result = VOS_INIT_ERR;
+         /* Now create a detached free running vxWorks task - remember that there is no policy */
+         /* attribute in VxWorks */
+         taskID = taskSpawn(pName,               /* name of new task (stored at pStackBase) */ 
+                            priority,            /* priority of new task 0 (highest).. 255 (lowest)*/
+                            VX_FP_TASK,          /* most universal task option */
+                            taskStackSize,       /* size (bytes) of stack needed plus name */
+                            (FUNCPTR) vos_cyclicThread, /* entry point of new task */
+                            (int) interval,      /*cyclic interval of task*/
+                            (int) pFunction,     /*pointer to function to be called*/
+                            (int) pStartTime,    /*synchronised startTime*/
+                            (int) pArguments,    /* supply the void* as int within the optional int filed */
+                            0, 0, 0, 0, 0, 0); /* these 6 remaining args are not used by OS, free for individual implementation */
+         /* vxWorks returns an int handle rather than a pointer */
+         if ( taskID == ERROR )
+         {
+             /* serious problem - no task created */
+             vos_printLog(VOS_LOG_ERROR,
+                    "%s taskSpawn() failed VxWorks errno=%#x %s\n",errno, strerror(errno));
+
+             result = VOS_THREAD_ERR;
+         }
+         else
+         {
+             /* this type cast is highly anti MISRA and shall be reworked */
+             *pThread = (VOS_THREAD_T) taskID;
+
+             result = VOS_NO_ERR;
+         }
     }
     else
     { 
@@ -256,6 +314,38 @@ EXT_DECL VOS_ERR_T vos_threadCreate (
         }
     }
     return result;
+}
+
+/**********************************************************************************************************************/
+/** Create a thread.
+ *  Create a thread and return a thread handle for further requests. Not each parameter may be supported by all
+ *  target systems!
+ *
+ *  @param[out]     pThread         Pointer to returned thread handle
+ *  @param[in]      pName           Pointer to name of the thread (optional)
+ *  @param[in]      policy          UNUSED in VxWorks
+ *  @param[in]      priority        Scheduling priority (0...255 (lowest), default 0)
+ *  @param[in]      interval        Interval for cyclic threads in us (optional)
+ *  @param[in]      stackSize       Minimum stacksize, default 0: 16kB
+ *  @param[in]      pFunction       Pointer to the thread function
+ *  @param[in]      pArguments      Pointer to the thread function parameters
+ *  @retval         VOS_NO_ERR      no error
+ *  @retval         VOS_INIT_ERR    module not initialised
+ *  @retval         VOS_PARAM_ERR   parameter out of range/invalid
+ *  @retval         VOS_THREAD_ERR  thread creation error
+ */
+EXT_DECL VOS_ERR_T vos_threadCreate (
+    VOS_THREAD_T            *pThread,
+    const CHAR8             *pName,
+    VOS_THREAD_POLICY_T     policy,
+    VOS_THREAD_PRIORITY_T   priority,
+    UINT32                  interval,
+    UINT32                  stackSize,
+    VOS_THREAD_FUNC_T       pFunction,
+    void                    *pArguments)
+{
+    return vos_threadCreateSync(pThread, pName, policy, priority, interval,
+                                    NULL, stackSize, pFunction, pArguments);
 }
 
 
@@ -385,6 +475,55 @@ EXT_DECL void vos_getTime (
 #endif
         pTime->tv_sec   = (UINT32) myTime.tv_sec;
         pTime->tv_usec  = (INT32) (myTime.tv_nsec / VOS_NSECS_PER_USEC);
+    }
+}
+
+/**********************************************************************************************************************/
+/** Return the current time in sec and us
+ *
+ *
+ *  @param[out]     pTime           Pointer to time value
+ */
+
+EXT_DECL void vos_getRealTime (
+    VOS_TIMEVAL_T *pTime)
+{
+    struct timespec myTime = {(time_t)NULL,(long)NULL};
+    
+    if (pTime == NULL)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "ERROR NULL pointer\n");
+    }
+    else
+    {
+        /*lint -e(534) ignore return value */
+        clock_gettime(CLOCK_REALTIME, &myTime);
+        pTime->tv_sec   = (UINT32) myTime.tv_sec;
+        pTime->tv_usec  = (INT32) (myTime.tv_nsec / VOS_NSECS_PER_USEC);
+    }
+}
+
+/**********************************************************************************************************************/
+/** Return the current time in sec and us
+ *
+ *
+ *  @param[out]     pTime           Pointer to time value
+ */
+
+EXT_DECL void vos_getNanoTime (
+    UINT64 *pTime)
+{
+    if (pTime == NULL)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "ERROR NULL pointer\n");
+    }
+    else
+    {
+        struct timespec currentTime;
+
+        (void) clock_gettime(CLOCK_REALTIME, &currentTime);
+
+        *pTime = (uint64_t)currentTime.tv_sec * 1000000000LLu + (uint64_t)currentTime.tv_nsec;
     }
 }
 

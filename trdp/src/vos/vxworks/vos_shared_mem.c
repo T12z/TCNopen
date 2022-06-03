@@ -38,6 +38,8 @@
 
 #include <vxWorks.h>
 #include <semLib.h>
+#include <stat.h>
+#include <mman.h>
 #include "sysLib.h"
 
 
@@ -83,14 +85,38 @@ EXT_DECL VOS_ERR_T vos_sharedOpen (
     UINT8       * *ppMemoryArea,
     UINT32      *pSize)
 {
-#if(0)
     VOS_ERR_T       ret         = VOS_MEM_ERR;
-    mode_t          PERMISSION  = 0666;      /* Shared Memory permission is rw-rw-rw- */
     static INT32    fd;                      /* Shared Memory file descriptor */
     struct    stat  sharedMemoryStat;        /* Shared Memory Stat */
 
     /* Shared Memory Open */
-    *ppMemoryArea = (UINT8*)smMemMalloc(*pSize);
+    fd = shm_open(pKey, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    if (fd == -1)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "Shared Memory Create failed\n");
+        return ret;
+    }
+    /* Shared Memory acquire */
+    if (ftruncate(fd, (off_t )*pSize) == -1)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "Shared Memory Acquire failed\n");
+        return ret;
+    }
+    /* Get Shared Memory Stats */
+    (void) fstat(fd, &sharedMemoryStat);
+    if (sharedMemoryStat.st_size != (off_t )*pSize)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "Shared Memory Size failed\n");
+        return ret;
+    }
+
+    /* Mapping Shared Memory */
+    *ppMemoryArea = (UINT8*) mmap(NULL, (size_t) sharedMemoryStat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (*ppMemoryArea == MAP_FAILED)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "Shared Memory memory-mapping failed\n");
+        return ret;
+    }
     /* Initialize Shared Memory */
     memset(*ppMemoryArea, 0, sharedMemoryStat.st_size);
     /* Handle */
@@ -103,10 +129,19 @@ EXT_DECL VOS_ERR_T vos_sharedOpen (
     else
     {
         (*pHandle)->fd = fd;
+        (*pHandle)->sharedMemoryName = (CHAR8*) vos_memAlloc((UINT32) ((strlen(pKey) + 1) * sizeof(CHAR8)));
+        if ((*pHandle)->sharedMemoryName == NULL)
+        {
+            vos_printLogStr(VOS_LOG_ERROR,"vos_sharedOpen() ERROR Could not alloc memory\n");
+            return ret;
+        }
+        else
+        {
+            vos_strncpy((*pHandle)->sharedMemoryName, pKey, (UINT32) (strlen(pKey) + 1));
+        }
     }
-    ret = VOS_NO_ERR;
-#endif
-    return VOS_UNKNOWN_ERR;
+
+    return VOS_NO_ERR;
 }
 
 /**********************************************************************************************************************/
@@ -125,5 +160,21 @@ EXT_DECL VOS_ERR_T vos_sharedClose (
     VOS_SHRD_T  handle,
     const UINT8 *pMemoryArea)
 {
-    return VOS_UNKNOWN_ERR;
+    (void)pMemoryArea;
+
+    if (close(handle->fd) == -1)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "Shared Memory file close failed\n");
+        return VOS_MEM_ERR;
+    }
+    if (shm_unlink(handle->sharedMemoryName) == -1)
+    {
+        vos_printLogStr(VOS_LOG_ERROR, "Shared Memory unLink failed\n");
+        return VOS_MEM_ERR;
+    }
+    if (handle->sharedMemoryName != NULL)
+    {
+        vos_memFree(handle->sharedMemoryName);
+    }
+    return VOS_NO_ERR;
 }
