@@ -11,6 +11,10 @@ You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols-
 
 N E W S
 =======
+2022-06 Thorsten <thorsten.schulz@stadlerrail.com>
+
+ * Bug fix as reported by Lorenzo B., where in between variable arrays would break further parsing of a dataset.
+
 2022-03 Thorsten <thorsten.schulz@stadlerrail.com>
 
  * Build for Wireshark 3.6 added. Minor upgrades in two calls.

@@ -607,6 +607,7 @@ static gint32 Dataset_preCalculate(Dataset *self, const TrdpDict *dict) {
 
 	if (!self->size) {
 		gint32 size = 0U;
+		gboolean var_array = FALSE;
 		for (Element *el = self->listOfElements; el; el=el->next) {
 
 			if (!Element_checkConsistency(el, dict, self->datasetId)) {
@@ -615,10 +616,14 @@ static gint32 Dataset_preCalculate(Dataset *self, const TrdpDict *dict) {
 			}
 			if (!el->array_size || !el->width) {
 				size = 0;
-				break;
+				var_array = TRUE;
+				/* instead of breaking here, we need to continue through more elements to check them all, but sticking
+				 * size at zero */
 			}
 
-			size += TrdpDict_element_size(el, 1);
+			if (!var_array) {
+				size += TrdpDict_element_size(el, 1);
+			}
 		}
 		self->size = size;
 	}
