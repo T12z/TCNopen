@@ -39,7 +39,7 @@
 #include <vxWorks.h>
 #include <semLib.h>
 #include <stat.h>
-#include <mman.h>
+#include <sys/mman.h>
 #include "sysLib.h"
 
 
