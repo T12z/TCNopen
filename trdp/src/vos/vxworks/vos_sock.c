@@ -1211,7 +1211,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
             STRING_ERR(buff);
             vos_printLog(VOS_LOG_ERROR, "recvmsg() failed (Err: %s)\n", buff);
             return VOS_IO_ERR;
-         }
+        }
     }
     else if (rcvSize == 0)
     {
