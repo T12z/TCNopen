@@ -103,6 +103,7 @@ const ElementType ElBasics[] = {
 	{ "REAL32",     TRDP_REAL32, TRDP_ENDSUBTYPE_BIG}, { "REAL64",    TRDP_REAL64, TRDP_ENDSUBTYPE_BIG },
 	{ "REAL32_LE",  TRDP_REAL32, TRDP_ENDSUBTYPE_LIT}, { "REAL64_LE", TRDP_REAL64, TRDP_ENDSUBTYPE_LIT },
 	{ "TIMEDATE32", TRDP_TIMEDATE32, 0 }, { "TIMEDATE48", TRDP_TIMEDATE48, 0 }, { "TIMEDATE64", TRDP_TIMEDATE64, 0 },
+	{ "SC32",    TRDP_SC32,   0},
 };
 
 static ElementType decodeType(const char *type, guint32 subtype) {
