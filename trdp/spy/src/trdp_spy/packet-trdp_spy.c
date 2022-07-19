@@ -464,31 +464,31 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				vals = tvb_get_gint8(tvb, offset);
 				break;
 			case TRDP_INT16:
-				vals = tvb_get_ntohis(tvb, offset);
+				vals = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohis(tvb, offset) : tvb_get_ntohis(tvb, offset);
 				break;
 			case TRDP_INT32:
-				vals = tvb_get_ntohil(tvb, offset);
+				vals = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohil(tvb, offset) : tvb_get_ntohil(tvb, offset);
 				break;
 			case TRDP_INT64:
-				vals = tvb_get_ntohi64(tvb, offset);
+				vals = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohi64(tvb, offset) : tvb_get_ntohi64(tvb, offset);
 				break;
 			case TRDP_UINT8:
 				valu = tvb_get_guint8(tvb, offset);
 				break;
 			case TRDP_UINT16:
-				valu = tvb_get_ntohs(tvb, offset);
+				valu = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohs(tvb, offset) : tvb_get_ntohs(tvb, offset);
 				break;
 			case TRDP_UINT32:
-				valu = tvb_get_ntohl(tvb, offset);
+				valu = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohl(tvb, offset) : tvb_get_ntohl(tvb, offset);
 				break;
 			case TRDP_UINT64:
-				valu = tvb_get_ntoh64(tvb, offset);
+				valu = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letoh64(tvb, offset) : tvb_get_ntoh64(tvb, offset);
 				break;
 			case TRDP_REAL32:
-				real64 = tvb_get_ntohieee_float(tvb, offset);
+				real64 = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohieee_float(tvb, offset) : tvb_get_ntohieee_float(tvb, offset);
 				break;
 			case TRDP_REAL64:
-				real64 = tvb_get_ntohieee_double(tvb, offset);
+				real64 = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohieee_double(tvb, offset) : tvb_get_ntohieee_double(tvb, offset);
 				break;
 			case TRDP_TIMEDATE32:
 				/* This should be time_t from general understanding, which is UNIX time, seconds since 1970

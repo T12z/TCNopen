@@ -54,6 +54,9 @@
 #define TRDP_BITSUBTYPE_BOOL8       1 /**< =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true) */
 #define TRDP_BITSUBTYPE_ANTIVALENT8 2 /**< =UINT8, 2 bit relevant ('01'B -> false, '10'B -> true) */
 
+#define TRDP_ENDSUBTYPE_BIG     0 /**< Big Endian */
+#define TRDP_ENDSUBTYPE_LIT     1 /**< Little Endian */
+
 #define TRDP_STANDARDTYPE_MAX    TRDP_TIMEDATE64 /**< The last standard data type */
 
 #define TRDP_DEFAULT_UDPTCP_MD_PORT 17225   /*< Default port address for Message data (MD) communication */
