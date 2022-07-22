@@ -11,6 +11,12 @@ You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols-
 
 N E W S
 =======
+2022-07 Palauqui <georges.palauqui@leroy-autom.com>
+
+ * Add support for Little Endian user data value (use non standard type in XML config file)
+
+ * Add SDTv2 Safety Code checking according to IEC 61375-2-3:2015 Annex B (use non standard type in XML config file)
+
 2022-06 Thorsten <thorsten.schulz@stadlerrail.com>
 
  * Bug fix as reported by Lorenzo B., where in between variable arrays would break further parsing of a dataset.

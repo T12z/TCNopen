@@ -49,17 +49,24 @@
 #define TRDP_TIMEDATE32	14	/**< 32 bit UNIX time */
 #define TRDP_TIMEDATE48	15	/**< 48 bit TCN time (32 bit seconds and 16 bit ticks) */
 #define TRDP_TIMEDATE64	16	/**< 32 bit seconds and 32 bit microseconds */
+#define TRDP_SC32		17	/**< SC-32 to be checked, 32 bit */
 
 #define TRDP_BITSUBTYPE_BITSET8     0 /**< =UINT8, all 8bits displayed */
 #define TRDP_BITSUBTYPE_BOOL8       1 /**< =UINT8, 1 bit relevant (equal to zero -> false, not equal to zero -> true) */
 #define TRDP_BITSUBTYPE_ANTIVALENT8 2 /**< =UINT8, 2 bit relevant ('01'B -> false, '10'B -> true) */
 
-#define TRDP_STANDARDTYPE_MAX    TRDP_TIMEDATE64 /**< The last standard data type */
+#define TRDP_ENDSUBTYPE_BIG     0 /**< Big Endian */
+#define TRDP_ENDSUBTYPE_LIT     1 /**< Little Endian */
+
+#define TRDP_STANDARDTYPE_MAX    TRDP_SC32 /**< The last standard data type */
 
 #define TRDP_DEFAULT_UDPTCP_MD_PORT 17225   /*< Default port address for Message data (MD) communication */
 #define TRDP_DEFAULT_UDP_PD_PORT    17224   /*< Default port address for Process data (PD) communication */
 #define TRDP_DEFAULT_STR_PD_PORT    "17224"
 #define TRDP_DEFAULT_STR_MD_PORT    "17225"
+
+#define TRDP_DEFAULT_SC32_SID     0xFFFFFFFF
+#define TRDP_DEFAULT_STR_SC32_SID "0xFFFFFFFF"
 
 #define PROTO_TAG_TRDP          "TRDP"
 #define PROTO_NAME_TRDP         "Train Real Time Data Protocol"
@@ -96,6 +103,8 @@
 
 #define TRDP_FCS_LENGTH 4   /**< The CRC calculation results in a 32bit result so 4 bytes are necessary */
 
+#define TRDP_SC32_LENGTH 4  /**< The CRC calculation results in a 32bit result so 4 bytes are necessary */
+
 /*******************************************************************************
  * GLOBAL FUNCTIONS
  */
@@ -113,6 +122,18 @@
  * @return Calculated fcs value
  */
 guint32 trdp_fcs32(const guint8 buf[], guint32 len, guint32 fcs);
+
+/** @fn quint32 trdp_sc32(const quint8 buf[], quint32 len, quint32 sc)
+ *
+ * @brief Compute crc32 according to IEC 61784-3-3.
+ *
+ * @param[in] buf   Input buffer
+ * @param[in] len   Length of input buffer
+ * @param[in] sc    Initial (seed) value for the SC-32 calculation
+ *
+ * @return Calculated sc-32 value
+ */
+guint32 trdp_sc32(const guint8 buf[], guint32 len, guint32 sc);
 
 /**@fn quint8 trdp_dissect_width(quint32 type);
  * @brief Lookup table for length of the standard types.

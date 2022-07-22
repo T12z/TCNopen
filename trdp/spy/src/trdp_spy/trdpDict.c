@@ -96,9 +96,14 @@ static void     ComId_delete               (ComId *self);
 const ElementType ElBasics[] = {
 	{ "BITSET8", TRDP_BITSET8, TRDP_BITSUBTYPE_BITSET8 }, { "BOOL8", TRDP_BITSET8, TRDP_BITSUBTYPE_BOOL8 }, { "ANTIVALENT8", TRDP_BITSET8, TRDP_BITSUBTYPE_ANTIVALENT8 },
 	{ "CHAR8",   TRDP_CHAR8,  0}, { "UTF16",  TRDP_UTF16,  0 },
-	{ "INT8",    TRDP_INT8,   0}, { "INT16",  TRDP_INT16,  0 }, { "INT32", TRDP_INT32, 0 },           { "INT64",      TRDP_INT64, 0 },
-	{ "UINT8",   TRDP_UINT8,  0}, { "UINT16", TRDP_UINT16, 0 }, { "UINT32", TRDP_UINT32, 0 },         { "UINT64",     TRDP_UINT64, 0 },
-	{ "REAL32",  TRDP_REAL32, 0}, { "REAL64", TRDP_REAL64, 0 }, { "TIMEDATE32", TRDP_TIMEDATE32, 0 }, { "TIMEDATE48", TRDP_TIMEDATE48, 0 }, { "TIMEDATE64", TRDP_TIMEDATE64, 0 },
+	{ "INT8",    TRDP_INT8,   0}, { "INT16",     TRDP_INT16,  TRDP_ENDSUBTYPE_BIG }, { "INT32",     TRDP_INT32,  TRDP_ENDSUBTYPE_BIG },   { "INT64",      TRDP_INT64,  TRDP_ENDSUBTYPE_BIG },
+	                              { "INT16_LE",  TRDP_INT16,  TRDP_ENDSUBTYPE_LIT }, { "INT32_LE",  TRDP_INT32,  TRDP_ENDSUBTYPE_LIT },   { "INT64_LE",   TRDP_INT64,  TRDP_ENDSUBTYPE_LIT },
+	{ "UINT8",   TRDP_UINT8,  0}, { "UINT16",    TRDP_UINT16, TRDP_ENDSUBTYPE_BIG }, { "UINT32",    TRDP_UINT32, TRDP_ENDSUBTYPE_BIG },   { "UINT64",     TRDP_UINT64, TRDP_ENDSUBTYPE_BIG },
+	                              { "UINT16_LE", TRDP_UINT16, TRDP_ENDSUBTYPE_LIT }, { "UINT32_LE", TRDP_UINT32, TRDP_ENDSUBTYPE_LIT },   { "UINT64_LE",  TRDP_UINT64, TRDP_ENDSUBTYPE_LIT },
+	{ "REAL32",     TRDP_REAL32, TRDP_ENDSUBTYPE_BIG}, { "REAL64",    TRDP_REAL64, TRDP_ENDSUBTYPE_BIG },
+	{ "REAL32_LE",  TRDP_REAL32, TRDP_ENDSUBTYPE_LIT}, { "REAL64_LE", TRDP_REAL64, TRDP_ENDSUBTYPE_LIT },
+	{ "TIMEDATE32", TRDP_TIMEDATE32, 0 }, { "TIMEDATE48", TRDP_TIMEDATE48, 0 }, { "TIMEDATE64", TRDP_TIMEDATE64, 0 },
+	{ "SC32",    TRDP_SC32,   0},
 };
 
 static ElementType decodeType(const char *type, guint32 subtype) {
@@ -111,7 +116,7 @@ static ElementType decodeType(const char *type, guint32 subtype) {
 			}
 	}
 	/* there is currently only one case of subtypes */
-	numeric.subtype = (numeric.id == TRDP_BITSET8) ? subtype : 0;
+	numeric.subtype = subtype;
 	strncpy(numeric.name, type, sizeof(numeric.name)-1);
 	return numeric;
 }

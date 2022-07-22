@@ -138,6 +138,7 @@ static gboolean g_0strings = FALSE;
 static gboolean g_time_local = TRUE;
 static gboolean g_time_raw = FALSE;
 static guint g_bitset_subtype = TRDP_BITSUBTYPE_BOOL8;
+static guint g_sid = TRDP_DEFAULT_SC32_SID;
 
 /* Initialize the subtree pointers */
 static gint ett_trdp_spy = -1;
@@ -151,6 +152,7 @@ static expert_field ei_trdp_config_notparsed = EI_INIT;
 static expert_field ei_trdp_padding_not_zero = EI_INIT;
 static expert_field ei_trdp_array_wrong = EI_INIT;
 static expert_field ei_trdp_faulty_antivalent = EI_INIT;
+static expert_field ei_trdp_sdtv2_safetycode = EI_INIT;
 
 /* static container for dynamic fields and subtree handles */
 static struct {
@@ -398,6 +400,9 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 			gdouble real64 = 0;
 			nstime_t nstime = {0,0};
 			gchar   bits[9];
+			guint32 package_crc = 0;
+			guint32 calced_crc, buff_length;
+			guint8* pBuff;
 
 			switch(el->type.id) {
 
@@ -464,31 +469,31 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				vals = tvb_get_gint8(tvb, offset);
 				break;
 			case TRDP_INT16:
-				vals = tvb_get_ntohis(tvb, offset);
+				vals = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohis(tvb, offset) : tvb_get_ntohis(tvb, offset);
 				break;
 			case TRDP_INT32:
-				vals = tvb_get_ntohil(tvb, offset);
+				vals = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohil(tvb, offset) : tvb_get_ntohil(tvb, offset);
 				break;
 			case TRDP_INT64:
-				vals = tvb_get_ntohi64(tvb, offset);
+				vals = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohi64(tvb, offset) : tvb_get_ntohi64(tvb, offset);
 				break;
 			case TRDP_UINT8:
 				valu = tvb_get_guint8(tvb, offset);
 				break;
 			case TRDP_UINT16:
-				valu = tvb_get_ntohs(tvb, offset);
+				valu = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohs(tvb, offset) : tvb_get_ntohs(tvb, offset);
 				break;
 			case TRDP_UINT32:
-				valu = tvb_get_ntohl(tvb, offset);
+				valu = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohl(tvb, offset) : tvb_get_ntohl(tvb, offset);
 				break;
 			case TRDP_UINT64:
-				valu = tvb_get_ntoh64(tvb, offset);
+				valu = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letoh64(tvb, offset) : tvb_get_ntoh64(tvb, offset);
 				break;
 			case TRDP_REAL32:
-				real64 = tvb_get_ntohieee_float(tvb, offset);
+				real64 = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohieee_float(tvb, offset) : tvb_get_ntohieee_float(tvb, offset);
 				break;
 			case TRDP_REAL64:
-				real64 = tvb_get_ntohieee_double(tvb, offset);
+				real64 = el->type.subtype == TRDP_ENDSUBTYPE_LIT ? tvb_get_letohieee_double(tvb, offset) : tvb_get_ntohieee_double(tvb, offset);
 				break;
 			case TRDP_TIMEDATE32:
 				/* This should be time_t from general understanding, which is UNIX time, seconds since 1970
@@ -510,6 +515,9 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 				nstime.secs = (time_t)vals;
 				vals = tvb_get_ntohil(tvb, offset + 4);
 				nstime.nsecs = (int)vals*1000;
+				break;
+			case TRDP_SC32:
+				package_crc = tvb_get_ntohl(tvb, offset);
 				break;
 			default:
 				PRNT(fprintf(stderr, "Unique type %d for %s\n", el->type.id, el->name));
@@ -581,6 +589,27 @@ static guint32 dissect_trdp_generic_body(tvbuff_t *tvb, packet_info *pinfo, prot
 					}
 				} else
 					proto_tree_add_time(userdata_element, el->hf_id, tvb, offset, el->width, &nstime);
+				offset += el->width;
+				break;
+			case TRDP_SC32:
+				buff_length = tvb_get_ntohl(tvb, TRDP_HEADER_OFFSET_DATASETLENGTH) - TRDP_SC32_LENGTH;
+				pBuff = (guint8*) g_malloc(buff_length);
+				if (pBuff != NULL) {
+					tvb_memcpy(tvb, pBuff, TRDP_HEADER_PD_OFFSET_DATA, buff_length);
+					calced_crc = trdp_sc32(pBuff, buff_length, (guint32)(g_sid & 0xFFFFFFFF));
+					if (package_crc == calced_crc)
+					{
+						proto_tree_add_uint_format_value(userdata_element, el->hf_id, tvb, offset, el->width, package_crc, "0x%04x [correct]", package_crc);
+					}
+					else
+					{
+						proto_tree_add_uint_format_value(userdata_element, el->hf_id, tvb, offset, el->width, package_crc, "0x%04x [incorrect, should be 0x%04x]",
+								package_crc, calced_crc);
+						proto_tree_add_expert_format(userdata_element, pinfo, &ei_trdp_sdtv2_safetycode, tvb, offset, el->width,
+							 "0x%04x is an incorrect SC32 value.", (guint32)package_crc);
+					}
+					g_free(pBuff);
+				}
 				offset += el->width;
 				break;
 			}
@@ -941,6 +970,9 @@ static void add_element_reg_info(const char *parentName, Element *el) {
 				g_time_raw ? FT_RELATIVE_TIME : FT_ABSOLUTE_TIME,
 				g_time_raw ? 0 : (g_time_local ? ABSOLUTE_TIME_LOCAL : ABSOLUTE_TIME_UTC), blurb );
 		break;
+	case TRDP_SC32:
+		add_reg_info( &el->hf_id, name, abbrev, FT_UINT32, BASE_HEX, blurb );
+		break;
 	default:
 		add_reg_info( &el->hf_id, name, abbrev, FT_BYTES, BASE_NONE, blurb );
 		/* as long as I do not track the hierarchy, do not recurse */
@@ -1212,6 +1244,9 @@ void proto_register_trdp(void) {
 	prefs_register_uint_preference(trdp_spy_module, "md.udptcp.port",
 			"MD message Port",
 			"UDP and TCP port for MD messages (Default port is " TRDP_DEFAULT_STR_MD_PORT ")", 10 /*base */, &g_md_port);
+	prefs_register_uint_preference(trdp_spy_module, "sdtv2.sid",
+			"SDTv2 SID (SC-32 Initial Value)",
+			"SDTv2 SID (Initial Value) for SC-32 calculation (Default is " TRDP_DEFAULT_STR_SC32_SID ")", 16 /*base */, &g_sid);
 
 	/* Register expert information */
 	expert_module_t* expert_trdp;
@@ -1224,6 +1259,7 @@ void proto_register_trdp(void) {
 			{ &ei_trdp_padding_not_zero, { "trdp.padding", PI_MALFORMED, PI_WARN, "TRDP Padding not filled with zero", EXPFILL }},
 			{ &ei_trdp_array_wrong, { "trdp.array", PI_MALFORMED, PI_WARN, "Dynamic array has unsupported datatype for length", EXPFILL }},
 			{ &ei_trdp_faulty_antivalent, { "trdp.faulty_antivalent", PI_MALFORMED, PI_WARN, "Data contains faulty antivalent value.", EXPFILL }},
+			{ &ei_trdp_sdtv2_safetycode, { "trdp.sdtv2_safetycode", PI_CHECKSUM, PI_ERROR, "SDTv2 SafetyCode check error.", EXPFILL }},
 	};
 
 	expert_trdp = expert_register_protocol(proto_trdp_spy);
