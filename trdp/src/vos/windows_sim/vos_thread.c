@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      AÖ 2022-11-23: Ticket #396: vos/windows_sim/vos_thread.c has a faulty code path in vos_threadRegisterLocal
 *      AÖ 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting, moved common functionality to vos_threadRegisterMain
 *      AÖ 2021-12-17: Ticket #386: Support for TimeSync multicore
 *      AÖ 2021-12-17: Ticket #385: Increase MAX_TIMESYNC_PREFIX_STRING from 20 to 64
@@ -265,7 +266,7 @@ EXT_DECL VOS_ERR_T vos_threadRegisterLocal(BOOL bStart, long timeSyncHandle)
         return VOS_THREAD_ERR;
     }
 
-    if (bStart)
+    if (bStart && ret == VOS_NO_ERR)
     {
         TSstart(tsHandel);
     }
