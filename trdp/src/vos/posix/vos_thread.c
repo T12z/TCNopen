@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      CK 2022-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
  *      SB 2021-08-09: Lint warnings
  *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call
  *      BL 2020-07-29: Ticket #303: UUID creation... #warning if uuid not used
@@ -1297,7 +1298,11 @@ EXT_DECL VOS_ERR_T vos_mutexCreate (
         err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
         if (err == 0)
         {
-            err = pthread_mutex_init((pthread_mutex_t *)&(*pMutex)->mutexId, &attr);
+            err = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+            if (err == 0)
+            {
+                err = pthread_mutex_init((pthread_mutex_t *)&(*pMutex)->mutexId, &attr);
+            }
         }
         pthread_mutexattr_destroy(&attr); /*lint !e534 ignore return value */
     }
@@ -1345,7 +1350,11 @@ EXT_DECL VOS_ERR_T vos_mutexLocalCreate (
         err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
         if (err == 0)
         {
-            err = pthread_mutex_init((pthread_mutex_t *)&pMutex->mutexId, &attr);
+            err = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+            if (err == 0)
+            {
+                err = pthread_mutex_init((pthread_mutex_t *)&pMutex->mutexId, &attr);
+            }
         }
         pthread_mutexattr_destroy(&attr); /*lint !e534 ignore return value */
     }
