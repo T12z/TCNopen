@@ -17,7 +17,7 @@
  *
  * $Id$
  *
- *      CK 2022-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
+ *      CK 2023-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
  *      SB 2021-08-09: Lint warnings
  *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call
  *      BL 2020-07-29: Ticket #303: UUID creation... #warning if uuid not used
