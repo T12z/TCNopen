@@ -15,8 +15,9 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
-* $Id$
+* $Id$*
 *
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *     AHW 2022-03-24: Ticket #391 Allow PD request without reply
 *     IBO 2021-08-12: Ticket #355 Redundant PD default state should be follower
 *     AHW 2021-05-04: Ticket #354 Sequence counter synchronization error working in redundancy mode
@@ -97,7 +98,7 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_TIME_T         *pInterval,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc)
+    TRDP_SOCK_T         *pNoDesc)
 {
     TRDP_ERR_T ret = TRDP_NOINIT_ERR;
 
@@ -586,7 +587,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                             sockType,
                             appHandle->option,
                             FALSE,
-                            -1,
+                            VOS_INVALID_SOCKET,
                             &pNewElement->socketIdx,
                             0u);
                 }
@@ -1125,7 +1126,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
                                          TRDP_SOCK_PD,
                                          appHandle->option,
                                          FALSE,
-                                         -1,
+                                         VOS_INVALID_SOCKET,
                                          &pReqElement->socketIdx,
                                          0u);
 
@@ -1353,7 +1354,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
                                  usage,
                                  appHandle->option,
                                  TRUE,
-                                 -1,
+                                 VOS_INVALID_SOCKET,
                                  &lIndex,
                                  0u);
 
@@ -1590,7 +1591,7 @@ EXT_DECL TRDP_ERR_T tlp_resubscribe (
                                      TRDP_SOCK_PD,
                                      appHandle->option,
                                      TRUE,
-                                     -1,
+                                     VOS_INVALID_SOCKET,
                                      &subHandle->socketIdx,
                                      0u);
             if (ret != TRDP_NO_ERR)

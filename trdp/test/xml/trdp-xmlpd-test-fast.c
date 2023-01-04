@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2019-06-13: 'quiet' parameter to supress screen output (for performance measurements)
  *      BL 2019-06-12: Ticket #228 TRDP_XMLPDTest.exe multicast issuer (use type (source/sink) if available)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
@@ -1013,12 +1014,12 @@ static void *receiverThread (void * arg)
     while (vos_threadDelay(0u) == VOS_NO_ERR)   /* this is a cancelation point! */
     {
         FD_ZERO(&fileDesc);
-        result = tlp_getInterval(sessionConfig->sessionhandle, &interval, &fileDesc, &noDesc);
+        result = tlp_getInterval(sessionConfig->sessionhandle, &interval, &fileDesc, (TRDP_SOCK_T *) &noDesc);
         if (result != TRDP_NO_ERR)
         {
             printf("tlp_getInterval failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
         }
-        noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        noDesc = vos_select(noDesc, &fileDesc, NULL, NULL, &interval);
         result = tlp_processReceive(sessionConfig->sessionhandle, &fileDesc, &noDesc);
         if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
         {

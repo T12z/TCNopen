@@ -16,8 +16,9 @@
  *
  * $Id$
  *
- *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API
- *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+ *      AÃ– 2019-12-17: Ticket #308: Add vos Sim function to API
+ *      AÃ– 2019-11-11: Ticket #290: Add support for Virtualization on Windows
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
  *      BL 2017-06-30: Compiler warnings, local prototypes added
@@ -38,7 +39,6 @@
 #if defined (POSIX)
 #include <unistd.h>
 #include <sys/time.h>
-#include <sys/select.h>
 #include <sys/ioctl.h>
 #include <time.h>
 #endif
@@ -799,8 +799,8 @@ int main (int argc, char *argv[])
     {
         FD_ZERO(&rfds);
         noOfDesc = 0;
-        tlc_getInterval(apph, &tv, &rfds, &noOfDesc);
-        rv = vos_select(noOfDesc + 1, &rfds, NULL, NULL, &tv_null);
+        tlc_getInterval(apph, &tv, &rfds, (TRDP_SOCK_T *) &noOfDesc);
+        rv = vos_select((int)noOfDesc, &rfds, NULL, NULL, &tv_null);
         tlc_process(apph, &rfds, &rv);
         /* wait a while */
         _sleep_msec(tick);

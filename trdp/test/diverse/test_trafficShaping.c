@@ -14,6 +14,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
  */
@@ -26,7 +27,6 @@
 #include <string.h>
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif (defined (WIN32) || defined (WIN64))
 #include "getopt.h"
 #endif
@@ -283,8 +283,8 @@ int main (int argc, char *argv[])
      */
     while (1)
     {
-        fd_set        rfds;
-        INT32        noDesc;
+        VOS_FDS_T      rfds;
+        TRDP_SOCK_T    noDesc;      /* #399 */
         VOS_TIMEVAL_T  tv;
         VOS_TIMEVAL_T  max_tv = {0, 10000};
         
@@ -316,7 +316,7 @@ int main (int argc, char *argv[])
          Select() will wait for ready descriptors or time out,
          what ever comes first.
          */
-        rv = vos_select((int)noDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select((int)noDesc, &rfds, NULL, NULL, &tv);
         
         /*
          Check for overdue PDs (sending and receiving)

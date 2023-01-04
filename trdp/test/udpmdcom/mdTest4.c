@@ -22,7 +22,9 @@
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *          FAR Systems spa, Italy, 2013.
  *
- * $Id: mdTest0002.c 178 2012-11-28 09:56:41Z spachera $
+ * $Id: $
+ *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *
  */
 
@@ -39,8 +41,6 @@
 #include <err.h>
 #include <memory.h>
 #include <unistd.h>
-#include <sys/select.h>
-//#include <mqueue.h>
 #include <time.h>
 
 // Suppor for log library
@@ -2317,16 +2317,16 @@ static int test_main_proc()
         tv.tv_usec = x_period * 1000;
 
         // execute Select()...
-        int rv = vos_select(noDesc + 1, &rfds, NULL, NULL, (VOS_TIMEVAL_T *)&tv);
+        int rv = vos_select(noDesc, &rfds, NULL, NULL, (VOS_TIMEVAL_T *)&tv);
         if (-1 == rv)
         {
-            perror("select()");
+            perror("vos_select()");
             exit(EXIT_FAILURE);
         }
         if (rv == 0)
         {
             // timeout ... no fd inputs....
-            //printf("select() timeout\n");
+            //printf("vos_select() timeout\n");
         }
         if (rv > 0)
         {

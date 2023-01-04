@@ -15,6 +15,9 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2021. All rights reserved.
  */
 /*
+ * $Id$
+ *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      BL 2020-07-10: Ticket #321 Move TRDP_TIMER_GRANULARITY to public API
@@ -181,6 +184,10 @@ typedef VOS_TIMEVAL_T TRDP_TIME_T;
 /**    File descriptor set compatible with fd_set / select.
  */
 typedef VOS_FDS_T TRDP_FDS_T;
+
+/**    Socket descriptor set compatible with fd_set / select.
+ */
+typedef VOS_SOCK_T TRDP_SOCK_T;
 
 /**********************************************************************************************************************/
 /**                          TRDP data transfer type definitions.                                                     */

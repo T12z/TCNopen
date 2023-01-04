@@ -16,8 +16,9 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
-* $Id$*
+* $Id$
 *
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *     AHW 2021-08-04: Ticket #372: Possible infinite loop in vos_getInterfaces()
 *     AHW 2021-05-06: Ticket #322: Subscriber multicast message routing in multi-home device
 *      BL 2019-09-10: Ticket #278: Don't check if a socket is < 0
@@ -122,7 +123,7 @@ UINT8   mac[VOS_MAC_SIZE];
  *
  *  @retval         number of received bytes, -1 for error
  */
-INT32 recvmsg (SOCKET sock, struct msghdr *pMessage, int flags)
+INT32 recvmsg (VOS_SOCK_T sock, struct msghdr *pMessage, int flags)
 {
     GUID    WSARecvMsg_GUID = WSAID_WSARECVMSG;
     LPFN_WSARECVMSG WSARecvMsg;
@@ -174,7 +175,7 @@ INT32 recvmsg (SOCKET sock, struct msghdr *pMessage, int flags)
  *  @retval         VOS_NO_ERR       no error
  *  @retval         VOS_SOCK_ERR     buffer size can't be set
  */
-VOS_ERR_T vos_sockSetBuffer (SOCKET sock)
+VOS_ERR_T vos_sockSetBuffer (VOS_SOCK_T sock)
 {
     int optval      = 0;
     int option_len  = sizeof(optval);
@@ -505,7 +506,7 @@ EXT_DECL BOOL8 vos_netIfUp (
  *  Set the ready sockets in the supplied sets.
  *    Note: Some target systems might define this function as NOP.
  *
- *  @param[in]      highDesc          max. socket descriptor + 1
+ *  @param[in]      highDesc          max. socket descriptor
  *  @param[in,out]  pReadableFD       pointer to readable socket set
  *  @param[in,out]  pWriteableFD      pointer to writeable socket set
  *  @param[in,out]  pErrorFD          pointer to error socket set
@@ -515,13 +516,13 @@ EXT_DECL BOOL8 vos_netIfUp (
  */
 
 EXT_DECL INT32 vos_select (
-    SOCKET          highDesc,
+    VOS_SOCK_T      highDesc,
     VOS_FDS_T       *pReadableFD,
     VOS_FDS_T       *pWriteableFD,
     VOS_FDS_T       *pErrorFD,
     VOS_TIMEVAL_T   *pTimeOut)
 {
-    return select((int)highDesc, (fd_set *) pReadableFD, (fd_set *) pWriteableFD,
+    return select((int)(highDesc + 1), (fd_set *) pReadableFD, (fd_set *) pWriteableFD,
                   (fd_set *) pErrorFD, (struct timeval *) pTimeOut);
 }
 
@@ -715,10 +716,10 @@ EXT_DECL VOS_ERR_T vos_sockGetMAC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenUDP (
-    SOCKET                  *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
-    SOCKET sock;
+    VOS_SOCK_T sock;
 
     if (!vosSockInitialised)
     {
@@ -759,7 +760,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
         return VOS_SOCK_ERR;
     }
 
-    *pSock = (SOCKET) sock;
+    *pSock = (VOS_SOCK_T) sock;
     return VOS_NO_ERR;
 }
 
@@ -777,10 +778,10 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenTCP (
-    SOCKET                  *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
-    SOCKET sock;
+    VOS_SOCK_T sock;
 
     if (!vosSockInitialised)
     {
@@ -809,7 +810,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTCP (
         return VOS_SOCK_ERR;
     }
 
-    *pSock = (SOCKET) sock;
+    *pSock = (VOS_SOCK_T) sock;
     return VOS_NO_ERR;
 }
 
@@ -824,7 +825,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTCP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockClose (
-    SOCKET sock)
+    VOS_SOCK_T sock)
 {
     if (closesocket(sock) == SOCKET_ERROR)
     {
@@ -849,7 +850,7 @@ EXT_DECL VOS_ERR_T vos_sockClose (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSetOptions (
-    SOCKET                  sock,
+    VOS_SOCK_T              sock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     if (pOptions)
@@ -999,14 +1000,14 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
  */
 
 EXT_DECL VOS_ERR_T vos_sockJoinMC (
-    SOCKET  sock,
-    UINT32  mcAddress,
-    UINT32  ipAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcAddress,
+    UINT32     ipAddress)
 {
     struct ip_mreq  mreq;
     VOS_ERR_T       result = VOS_NO_ERR;
 
-    if (sock == (SOCKET)INVALID_SOCKET)
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET)
     {
         result = VOS_PARAM_ERR;
     }
@@ -1025,7 +1026,7 @@ EXT_DECL VOS_ERR_T vos_sockJoinMC (
             vos_printLog(VOS_LOG_INFO, "joining MC: %s on iface %s\n", mcStr, ifStr);
         }
 
-        if (setsockopt((SOCKET)sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq,
+        if (setsockopt((VOS_SOCK_T)sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq,
                        sizeof(mreq)) == SOCKET_ERROR)
         {
             int err = WSAGetLastError();
@@ -1047,7 +1048,7 @@ EXT_DECL VOS_ERR_T vos_sockJoinMC (
             mreq.imr_multiaddr.s_addr   = 0;
             mreq.imr_interface.s_addr   = 0;
 
-            if (setsockopt((SOCKET)sock, IPPROTO_IP, IP_MULTICAST_LOOP, (const char *)&mreq, sizeof(mreq)) == SOCKET_ERROR)
+            if (setsockopt((VOS_SOCK_T)sock, IPPROTO_IP, IP_MULTICAST_LOOP, (const char *)&mreq, sizeof(mreq)) == SOCKET_ERROR)
             {
                 int err = WSAGetLastError();
 
@@ -1084,14 +1085,14 @@ EXT_DECL VOS_ERR_T vos_sockJoinMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockLeaveMC (
-    SOCKET  sock,
-    UINT32  mcAddress,
-    UINT32  ipAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcAddress,
+    UINT32     ipAddress)
 {
     struct ip_mreq  mreq;
     VOS_ERR_T       result = VOS_NO_ERR;
 
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         result = VOS_PARAM_ERR;
     }
@@ -1111,7 +1112,7 @@ EXT_DECL VOS_ERR_T vos_sockLeaveMC (
             vos_printLog(VOS_LOG_INFO, "leaving MC: %s on iface %s\n", mcStr, ifStr);
         }
 
-        if (setsockopt((SOCKET)sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (const char *)&mreq,
+        if (setsockopt((VOS_SOCK_T)sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (const char *)&mreq,
                        sizeof(mreq)) == SOCKET_ERROR)
         {
             int err = WSAGetLastError();
@@ -1150,7 +1151,7 @@ EXT_DECL VOS_ERR_T vos_sockLeaveMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendUDP (
-    SOCKET      sock,
+    VOS_SOCK_T  sock,
     const UINT8 *pBuffer,
     UINT32      *pSize,
     UINT32      ipAddress,
@@ -1161,7 +1162,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
     int size        = 0;
     int err         = 0;
 
-    if ((sock == (SOCKET)INVALID_SOCKET)
+    if ((sock == (VOS_SOCK_T)INVALID_SOCKET)
         || (pBuffer == NULL)
         || (pSize == NULL))
     {
@@ -1234,14 +1235,14 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
-    SOCKET  sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize,
-    UINT32  *pSrcIPAddr,
-    UINT16  *pSrcIPPort,
-    UINT32  *pDstIPAddr,
-    UINT32  *pSrcIFAddr,    /* #322 */
-    BOOL8   peek)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize,
+    UINT32     *pSrcIPAddr,
+    UINT16     *pSrcIPPort,
+    UINT32     *pDstIPAddr,
+    UINT32     *pSrcIFAddr,    /* #322 */
+    BOOL8      peek)
 {
     struct sockaddr_in  srcAddr;
     INT32 rcvSize   = 0;
@@ -1250,7 +1251,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     struct iovec        wsabuf;
     struct msghdr       Msg;
 
-    if (sock == (SOCKET)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
     {
         return VOS_PARAM_ERR;
     }
@@ -1371,13 +1372,13 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockBind (
-    SOCKET  sock,
-    UINT32  ipAddress,
-    UINT16  port)
+    VOS_SOCK_T sock,
+    UINT32     ipAddress,
+    UINT16     port)
 {
     struct sockaddr_in srcAddress;
 
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         return VOS_PARAM_ERR;
     }
@@ -1424,10 +1425,10 @@ EXT_DECL VOS_ERR_T vos_sockBind (
  */
 
 EXT_DECL VOS_ERR_T vos_sockListen (
-    SOCKET  sock,
-    UINT32  backlog)
+    VOS_SOCK_T sock,
+    UINT32     backlog)
 {
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         return VOS_PARAM_ERR;
     }
@@ -1459,13 +1460,13 @@ EXT_DECL VOS_ERR_T vos_sockListen (
  */
 
 EXT_DECL VOS_ERR_T vos_sockAccept (
-    SOCKET  sock,
-    SOCKET  *pSock,
-    UINT32  *pIPAddress,
-    UINT16  *pPort)
+    VOS_SOCK_T sock,
+    VOS_SOCK_T *pSock,
+    UINT32     *pIPAddress,
+    UINT16     *pPort)
 {
     struct sockaddr_in srcAddress;
-    SOCKET connFd = SOCKET_ERROR;
+    VOS_SOCK_T connFd = SOCKET_ERROR;
 
     if (pSock == NULL || pIPAddress == NULL || pPort == NULL)
     {
@@ -1533,13 +1534,13 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
  */
 
 EXT_DECL VOS_ERR_T vos_sockConnect (
-    SOCKET  sock,
-    UINT32  ipAddress,
-    UINT16  port)
+    VOS_SOCK_T sock,
+    UINT32     ipAddress,
+    UINT16     port)
 {
     struct sockaddr_in dstAddress;
 
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         return VOS_PARAM_ERR;
     }
@@ -1549,7 +1550,7 @@ EXT_DECL VOS_ERR_T vos_sockConnect (
     dstAddress.sin_addr.s_addr  = vos_htonl(ipAddress);
     dstAddress.sin_port         = vos_htons(port);
 
-    if (connect((SOCKET)sock, (const struct sockaddr *) &dstAddress,
+    if (connect((VOS_SOCK_T)sock, (const struct sockaddr *) &dstAddress,
                 sizeof(dstAddress)) == SOCKET_ERROR)
     {
         int err = WSAGetLastError();
@@ -1589,7 +1590,7 @@ EXT_DECL VOS_ERR_T vos_sockConnect (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendTCP (
-    SOCKET      sock,
+    VOS_SOCK_T  sock,
     const UINT8 *pBuffer,
     UINT32      *pSize)
 {
@@ -1597,7 +1598,7 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
     int bufferSize;
     int err = 0;
 
-    if ((sock == (SOCKET)INVALID_SOCKET)
+    if ((sock == (VOS_SOCK_T)INVALID_SOCKET)
         || (pBuffer == NULL)
         || (pSize == NULL))
     {
@@ -1610,7 +1611,7 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
     /*    Keep on sending until we got rid of all data or we received an unrecoverable error    */
     do
     {
-        sendSize    = send((SOCKET)sock, (char *)pBuffer, bufferSize, 0);
+        sendSize    = send((VOS_SOCK_T)sock, (char *)pBuffer, bufferSize, 0);
         err         = WSAGetLastError();
 
         if (sendSize >= 0)
@@ -1663,9 +1664,9 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
-    SOCKET  sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize)
 {
     int rcvSize     = 0;
     int bufferSize  = (int) *pSize;
@@ -1673,7 +1674,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
 
     *pSize = 0;
 
-    if (sock == (SOCKET)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
     {
         return VOS_PARAM_ERR;
     }
@@ -1681,7 +1682,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
     /* Keep on sending until we got rid of all data or we received an unrecoverable error    */
     do
     {
-        rcvSize = recv((SOCKET)sock, (char *)pBuffer, bufferSize, 0);
+        rcvSize = recv((VOS_SOCK_T)sock, (char *)pBuffer, bufferSize, 0);
         err     = WSAGetLastError();
 
         if (rcvSize > 0)
@@ -1745,13 +1746,13 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
  *  @retval         VOS_PARAM_ERR       sock descriptor unknown, parameter error
  */
 EXT_DECL VOS_ERR_T vos_sockSetMulticastIf (
-    SOCKET  sock,
-    UINT32  mcIfAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcIfAddress)
 {
     DWORD       optValue    = vos_htonl(mcIfAddress);
     VOS_ERR_T   result      = VOS_NO_ERR;
 
-    if (sock == (SOCKET) INVALID_SOCKET)
+    if (sock == (VOS_SOCK_T) INVALID_SOCKET)
     {
         result = VOS_PARAM_ERR;
     }

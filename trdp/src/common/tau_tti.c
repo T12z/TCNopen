@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*     CWE 2022-12-22: in reference to Ticket #378 tau_tti: don't return internal property-pointer, but copy property-data to new buffer
 *      AO 2021-10-11: Ticket #378 tau_tti: bug fig
 *     AHW 2021-10-07: Ticket #379 tau_tti: tau getOwnIds returns TRDP_NO_ERR even if nothing found in cst info
 *     AHW 2021-10-07: Ticket #378 tau_tti: ttiConsistInfoEntry writes static vehicle properties out of memory
@@ -907,6 +908,7 @@ static void ttiStoreCstInfo (
     /* We do convert and allocate more memory for the several parts of the consist info inside. */
     if (ttiCreateCstInfoEntry(appHandle->pTTDB->cstInfo[curEntry], pData, dataSize) != TRDP_NO_ERR)
     {
+        ttiFreeCstInfoEntry(appHandle->pTTDB->cstInfo[curEntry]);
         vos_memFree(appHandle->pTTDB->cstInfo[curEntry]);
         appHandle->pTTDB->cstSize[curEntry] = 0u;
         vos_printLogStr(VOS_LOG_ERROR, "Parts of consist info could not be stored!");
@@ -1736,6 +1738,7 @@ EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
  *
  *  @param[in]      appHandle       Handle returned by tlc_openSession().
  *  @param[out]     pVehInfo        Pointer to the vehicle info to be returned.
+ *                                  Call vos_memFree(pVehInfo->pVehProp) to release the property memory.
  *  @param[in]      pVehLabel       Pointer to a vehicle label. NULL means own vehicle  if cstLabel refers to own consist.
  *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
  *
@@ -1782,6 +1785,18 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
                              sizeof(TRDP_NET_LABEL_T)) == 0)
             {
                 *pVehInfo = appHandle->pTTDB->cstInfo[l_index]->pVehInfoList[l_index2];
+
+                /* don't return internal property-pointer, but copy property-data to new buffer and return the buffer-pointer instead */
+				if (pVehInfo->pVehProp != NULL)
+				{
+					TRDP_PROP_T *pVehProp = (TRDP_PROP_T *) vos_memAlloc(sizeof(TRDP_PROP_T) + pVehInfo->pVehProp->len);
+					if (pVehProp != NULL)
+					{
+						memcpy(pVehProp, pVehInfo->pVehProp, sizeof(TRDP_PROP_T) + pVehInfo->pVehProp->len);
+						pVehInfo->pVehProp = pVehProp;		/* be aware and call vos_memFree(pVehInfo->pVehProp) to release the property memory */
+					}
+				}
+                break;                                      /* leave loop on first match */
             }
         }
     }

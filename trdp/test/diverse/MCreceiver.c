@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced
  *
  */
 
@@ -112,7 +113,7 @@ void dbgOut(
  */
 int main(int argc, char * *argv)
 {
-    SOCKET                  sock;
+    VOS_SOCK_T              sock;
     UINT32                  ownAddress = VOS_INADDR_ANY;
     UINT32                  mcAddress;
     unsigned int            ip[4];

@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *     AHW 2022-03-24: Ticket #391 Allow PD request without reply
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *     AHW 2021-04-30: Ticket #369 Variable sized arrays are not supported if marshall is active
@@ -737,7 +738,7 @@ TRDP_ERR_T  trdp_pdSendQueued (
  */
 TRDP_ERR_T  trdp_pdReceive (
     TRDP_SESSION_PT appHandle,
-    SOCKET          sock)
+    VOS_SOCK_T      sock)
 {
     PD_HEADER_T         *pNewFrameHead      = &appHandle->pNewFrame->frameHead;
     PD_ELE_T            *pExistingElement   = NULL;
@@ -1111,7 +1112,7 @@ TRDP_ERR_T  trdp_pdReceive (
 void trdp_pdCheckPending (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc,
+    TRDP_SOCK_T         *pNoDesc,
     int                 checkSend)
 {
     PD_ELE_T *iterPD;
@@ -1133,17 +1134,17 @@ void trdp_pdCheckPending (
 
         /*    Check and set the socket file descriptor, if not already done    */
         if (iterPD->socketIdx != -1 &&
-            appHandle->ifacePD[iterPD->socketIdx].sock != -1 &&
-            !FD_ISSET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pFileDesc))     /*lint !e573 !e505
+            appHandle->ifacePD[iterPD->socketIdx].sock != VOS_INVALID_SOCKET &&
+            !VOS_FD_ISSET(appHandle->ifacePD[iterPD->socketIdx].sock, (VOS_FDS_T *)pFileDesc))     /*lint !e573 !e505
                                                                                           signed/unsigned division in macro /
                                                                                           Redundant left argument to comma */
         {
-            FD_SET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pFileDesc);       /*lint !e573 !e505
+            VOS_FD_SET(appHandle->ifacePD[iterPD->socketIdx].sock, (VOS_FDS_T *)pFileDesc);       /*lint !e573 !e505
                                                                                           signed/unsigned division in macro /
                                                                                           Redundant left argument to comma */
-            if (appHandle->ifacePD[iterPD->socketIdx].sock > *pNoDesc)
+            if (vos_sockCmp(appHandle->ifacePD[iterPD->socketIdx].sock, *pNoDesc) == 1)
             {
-                *pNoDesc = (INT32) appHandle->ifacePD[iterPD->socketIdx].sock;
+                *pNoDesc = appHandle->ifacePD[iterPD->socketIdx].sock;
             }
         }
     }
@@ -1294,8 +1295,8 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
         /*    Check and set the socket file descriptor by going thru the socket list    */
         for (idx = 0; idx < (UINT32) trdp_getCurrentMaxSocketCnt(TRDP_SOCK_PD); idx++)
         {
-            if ((appHandle->ifacePD[idx].sock != -1) &&
-                (FD_ISSET(appHandle->ifacePD[idx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned division in
+            if ((appHandle->ifacePD[idx].sock != VOS_INVALID_SOCKET) &&
+                (VOS_FD_ISSET(appHandle->ifacePD[idx].sock, (VOS_FDS_T *) pRfds)))  /*lint !e573 signed/unsigned division in
                                                                                macro */
             {
                 VOS_LOG_T logType = VOS_LOG_ERROR;
@@ -1328,7 +1329,7 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
                         break;
                 }
                 (*pCount)--;
-                FD_CLR(appHandle->ifacePD[idx].sock, (fd_set *)pRfds); /*lint !e502 !e573 !e505
+                VOS_FD_CLR(appHandle->ifacePD[idx].sock, (VOS_FDS_T *)pRfds); /*lint !e502 !e573 !e505
                                                                                       signed/unsigned division in macro */
             }
         }
@@ -1498,7 +1499,7 @@ TRDP_ERR_T trdp_pdCheck (
  *  @retval         TRDP_IO_ERR
  */
 TRDP_ERR_T  trdp_pdSend (
-    SOCKET      pdSock,
+    VOS_SOCK_T  pdSock,
     PD_ELE_T    *pPacket,
     UINT16      port)
 {

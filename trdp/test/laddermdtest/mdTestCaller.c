@@ -26,7 +26,6 @@
 #include <errno.h>
 #include <memory.h>
 #include <unistd.h>
-#include <sys/select.h>
 #include <mqueue.h>
 #include <time.h>
 

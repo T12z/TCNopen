@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      IB 2019-08-16: separate sender and receiver thread added
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
@@ -37,7 +38,6 @@
 #if defined (POSIX)
 #include <unistd.h>
 #include <sys/time.h>
-#include <sys/select.h>
 #include <sys/ioctl.h>
 #include <time.h>
 #endif
@@ -805,8 +805,8 @@ int main (int argc, char *argv[])
     {
         FD_ZERO(&rfds);
         noOfDesc = 0;
-        tlm_getInterval(apph, &tv, &rfds, &noOfDesc);
-        rv = vos_select(noOfDesc + 1, &rfds, NULL, NULL, &tv_null);
+        tlm_getInterval(apph, &tv, &rfds, (TRDP_SOCK_T *) &noOfDesc);
+        rv = vos_select(noOfDesc, &rfds, NULL, NULL, &tv_null);
         tlm_process(apph, &rfds, &rv);
         /* wait a while */
         _sleep_msec(tick);

@@ -20,6 +20,7 @@
  *
  * Changes:
  * 
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, CWE: easier init of gMem
  *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2016-07-06: Ticket #122 64Bit compatibility (+ compiler warnings)
@@ -145,15 +146,7 @@ const UINT32    cQueueMagic = 0xE5E1E5E1;
  *  LOCALS
  */
 
-static MEM_CONTROL_T gMem =
-{
-    {0, PTHREAD_MUTEX_INITIALIZER}, NULL, NULL, 0L, 0L, 0L, FALSE,
-    {
-        {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL},
-        {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}, {0L, NULL}
-    },
-    {0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, VOS_MEM_PREALLOCATE}
-};
+static MEM_CONTROL_T gMem;
 
 /***********************************************************************************************************************
  * GLOBAL FUNCTIONS
@@ -191,14 +184,16 @@ EXT_DECL VOS_ERR_T vos_memInit (
     UINT8   *p[VOS_MEM_MAX_PREALLOCATE];
 
     /* Initialize memory */
+    memset(&gMem, 0, sizeof(gMem));         /* everything defaults to 0, but ... */
     gMem.memSize = size;
-    gMem.allocSize = 0;
-    gMem.noOfBlocks         = 0;
     gMem.memCnt.freeSize    = size;
     gMem.memCnt.minFreeSize = size;
-    gMem.memCnt.allocCnt    = 0;
-    gMem.memCnt.allocErrCnt = 0;
-    gMem.memCnt.freeErrCnt  = 0;
+
+    pthread_mutex_t mutexId = PTHREAD_MUTEX_INITIALIZER;
+    memcpy(&gMem.mutex.mutexId, &mutexId, sizeof(mutexId));
+
+    UINT32  preAlloc[VOS_MEM_NBLOCKSIZES] = VOS_MEM_PREALLOCATE;
+    memcpy(&gMem.memCnt.preAlloc, &preAlloc, sizeof(preAlloc));
 
     /*  Create the memory mutex   */
     if (vos_mutexLocalCreate(&gMem.mutex) != VOS_NO_ERR)

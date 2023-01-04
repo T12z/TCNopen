@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      AÖ 2019-11-12: Ticket #290: Add support for Virtualization on Windows, changed thread names to unique ones
@@ -1455,7 +1456,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
 {
    SOCK_ERR_T retVal = SOCK_NO_ERR;
    VOS_ERR_T res = VOS_NO_ERR;
-   SOCKET sockDesc = 0;
+   VOS_SOCK_T sockDesc = VOS_INVALID_SOCKET;
    VOS_SOCK_OPT_T sockOpts = { 0 };
    UINT32 mcIP = ipCfg.mcGrp;
    UINT32 mcIF = ipCfg.mcIP;
@@ -1484,7 +1485,7 @@ SOCK_ERR_T L3_test_sock_UDPMC(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_
       vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDPMC] vos_sockOpenUDP() ERROR!\n");
       retVal = SOCK_UDP_MC_ERR;
    }
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockOpenUDP() Open socket %li\n", (long int)sockDesc);
+   vos_printLog(VOS_LOG_USR, "[SOCK_UDPMC] vos_sockOpenUDP() Open socket %li\n", vos_sockId(sockDesc));
    /***************/
    /* set options */
    /***************/
@@ -1615,7 +1616,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
    VOS_ERR_T res = VOS_NO_ERR;
    SOCK_ERR_T retVal = SOCK_NO_ERR;
    VOS_SOCK_OPT_T sockOpts = { 0 };
-   SOCKET sockDesc = 0;
+   VOS_SOCK_T sockDesc = VOS_INVALID_SOCKET;
    UINT32 srcIP = ipCfg.srcIP;
    UINT32 destIP = ipCfg.dstIP;
    UINT16 portPD = TRDP_PD_UDP_PORT; /* according to IEC 61375-2-3 CDV A.2 */
@@ -1643,7 +1644,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockOpenUDP() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockOpenUDP() Open socket %ld\n", (long int)sockDesc);
+   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockOpenUDP() Open socket %ld\n", vos_sockId(sockDesc));
    /***************/
    /* set options */
    /***************/
@@ -1723,7 +1724,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       retVal = SOCK_UDP_ERR;
    }
 
-   sockDesc = 0;
+   sockDesc = VOS_INVALID_SOCKET;
 
    /*******************/
    /* open UDP socket */
@@ -1734,7 +1735,7 @@ SOCK_ERR_T L3_test_sock_UDP(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST_IP_CO
       vos_printLogStr(VOS_LOG_ERROR, "[SOCK_UDP] vos_sockOpenUDP() ERROR!\n");
       retVal = SOCK_UDP_ERR;
    }
-   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockOpenUDP() Open socket %ld\n", (long int)sockDesc);
+   vos_printLog(VOS_LOG_USR, "[SOCK_UDP] vos_sockOpenUDP() Open socket %ld\n", vos_sockId(sockDesc));
    /***************/
    /* set options */
    /***************/
@@ -1827,8 +1828,7 @@ VOS_THREAD_FUNC_T testTCPClient(void* arguments)
    VOS_ERR_T res = VOS_UNKNOWN_ERR;
    SOCK_ERR_T retVal = SOCK_NO_ERR;
    VOS_SOCK_OPT_T sockOpts = { 0 };
-   SOCKET sockDesc = 0;
-   SOCKET newSock = 0;
+   VOS_SOCK_T sockDesc = VOS_INVALID_SOCKET;
    UINT32 srcIP = arg->ipCfg.srcIP;
    UINT32 dstIP = arg->ipCfg.dstIP;
    UINT32 portMD = TRDP_MD_UDP_PORT; /* according to IEC 61375-2-3 CDV A.2 */
@@ -1861,7 +1861,7 @@ VOS_THREAD_FUNC_T testTCPClient(void* arguments)
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[SOCK_TCPCLIENT] vos_sockOpenTCP() Open socket %lx\n", (long)sockDesc);
+      vos_printLog(VOS_LOG_USR, "[SOCK_TCPCLIENT] vos_sockOpenTCP() Open socket %lx\n", vos_sockId(sockDesc));
 
       /***************/
       /* set options */
@@ -1950,8 +1950,8 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
    VOS_SOCK_OPT_T sockOpts = { 0 };
    VOS_THREAD_T threadID = 0;
    TEST_ARGS_THREAD_T arg = { 0 };
-   SOCKET sockDesc = 0;
-   SOCKET newSock = 0;
+   VOS_SOCK_T sockDesc = VOS_INVALID_SOCKET;
+   VOS_SOCK_T newSock = VOS_INVALID_SOCKET;
    UINT32 srcIP = ipCfg.srcIP;
    UINT32 dstIP = ipCfg.dstIP;
    UINT32 portMD = TRDP_MD_TCP_PORT; /* according to IEC 61375-2-3 CDV A.2 */
@@ -1993,7 +1993,7 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
    }
    else
    {
-      vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockOpenTCP() Open socket %lx OK\n", (long)sockDesc);
+      vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockOpenTCP() Open socket %lx OK\n", vos_sockId(sockDesc));
    }
    /***************/
    /* set options */
@@ -2052,7 +2052,7 @@ SOCK_ERR_T L3_test_sock_TCPserver(UINT8 sndBufStartVal, UINT8 rcvBufExpVal, TEST
          }
          else
          {
-            if (newSock != -1)
+            if (newSock != VOS_INVALID_SOCKET)
             {
                vos_printLog(VOS_LOG_USR, "[SOCK_TCPSERVER] vos_sockAccept() Connection accepted from %s:%u, Socket %d\n", vos_ipDotted(rcvIP), rcvPort, (int)newSock);
             }

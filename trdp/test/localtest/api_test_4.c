@@ -18,6 +18,8 @@
  *
  * $Id$
  *
+ *     CWE 2022-12-21: Ticket #404 Fix compile error - Test does not need to run, it is only used to verify bugfixes. It requires a special network-setup to run
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2019-08-27: Interval timing in test 9 changed
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  */
@@ -33,7 +35,6 @@
 #include <string.h>
 
 #if defined(POSIX)
-#include <sys/select.h>
 #include <unistd.h>
 #elif (defined(WIN32) || defined(WIN64))
 #include "getopt.h"
@@ -91,8 +92,8 @@ typedef struct
 
 } TRDP_THREAD_SESSION_T;
 
-TRDP_THREAD_SESSION_T gSession1 = {NULL, 0x0A000364u, 0, 0};
-TRDP_THREAD_SESSION_T gSession2 = {NULL, 0x0A000365u, 0, 0};
+TRDP_THREAD_SESSION_T gSession1 = {NULL, 0x0A000364u, 0, 0};        // 10.0.3.100
+TRDP_THREAD_SESSION_T gSession2 = {NULL, 0x0A000365u, 0, 0};        // 10.0.3.101
 
 /* number of consists/vehicles/etbs/functions and  */
 #define OP_CST_CNT (2u)
@@ -688,7 +689,7 @@ static void trdp_loop(void *pArg)
          Select() will wait for ready descriptors or time out,
          what ever comes first.
          */
-        rv = vos_select(noDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select(noDesc, &rfds, NULL, NULL, &tv);
 
         /*
          Check for overdue PDs (sending and receiving)
@@ -1271,6 +1272,7 @@ void cstInfoMdCallback(
 
 static int test3()
 {
+
     PREPARE("Ticket #362 / #363 / #364 / #365 / #366: OwnIds invalid resolved to a group name", "test"); /* allocates appHandle1, appHandle2, failed = 0, err */
 
     /* ------------------------- test code starts here --------------------------- */
@@ -1319,6 +1321,9 @@ static int test3()
             NULL, NULL);
 
         IF_ERROR("tlm_addListener");
+
+        err = tlc_setOpTrainTopoCount(gSession2.appHandle, OP_TRN_TOPO_CNT);
+        IF_ERROR("tlc_setOpTrainTopoCount")
 
         /* setup TTI on gSession1 */
 
@@ -1442,7 +1447,7 @@ static int test3()
             memset(&expectedVehInfo, 0, sizeof(expectedVehInfo));
             memcpy(&expectedVehInfo, &gCstInfo.test_ar_VehInfoList[counter], sizeof(gCstInfo.test_ar_VehInfoList[counter]));
 
-            expectedVehInfo.vehProp.len = SWAP_16(expectedVehInfo.vehProp.len);
+            expectedVehInfo.pVehProp->len = SWAP_16(expectedVehInfo.pVehProp->len);
 
             /** @TODO: check, if Padding needs to be considered */
             if (memcmp(&expectedVehInfo, &consistInfo.pVehInfoList[counter], sizeof(TRDP_VEHICLE_INFO_T)) != 0)

@@ -17,6 +17,8 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+ * 
  */
 
 
@@ -29,7 +31,6 @@
 
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif (defined (WIN32) || defined (WIN64))
 #include "getopt.h"
 #endif
@@ -123,7 +124,7 @@ static void *receiverThread (void * arg)
     {
         FD_ZERO(&fileDesc);
         (void) tlp_getInterval(sessionhandle, &interval, &fileDesc, &noDesc);
-        noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        noDesc = vos_select(noDesc, &fileDesc, NULL, NULL, &interval);
         (void) tlp_processReceive(sessionhandle, &fileDesc, &noDesc);
     }
     return NULL;
@@ -143,7 +144,7 @@ static void *transceiverMDThread (void * arg)
     {
         FD_ZERO(&fileDesc);
         (void)  tlm_getInterval(sessionhandle, &interval, &fileDesc, &noDesc);
-        noDesc = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        noDesc = vos_select(noDesc, &fileDesc, NULL, NULL, &interval);
         (void) tlm_process(sessionhandle, &fileDesc, &noDesc);
     }
     return NULL;

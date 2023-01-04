@@ -16,9 +16,10 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+ *
  *          ### NOTE: This code is not supported, nor updated or tested!
- *          ###       It is left here for reference, only, and might be removed from the next major
- *          ###       release.
+ *          ###       It is left here for reference, only, and might be removed from the next major release.
  *
  *      BL 2017-05-22: Ticket #122: Addendum for 64Bit compatibility (VOS_TIME_T -> VOS_TIMEVAL_T)
  *
@@ -30,7 +31,6 @@
 #include <errno.h>
 #include <memory.h>
 #include <unistd.h>
-#include <sys/select.h>
 #include <mqueue.h>
 #include <time.h>
 
@@ -41,7 +41,6 @@
 #include <ifaddrs.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
@@ -508,13 +507,9 @@ MD_APP_ERR_TYPE mdReceive_main_proc(void)
 		what ever comes first.
 		*/
 		/* The Number to check descriptor */
-		if (noOfDesc > noOfDesc2)
+		if (noOfDesc < noOfDesc2)
 		{
-			noOfDesc = noOfDesc + 1;
-		}
-		else
-		{
-			noOfDesc = noOfDesc2 +1;
+			noOfDesc = noOfDesc2;
 		}
 
 		if (tv.tv_sec > tv2.tv_sec)
@@ -527,7 +522,6 @@ MD_APP_ERR_TYPE mdReceive_main_proc(void)
 			tv.tv_usec = tv2.tv_usec;
 		}
 
-//		receive = select((int)noOfDesc, &rfds, NULL, NULL, &tv);
 		receive = vos_select((int)noOfDesc, &rfds, NULL, NULL, (VOS_TIMEVAL_T *)&tv);
 
 		/*
