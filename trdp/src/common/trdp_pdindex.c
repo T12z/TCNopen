@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *     AHW 2023-01-05: Ticket #407 Interval not updated in trdp_indexCheckPending if Hight performance index with no subscriptions
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2020-08-07: Ticket #317 Bug in trdp_indexedFindSubAddr() (HIGH_PERFORMANCE)
  *      BL 2020-08-06: Ticket #314 Timeout supervision does not restart after PD request
@@ -1364,6 +1365,7 @@ void trdp_indexCheckPending (
 
     if ((appHandle->pSlot == NULL) || (appHandle->pSlot->pRcvTableTimeOut == NULL))
     {
+        *pInterval = delay;   /* #407 */
         return;
     }
 
