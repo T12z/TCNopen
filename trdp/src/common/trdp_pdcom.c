@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     CWE 2023-01-09: Ticket #395 PD subscriber statistics when publisher start earlier
 *     CWE 2023-01-09: Ticket #394 Statistics of missed PD packets when publisher restarts
 *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *     AHW 2022-03-24: Ticket #391 Allow PD request without reply
@@ -896,7 +897,7 @@ TRDP_ERR_T  trdp_pdReceive (
                     return TRDP_NO_ERR;      /* Ignore packet, too old or duplicate */
             }
 
-            if ((newSeqCnt > 0u) && (newSeqCnt > (pExistingElement->curSeqCnt + 1u)))
+            if ((newSeqCnt > 0u) && (newSeqCnt > (pExistingElement->curSeqCnt + 1u)) && (pExistingElement->numRxTx > 0))  /* #395 */
             {
                 pExistingElement->numMissed += newSeqCnt - pExistingElement->curSeqCnt - 1u;
             }
