@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *     CWE 2023-01-09: Ticket #393 Incorrect behaviour if MD timeout occurs
  *     CWE 2022-12-21: Ticket #404 Fix compile error - Test does not need to run, it is only used to verify bugfixes. It requires a special network-setup to run
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08.09: Compiler warning
@@ -2943,7 +2944,7 @@ void  trdp_mdCheckTimeouts (
 {
     MD_ELE_T    *iterMD     = appHandle->pMDSndQueue;
     BOOL8       firstLoop   = TRUE;
-    BOOL8       timeOut     = FALSE;
+    BOOL8       timeOut;
     TRDP_TIME_T now;
 
     if (appHandle == NULL)
@@ -2956,9 +2957,7 @@ void  trdp_mdCheckTimeouts (
     do
     {
         TRDP_ERR_T resultCode = TRDP_UNKNOWN_ERR;
-
-        /* Update the current time always inside loop in case of application delays  */
-        vos_getTime(&now);
+        timeOut = FALSE; /* #393 TRDP-104: Make shure that timeouts of MD request do not affect other MD requests */
 
         /*  Switch to receive queue */
         if (NULL == iterMD && TRUE == firstLoop)
@@ -2973,23 +2972,29 @@ void  trdp_mdCheckTimeouts (
             break;
         }
 
-        /* timeToGo is timeout value! */
-        if (((iterMD->interval.tv_sec != TRDP_MD_INFINITE_TIME) ||
-             (iterMD->interval.tv_usec != TRDP_MD_INFINITE_USEC_TIME)) &&
-            (0 > vos_cmpTime(&iterMD->timeToGo, &now)))     /* timeout overflow */
+        /* #393 FIX: Do not inform user if MD request is about to die */
+        if (iterMD->morituri != TRUE)
         {
-            timeOut = trdp_mdTimeOutStateHandler( iterMD, appHandle, &resultCode);
-        }
+            /* Update the current time always inside loop in case of application delays  */
+            vos_getTime(&now);
 
-        if (TRUE == timeOut)    /* Notify user  */
-        {
-            /* Execute callback */
-            if (iterMD->pfCbFunction != NULL)
+            /* timeToGo is timeout value! */
+            if (((iterMD->interval.tv_sec != TRDP_MD_INFINITE_TIME) ||
+                 (iterMD->interval.tv_usec != TRDP_MD_INFINITE_USEC_TIME)) &&
+                (0 > vos_cmpTime(&iterMD->timeToGo, &now)))     /* timeout overflow */
             {
-                trdp_mdInvokeCallback(iterMD, appHandle, resultCode);
+                timeOut = trdp_mdTimeOutStateHandler( iterMD, appHandle, &resultCode);
+            }
+
+            if (TRUE == timeOut)    /* Notify user  */
+            {
+                /* Execute callback */
+                if (iterMD->pfCbFunction != NULL)
+                {
+                    trdp_mdInvokeCallback(iterMD, appHandle, resultCode);
+                }
             }
         }
-
         iterMD = iterMD->pNext;
     }
     while (TRUE); /*lint !e506 */

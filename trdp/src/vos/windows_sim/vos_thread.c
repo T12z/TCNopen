@@ -10,7 +10,7 @@
  *
  * @note            Project: TCNOpen TRDP prototype stack
  *
- * @author          Anders Öberg, Bombardier Transportation GmbH
+ * @author          Anders Ã–berg, Bombardier Transportation GmbH
  *
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
@@ -20,14 +20,15 @@
 /*
 * $Id$
 *
-*      AÖ 2022-11-23: Ticket #396: vos/windows_sim/vos_thread.c has a faulty code path in vos_threadRegisterLocal
-*      AÖ 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting, moved common functionality to vos_threadRegisterMain
-*      AÖ 2021-12-17: Ticket #386: Support for TimeSync multicore
-*      AÖ 2021-12-17: Ticket #385: Increase MAX_TIMESYNC_PREFIX_STRING from 20 to 64
-*      AÖ 2021-12-17: Ticket #384: Added #include <windows.h>
-*      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
-*      AÖ 2019-12-17: Ticket #306: Improve TerminateThread in SIM 
-*      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
+*     CWE 2023-01-05: Code cleanup for function vos_getTime
+*      AÃ– 2022-11-23: Ticket #396: vos/windows_sim/vos_thread.c has a faulty code path in vos_threadRegisterLocal
+*      AÃ– 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting, moved common functionality to vos_threadRegisterMain
+*      AÃ– 2021-12-17: Ticket #386: Support for TimeSync multicore
+*      AÃ– 2021-12-17: Ticket #385: Increase MAX_TIMESYNC_PREFIX_STRING from 20 to 64
+*      AÃ– 2021-12-17: Ticket #384: Added #include <windows.h>
+*      AÃ– 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
+*      AÃ– 2019-12-17: Ticket #306: Improve TerminateThread in SIM 
+*      AÃ– 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
 */
 
@@ -1064,38 +1065,8 @@ EXT_DECL VOS_ERR_T vos_threadDelay (
 EXT_DECL void vos_getTime (
     VOS_TIMEVAL_T *pTime)
 {
-    VOS_ERR_T ret = VOS_NO_ERR;
     TIMESYNCTIME curTime;
     VOS_TIMESYNC_TLS_T* pTimeSyncTLS;
-
-    /* Get time sync handle from TLS */
-    ret = vos_threadGetTimeSyncTLS(&pTimeSyncTLS);
-
-    if (ret != VOS_NO_ERR)
-    {
-        /* No time sync handle use normal time */
-        /*
-        struct __timeb32 curTime1;
-
-        if (_ftime32_s(&curTime1) == 0)
-        {
-            pTime->tv_sec = curTime1.time;
-            pTime->tv_usec = curTime1.millitm * 1000;
-        }
-        else
-        {
-            pTime->tv_sec = 0;
-            pTime->tv_usec = 0;
-        }
-        */
-        curTime = TimeSyncGetLastTargetTime();
-
-        {
-            pTime->tv_sec = (long)(curTime / TIMESYNC_OFFSET_S);
-            pTime->tv_usec = (long)((curTime % TIMESYNC_OFFSET_S) / TIMESYNC_OFFSET_US);
-        }
-        return;
-    }
 
     if (pTime == NULL)
     {
@@ -1103,6 +1074,9 @@ EXT_DECL void vos_getTime (
     }
     else
     {
+        /* try to use time sync from TLS - if available (ignore error) */
+        (void) vos_threadGetTimeSyncTLS(&pTimeSyncTLS);
+
         curTime = TimeSyncGetLastTargetTime();
 
         {
