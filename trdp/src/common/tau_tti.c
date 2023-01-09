@@ -26,14 +26,15 @@
 /*
 * $Id$
 *
-*     CWE 2022-12-22: in reference to Ticket #378 tau_tti: don't return internal property-pointer, but copy property-data to new buffer
-*      AO 2021-10-11: Ticket #378 tau_tti: bug fig
-*     AHW 2021-10-07: Ticket #379 tau_tti: tau getOwnIds returns TRDP_NO_ERR even if nothing found in cst info
-*     AHW 2021-10-07: Ticket #378 tau_tti: ttiConsistInfoEntry writes static vehicle properties out of memory
-*     AHW 2021-10-07: Ticket #377 tau_tti: tau getOwnIds doesn't check the cache correct
+*     CWE 2023-01-09: Ticket #402: vehCnt and fctCnt already rotated when retrieved
+*     CWE 2022-12-22: Ticket #378: don't return internal property-pointer, but copy property-data to new buffer
+*      AO 2021-10-11: Ticket #378: bug fig
+*     AHW 2021-10-07: Ticket #379: tau getOwnIds returns TRDP_NO_ERR even if nothing found in cst info
+*     AHW 2021-10-07: Ticket #378: ttiConsistInfoEntry writes static vehicle properties out of memory
+*     AHW 2021-10-07: Ticket #377: tau getOwnIds doesn't check the cache correct
 *      SB 2021-08-09: Lint warnings
-*      SB 2021-08-05: Ticket #365 etbCnt, vehCnt and fctCnt already rotated when retrieved from appHandle->pTTDB->cstInfo in tau_getCstInfo
-*     AHW 2021-04-14: Ticket #368 tau_tti: tau getOwnIds: error in index handling in vehInfoList
+*      SB 2021-08-05: Ticket #365: etbCnt, vehCnt and fctCnt already rotated when retrieved from appHandle->pTTDB->cstInfo in tau_getCstInfo
+*     AHW 2021-04-14: Ticket #368: tau getOwnIds: error in index handling in vehInfoList
 *     AHW 2021-04-13: Ticket #362: ttiStoreTrnNetDir: trnNetDir read from wrong address
 *     AHW 2021-04-13: Ticket #363: tau_getOwnIds: noOfCachedCst never assigned to actual value, never set to 0
 *     AHW 2021-04-13: Ticket #364: ttiCreateCstInfoEntry: all vehInfo, cltrInfo, etbInfo entries are copied to index 0. The idx counter are not used.
@@ -1596,7 +1597,7 @@ EXT_DECL TRDP_ERR_T tau_getCstVehCnt (
     }
     if (l_index < TTI_CACHED_CONSISTS)
     {
-        *pCstVehCnt = vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->vehCnt);
+        *pCstVehCnt = appHandle->pTTDB->cstInfo[l_index]->vehCnt;  /* #402 */
     }
     else    /* not found, get it and return directly */
     {
@@ -1652,7 +1653,7 @@ EXT_DECL TRDP_ERR_T tau_getCstFctCnt (
     }
     if (l_index < TTI_CACHED_CONSISTS)
     {
-        *pCstFctCnt = vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->fctCnt);
+        *pCstFctCnt = appHandle->pTTDB->cstInfo[l_index]->fctCnt;   /* #402 */
     }
     else    /* not found, get it and return directly */
     {
@@ -1714,11 +1715,11 @@ EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
     }
     if (l_index < TTI_CACHED_CONSISTS)
     {
-        for (l_index2 = 0; l_index2 < vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->fctCnt) &&
-             l_index2 < maxFctCnt; ++l_index2)
+        for (l_index2 = 0; (l_index2 < appHandle->pTTDB->cstInfo[l_index]->fctCnt) &&  /* #402 */
+             (l_index2 < maxFctCnt); ++l_index2)
         {
             pFctInfo[l_index2]          = appHandle->pTTDB->cstInfo[l_index]->pFctInfoList[l_index2];
-            pFctInfo[l_index2].fctId    = vos_ntohs(pFctInfo[l_index2].fctId);
+            pFctInfo[l_index2].fctId    = pFctInfo[l_index2].fctId;   /* #402 */
         }
     }
     else    /* not found, get it and return directly */
@@ -1778,7 +1779,7 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
     }
     if (l_index < TTI_CACHED_CONSISTS)
     {
-        for (l_index2 = 0; l_index2 < vos_ntohs(appHandle->pTTDB->cstInfo[l_index]->vehCnt); ++l_index2)
+        for (l_index2 = 0; l_index2 < appHandle->pTTDB->cstInfo[l_index]->vehCnt; ++l_index2)   /* #402 */
         {
             if (pVehLabel == NULL ||
                 vos_strnicmp(pVehLabel, appHandle->pTTDB->cstInfo[l_index]->pVehInfoList[l_index2].vehId,
