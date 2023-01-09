@@ -17,7 +17,7 @@
  /*
  * $Id$*
  *
- *     CEW 2023-01-09: thread-safe localtime - but be aware of static pTimeString
+ *     CEW 2023-01-09: Ticket #408: thread-safe localtime - but be aware of static pTimeString
  *      MM 2022-05-30: Ticket #326: Implementation of missing thread functionality
  *      MM 2021-03-05: Ticket #360: Adaption for VxWorks7
  *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard

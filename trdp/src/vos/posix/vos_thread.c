@@ -17,7 +17,7 @@
  *
  * $Id$
  *
- *     CEW 2023-01-09: thread-safe localtime - but be aware of static pTimeString
+ *     CEW 2023-01-09: Ticket #408: thread-safe localtime - but be aware of static pTimeString
  *      CK 2023-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
  *      SB 2021-08-09: Lint warnings
  *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call

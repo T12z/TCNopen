@@ -17,7 +17,7 @@
  /*
  * $Id$
  *
- *     CEW 2023-01-09: thread-safe localtime - but be aware of static pTimeString
+ *     CEW 2023-01-09: Ticket #408: thread-safe localtime - but be aware of static pTimeString
  *      BL 2018-06-25: Ticket #202: vos_mutexTrylock return value
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  */
