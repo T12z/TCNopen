@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     CWE 2023-01-09: Ticket #394 Statistics of missed PD packets when publisher restarts
 *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *     AHW 2022-03-24: Ticket #391 Allow PD request without reply
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
@@ -899,13 +900,12 @@ TRDP_ERR_T  trdp_pdReceive (
             {
                 pExistingElement->numMissed += newSeqCnt - pExistingElement->curSeqCnt - 1u;
             }
-            else if (pExistingElement->curSeqCnt > newSeqCnt)
-            {
-                pExistingElement->numMissed += UINT32_MAX - pExistingElement->curSeqCnt + newSeqCnt;
-            }
 
             /* Store last received sequence counter here, too (pd_get et. al. may access it).   */
-            pExistingElement->curSeqCnt = vos_ntohl(pNewFrameHead->sequenceCounter);
+            if ((newSeqCnt == 0) || (newSeqCnt > pExistingElement->curSeqCnt))   /* #394 */
+            {
+                pExistingElement->curSeqCnt = newSeqCnt;
+            }
 
             /*  This might have not been set!   */
 #ifdef TSN_SUPPORT
