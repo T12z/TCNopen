@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *     CEW 2023-01-09: thread-safe localtime - but be aware of static pTimeString
  *      BL 2018-06-25: Ticket #202: vos_mutexTrylock return value
  *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  */
@@ -504,20 +505,20 @@ EXT_DECL const CHAR8 *vos_getTimeStamp (void)
 {
     static char     pTimeString[32] = {0};
     struct timeval  curTime;
-    struct tm       *curTimeTM;
+    struct tm       curTimeTM;
 
     (void)gettimeofday(&curTime, NULL);
-    curTimeTM = localtime(&curTime.tv_sec);
 
-    if (curTimeTM != NULL)
+    /* thread-safe localtime - but be aware of static pTimeString */
+    if (localtime_r(&curTime.tv_sec, &curTimeTM) != NULL)
     {
         (void)sprintf(pTimeString, "%04d%02d%02d-%02d:%02d:%02d.%03ld ",
-                      curTimeTM->tm_year + 1900,
-                      curTimeTM->tm_mon + 1,
-                      curTimeTM->tm_mday,
-                      curTimeTM->tm_hour,
-                      curTimeTM->tm_min,
-                      curTimeTM->tm_sec,
+                      curTimeTM.tm_year + 1900,
+                      curTimeTM.tm_mon + 1,
+                      curTimeTM.tm_mday,
+                      curTimeTM.tm_hour,
+                      curTimeTM.tm_min,
+                      curTimeTM.tm_sec,
                       (long) curTime.tv_usec / 1000L);
     }
     return pTimeString;

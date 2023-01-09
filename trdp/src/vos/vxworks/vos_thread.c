@@ -17,6 +17,7 @@
  /*
  * $Id$*
  *
+ *     CEW 2023-01-09: thread-safe localtime - but be aware of static pTimeString
  *      MM 2022-05-30: Ticket #326: Implementation of missing thread functionality
  *      MM 2021-03-05: Ticket #360: Adaption for VxWorks7
  *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
@@ -539,22 +540,21 @@ EXT_DECL const CHAR8 *vos_getTimeStamp (void)
 {
     static char     pTimeString[32] = {0};
     struct timespec curTime;
-    struct tm       *curTimeTM;
+    struct tm       curTimeTM;
 
     /*lint -e(534) ignore return value */
     clock_gettime(CLOCK_REALTIME, &curTime);
-    curTimeTM = localtime(&curTime.tv_sec);
 
-    if (curTimeTM != NULL)
+    /* thread-safe localtime - but be aware of static pTimeString */
+    if (localtime_r(&curTime.tv_sec, &curTimeTM) != NULL)
     {
-        /*lint -e(534) ignore return value */
-        sprintf(pTimeString, "%04d%02d%02d-%02d:%02d:%02d.%03ld ",
-                curTimeTM->tm_year + 1900,
-                curTimeTM->tm_mon + 1,
-                curTimeTM->tm_mday,
-                curTimeTM->tm_hour,
-                curTimeTM->tm_min,
-                curTimeTM->tm_sec,
+        (void)sprintf(pTimeString, "%04d%02d%02d-%02d:%02d:%02d.%03ld ",
+                      curTimeTM.tm_year + 1900,
+                      curTimeTM.tm_mon + 1,
+                      curTimeTM.tm_mday,
+                      curTimeTM.tm_hour,
+                      curTimeTM.tm_min,
+                      curTimeTM.tm_sec,
                 (long) curTime.tv_nsec / (VOS_NSECS_PER_USEC * VOS_USECS_PER_MSEC));
     }
     return pTimeString;

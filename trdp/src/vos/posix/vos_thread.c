@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *     CEW 2023-01-09: thread-safe localtime - but be aware of static pTimeString
  *      CK 2023-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
  *      SB 2021-08-09: Lint warnings
  *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call
@@ -1023,30 +1024,30 @@ EXT_DECL void vos_getNanoTime (
 
 /**********************************************************************************************************************/
 /** Get a time-stamp string.
- *  Get a time-stamp string for debugging in the form "yyyymmdd-hh:mm:ss.ms"
+ *  Get a time-stamp string for debugging in the form "yyyymmdd-hh:mm:ss.µs"
  *  Depending on the used OS / hardware the time might not be a real-time stamp but relative from start of system.
  *
- *  @retval         timestamp      "yyyymmdd-hh:mm:ss.ms"
+ *  @retval         timestamp      "yyyymmdd-hh:mm:ss.µs"
  */
 
 EXT_DECL const CHAR8 *vos_getTimeStamp (void)
 {
     static char     pTimeString[32] = {0};
     struct timeval  curTime;
-    struct tm       *curTimeTM;
+    struct tm       curTimeTM;
 
     (void)gettimeofday(&curTime, NULL);
-    curTimeTM = localtime(&curTime.tv_sec);
 
-    if (curTimeTM != NULL)
+    /* thread-safe localtime - but be aware of static pTimeString */
+    if (localtime_r(&curTime.tv_sec, &curTimeTM) != NULL)
     {
         (void)sprintf(pTimeString, "%04d%02d%02d-%02d:%02d:%02d.%06ld ",
-                      curTimeTM->tm_year + 1900,
-                      curTimeTM->tm_mon + 1,
-                      curTimeTM->tm_mday,
-                      curTimeTM->tm_hour,
-                      curTimeTM->tm_min,
-                      curTimeTM->tm_sec,
+                      curTimeTM.tm_year + 1900,
+                      curTimeTM.tm_mon + 1,
+                      curTimeTM.tm_mday,
+                      curTimeTM.tm_hour,
+                      curTimeTM.tm_min,
+                      curTimeTM.tm_sec,
                       (long) curTime.tv_usec);
     }
     return pTimeString;
