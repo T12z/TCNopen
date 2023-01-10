@@ -17,6 +17,7 @@
  *
  * $Id$
  *
+ *     AHW 2023-01-10: Ticket #405 Problem with GLIBC > 2.34
  *     CEW 2023-01-09: Ticket #408: thread-safe localtime - but be aware of static pTimeString
  *      CK 2023-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
  *      SB 2021-08-09: Lint warnings
@@ -80,7 +81,7 @@
 #define PTHREAD_MUTEX_RECURSIVE  PTHREAD_MUTEX_RECURSIVE_NP     /*lint !e652 Does Lint ignore the #ifndef ? */
 #endif
 
-const size_t    cDefaultStackSize   = 4u * PTHREAD_STACK_MIN;
+#define         cDefaultStackSize   (4u * (PTHREAD_STACK_MIN))  /* #405 */
 const UINT32    cMutextMagic        = 0x1234FEDCu;
 
 int             vosThreadInitialised = FALSE;
@@ -574,7 +575,14 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     }
     else
     {
-        retCode = pthread_attr_setstacksize(&threadAttrib, cDefaultStackSize);
+        if (cDefaultStackSize > PTHREAD_STACK_MIN)                                            /* #405 */
+        {
+            retCode = pthread_attr_setstacksize(&threadAttrib, (size_t) cDefaultStackSize);
+        }
+        else
+        {
+            retCode = VOS_PARAM_ERR;
+        }
     }
 
     if (retCode != 0)
