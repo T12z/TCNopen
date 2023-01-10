@@ -1523,7 +1523,9 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
                 /*Accept return -1 and errno = EWOULDBLOCK,
                 when there is no more connection requests.*/
                 case EWOULDBLOCK:
+#if EWOULDBLOCK != EAGAIN
                 case EAGAIN:
+#endif              
                 {
                     *pSock = connFd;
                     return VOS_NO_ERR;
