@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     AHW 2023-01-10: Ticket #406 Socket handling: check for EAGAIN missing for Linux/Posix
 *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *      SB 2021-08-09: Lint warnings
 *      BL 2021-06-11: Enhanced error handling on empty getifaddrs() returned list (segfault on Raspberry Pi)
@@ -1211,7 +1212,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
             *pSize += (UINT32) sendSize;
         }
 
-        if (sendSize == -1 && errno == EWOULDBLOCK)
+        if ((sendSize == -1) && ((errno == EWOULDBLOCK) || (errno == EAGAIN)))
         {
             return VOS_BLOCK_ERR;
         }
@@ -1350,7 +1351,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
             }
         }
 
-        if (rcvSize == -1 && errno == EWOULDBLOCK)
+        if ((rcvSize == -1) && ((errno == EWOULDBLOCK) || (errno == EAGAIN)))
         {
             return VOS_BLOCK_ERR;
         }
@@ -1522,6 +1523,7 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
                 /*Accept return -1 and errno = EWOULDBLOCK,
                 when there is no more connection requests.*/
                 case EWOULDBLOCK:
+                case EAGAIN:
                 {
                     *pSock = connFd;
                     return VOS_NO_ERR;
@@ -1589,6 +1591,7 @@ EXT_DECL VOS_ERR_T vos_sockConnect (
     {
         if ((errno == EINPROGRESS)
             || (errno == EWOULDBLOCK)
+            || (errno == EAGAIN)
             || (errno == EALREADY))
         {
             char buff[VOS_MAX_ERR_STR_SIZE];
@@ -1654,7 +1657,7 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
             pBuffer     += sendSize;
             *pSize      += (UINT32) sendSize;
         }
-        if (sendSize == -1 && errno == EWOULDBLOCK)
+        if ((sendSize == -1) && ((errno == EWOULDBLOCK) || (errno == EAGAIN)))
         {
             return VOS_BLOCK_ERR;
         }
@@ -1726,7 +1729,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
             vos_printLog(VOS_LOG_DBG, "received %lu bytes (Socket: %d)\n", (unsigned long)rcvSize, (int) sock);
         }
 
-        if (rcvSize == -1 && errno == EWOULDBLOCK)
+        if ((rcvSize == -1) && ((errno == EWOULDBLOCK) || (errno == EAGAIN)))
         {
             if (*pSize == 0)
             {
