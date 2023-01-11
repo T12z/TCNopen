@@ -26,6 +26,7 @@
 /*
 * $Id$
 *
+*     AHW 2023-01-11: Lint warnigs
 *     CWE 2023-01-09: Ticket #402: vehCnt and fctCnt already rotated when retrieved
 *     CWE 2022-12-22: Ticket #378: don't return internal property-pointer, but copy property-data to new buffer
 *      AO 2021-10-11: Ticket #378: bug fig
@@ -607,6 +608,7 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
         pDest->etbCnt = 0;
         return TRDP_MEM_ERR;
     }
+
     for (idx = 0u; idx < pDest->etbCnt; idx++)
     {
         /* #364 Use idx */
@@ -644,6 +646,7 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
         pDest->pEtbInfoList = NULL;
         return TRDP_MEM_ERR;
     }
+
     /* copy the vehicle list */
     for (idx = 0u; idx < pDest->vehCnt; idx++)
     {
@@ -660,12 +663,12 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
         {
             TRDP_SHORT_VERSION_T    ver;            /**< properties version information, application defined #378 */
             UINT16                  len;
+            TRDP_ERR_T              err = TRDP_NO_ERR;
 
             ver.ver = *pData++;
             ver.rel = *pData++;
             len = vos_ntohs(*(UINT16*)pData);
             pData += sizeof(UINT16);
-            TRDP_ERR_T err = TRDP_NO_ERR;
 
             if (len > TRDP_MAX_PROP_LEN)
             {
@@ -752,14 +755,14 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
             pDest->pEtbInfoList = NULL;
 
             {
-                UINT8 idx = 0;
+                UINT8 vehIdx = 0;
 
-                for (idx = 0; idx < pDest->vehCnt; idx++)
+                for (vehIdx = 0; vehIdx < pDest->vehCnt; vehIdx++)
                 {
-                    if (pDest->pVehInfoList[idx].pVehProp != NULL)
+                    if (pDest->pVehInfoList[vehIdx].pVehProp != NULL)
                     {
-                       vos_memFree(pDest->pVehInfoList[idx].pVehProp);
-                       pDest->pVehInfoList[idx].pVehProp = NULL;
+                       vos_memFree(pDest->pVehInfoList[vehIdx].pVehProp);
+                       pDest->pVehInfoList[vehIdx].pVehProp = NULL;
                     }
                 }
             }
@@ -811,14 +814,14 @@ static TRDP_ERR_T ttiCreateCstInfoEntry (
             vos_memFree(pDest->pEtbInfoList);
             pDest->pEtbInfoList = NULL;
             {
-                UINT8 idx = 0;
+                UINT8 vehIdx = 0;
 
-                for (idx = 0; idx < pDest->vehCnt; idx++)
+                for (vehIdx = 0; vehIdx < pDest->vehCnt; vehIdx++)
                 {
-                    if (pDest->pVehInfoList[idx].pVehProp != NULL)
+                    if (pDest->pVehInfoList[vehIdx].pVehProp != NULL)
                     {
-                        vos_memFree(pDest->pVehInfoList[idx].pVehProp);
-                        pDest->pVehInfoList[idx].pVehProp = NULL;
+                        vos_memFree(pDest->pVehInfoList[vehIdx].pVehProp);
+                        pDest->pVehInfoList[vehIdx].pVehProp = NULL;
                     }
                 }
             }

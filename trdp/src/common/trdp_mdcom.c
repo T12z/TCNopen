@@ -20,6 +20,7 @@
  /*
  * $Id$
  *
+ *     AHW 2023-01-11: Lint warnigs and Ticket #409 In updateTCNDNSentry(), the parameter noDesc of vos_select() is uninitialized if tlc_getInterval() fails
  *     CWE 2023-01-09: Ticket #393 Incorrect behaviour if MD timeout occurs
  *     CWE 2022-12-21: Ticket #404 Fix compile error - Test does not need to run, it is only used to verify bugfixes. It requires a special network-setup to run
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
@@ -2512,7 +2513,10 @@ void trdp_mdCheckPending (
         VOS_FD_SET(appHandle->tcpFd.listen_sd, (VOS_FDS_T *)pFileDesc); /*lint !e573 !e505
                                                                  signed/unsigned division in macro /
                                                                  Redundant left argument to comma */
-        if (vos_sockCmp(appHandle->tcpFd.listen_sd, *pNoDesc) == 1)
+        if (
+               (vos_sockCmp(appHandle->tcpFd.listen_sd, *pNoDesc) == 1)
+            || (*pNoDesc == VOS_INVALID_SOCKET)
+            )
         {
             *pNoDesc = appHandle->tcpFd.listen_sd;
         }
@@ -2527,7 +2531,10 @@ void trdp_mdCheckPending (
             VOS_FD_SET(appHandle->ifaceMD[lIndex].sock, (VOS_FDS_T *)pFileDesc); /*lint !e573 !e505
                                                                         signed/unsigned division in macro /
                                                                         Redundant left argument to comma */
-            if (vos_sockCmp(appHandle->ifaceMD[lIndex].sock, *pNoDesc) == 1)
+            if (
+                   (vos_sockCmp(appHandle->ifaceMD[lIndex].sock, *pNoDesc) == 1)
+                || (*pNoDesc == VOS_INVALID_SOCKET)
+                )
             {
                 *pNoDesc = appHandle->ifaceMD[lIndex].sock;
             }
@@ -2553,8 +2560,11 @@ void trdp_mdCheckPending (
                 VOS_FD_SET(appHandle->ifaceMD[iterListener->socketIdx].sock, (VOS_FDS_T *)pFileDesc); /*lint !e573 !e505
                                                                                              signed/unsigned division in macro /
                                                                                              Redundant left argument to comma */
-                if (vos_sockCmp(appHandle->ifaceMD[iterListener->socketIdx].sock, *pNoDesc) == 1)
-                {
+                if (
+                       (vos_sockCmp(appHandle->ifaceMD[iterListener->socketIdx].sock, *pNoDesc) == 1)
+                    || (*pNoDesc == VOS_INVALID_SOCKET)
+                    )
+               {
                     *pNoDesc = appHandle->ifaceMD[iterListener->socketIdx].sock;
                 }
             }
@@ -2578,7 +2588,10 @@ void trdp_mdCheckPending (
                 VOS_FD_SET(appHandle->ifaceMD[iterMD->socketIdx].sock, (VOS_FDS_T *)pFileDesc); /*lint !e573 !e505
                                                                                        signed/unsigned division in macro /
                                                                                        Redundant left argument to comma */
-                if (vos_sockCmp(appHandle->ifaceMD[iterMD->socketIdx].sock, *pNoDesc) == 1)
+                if (
+                       (vos_sockCmp(appHandle->ifaceMD[iterMD->socketIdx].sock, *pNoDesc) == 1)
+                    || (*pNoDesc == VOS_INVALID_SOCKET)
+                   )
                 {
                     *pNoDesc = appHandle->ifaceMD[iterMD->socketIdx].sock;
                 }
@@ -2602,7 +2615,10 @@ void trdp_mdCheckPending (
                 VOS_FD_SET(appHandle->ifaceMD[iterMD->socketIdx].sock, (VOS_FDS_T *)pFileDesc); /*lint !e573 !e505
                                                                                        signed/unsigned division in macro /
                                                                                        Redundant left argument to comma */
-                if (vos_sockCmp(appHandle->ifaceMD[iterMD->socketIdx].sock, *pNoDesc) >= 0)
+                if (
+                       (vos_sockCmp(appHandle->ifaceMD[iterMD->socketIdx].sock, *pNoDesc) >= 0)
+                    || (*pNoDesc == VOS_INVALID_SOCKET)
+                   )
                 {
                     *pNoDesc = appHandle->ifaceMD[iterMD->socketIdx].sock;
                 }
@@ -2945,7 +2961,7 @@ void  trdp_mdCheckTimeouts (
     MD_ELE_T    *iterMD     = appHandle->pMDSndQueue;
     BOOL8       firstLoop   = TRUE;
     BOOL8       timeOut;
-    TRDP_TIME_T now;
+    TRDP_TIME_T now = {0};
 
     if (appHandle == NULL)
     {

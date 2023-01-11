@@ -572,7 +572,7 @@ XML_TOKEN_T trdp_XMLGetAttribute (
             {
                 unsigned long   uIntValue;
                 vos_strncpy(value, pXML->tokenValue, MAX_TOK_LEN - 1u);
-                errno = 0;
+                VOS_SET_ERRNO(0);
                 uIntValue  = (UINT32) strtoul(value, NULL, 10); /* we expect unsigned values mostly */
                 if ((value[0] == '-') || (uIntValue == ULONG_MAX ) || (errno == EINVAL) || (errno == ERANGE))
                 {

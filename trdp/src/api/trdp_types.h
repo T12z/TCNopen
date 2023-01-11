@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *     AHW 2023-01-11: Lint warnigs
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
@@ -188,6 +189,8 @@ typedef VOS_FDS_T TRDP_FDS_T;
 /**    Socket descriptor set compatible with fd_set / select.
  */
 typedef VOS_SOCK_T TRDP_SOCK_T;
+#define TRDP_INVALID_SOCKET  VOS_INVALID_SOCKET      /**< Invalid socket number */
+
 
 /**********************************************************************************************************************/
 /**                          TRDP data transfer type definitions.                                                     */

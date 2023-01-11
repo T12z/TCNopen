@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     AHW 2023-01-11: Lint warnigs and Ticket #409 In updateTCNDNSentry(), the parameter noDesc of vos_select() is uninitialized if tlc_getInterval() fails
 *     CWE 2023-01-09: Ticket #395 PD subscriber statistics when publisher start earlier
 *     CWE 2023-01-09: Ticket #394 Statistics of missed PD packets when publisher restarts
 *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
@@ -1143,7 +1144,10 @@ void trdp_pdCheckPending (
             VOS_FD_SET(appHandle->ifacePD[iterPD->socketIdx].sock, (VOS_FDS_T *)pFileDesc);       /*lint !e573 !e505
                                                                                           signed/unsigned division in macro /
                                                                                           Redundant left argument to comma */
-            if (vos_sockCmp(appHandle->ifacePD[iterPD->socketIdx].sock, *pNoDesc) == 1)
+            if  (
+                     (vos_sockCmp(appHandle->ifacePD[iterPD->socketIdx].sock, *pNoDesc) == 1)
+                  || (*pNoDesc == VOS_INVALID_SOCKET)
+                )
             {
                 *pNoDesc = appHandle->ifacePD[iterPD->socketIdx].sock;
             }

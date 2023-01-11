@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *     AHW 2023-01-11: Lint warnigs
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
  *     AHW 2018-11-28: Doxygen comment errors
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
@@ -59,6 +60,13 @@ extern void *gRefCon;
 #define VOS_DIR_SEP     '\\'
 #else
 #define VOS_DIR_SEP     '/'
+#endif
+
+/** This is the abstraction to set errno */
+#if (defined (WIN32) || defined (WIN64))
+#define VOS_SET_ERRNO(VAL)   (void) _set_errno(VAL)
+#else
+#define VOS_SET_ERRNO(VAL)   errno = (VAL)
 #endif
 
 /** Safe printf function */

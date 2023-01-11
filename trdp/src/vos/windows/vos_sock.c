@@ -18,6 +18,7 @@
 /*
 * $Id$
 *
+*     AHW 2023-01-11: Lint warnigs
 *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *     AHW 2021-08-04: Ticket #372: Possible infinite loop in vos_getInterfaces()
 *     AHW 2021-05-06: Ticket #322: Subscriber multicast message routing in multi-home device
@@ -1466,7 +1467,7 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
     UINT16     *pPort)
 {
     struct sockaddr_in srcAddress;
-    VOS_SOCK_T connFd = SOCKET_ERROR;
+    VOS_SOCK_T connFd = INVALID_SOCKET;
 
     if (pSock == NULL || pIPAddress == NULL || pPort == NULL)
     {
