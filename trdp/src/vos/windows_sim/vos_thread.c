@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      AÖ 2023-01-13: Ticket #411: vos_mutexLock, in TimeSync multi core mode try 1ms timeout in WaitForSingleObject before doing threadDelay
 *     CWE 2023-01-05: Code cleanup for function vos_getTime
 *      AÖ 2022-11-23: Ticket #396: vos/windows_sim/vos_thread.c has a faulty code path in vos_threadRegisterLocal
 *      AÖ 2022-03-02: Ticket #389: Add vos Sim function vos_threadRegisterExisting, moved common functionality to vos_threadRegisterMain
@@ -1523,6 +1524,16 @@ void vos_mutexLocalDelete (
 EXT_DECL VOS_ERR_T vos_mutexLock (VOS_MUTEX_T pMutex)
 {
     VOS_ERR_T res = VOS_NO_ERR;
+    DWORD dwMillesecoundDelay = 0;
+    int timeSyncMode = TimeSyncGetMode();
+
+    if (timeSyncMode == TIMESYNC_MULTI_CORE)
+    {
+        //In multi core mode the mutex can quickly be unlocked, 
+        //no need to do an thread delay first try a ordinary delay 1ms
+        //If this delay is too long to system can get a dead look
+        dwMillesecoundDelay = 1;
+    }
 
     if (pMutex == NULL || pMutex->magicNo != cMutextMagic)
     {
@@ -1536,7 +1547,7 @@ EXT_DECL VOS_ERR_T vos_mutexLock (VOS_MUTEX_T pMutex)
 
         do
         {
-            DWORD dwWaitResult = WaitForSingleObject(pMutex->mutexId, 0);
+            DWORD dwWaitResult = WaitForSingleObject(pMutex->mutexId, dwMillesecoundDelay);
 
             switch (dwWaitResult)
             {
@@ -1553,6 +1564,8 @@ EXT_DECL VOS_ERR_T vos_mutexLock (VOS_MUTEX_T pMutex)
                 vos_printLog(VOS_LOG_ERROR, "vos_mutexLock() ERROR %d\n", GetLastError());
                 return VOS_MUTEX_ERR;
             }
+
+            dwMillesecoundDelay = 0;
         } while (TRUE);
     }
 
