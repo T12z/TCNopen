@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      AÖ 2023-01-13: Ticket #413 In Windows export gPDebugFunction and gRefCon
  *     AHW 2023-01-11: Lint warnigs
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
  *     AHW 2018-11-28: Doxygen comment errors
@@ -47,8 +48,8 @@ extern "C" {
  * DEFINES
  */
 
-extern VOS_PRINT_DBG_T gPDebugFunction;
-extern void *gRefCon;
+extern EXT_DECL VOS_PRINT_DBG_T gPDebugFunction; /* #413 */
+extern EXT_DECL void *gRefCon; /* #413 */
 
 /** String size definitions for the debug output functions */
 #define VOS_MAX_PRNT_STR_SIZE   256u         /**< Max. size of the debug/error string of debug function */
