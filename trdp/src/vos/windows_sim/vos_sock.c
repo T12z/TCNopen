@@ -20,6 +20,7 @@
 /*
 * $Id$
 *
+*      AÖ 2023-01-16: Ticket #414: Fix compiler warnings in VOS Windows_sim
 *      AÖ 2023-01-13: Ticket #410 Don't perform a delay after SimSelect if any socket is signaled
 *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *      AÖ 2021-12-17: Ticket #384: Added #include <windows.h>
@@ -216,9 +217,12 @@ INT32 recvmsg(VOS_SOCK_T sock, SIM_MSG* pMessage, int flags)
 {
     DWORD   numBytes = 0;
     int     res;
+    SIM_SOCKET simSocket;
+
+    simSocket = socketToSimSocket(sock);
 
     pMessage->flags = flags;
-    res = SimRecvMsg(sock, pMessage, &numBytes);
+    res = SimRecvMsg(simSocket, pMessage, &numBytes);
     if (0 != res)
     {
         DWORD err = WSAGetLastError();
@@ -1267,7 +1271,7 @@ EXT_DECL VOS_ERR_T vos_sockBind (
                  inet_ntoa(srcAddress.sin_addr), port);
 
     /*  Try to bind the socket to the PD port.    */
-    if (SimBind(sock, (struct sockaddr*) & srcAddress, sizeof(srcAddress)) == SOCKET_ERROR)
+    if (SimBind(simSock, (struct sockaddr*) & srcAddress, sizeof(srcAddress)) == SOCKET_ERROR)
     {
         int err = GetLastError();
 
