@@ -26,10 +26,12 @@
 /*
 * $Id$
 *
+*     AHW 2023-01-24: Ticket #416: Interface change for tau_getCstInfo(), tau_getStaticCstInfo(), tau_getVehInfo()
+*     AHW 2023-01-24: Naming #416: unified tau_getTrDir()/tau_getOpTrDir() -> tau_getTrnDir()/tau_getOpTrnDir()
 *     AHW 2023-01-11: Lint warnigs
 *     CWE 2023-01-09: Ticket #402: vehCnt and fctCnt already rotated when retrieved
 *     CWE 2022-12-22: Ticket #378: don't return internal property-pointer, but copy property-data to new buffer
-*      AO 2021-10-11: Ticket #378: bug fig
+*      AO 2021-10-11: Ticket #378: bug fix
 *     AHW 2021-10-07: Ticket #379: tau getOwnIds returns TRDP_NO_ERR even if nothing found in cst info
 *     AHW 2021-10-07: Ticket #378: ttiConsistInfoEntry writes static vehicle properties out of memory
 *     AHW 2021-10-07: Ticket #377: tau getOwnIds doesn't check the cache correct
@@ -1296,7 +1298,7 @@ EXT_DECL void tau_deInitTTI (
  *  @retval         TRDP_NODATA_ERR Data currently not available, try again later
  *
  */
-EXT_DECL TRDP_ERR_T tau_getOpTrDirectory (
+EXT_DECL TRDP_ERR_T tau_getOpTrnDirectory (
     TRDP_APP_SESSION_T          appHandle,
     TRDP_OP_TRAIN_DIR_STATE_T   *pOpTrnDirState,
     TRDP_OP_TRAIN_DIR_T         *pOpTrnDir)
@@ -1363,7 +1365,7 @@ EXT_DECL TRDP_ERR_T tau_getOpTrnDirectoryStatusInfo (
  *  @retval         TRDP_NODATA_ERR Try later
  *
  */
-EXT_DECL TRDP_ERR_T tau_getTrDirectory (
+EXT_DECL TRDP_ERR_T tau_getTrnDirectory (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_TRAIN_DIR_T    *pTrnDir)
 {
@@ -1383,13 +1385,153 @@ EXT_DECL TRDP_ERR_T tau_getTrDirectory (
     return TRDP_NO_ERR;
 }
 
-
 /**********************************************************************************************************************/
-/**    Function to retrieve the consist info.
+/**    Function to allocate memory and to copy the consist info into
  *
  *
  *  @param[in]      appHandle       Handle returned by tlc_openSession().
  *  @param[out]     pCstInfo        Pointer to a consist info structure to be returned.
+ *
+ *  @retval         TRDP_NO_ERR     no error
+ *  @retval         TRDP_PARAM_ERR  Parameter error
+ *
+ */
+EXT_DECL TRDP_ERR_T tau_copyCstInfo(
+    TRDP_CONSIST_INFO_T  **ppDstCstInfo,
+    TRDP_CONSIST_INFO_T   *pSrcCstInfo
+    )
+{
+    size_t tst = sizeof(TRDP_PROP_T);
+    size_t sizeEtbInfo = pSrcCstInfo->etbCnt * sizeof(TRDP_ETB_INFO_T);
+    size_t sizeFctInfo = pSrcCstInfo->fctCnt * sizeof(TRDP_FUNCTION_INFO_T);
+    size_t sizeClTrnInfo = pSrcCstInfo->cltrCstCnt * sizeof(TRDP_CLTR_CST_INFO_T);
+    size_t sizeCstProp = pSrcCstInfo->pCstProp->len + sizeof(TRDP_PROP_T);
+    size_t sizeVehInfo = pSrcCstInfo->vehCnt * sizeof(TRDP_VEHICLE_INFO_T);
+    size_t sizeVehProp = 0;
+    size_t sizeCstInfo = 0;
+    UINT8 *pData;
+
+    if ((pSrcCstInfo == NULL) || (ppDstCstInfo == NULL))
+    {
+        return TRDP_PARAM_ERR;
+    }
+
+    /* calculate memory for vehicle properties */
+    {
+        UINT32 i;
+
+        for (i = 0; i < pSrcCstInfo->vehCnt; i++)
+        {
+            if (pSrcCstInfo->pVehInfoList[i].pVehProp != NULL)
+            {
+                sizeVehProp += pSrcCstInfo->pVehInfoList[i].pVehProp->len + sizeof(TRDP_PROP_T);
+            }
+        }
+    }
+
+    sizeCstInfo = sizeof(TRDP_CONSIST_INFO_T) + sizeEtbInfo + sizeFctInfo + sizeClTrnInfo + sizeCstProp + sizeVehInfo + sizeVehProp;
+
+    pData = (UINT8*)vos_memAlloc((UINT32) sizeCstInfo);
+    *ppDstCstInfo = (TRDP_CONSIST_INFO_T*)pData;
+
+    if (pData == NULL)
+    {
+        return TRDP_MEM_ERR;
+    }
+
+    /* initialise provided memory */
+    memset(pData, 0, sizeCstInfo);
+
+    /* copy consist info structure */
+    memcpy(pData, pSrcCstInfo, sizeof(TRDP_CONSIST_INFO_T));
+    pData += sizeof(TRDP_CONSIST_INFO_T);
+
+     /* copy ETB info list */
+    {
+         UINT32 i;
+
+         (*ppDstCstInfo)->pEtbInfoList = (TRDP_ETB_INFO_T *) pData;
+
+         for (i = 0; i < pSrcCstInfo->etbCnt; i++)
+         {
+             memcpy(pData, &pSrcCstInfo->pEtbInfoList[i], sizeof(TRDP_ETB_INFO_T));
+             pData += sizeof(TRDP_ETB_INFO_T);
+         }
+    }
+
+    /* copy function info list */
+    {
+         UINT32 i;
+
+         (*ppDstCstInfo)->pFctInfoList = (TRDP_FUNCTION_INFO_T *) pData;
+
+         for (i = 0; i < pSrcCstInfo->fctCnt; i++)
+         {
+             memcpy(&(*ppDstCstInfo)->pFctInfoList[i], &pSrcCstInfo->pFctInfoList[i], sizeof(TRDP_FUNCTION_INFO_T));
+             pData += sizeof(TRDP_FUNCTION_INFO_T);
+         }
+    }
+
+    /* copy closed train info list */
+    {
+         UINT32 i;
+
+         (*ppDstCstInfo)->pCltrCstInfoList = (TRDP_CLTR_CST_INFO_T *) pData;
+            
+         for (i = 0; i < pSrcCstInfo->cltrCstCnt; i++)
+         {
+             memcpy(&(*ppDstCstInfo)->pCltrCstInfoList[i], &pSrcCstInfo->pCltrCstInfoList[i], sizeof(TRDP_CLTR_CST_INFO_T));
+             pData += sizeof(TRDP_CLTR_CST_INFO_T);
+         }
+    }
+
+     /* copy consist property */
+    if (pSrcCstInfo->pCstProp != NULL)
+    {
+        (*ppDstCstInfo)->pCstProp = (TRDP_PROP_T*)pData;
+
+        /* copy consist properties */
+        memcpy((*ppDstCstInfo)->pCstProp, pSrcCstInfo->pCstProp, pSrcCstInfo->pCstProp->len + sizeof(TRDP_PROP_T));
+
+        pData += pSrcCstInfo->pCstProp->len + sizeof(TRDP_PROP_T);
+    }
+
+    /* copy vehicle info list */
+    {
+        UINT32 i;
+
+        /* alloc veh info list */
+        (*ppDstCstInfo)->pVehInfoList = (TRDP_VEHICLE_INFO_T*)pData;
+        pData += sizeVehInfo;
+
+        for (i = 0; i < pSrcCstInfo->vehCnt; i++)
+        {
+            memcpy(&(*ppDstCstInfo)->pVehInfoList[i], &pSrcCstInfo->pVehInfoList[i], sizeof(TRDP_VEHICLE_INFO_T));
+            
+            if (pSrcCstInfo->pVehInfoList[i].pVehProp != NULL)
+            {
+                (*ppDstCstInfo)->pVehInfoList[i].pVehProp = (TRDP_PROP_T*)pData;
+
+                /* copy vehicle properties */
+                memcpy((*ppDstCstInfo)->pVehInfoList[i].pVehProp, pSrcCstInfo->pVehInfoList[i].pVehProp, pSrcCstInfo->pVehInfoList[i].pVehProp->len + sizeof(TRDP_PROP_T));
+
+                pData += pSrcCstInfo->pVehInfoList[i].pVehProp->len + sizeof(TRDP_PROP_T);
+            }
+        }
+    }
+ 
+    return TRDP_NO_ERR;
+}
+
+
+
+/**********************************************************************************************************************/
+/**    Function to alloc memory and to retrieve the consist information of a train's consist.
+ *
+ *  @param[in]      appHandle       Handle returned by tlc_openSession().
+ *  @param[out]     ppCstInfo       Pointer to a pointer to consist info structure to be returned.
+ *                                  The memory to copy the consist info will be allocated and hast to be freed
+ *                                  using vos_memFree().
  *  @param[in]      cstUUID         UUID of the consist the consist info is rquested for.
  *
  *  @retval         TRDP_NO_ERR     no error
@@ -1397,14 +1539,15 @@ EXT_DECL TRDP_ERR_T tau_getTrDirectory (
  *
  */
 EXT_DECL TRDP_ERR_T tau_getStaticCstInfo (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_CONSIST_INFO_T *pCstInfo,
-    TRDP_UUID_T const   cstUUID)
+    TRDP_APP_SESSION_T     appHandle,
+    TRDP_CONSIST_INFO_T  **ppCstInfo,
+    TRDP_UUID_T const      cstUUID)
 {
     UINT32 l_index;
+
     if ((appHandle == NULL) ||
         (appHandle->pTTDB == NULL) ||
-        (pCstInfo == NULL))
+        (ppCstInfo == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1425,11 +1568,12 @@ EXT_DECL TRDP_ERR_T tau_getStaticCstInfo (
             }
         }
     }
-    if (l_index < TTI_CACHED_CONSISTS &&
-        appHandle->pTTDB->cstInfo[l_index] != NULL)
+
+    if ((l_index < TTI_CACHED_CONSISTS) && (appHandle->pTTDB->cstInfo[l_index] != NULL))
     {
-        memcpy(pCstInfo, appHandle->pTTDB->cstInfo[l_index], appHandle->pTTDB->cstSize[l_index]);
-    }
+        /* copy consist info structure */
+        return tau_copyCstInfo(ppCstInfo, appHandle->pTTDB->cstInfo[l_index]);
+    }   
     else    /* not found, get it and return directly */
     {
         ttiRequestTTDBdata(appHandle, TTDB_STAT_CST_REQ_COMID, cstUUID);
@@ -1687,7 +1831,7 @@ EXT_DECL TRDP_ERR_T tau_getCstFctCnt (
  */
 EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
     TRDP_APP_SESSION_T      appHandle,
-    TRDP_FUNCTION_INFO_T    *pFctInfo,
+    TRDP_FUNCTION_INFO_T   *pFctInfo,
     const TRDP_LABEL_T      pCstLabel,
     UINT16                  maxFctCnt)
 {
@@ -1741,7 +1885,7 @@ EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
  *
  *
  *  @param[in]      appHandle       Handle returned by tlc_openSession().
- *  @param[out]     pVehInfo        Pointer to the vehicle info to be returned.
+ *  @param[out]     ppVehInfo       Pointer to the vehicle info to be returned. Memory has to be freed by vos_memAlloc()
  *                                  Call vos_memFree(pVehInfo->pVehProp) to release the property memory.
  *  @param[in]      pVehLabel       Pointer to a vehicle label. NULL means own vehicle  if cstLabel refers to own consist.
  *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
@@ -1751,15 +1895,16 @@ EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
  *
  */
 EXT_DECL TRDP_ERR_T tau_getVehInfo (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_VEHICLE_INFO_T *pVehInfo,
-    const TRDP_LABEL_T  pVehLabel,
-    const TRDP_LABEL_T  pCstLabel)
+    TRDP_APP_SESSION_T    appHandle,
+    TRDP_VEHICLE_INFO_T **ppVehInfo,
+    const TRDP_LABEL_T    pVehLabel,
+    const TRDP_LABEL_T    pCstLabel)
 {
     UINT32 l_index, l_index2;
+  
     if ((appHandle == NULL) ||
         (appHandle->pTTDB == NULL) ||
-        (pVehInfo == NULL))
+        (ppVehInfo == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1780,6 +1925,7 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
             }
         }
     }
+
     if (l_index < TTI_CACHED_CONSISTS)
     {
         for (l_index2 = 0; l_index2 < appHandle->pTTDB->cstInfo[l_index]->vehCnt; ++l_index2)   /* #402 */
@@ -1788,17 +1934,32 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
                 vos_strnicmp(pVehLabel, appHandle->pTTDB->cstInfo[l_index]->pVehInfoList[l_index2].vehId,
                              sizeof(TRDP_NET_LABEL_T)) == 0)
             {
-                *pVehInfo = appHandle->pTTDB->cstInfo[l_index]->pVehInfoList[l_index2];
+                UINT8 *pData;
+                UINT32 size = sizeof(TRDP_VEHICLE_INFO_T);
+                TRDP_VEHICLE_INFO_T *pVehInfoTTDB = &appHandle->pTTDB->cstInfo[l_index]->pVehInfoList[l_index2];
 
-                /* don't return internal property-pointer, but copy property-data to new buffer and return the buffer-pointer instead */
-				if (pVehInfo->pVehProp != NULL)
+                if (pVehInfoTTDB->pVehProp != NULL)
+                {
+                    size += sizeof(TRDP_PROP_T) + pVehInfoTTDB->pVehProp->len;
+                }
+
+                pData = vos_memAlloc(size);
+                *ppVehInfo = (TRDP_VEHICLE_INFO_T *)pData;
+
+                if (pData == NULL)
+                {
+                    return TRDP_MEM_ERR;
+                }
+
+                memcpy(*ppVehInfo, pVehInfoTTDB, sizeof(TRDP_VEHICLE_INFO_T));
+                pData += sizeof(TRDP_VEHICLE_INFO_T);
+
+                /* copy properties if there are any */
+				if (pVehInfoTTDB->pVehProp != NULL)
 				{
-					TRDP_PROP_T *pVehProp = (TRDP_PROP_T *) vos_memAlloc(sizeof(TRDP_PROP_T) + pVehInfo->pVehProp->len);
-					if (pVehProp != NULL)
-					{
-						memcpy(pVehProp, pVehInfo->pVehProp, sizeof(TRDP_PROP_T) + pVehInfo->pVehProp->len);
-						pVehInfo->pVehProp = pVehProp;		/* be aware and call vos_memFree(pVehInfo->pVehProp) to release the property memory */
-					}
+                    (*ppVehInfo)->pVehProp = (TRDP_PROP_T*)pData;
+
+					memcpy((*ppVehInfo)->pVehProp, pVehInfoTTDB->pVehProp, sizeof(TRDP_PROP_T) + pVehInfoTTDB->pVehProp->len);
 				}
                 break;                                      /* leave loop on first match */
             }
@@ -1816,11 +1977,12 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
 
 
 /**********************************************************************************************************************/
-/**    Function to retrieve the consist information of a train's consist.
- *
+/**    Function to alloc memory and to retrieve the consist information of a train's consist.
  *
  *  @param[in]      appHandle       Handle returned by tlc_openSession().
- *  @param[out]     pCstInfo        Pointer to the consist info to be returned.
+ *  @param[out]     ppCstInfo       Pointer to a pointer to consist info structure to be returned.
+ *                                  The memory to copy the consist info will be allocated and hast to be freed
+ *                                  using vos_memFree().
  *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
  *
  *  @retval         TRDP_NO_ERR     no error
@@ -1828,14 +1990,14 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
  *
  */
 EXT_DECL TRDP_ERR_T tau_getCstInfo (
-    TRDP_APP_SESSION_T  appHandle,
-    TRDP_CONSIST_INFO_T *pCstInfo,
-    const TRDP_LABEL_T  pCstLabel)
+    TRDP_APP_SESSION_T    appHandle,
+    TRDP_CONSIST_INFO_T **ppCstInfo,
+    const TRDP_LABEL_T    pCstLabel)
 {
     UINT32 l_index;
     if ((appHandle == NULL) ||
         (appHandle->pTTDB == NULL) ||
-        (pCstInfo == NULL))
+        (ppCstInfo == NULL))
     {
         return TRDP_PARAM_ERR;
     }
@@ -1856,9 +2018,11 @@ EXT_DECL TRDP_ERR_T tau_getCstInfo (
             }
         }
     }
-    if (l_index < TTI_CACHED_CONSISTS)
+
+    if ((l_index < TTI_CACHED_CONSISTS) && (appHandle->pTTDB->cstInfo[l_index] != NULL))
     {
-        *pCstInfo           = *appHandle->pTTDB->cstInfo[l_index];
+        /* copy consist info structure */
+        return tau_copyCstInfo(ppCstInfo, appHandle->pTTDB->cstInfo[l_index]);
     }
     else    /* not found, get it and return directly */
     {

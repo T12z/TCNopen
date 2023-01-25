@@ -19,7 +19,8 @@
  /*
  * $Id$
  *
- *
+ *     AHW 2023-01-24: Ticket #416: Interface change for tau_getCstInfo(), tau_getStaticCstInfo(), tau_getVehInfo()
+ *     AHW 2023-01-24: Naming #416: unified tau_getTrDir()/tau_getOpTrDir() -> tau_getTrnDir()/tau_getOpTrnDir()
  *      BL 2019-05-15: Ticket #254 API of TTI to get OwnOpCstNo and OwnTrnCstNo
  *      BL 2018-08-07: Ticket #183 tau_getOwnIds moved here
  *      BL 2016-02-18: Ticket #7: Add train topology information support
@@ -125,7 +126,7 @@ EXT_DECL void tau_deInitTTI (
  *  @retval         TRDP_PARAM_ERR  Parameter error
  *
  */
-EXT_DECL TRDP_ERR_T tau_getOpTrDirectory (
+EXT_DECL TRDP_ERR_T tau_getOpTrnDirectory (
     TRDP_APP_SESSION_T          appHandle,
     TRDP_OP_TRAIN_DIR_STATE_T   *pOpTrnDirState,
     TRDP_OP_TRAIN_DIR_T         *pOpTrnDir);
@@ -159,17 +160,18 @@ EXT_DECL TRDP_ERR_T tau_getOpTrnDirectoryStatusInfo (
  *  @retval         TRDP_NODATA_ERR Try later
  *
  */
-EXT_DECL TRDP_ERR_T tau_getTrDirectory (
+EXT_DECL TRDP_ERR_T tau_getTrnDirectory (
     TRDP_APP_SESSION_T              appHandle,
     TRDP_TRAIN_DIR_T                *pTrnDir);
 
 
 /**********************************************************************************************************************/
-/**    Function to retrieve the operational train directory.
- *
+/**    Function to alloc memory and to retrieve the consist information of a train's consist.
  *
  *  @param[in]      appHandle       Handle returned by tlc_openSession().
- *  @param[out]     pCstInfo        Pointer to a consist info structure to be returned.
+ *  @param[out]     ppCstInfo       Pointer to a pointer to consist info structure to be returned.
+ *                                  The memory to copy the consist info will be allocated and hast to be freed
+ *                                  using vos_memFree().
  *  @param[in]      cstUUID         UUID of the consist the consist info is rquested for.
  *
  *  @retval         TRDP_NO_ERR     no error
@@ -177,9 +179,9 @@ EXT_DECL TRDP_ERR_T tau_getTrDirectory (
  *
  */
 EXT_DECL TRDP_ERR_T tau_getStaticCstInfo (
-    TRDP_APP_SESSION_T                      appHandle,
-    TRDP_CONSIST_INFO_T                    *pCstInfo,
-    TRDP_UUID_T                      const  cstUUID);
+    TRDP_APP_SESSION_T       appHandle,
+    TRDP_CONSIST_INFO_T    **ppCstInfo,
+    TRDP_UUID_T              const  cstUUID);
 
 
 /**********************************************************************************************************************/
@@ -197,7 +199,7 @@ EXT_DECL TRDP_ERR_T tau_getStaticCstInfo (
  *
  */
 EXT_DECL TRDP_ERR_T tau_getTTI (
-    TRDP_APP_SESSION_T                 appHandle,
+    TRDP_APP_SESSION_T           appHandle,
     TRDP_OP_TRAIN_DIR_STATE_T   *pOpTrnDirState,
     TRDP_OP_TRAIN_DIR_T         *pOpTrnDir,
     TRDP_TRAIN_DIR_T            *pTrnDir,
@@ -296,12 +298,13 @@ EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
 
 
 /**********************************************************************************************************************/
-/**    Function to retrieve the vehicle information of a consist's vehicle.
+/**    Function to allocate memory and  to retrieve the vehicle information of a consist's vehicle.
  *
  *
  *  @param[in]      appHandle       Handle returned by tlc_openSession().
- *  @param[out]     pVehInfo        Pointer to the vehicle info to be returned. 
- *  @param[in]      pVehLabel       Pointer to a vehicle label. NULL means own vehicle  if cstLabel refers to own consist.
+ *  @param[out]     ppVehInfo       Pointer to the vehicle info to be returned. 
+ *  @param[in]      pVehLabel       Pointer to a vehicle label. NULL means own vehicle if cstLabel refers to own consist.
+ *                                  Memory to be freed by the caller
  *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
  *
  *  @retval         TRDP_NO_ERR     no error
@@ -310,18 +313,19 @@ EXT_DECL TRDP_ERR_T tau_getCstFctInfo (
  */
 EXT_DECL TRDP_ERR_T tau_getVehInfo (
     TRDP_APP_SESSION_T      appHandle,
-    TRDP_VEHICLE_INFO_T    *pVehInfo,
+    TRDP_VEHICLE_INFO_T   **ppVehInfo,
     const TRDP_LABEL_T      pVehLabel,
     const TRDP_LABEL_T      pCstLabel);
 
 
 /**********************************************************************************************************************/
-/**    Function to retrieve the consist information of a train's consist.
- *
+/**    Function to alloc memory and to retrieve the consist information of a train's consist.
  *
  *  @param[in]      appHandle       Handle returned by tlc_openSession().
- *  @param[out]     pCstInfo        Pointer to the consist info to be returned.
- *  @param[in]      pCstLabel       Pointer to a consist label. NULL means own consist.
+ *  @param[out]     ppCstInfo       Pointer to a pointer to consist info structure to be returned.
+ *                                  The memory to copy the consist info will be allocated and hast to be freed
+ *                                  using vos_memFree().
+ *  @param[in]      pCstLabel       Label of the consist the consist info is rquested for.
  *
  *  @retval         TRDP_NO_ERR     no error
  *  @retval         TRDP_PARAM_ERR  Parameter error
@@ -329,7 +333,7 @@ EXT_DECL TRDP_ERR_T tau_getVehInfo (
  */
 EXT_DECL TRDP_ERR_T tau_getCstInfo (
     TRDP_APP_SESSION_T      appHandle,
-    TRDP_CONSIST_INFO_T    *pCstInfo,
+    TRDP_CONSIST_INFO_T   **ppCstInfo,
     const TRDP_LABEL_T      pCstLabel);
 
 
@@ -359,8 +363,8 @@ EXT_DECL TRDP_ERR_T tau_getVehOrient (
     TRDP_APP_SESSION_T   appHandle,
     UINT8               *pVehOrient,
     UINT8               *pCstOrient,
-    TRDP_LABEL_T        pVehLabel,
-    TRDP_LABEL_T        pCstLabel);
+    TRDP_LABEL_T         pVehLabel,
+    TRDP_LABEL_T         pCstLabel);
 
 /**********************************************************************************************************************/
 /**    Who am I ?.
@@ -404,6 +408,7 @@ EXT_DECL UINT8 tau_getOwnOpCstNo (
  */
 EXT_DECL UINT8 tau_getOwnTrnCstNo (
     TRDP_APP_SESSION_T appHandle);
+
 
 #ifdef __cplusplus
 }
