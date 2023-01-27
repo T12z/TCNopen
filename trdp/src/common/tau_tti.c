@@ -1401,7 +1401,6 @@ EXT_DECL TRDP_ERR_T tau_copyCstInfo(
     TRDP_CONSIST_INFO_T   *pSrcCstInfo
     )
 {
-    size_t tst = sizeof(TRDP_PROP_T);
     size_t sizeEtbInfo = pSrcCstInfo->etbCnt * sizeof(TRDP_ETB_INFO_T);
     size_t sizeFctInfo = pSrcCstInfo->fctCnt * sizeof(TRDP_FUNCTION_INFO_T);
     size_t sizeClTrnInfo = pSrcCstInfo->cltrCstCnt * sizeof(TRDP_CLTR_CST_INFO_T);
