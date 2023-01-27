@@ -18,6 +18,7 @@
 /*
 * $Id$
 *
+*     CWE 2023-01-23: fixed 64bit/32bit variable warnings on windows
 *      BL 2017-05-08: Compiler warnings
 *      BL 2017-02-27: #142 Compiler warnings / MISRA-C 2012 issues
 *      BL 2016-08-17: parentheses added (compiler warning)
@@ -364,14 +365,14 @@ static VOS_ERR_T vos_initRuntimeConsts (void)
         vos_printLogStr(VOS_LOG_ERROR, "Endianess is not set correctly!\n");
     }
 
-    sAlignINT16 = (INT8 *) &vAlignTest.word - (INT8 *) &vAlignTest.byte3;
-    sAlignINT32 = (INT8 *) &vAlignTest.dword1 - (INT8 *) &vAlignTest.byte2;
-    sAlignINT64 = (INT8 *) &vAlignTest.longLong1 - (INT8 *) &vAlignTest.byte1;
-    sAlignREAL32 = (INT8 *) &vAlignTest.dword2 - (INT8 *) &vAlignTest.byte5;
-    sAlignTIMEDATE48        = (INT8 *) &vAlignTest.dword3 - (INT8 *) &vAlignTest.byte6;
-    sAlignREAL64            = (INT8 *) &vAlignTest.longLong2 - (INT8 *) &vAlignTest.byte4;
-    sAlignTIMEDATE48Array1  = (INT8 *) &vAlignTest.a[0].dword - (INT8 *) &vAlignTest.a[0].byte;
-    sAlignTIMEDATE48Array2  = (INT8 *) &vAlignTest.a[1].dword - (INT8 *) &vAlignTest.a[1].byte;
+    sAlignINT16 = ((INT8 *) &vAlignTest.word - (INT8 *) &vAlignTest.byte3) & 0xFF;       // CWE: fixed 64bit/32bit variable warnings on windows
+    sAlignINT32 = ((INT8 *) &vAlignTest.dword1 - (INT8 *) &vAlignTest.byte2) & 0xFF;
+    sAlignINT64 = ((INT8 *) &vAlignTest.longLong1 - (INT8 *) &vAlignTest.byte1) & 0xFF;
+    sAlignREAL32 = ((INT8 *) &vAlignTest.dword2 - (INT8 *) &vAlignTest.byte5) & 0xFF;
+    sAlignTIMEDATE48        = ((INT8 *) &vAlignTest.dword3 - (INT8 *) &vAlignTest.byte6) & 0xFF;
+    sAlignREAL64            = ((INT8 *) &vAlignTest.longLong2 - (INT8 *) &vAlignTest.byte4) & 0xFF;
+    sAlignTIMEDATE48Array1  = ((INT8 *) &vAlignTest.a[0].dword - (INT8 *) &vAlignTest.a[0].byte) & 0xFFF;
+    sAlignTIMEDATE48Array2  = ((INT8 *) &vAlignTest.a[1].dword - (INT8 *) &vAlignTest.a[1].byte) & 0xFF;
 
     if (sAlignINT8 != ALIGNOF(INT8))
     {

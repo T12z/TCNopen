@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *     CWE 2023-01-27: Ticket #417: Multicast-N tests always failed due to unknown number of expected multicast repliers. Expected number can now be set as param
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API
  *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
@@ -103,6 +104,7 @@ typedef struct
     TRDP_IP_ADDR_T  srcip;              /* source (local) IP address */
     TRDP_IP_ADDR_T  dstip;              /* destination (remote) IP address */
     TRDP_IP_ADDR_T  mcgrp;              /* multicast group */
+    unsigned        multicastRepliers;  /* #417 expected number of multicast repliers */
 } Options;
 
 /* test status */
@@ -110,6 +112,7 @@ typedef struct
 {
     uintptr_t   test;                   /* test type executed */
     unsigned    err[TST_END];           /* errors counter */
+    unsigned    replies[TST_END];       /* #417 replies counter: for multicast N replies */
     unsigned    counter;                /* test counter */
     TRDP_TIME_T tbeg;                   /* test begin time */
     TRDP_TIME_T tend;                   /* test end time */
@@ -322,7 +325,7 @@ void print_log (void *pRefCon, VOS_LOG_T category, const CHAR8 *pTime,
 #if (defined (WIN32) || defined (WIN64))
     if (pLogFile == NULL)
     {
-        char        buf[1024];
+        char        buf[1024] = { 0 };
         const char  *file = strrchr(pFile, '\\');
         _snprintf(buf, sizeof(buf), "%s %s:%d %s",
                   cat[category], file ? file + 1 : pFile, line, pMsgStr);
@@ -447,11 +450,22 @@ void _sleep_msec (int msec)
 void print (int type, const char *fmt, ...)
 {
     va_list args;
+    VOS_TIMEVAL_T curTime;
+
+    if (type == -1) {
+        printf("\n\n");
+    } else  {
+        vos_getRealTime(&curTime);
+        printf("%02d:%02d:%02d.%06ld ",       // print timestamp format "hh:mm:ss.µs"
+            ((curTime.tv_sec / 60 / 60) % 24),
+            ((curTime.tv_sec / 60) % 60), 
+            (curTime.tv_sec % 60), curTime.tv_usec);
+    }
 
     switch (type)
     {
        case -1:
-           printf("\n\n!!! : ");
+           printf("!!! : ");
            break;
        case -2:
            printf("<== : ");
@@ -633,7 +647,7 @@ void md_callback (void *ref, TRDP_APP_SESSION_T apph,
 
        case TRDP_REPLYTO_ERR:
        case TRDP_TIMEOUT_ERR:
-           /* reply doesn't arrived */
+           /* reply did not arrive */
            sts.err[sts.test]++;
            print(-4, "error %s", get_result_string(msg->resultCode));
            switch (sts.test)
@@ -673,20 +687,22 @@ int main (int argc, char *argv[])
 
     printf("TRDP message data test program, version 0\n");
 
-    if (argc < 5)
+    if (argc < 4)
     {
         printf("usage: %s <mode> <localip> <remoteip> <mcast>\n", argv[0]);
         printf("  <mode>     .. caller or replier\n");
         printf("  <localip>  .. own IP address (ie. 10.2.24.1)\n");
         printf("  <remoteip> .. remote peer IP address (ie. 10.2.24.2)\n");
-        printf("  <mcast>    .. multicast group address (ie. 239.2.24.1)\n");
+        printf("  <mcast>    .. multicast group address (default 239.2.24.1)\n");
         printf("  <logfile>  .. file name for logging (ie. test.txt)\n");
+        printf("  <repliers> .. expected number of multicast repliers (default 1)\n");
 
         return 1;
     }
 
-    /* initialize test status */
+    /* initialize test status and options */
     memset(&sts, 0, sizeof(sts));
+    memset(&opts, 0, sizeof(opts));
     sts.test = TST_BEGIN;
 
     if (strcmp(argv[1], "caller") == 0)
@@ -711,7 +727,15 @@ int main (int argc, char *argv[])
     strncpy(opts.uri, "message.test", sizeof(opts.uri));    /* test URI */
     opts.srcip  = vos_dottedIP(argv[2]);                    /* source (local) IP address */
     opts.dstip  = vos_dottedIP(argv[3]);                    /* destination (remote) IP address */
-    opts.mcgrp  = vos_dottedIP(argv[4]);                    /* multicast group */
+
+    if (argc > 4)
+    {
+        opts.mcgrp  = vos_dottedIP(argv[4]);                /* multicast group */
+    }
+    if (opts.mcgrp == 0)
+    {
+        opts.mcgrp  = vos_dottedIP("239.2.24.1");           /* default multicast group: 239.2.24.1 */
+    }
 
     if (!opts.srcip || !opts.dstip || !vos_isMulticast(opts.mcgrp))
     {
@@ -719,14 +743,25 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-    if (argc >= 6)
+    pLogFile = NULL;                                        /* default: no logfile */
+    if ((argc > 5) && (strlen(argv[5]) > 0))
     {
         pLogFile = fopen(argv[5], "w");
     }
-    else
+
+    opts.multicastRepliers = 1;                             /* #417 default number of multicast repliers: 1 */
+    if (argc > 6) 
     {
-        pLogFile = NULL;
+        opts.multicastRepliers = (unsigned) strtoul(argv[6], NULL, 10);
     }
+
+    CHAR8 srcip[16], dstip[16], mcgrp[16];
+    strcpy(srcip, vos_ipDotted(opts.srcip));
+    strcpy(dstip, vos_ipDotted(opts.dstip));
+    strcpy(mcgrp, vos_ipDotted(opts.mcgrp));
+    printf("\nTRDP-MD-Test parameters:\n  mode     = %s\n  localip  = %s\n  remoteip = %s\n  mcast    = %s\n  logfile  = %s\n  repliers = %d\n\n",
+        (opts.mode == MODE_CALLER ? "caller" : "replier"), srcip, dstip, mcgrp, 
+        (pLogFile == NULL ? "" : argv[5]), opts.multicastRepliers);
 
     /* initialize request queue */
     queue.head  = queue.rec;
@@ -770,8 +805,8 @@ int main (int argc, char *argv[])
     mdcfg.replyTimeout      = 1000 * opts.tmo;
     mdcfg.confirmTimeout    = 1000 * opts.tmo;
     mdcfg.connectTimeout    = 1000 * opts.tmo;
-	mdcfg.udpPort = 17225;
-	mdcfg.tcpPort = 17225;
+	mdcfg.udpPort           = 17225;
+	mdcfg.tcpPort           = 17225;
     mdcfg.maxNumSessions    = 64;
 
     /* open session */
@@ -830,6 +865,7 @@ void exec_next_test ()
         print_status();
         /* start everything from begin */
         sts.test = TST_BEGIN + 1;
+        memset(&sts.replies, 0, sizeof(sts.replies));    // #417
     }
 
     /* prepare request message */
@@ -938,11 +974,11 @@ void exec_next_test ()
            if ((opts.groups & TST_MCAST) && (opts.groups & TST_REQREP))
            {
                print(-1, "TEST %d "
-                     "-- request/reply - UDP - multicast - ? replies", sts.test);
+                     "-- request/reply - UDP - multicast - %d replies", sts.test, opts.multicastRepliers);
                msg.msgType          = TRDP_MSG_MR;
                msg.comId            = TST_REQREP_MCAST_N * 1000;
                msg.destIpAddr       = opts.mcgrp;
-               msg.numExpReplies    = 0;
+               msg.numExpReplies    = opts.multicastRepliers;    // #417
                break;
            }
 #endif
@@ -1001,11 +1037,11 @@ void exec_next_test ()
            if ((opts.groups & TST_MCAST) && (opts.groups & TST_REQREPCFM))
            {
                print(-1, "TEST %d "
-                     "-- request/reply/confirm - UDP - multicast - ? replies", sts.test);
+                     "-- request/reply/confirm - UDP - multicast - %d replies", sts.test, opts.multicastRepliers);
                msg.msgType          = TRDP_MSG_MR;
                msg.comId            = TST_REQREPCFM_MCAST_N * 1000;
                msg.destIpAddr       = opts.mcgrp;
-               msg.numExpReplies    = 0;
+               msg.numExpReplies    = opts.multicastRepliers;    // #417
                break;
            }
 #endif
@@ -1348,8 +1384,14 @@ void recv_msg (const TRDP_MD_INFO_T *msg, UINT8 *data, UINT32 size)
 
        case TRDP_MSG_MP:
            /* reply received */
+           sts.replies[sts.test]++;
            switch (sts.test)
            {
+              case TST_REQREP_MCAST_N:
+                  if (sts.replies[sts.test] < opts.multicastRepliers)
+                  {
+                    break;      /* #417 wait for more multicast replies */
+                  }
               case TST_REQREP_TCP:
               case TST_REQREP_UCAST:
               case TST_REQREP_MCAST_1:
@@ -1361,6 +1403,7 @@ void recv_msg (const TRDP_MD_INFO_T *msg, UINT8 *data, UINT32 size)
 
        case TRDP_MSG_MQ:
            /* reply, confirm required */
+           sts.replies[sts.test]++;
            if (sts.test == TST_REQREPCFM_TCP)
            {
                confirm(msg, TRDP_FLAGS_CALLBACK | TRDP_FLAGS_TCP);
@@ -1371,6 +1414,11 @@ void recv_msg (const TRDP_MD_INFO_T *msg, UINT8 *data, UINT32 size)
            }
            switch (sts.test)
            {
+             case TST_REQREPCFM_MCAST_N:
+                  if (sts.replies[sts.test] < opts.multicastRepliers)
+                  {
+                    break;      /* #417 wait for more multicast replies */
+                  }              
               case TST_REQREPCFM_TCP:
               case TST_REQREPCFM_UCAST:
               case TST_REQREPCFM_MCAST_1:

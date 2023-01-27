@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     CWE 2023-01-27: Log compile-options and vos-version upon tlc_init()
 *     AHW 2023-01-11: Lint warnigs
 *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *      SB 2021-08-09: Lint warnings
@@ -349,11 +350,75 @@ EXT_DECL TRDP_ERR_T tlc_init (
 
         if (ret == TRDP_NO_ERR)
         {
-            const TRDP_VERSION_T *ver = tlc_getVersion();
+            const TRDP_VERSION_T *trdp_ver = tlc_getVersion();
+            const VOS_VERSION_T *vos_ver = vos_getVersion();
             sInited = TRUE;
+
+            vos_printLogStr(VOS_LOG_INFO, "Environment and compile-options:\n");
+
+#if defined(WIN32)
+            vos_printLogStr(VOS_LOG_INFO, "TARGET_OS:   WIN32\n");
+#endif
+#if defined(WIN64)
+            vos_printLogStr(VOS_LOG_INFO, "TARGET_OS:   WIN64\n");
+#endif
+#if defined(TARGET_OS)
+            vos_printLog(VOS_LOG_INFO, "TARGET_OS:   %s\n", TARGET_OS);
+#endif
+#if defined(ARCH)
+            vos_printLog(VOS_LOG_INFO, "ARCH:        %s\n", ARCH);
+#endif
+#if defined(TARGET_VOS)
+            vos_printLog(VOS_LOG_INFO, "TARGET_VOS:  %s\n", TARGET_VOS);
+#endif
+#if defined(TCPREFIX)
+            vos_printLog(VOS_LOG_INFO, "TCPREFIX:    %s\n", TCPREFIX);
+#endif
+
+#if (defined(L_ENDIAN) && !defined(B_ENDIAN))
+            vos_printLogStr(VOS_LOG_INFO, "ENDIANNESS: Little Endian (x86)\n");
+#else
+            vos_printLogStr(VOS_LOG_INFO, "ENDIANNESS: Big Endian (Network, PPC, ARM, ...)\n");
+#endif
+
+#if defined(MD_SUPPORT)
+            vos_printLogStr(VOS_LOG_INFO, "MD_SUPPORT:  enabled\n");
+#else
+            vos_printLogStr(VOS_LOG_INFO, "MD_SUPPORT:  disabled\n");
+#endif
+#if defined(TSN_SUPPORT)
+            vos_printLogStr(VOS_LOG_INFO, "TSN_SUPPORT: enabled\n");
+#else
+            vos_printLogStr(VOS_LOG_INFO, "TSN_SUPPORT: disabled\n");
+#endif
+#if defined(SOA_SUPPORT)
+            vos_printLogStr(VOS_LOG_INFO, "SOA_SUPPORT: enabled\n");
+#else
+            vos_printLogStr(VOS_LOG_INFO, "SOA_SUPPORT: disabled\n");
+#endif
+#if defined(RT_THREADS)
+            vos_printLogStr(VOS_LOG_INFO, "RT_THREADS:  enabled\n");
+#else
+            vos_printLogStr(VOS_LOG_INFO, "RT_THREADS:  disabled\n");
+#endif
+#if defined(HIGH_PERF_INDEXED)
+#if defined(HIGH_PERF_BASE2)
+            vos_printLogStr(VOS_LOG_INFO, "HIGH_PERF:   enabled with power-of-2 (1ms, 8ms, 64ms)\n");
+#else
+            vos_printLogStr(VOS_LOG_INFO, "HIGH_PERF:   enabled with power-of-10 (1ms, 10ms, 100ms)\n");
+#endif
+#else
+            vos_printLogStr(VOS_LOG_INFO, "HIGH_PERF:  disabled\n");
+#endif
+
             vos_printLog(VOS_LOG_INFO, "TRDP Stack Version %s%s: successfully initiated\n",
                                         tlc_getVersionString(),
-                                        (ver->evo == 0)? "" : "(trunk)");
+                                        (trdp_ver->evo == 0)? "" : "(trunk)");
+
+            vos_printLog(VOS_LOG_INFO, "VOS Version %s%s: successfully initiated\n",
+                                        vos_getVersionString(),
+                                        (vos_ver->evo == 0)? "" : "(trunk)");
+
         }
     }
     else
