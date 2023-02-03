@@ -360,7 +360,7 @@ static TRDP_ERR_T ttiGetOwnCstUUID(
     TRDP_UUID_T cstUUID)
 {
     int i;
-    static savedIndex = -1;
+    static int savedIndex = -1;
 
     memset(cstUUID, 0, sizeof(TRDP_UUID_T));
 
@@ -1130,7 +1130,7 @@ static void ttiMDCallback (
 static TRDP_ERR_T ttiRequestTTDBdataByLable(
         TRDP_APP_SESSION_T  appHandle,
         UINT32              comID,
-        const TRDP_UUID_T   pCstLabel)
+        const TRDP_LABEL_T  pCstLabel)
 {
     TRDP_UUID_T  cstUUID;
 
