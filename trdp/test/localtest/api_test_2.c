@@ -18,6 +18,7 @@
  *
  * $Id$
  *
+ *     CWE 2023-02-02: Analyzed parameters of main() echoed to screen output
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08-09: Compiler warnings
  *      BL 2020-08-18: Output changed, Version info...
@@ -3606,6 +3607,13 @@ int main (int argc, char *argv[])
         printf("%s: test no. %u does not exist\n", argv[0], testNo);
         exit(1);
     }
+
+    CHAR8 srcip1[16], srcip2[16], dstip[16];
+    strcpy(srcip1, vos_ipDotted(gSession1.ifaceIP));
+    strcpy(srcip2, vos_ipDotted(gSession2.ifaceIP));
+    strcpy(dstip, vos_ipDotted(gDestMC));
+    printf("\nLocaltest 2 / API-Test 2 parameters:\n  localip 1 = %s\n  localip 2 = %s\n  remoteip  = %s\n  run test  = %d (0=all)\n\n",
+        srcip1, srcip2, dstip, testNo);
 
     printf("TRDP Stack Version %s\n", tlc_getVersionString());
     if (testNo == 0)    /* Run all tests in sequence */

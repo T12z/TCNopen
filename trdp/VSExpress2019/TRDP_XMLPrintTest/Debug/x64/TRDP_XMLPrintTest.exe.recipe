@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\arweiss\Documents\Projekte\TCNOpen\TCNOpenSF\trdp\VSExpress2019\Debug\x64\TRDP_XMLPrintTest.exe</FullPath>
+      <FullPath>C:\sourceforgeSVN\trdp\VSExpress2019\Debug\x64\TRDP_XMLPrintTest.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

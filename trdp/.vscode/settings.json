@@ -1,0 +1,10 @@
+{
+    "cmake.configureOnOpen": false,
+    "files.associations": {
+        "trdp_private.h": "c",
+        "vos_private.h": "c",
+        "vos_thread.h": "c",
+        "trdp_tsn_def.h": "c"
+        "net_tstamp.h": "c"
+    }
+}

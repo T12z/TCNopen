@@ -1,0 +1,201 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "gdb: Test TRDP MD caller",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test",
+            "args": ["caller", "10.0.1.101", "10.0.1.42", "239.2.24.1", "", "2"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: Test TRDP MD replier",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test",
+            "args": ["replier", "10.0.1.101", "10.0.1.42", "239.2.24.1"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: Test TRDP MD FAST caller (high performance)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test-fast",
+            "args": ["caller", "10.0.1.101", "10.0.1.42", "239.2.24.1", "", "65336", "2"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: Test TRDP MD FAST replier (high performance)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test-fast",
+            "args": ["replier", "10.0.1.101", "10.0.1.42", "239.2.24.1"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: TRANSMIT TSN",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/sendTSN",
+            "args": ["-t 10.0.10.100", "-p 6"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: TRANSMIT PD",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/sendPDtimestamp",
+            "args": ["-t 10.0.10.100", "-p 6"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: RECEIVE TSN",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/receiveTSN",
+            "args": ["-o 10.0.1.100"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: RECEIVE PD",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/receivePDtimestamp",
+            "args": ["-o 10.0.1.100"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+
+    ]
+}

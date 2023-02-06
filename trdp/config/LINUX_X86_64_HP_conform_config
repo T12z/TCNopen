@@ -32,7 +32,11 @@ LINT_SYSINCLUDE_DIRECTIVES = -i ./src/vos/posix -wlib 0 -DL_ENDIAN
 #TSN_SUPPORT = 1
 #SOA_SUPPORT = 1
 
-HIGH_PERF_INDEXED = 1
 CFLAGS += -DCONFORMANCE_API
 # This will reduce timeout deviations (default is a check every 100ms)
 CFLAGS += -DTRDP_TO_CHECK_CYCLE=50000
+
+# High performance support (HIGH_PERF_INDEXED defaults to base 10, with additional HIGH_PERF_BASE2 it switches to base 2)
+
+# enable high performance
+HIGH_PERF_INDEXED = 1

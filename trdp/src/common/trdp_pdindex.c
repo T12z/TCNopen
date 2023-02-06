@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *     CWE 2023-02-02: Ticket #380 Added base 2 cycle time support for high performance PD: set HIGH_PERF_BASE2=1 in make config file (see LINUX_HP2_config)
  *     AHW 2023-01-05: Ticket #407 Interval not updated in trdp_indexCheckPending if Hight performance index with no subscriptions
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2020-08-07: Ticket #317 Bug in trdp_indexedFindSubAddr() (HIGH_PERFORMANCE)
@@ -235,14 +236,15 @@ static int removePub (
 }
 
 /**********************************************************************************************************************/
-/** Return the category for the index tables
+/** Return the category for the transmitter index tables
  *
  *  @param[in]      pElement         pointer to the packet element to send
  *
  *  @retval         PERF_IGNORE         do not count
- *                  PERF_LOW_TABLE      low table
+ *                  PERF_LOW_TABLE      fast interval times
  *                  PERF_MID_TABLE      medium interval times
- *                  PERF_HIGH_TABLE     slow
+ *                  PERF_HIGH_TABLE     slow interval times
+ *                  PERF_EXT_TABLE      extreme long intervals
  */
 static PERF_TABLE_TYPE_T   perf_table_category (
     PD_ELE_T *pElement)
@@ -263,8 +265,8 @@ static PERF_TABLE_TYPE_T   perf_table_category (
             return PERF_MID_TABLE;
         }
     }
-    else if ((pElement->interval.tv_sec == 1u) &&   /* special case 1 sec. */
-             (pElement->interval.tv_usec == 0))
+    else if ((pElement->interval.tv_sec == 1u) &&      /* special case: up to mid-cycle-limit 1,0s (1,024s upon base 2) */
+             (pElement->interval.tv_usec <= (TRDP_MID_CYCLE_LIMIT - 1000000u)))
     {
         return PERF_MID_TABLE;
     }
@@ -274,7 +276,7 @@ static PERF_TABLE_TYPE_T   perf_table_category (
     }
     else
     {
-        return PERF_EXT_TABLE;      /* This PD has a higher interval time than 10s */
+        return PERF_EXT_TABLE;      /* This PD has a higher interval time than 10s (8s upon base 2) */
     }
 }
 
@@ -394,12 +396,12 @@ static TRDP_ERR_T distribute (
 }
 
 /**********************************************************************************************************************/
-/** Create an index table
+/** Create an index table for a transmit-time category (low, mid, high)
  *
- *  @param[in]      rangeMax            time range this table shall support (e.g. 100000us for low table)
- *  @param[in]      cat_noOfTxEntries   interval of callers, i.e. cycle time of calls into each slot (e.g. 1000us for low table)
+ *  @param[in]      rangeMax            time range this index table shall support (e.g. 100000µs for low table upon base 10, or 128000µs upon base 2)
+ *  @param[in]      cat_noOfTxEntries   number of transmitters in this category
  *  @param[in]      cat_Depth           preset depth, used if proposed value is smaller
- *  @param[out]     pCat                pointer to slot / category entry holding the resulting table
+ *  @param[out]     pCat                pointer to entry holding the resulting index table
  */
 static TRDP_ERR_T indexCreatePubTable (
     UINT32              rangeMax,
@@ -407,8 +409,7 @@ static TRDP_ERR_T indexCreatePubTable (
     UINT32              cat_Depth,
     TRDP_HP_CAT_SLOT_T  *pCat)
 {
-    /* Number of needed array entries for the lower range */
-    /* First dimension / number of slots is rangeMax (e.g. 100ms) / processCycle */
+    /* First array dimension == number of time-slots (e.g. 100 upon base 10 or 128 upon base 2) */
     UINT32 slots = rangeMax / pCat->slotCycle;
 
 
@@ -417,6 +418,7 @@ static TRDP_ERR_T indexCreatePubTable (
      optimised by determining the exact max. depth needed for any category, either by pre-computation or by
      iterating (e.g. using a trial & error scheme, starting with lower depth values) */
 
+    /* Second array dimension == number of elements per time slot */
     UINT32 depth = cat_noOfTxEntries * 10u / slots + 5u;
     if (depth < cat_Depth)
     {
@@ -826,18 +828,18 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
         (processCycle > TRDP_MAX_CYCLE))
     {
         vos_printLog(VOS_LOG_ERROR,
-                     "trdp_indexCreatePubTables Failed! processCycle %d : Not between 1000 to 10000...\n",
-                     processCycle);
+                     "trdp_indexCreatePubTables Failed! processCycle %dµs : Not between %dµs to %dµs...\n",
+                     processCycle, TRDP_MIN_CYCLE, TRDP_MAX_CYCLE);
         return TRDP_PARAM_ERR;
     }
 
     pSlot = appHandle->pSlot;
 
     /* Initialize the table entries */
-    pSlot->processCycle         = processCycle;      /* cycle time in us with which we will be called      */
-    pSlot->lowCat.slotCycle     = TRDP_LOW_CYCLE;    /* the lowest table can be called with 1ms cycle     */
-    pSlot->midCat.slotCycle     = TRDP_MID_CYCLE;    /* the mid table will always be called in 10ms steps  */
-    pSlot->highCat.slotCycle    = TRDP_HIGH_CYCLE;   /* the hi table will always be called in 100ms steps  */
+    pSlot->processCycle         = processCycle;      /* cycle time in us with which we will be called         */
+    pSlot->lowCat.slotCycle     = TRDP_LOW_CYCLE;    /* the lowest table can be called with 1ms cycle         */
+    pSlot->midCat.slotCycle     = TRDP_MID_CYCLE;    /* the mid table will always be called in 8 or  10ms steps (base 2 vs base 10)  */
+    pSlot->highCat.slotCycle    = TRDP_HIGH_CYCLE;   /* the hi table will always be called in 64 or 100ms steps (base 2 vs base 10)  */
 
     /* get the number of PDs to be sent and allocate enough pointer space    */
     {
@@ -870,8 +872,8 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
     {
         if (extCat_noOfTxEntries > 255)
         {
-            vos_printLog(VOS_LOG_ERROR, "More than 255 PDs with interval > %us are not supported!\n",
-                         TRDP_HIGH_CYCLE_LIMIT / 1000000u);
+            vos_printLog(VOS_LOG_ERROR, "More than 255 PDs with interval > %ums are not supported!\n",
+                         TRDP_HIGH_CYCLE_LIMIT / 1000u);
             return TRDP_PARAM_ERR;
         }
         /* create the extended list, if not yet done or needed  */
@@ -952,7 +954,7 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
         while ((pPDsend != NULL) &&
                (err == TRDP_NO_ERR))
         {
-            /* Decide whitch array to fill */
+            /* Decide which array to fill */
             switch (perf_table_category(pPDsend))
             {
                 case PERF_LOW_TABLE:
@@ -1361,7 +1363,7 @@ void trdp_indexCheckPending (
 {
     PD_ELE_T    * *iterPD;
     UINT32      idx;
-    TRDP_TIME_T delay = {0u, 10000};     /* This determines the max. delay to report a timeout, 10ms should be OK */
+    TRDP_TIME_T delay = {0u, TRDP_HIGH_CYCLE_LIMIT / 1000};      /* #380: This determines the max. delay to report a timeout. 10000ms upon base 10 or 8192ms upon base 2  */
 
     if ((appHandle->pSlot == NULL) || (appHandle->pSlot->pRcvTableTimeOut == NULL))
     {
