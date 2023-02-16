@@ -1967,7 +1967,7 @@ static void md_indication(
 // Test initialization
 static int test_initialize()
 {
-    TRDP_PROCESS_CONFIG_T processConfig = { "Me", "", 0, 0, TRDP_OPTION_BLOCK };
+    TRDP_PROCESS_CONFIG_T processConfig = { "Me", "", "", 0, 0, TRDP_OPTION_BLOCK };
 
     TRDP_ERR_T            errv;
 

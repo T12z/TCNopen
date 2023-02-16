@@ -233,7 +233,7 @@ TRDP_ERR_T  createSession (
     TRDP_MD_CONFIG_T    mdConfiguration = {myMDcallBack, NULL, TRDP_MD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
         0u, 0u, 0u, 0u, 0u, 0u, 0u};
 
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", "", TRDP_PROCESS_DEFAULT_CYCLE_TIME, 0u, TRDP_OPTION_BLOCK};
 
     /*    Open a session for callback operation    (PD only) */
     if (tlc_openSession(pAppHandle,

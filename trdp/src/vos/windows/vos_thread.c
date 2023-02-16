@@ -18,6 +18,7 @@
 /*
 * $Id$
 *
+*     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed - improved warning message
 *      BL 2019-12-06: Ticket #303: UUID creation does not always conform to standard
 *      SB 2019-08-30: Added vos_getRealTime and vos_getNanoTime
 *      SB 2019-08-26: Added sub millisecond precision to vos_runCyclicThread
@@ -463,7 +464,7 @@ EXT_DECL VOS_ERR_T vos_threadDelay (
     /* We cannot delay less than 1ms */
     if (delay < 1000)
     {
-        vos_printLog(VOS_LOG_WARNING, "Win: thread delays < 1ms are not supported!\n");
+        vos_printLog(VOS_LOG_WARNING, "Win: thread delays < 1ms are not supported! (%dµs requested)\n", delay);
         return VOS_PARAM_ERR;
     }
 

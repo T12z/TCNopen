@@ -157,7 +157,7 @@ int main (int argc, char *argv[])
     TRDP_ERR_T          err;
     TRDP_PD_CONFIG_T    pdConfiguration = {NULL, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_NONE, 1000u, TRDP_TO_SET_TO_ZERO, TRDP_PD_UDP_PORT};
     TRDP_MEM_CONFIG_T   dynamicConfig = {NULL, RESERVED_MEMORY, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK | TRDP_OPTION_TRAFFIC_SHAPING};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", "", 0, 0, TRDP_OPTION_BLOCK | TRDP_OPTION_TRAFFIC_SHAPING};
     
     int                 rv = 0;
     UINT32              destIP = 0u;

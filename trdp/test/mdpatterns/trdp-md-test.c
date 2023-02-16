@@ -16,11 +16,12 @@
  *
  * $Id$
  *
- *     CWE 2023-01-27: Ticket #417: Multicast-N tests always failed due to unknown number of expected multicast repliers. Expected number can now be set as param
+ *     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed - write timestamps to log
+ *     CWE 2023-01-27: Ticket #417 Multicast-N tests always failed due to unknown number of expected multicast repliers. Expected number can now be set as param
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
- *      AÖ 2019-12-17: Ticket #308: Add vos Sim function to API
- *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
- *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+ *      AÖ 2019-12-17: Ticket #308 Add vos Sim function to API
+ *      AÖ 2019-11-11: Ticket #290 Add support for Virtualization on Windows
+ *      BL 2018-06-20: Ticket #184 Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  */
@@ -313,7 +314,7 @@ const char *get_msg_type_str (TRDP_MSG_T type)
 /* --- debug log --------------------------------------------------------------- */
 static FILE *pLogFile;
 
-void print_log (void *pRefCon, VOS_LOG_T category, const CHAR8 *pTime,
+void print_log (void *pRefCon, VOS_LOG_T category, const CHAR8 *pTime,   // timestamp string "yyyymmdd-hh:mm:ss.µs"
                 const CHAR8 *pFile, UINT16 line, const CHAR8 *pMsgStr)
 {
     static const char *cat[] = { "ERR", "WAR", "INF", "DBG" };
@@ -322,28 +323,29 @@ void print_log (void *pRefCon, VOS_LOG_T category, const CHAR8 *pTime,
     {
         /* return; */
     }
+
 #if (defined (WIN32) || defined (WIN64))
     if (pLogFile == NULL)
     {
         char        buf[1024] = { 0 };
         const char  *file = strrchr(pFile, '\\');
-        _snprintf(buf, sizeof(buf), "%s %s:%d %s",
-                  cat[category], file ? file + 1 : pFile, line, pMsgStr);
+        _snprintf(buf, sizeof(buf), "%s%s %s@%d: %s",
+                  pTime, cat[category], file ? file + 1 : pFile, line, pMsgStr);
         OutputDebugString((LPCWSTR)buf);
     }
     else
     {
-        fprintf(pLogFile, "%s File: %s Line: %d %s\n", cat[category], pFile, (int) line, pMsgStr);
+        fprintf(pLogFile, "%s%s %s@%d: %s\n", pTime, cat[category], pFile, (int) line, pMsgStr);
         fflush(pLogFile);
     }
 #else
     const char *file = strrchr(pFile, '/');
-    fprintf(stderr, "%s %s:%d %s",
-            cat[category], file ? file + 1 : pFile, line, pMsgStr);
+    fprintf(stderr, "%s%s %s@%d: %s",
+            pTime, cat[category], file ? file + 1 : pFile, line, pMsgStr);
     if (pLogFile != NULL)
     {
-        fprintf(pLogFile, "%s %s:%d %s",
-                cat[category], file ? file + 1 : pFile, line, pMsgStr);
+        fprintf(pLogFile, "%s%s %s@%d: %s",
+                pTime, cat[category], file ? file + 1 : pFile, line, pMsgStr);
     }
 #endif
 }

@@ -8,7 +8,7 @@
  *
  * @note            Project: TCNOpen TRDP prototype stack
  *
- * @author          Petr Cvachou?ek, UniControls
+ * @author          Petr Cvachoucek, UniControls
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,9 +16,10 @@
  *
  * $Id$
  *
- *      AÖ 2020-05-04: Ticket #330: Extend TRDP_PDTest with TSN support
- *      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
- *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+ *     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed - write timestamps to log
+ *      AÖ 2020-05-04: Ticket #330 Extend TRDP_PDTest with TSN support
+ *      AÖ 2019-11-11: Ticket #290 Add support for Virtualization on Windows
+ *      BL 2018-06-20: Ticket #184 Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  *
@@ -880,17 +881,18 @@ static FILE *pLogFile;
 static void printLog(
     void        *pRefCon,
     VOS_LOG_T   category,
-    const CHAR8 *pTime,
+    const CHAR8 *pTime,       // timestamp string "yyyymmdd-hh:mm:ss.µs"
     const CHAR8 *pFile,
     UINT16      line,
     const CHAR8 *pMsgStr)
 {
     if (pLogFile != NULL)
     {
-        fprintf(pLogFile, "%s File: %s Line: %d %s\n", category==VOS_LOG_ERROR?"ERR ":(category==VOS_LOG_WARNING?"WAR ":(category==VOS_LOG_INFO?"INFO":"DBG ")), pFile, (int) line, pMsgStr);
+        fprintf(pLogFile, "%s%s %s@%d: %s", pTime, category==VOS_LOG_ERROR?"ERR ":(category==VOS_LOG_WARNING?"WAR ":(category==VOS_LOG_INFO?"INFO":"DBG ")), pFile, (int) line, pMsgStr);
         fflush(pLogFile);
     }
 }
+
 
 /* --- main ------------------------------------------------------------------*/
 int main(int argc, char * argv[])

@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed - prepared debug code for logging pdReceive and pdSend packets
 *     AHW 2023-01-11: Lint warnigs and Ticket #409 In updateTCNDNSentry(), the parameter noDesc of vos_select() is uninitialized if tlc_getInterval() fails
 *     CWE 2023-01-09: Ticket #395 PD subscriber statistics when publisher start earlier
 *     CWE 2023-01-09: Ticket #394 Statistics of missed PD packets when publisher restarts
@@ -829,6 +830,12 @@ TRDP_ERR_T  trdp_pdReceive (
         subAddresses.serviceId      = vos_ntohl(pNewFrameHead->reserved);
         msgType = vos_ntohs(pNewFrameHead->msgType);
 
+/*
+        if (subAddresses.comId > 0) {
+            vos_printLog(VOS_LOG_DBG, "Received PD with ComID %d (size %d) from IP %s\n",
+                subAddresses.comId, recSize, vos_ipDotted(subAddresses.srcIpAddr));
+        }
+*/
 
     }
 
@@ -1519,6 +1526,13 @@ TRDP_ERR_T  trdp_pdSend (
     }
 
     pPacket->sendSize = pPacket->grossSize;
+
+/*
+    if (pPacket->addr.comId > 0) {
+        vos_printLog(VOS_LOG_DBG, "Send PD with ComID %d (size %d) to IP %s\n", 
+                     pPacket->addr.comId, pPacket->grossSize, vos_ipDotted(destIp));
+    }
+*/
 
     err = vos_sockSendUDP(pdSock,
                           (UINT8 *)&pPacket->pFrame->frameHead,

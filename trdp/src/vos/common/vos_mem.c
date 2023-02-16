@@ -342,6 +342,7 @@ EXT_DECL void vos_memDelete (
 
 /**********************************************************************************************************************/
 /** Allocate a block of memory (from memory area above).
+ *  Always clears returned memory area
  *
  *  @param[in]      size            Size of requested block
  *

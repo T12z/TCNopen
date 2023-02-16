@@ -85,14 +85,14 @@ UINT32 *pFirstCreateMdDataSize = NULL;								/* pointer to First of Create MD D
 TRDP_APP_SESSION_T		appHandle;					/*	Sub-network Id1 identifier to the library instance	*/
 TRDP_MD_CONFIG_T			md_config;
 TRDP_MEM_CONFIG_T			mem_config;
-TRDP_PROCESS_CONFIG_T	processConfig = {"Subnet1", "", 0, 0, TRDP_OPTION_BLOCK};
+TRDP_PROCESS_CONFIG_T	processConfig = {"Subnet1", "", "", 0, 0, TRDP_OPTION_BLOCK};
 TRDP_MARSHALL_CONFIG_T	marshallConfig = {&tau_marshall, &tau_unmarshall, NULL};	/** Marshaling/unMarshalling configuration	*/
 
 /* Subnet2 */
 TRDP_APP_SESSION_T		appHandle2;				/*	Sub-network Id2 identifier to the library instance	*/
 TRDP_MD_CONFIG_T			md_config2;
 TRDP_MEM_CONFIG_T			mem_config2;
-TRDP_PROCESS_CONFIG_T	processConfig2 = {"Subnet2", "", 0, 0, TRDP_OPTION_BLOCK};
+TRDP_PROCESS_CONFIG_T	processConfig2 = {"Subnet2", "", "", 0, 0, TRDP_OPTION_BLOCK};
 
 /* URI */
 TRDP_URI_USER_T subnetId1URI = "Subnet1URI";		/* Subnet1 Network I/F URI */

@@ -200,7 +200,7 @@ int pd_init (
     TRDP_MD_CONFIG_T        mdConfiguration = {mdCallback, NULL, TRDP_MD_DEFAULT_SEND_PARAM,
                                                 TRDP_FLAGS_CALLBACK, 5000000, 5000000, 5000000, 0, 0, 2, 10};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, 1000000, {}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", "", 0, 0, TRDP_OPTION_BLOCK};
 
 
     printf("pd_init\n");

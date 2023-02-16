@@ -376,9 +376,9 @@ EXT_DECL TRDP_ERR_T tlc_init (
 #endif
 
 #if (defined(L_ENDIAN) && !defined(B_ENDIAN))
-            vos_printLogStr(VOS_LOG_INFO, "ENDIANNESS: Little Endian (x86)\n");
+            vos_printLogStr(VOS_LOG_INFO, "ENDIANNESS:  Little Endian (x86)\n");
 #else
-            vos_printLogStr(VOS_LOG_INFO, "ENDIANNESS: Big Endian (Network, PPC, ARM, ...)\n");
+            vos_printLogStr(VOS_LOG_INFO, "ENDIANNESS:  Big Endian (Network, PPC, ARM, ...)\n");
 #endif
 
 #if defined(MD_SUPPORT)

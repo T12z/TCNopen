@@ -8,7 +8,7 @@
  *
  * @note            Project: TCNOpen TRDP prototype stack
  *
- * @author          Petr Cvachou?ek, UniControls
+ * @author          Petr Cvachoucek, UniControls
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,9 +16,10 @@
  *
  * $Id$
  *
+ *     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed - use even cycle factors depending on the index table base + write timestamps to log
  *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      IB 2019-08-15: separate sender and receiver thread added
- *      BL 2018-06-20: Ticket #184: Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
+ *      BL 2018-06-20: Ticket #184 Building with VS 2015: WIN64 and Windows threads (SOCKET instead of INT32)
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  *
@@ -79,8 +80,14 @@ typedef struct
     int link;                       /* index of linked port (echo or subscribe) */
 } Port;
 
-int size[3] = { 0, 256, TRDP_MAX_PD_DATA_SIZE };     /* small/medium/big dataset */
-int period[2]  = { 100, 250 };      /* fast/slow cycle          */
+int size[3] = { 0, 256, TRDP_MAX_PD_DATA_SIZE };        /* small/medium/big dataset */
+
+#ifdef HIGH_PERF_BASE2                                  /* High Performance: index-tables on base 2 (1, 8, 64ms)    */
+int period[2]  = { 128, 256 };                          /* fast / slow cycle upon base 2 index                      */
+#else                                                   /* High Performance: index-tables on base 10 (1, 10, 100ms) */
+int period[2]  = { 100, 250 };                          /* fast / slow cycle upon base 10 index                     */
+#endif
+
 unsigned cycle = 0;
 
 Port ports[64];                     /* array of ports          */
@@ -861,14 +868,14 @@ static FILE *pLogFile;
 static void printLog(
     void        *pRefCon,
     VOS_LOG_T   category,
-    const CHAR8 *pTime,
+    const CHAR8 *pTime,       // timestamp string "yyyymmdd-hh:mm:ss.µs"
     const CHAR8 *pFile,
     UINT16      line,
     const CHAR8 *pMsgStr)
 {
     if (pLogFile != NULL)
     {
-        fprintf(pLogFile, "%s File: %s Line: %d %s", category==VOS_LOG_ERROR?"ERR ":(category==VOS_LOG_WARNING?"WAR ":(category==VOS_LOG_INFO?"INFO":"DBG ")), pFile, (int) line, pMsgStr);
+        fprintf(pLogFile, "%s%s %s@%d: %s", pTime, category==VOS_LOG_ERROR?"ERR ":(category==VOS_LOG_WARNING?"WAR ":(category==VOS_LOG_INFO?"INFO":"DBG ")), pFile, (int) line, pMsgStr);
         fflush(pLogFile);
     }
 }
@@ -905,7 +912,9 @@ int main(int argc, char * argv[])
     memset(&memcfg, 0, sizeof(memcfg));
     memset(&proccfg, 0, sizeof(proccfg));
 
-    proccfg.cycleTime = 5000u;
+    /* Set in-test-cycle-time */
+    proccfg.cycleTime = 5000u;          // CHRIS: ECHTE Zeit gegenchecken und bei mehr als 10% Versagen Warnings ausgeben ggf. bei mehr als 30% Errors
+    proccfg.options = TRDP_OPTION_TRAFFIC_SHAPING;      // by now: there is no traffic shaping option for HIGH_PERF_INDEXED
 
     if (argc >= 5)
     {

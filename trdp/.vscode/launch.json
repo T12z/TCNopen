@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test",
-            "args": ["caller", "10.0.1.101", "10.0.1.42", "239.2.24.1", "", "2"],
+            "args": ["caller", "10.0.1.101", "10.0.1.42", "239.2.24.1", "${userHome}/sourceforge/trdp/test/logs/mdtest-caller.log", "2"],
             "stopAtEntry": false,
             "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
             "environment": [],
@@ -33,7 +33,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test",
-            "args": ["replier", "10.0.1.101", "10.0.1.42", "239.2.24.1"],
+            "args": ["replier", "10.0.1.101", "10.0.1.42", "239.2.24.1", "${userHome}/sourceforge/trdp/test/logs/mdtest-replier.log"],
             "stopAtEntry": false,
             "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
             "environment": [],
@@ -57,7 +57,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test-fast",
-            "args": ["caller", "10.0.1.101", "10.0.1.42", "239.2.24.1", "", "65336", "2"],
+            "args": ["caller", "10.0.1.101", "10.0.1.42", "239.2.24.1", "${userHome}/sourceforge/trdp/test/logs/mdtest-fast-caller.log", "65336", "2"],
             "stopAtEntry": false,
             "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
             "environment": [],
@@ -81,7 +81,55 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-md-test-fast",
-            "args": ["replier", "10.0.1.101", "10.0.1.42", "239.2.24.1"],
+            "args": ["replier", "10.0.1.101", "10.0.1.42", "239.2.24.1", "${userHome}/sourceforge/trdp/test/logs/mdtest-fast-replier.log"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: Test TRDP PD",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-pd-test",
+            "args": ["10.0.1.101", "10.0.1.42", "239.2.24.1", "${userHome}/sourceforge/trdp/test/logs/pdtest.log"],
+            "stopAtEntry": false,
+            "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "gdb: Test TRDP PD FAST (high performance)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/sourceforge/trdp/bld/output/linux-dbg/trdp-pd-test-fast",
+            "args": ["10.0.1.101", "10.0.1.42", "239.2.24.1", "${userHome}/sourceforge/trdp/test/logs/pdtest-fast.log"],
             "stopAtEntry": false,
             "cwd": "${userHome}/sourceforge/trdp/bld/output/linux-dbg",
             "environment": [],
