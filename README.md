@@ -1,10 +1,21 @@
 # TCNopen fork
+
+## Repo is put to rest
+
+As I wrote [before](#in-2021-and-2022):
+> "The upstream project still receives active development but focuses on many goals. When I pull their additions, I notice that warning-free Linux compilation is not their primary focus, which also makes keeping up tiring."
+
+So I will pause doing it. I may still add updates to [TRDP-SPY](trdp/spy/) Wireshark plugin here in the master-branch, but don't count on it.
+
+I will also only react to issues concerning the Wireshark plugin and code that I added beyond upstream.
+
+## About 
 This is a "private" fork of TCNopen (Components for IEC61375 standardised communication)
 
 **Now awesome**: 
 Debian packaging is there! See below for news on 2020.
 
-I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Compiled binaries are available for versions [2.6](trdp/spy/plugins/2.6/epan), [3.0](trdp/spy/plugins/3.0/epan), [3.2](trdp/spy/plugins/3.2/epan), [3.4](trdp/spy/plugins/3.4/epan) and [3.6](trdp/spy/plugins/3.6/epan). It now really works for Datasets, Arrays, Strings and filtering on names. Try it out! Create an issue if it doesn't work for you. Please be verbose if I misinterpreted the standard somewhere. From the latest revision (only available for Wireshark 3.6) you can load a folder full of XML-configs.
+I rewrote the Wireshark Plugin [TRDP-SPY](trdp/spy/) for current Wireshark. Compiled binaries are available for versions [2.6](trdp/spy/plugins/2.6/epan), [3.0](trdp/spy/plugins/3.0/epan), [3.2](trdp/spy/plugins/3.2/epan), [3.4](trdp/spy/plugins/3.4/epan), [3.6](trdp/spy/plugins/3.6/epan) and [4.0](trdp/spy/plugins/4.0/epan). It now really works for Datasets, Arrays, Strings and filtering on names. Try it out! Create an issue if it doesn't work for you. Please be verbose if I misinterpreted the standard somewhere. From the latest revision (only available for Wireshark 3.6) you can load a folder full of XML-configs.
 
 ## Goal of fork
  - The [master](https://github.com/T12z/TCNopen/tree/master) for me to play around.
