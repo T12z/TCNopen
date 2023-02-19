@@ -17,6 +17,9 @@
  *
  * $Id$
  *
+ *     AHW 2023-01-10: Ticket #405 Problem with GLIBC > 2.34
+ *     CEW 2023-01-09: Ticket #408: thread-safe localtime - but be aware of static pTimeString
+ *      CK 2023-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
  *      SB 2021-08-09: Lint warnings
  *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call
  *      BL 2020-07-29: Ticket #303: UUID creation... #warning if uuid not used
@@ -78,7 +81,7 @@
 #define PTHREAD_MUTEX_RECURSIVE  PTHREAD_MUTEX_RECURSIVE_NP     /*lint !e652 Does Lint ignore the #ifndef ? */
 #endif
 
-const size_t    cDefaultStackSize   = 4u * PTHREAD_STACK_MIN;
+#define         cDefaultStackSize   (4u * (PTHREAD_STACK_MIN))  /* #405 */
 const UINT32    cMutextMagic        = 0x1234FEDCu;
 
 int             vosThreadInitialised = FALSE;
@@ -572,7 +575,14 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     }
     else
     {
-        retCode = pthread_attr_setstacksize(&threadAttrib, cDefaultStackSize);
+        if (cDefaultStackSize > PTHREAD_STACK_MIN)                                            /* #405 */
+        {
+            retCode = pthread_attr_setstacksize(&threadAttrib, (size_t) cDefaultStackSize);
+        }
+        else
+        {
+            retCode = VOS_PARAM_ERR;
+        }
     }
 
     if (retCode != 0)
@@ -1022,30 +1032,30 @@ EXT_DECL void vos_getNanoTime (
 
 /**********************************************************************************************************************/
 /** Get a time-stamp string.
- *  Get a time-stamp string for debugging in the form "yyyymmdd-hh:mm:ss.ms"
+ *  Get a time-stamp string for debugging in the form "yyyymmdd-hh:mm:ss.µs"
  *  Depending on the used OS / hardware the time might not be a real-time stamp but relative from start of system.
  *
- *  @retval         timestamp      "yyyymmdd-hh:mm:ss.ms"
+ *  @retval         timestamp      "yyyymmdd-hh:mm:ss.µs"
  */
 
 EXT_DECL const CHAR8 *vos_getTimeStamp (void)
 {
     static char     pTimeString[32] = {0};
     struct timeval  curTime;
-    struct tm       *curTimeTM;
+    struct tm       curTimeTM;
 
     (void)gettimeofday(&curTime, NULL);
-    curTimeTM = localtime(&curTime.tv_sec);
 
-    if (curTimeTM != NULL)
+    /* thread-safe localtime - but be aware of static pTimeString */
+    if (localtime_r(&curTime.tv_sec, &curTimeTM) != NULL)
     {
         (void)sprintf(pTimeString, "%04d%02d%02d-%02d:%02d:%02d.%06ld ",
-                      curTimeTM->tm_year + 1900,
-                      curTimeTM->tm_mon + 1,
-                      curTimeTM->tm_mday,
-                      curTimeTM->tm_hour,
-                      curTimeTM->tm_min,
-                      curTimeTM->tm_sec,
+                      curTimeTM.tm_year + 1900,
+                      curTimeTM.tm_mon + 1,
+                      curTimeTM.tm_mday,
+                      curTimeTM.tm_hour,
+                      curTimeTM.tm_min,
+                      curTimeTM.tm_sec,
                       (long) curTime.tv_usec);
     }
     return pTimeString;
@@ -1297,7 +1307,11 @@ EXT_DECL VOS_ERR_T vos_mutexCreate (
         err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
         if (err == 0)
         {
-            err = pthread_mutex_init((pthread_mutex_t *)&(*pMutex)->mutexId, &attr);
+            err = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+            if (err == 0)
+            {
+                err = pthread_mutex_init((pthread_mutex_t *)&(*pMutex)->mutexId, &attr);
+            }
         }
         pthread_mutexattr_destroy(&attr); /*lint !e534 ignore return value */
     }
@@ -1345,7 +1359,11 @@ EXT_DECL VOS_ERR_T vos_mutexLocalCreate (
         err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
         if (err == 0)
         {
-            err = pthread_mutex_init((pthread_mutex_t *)&pMutex->mutexId, &attr);
+            err = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+            if (err == 0)
+            {
+                err = pthread_mutex_init((pthread_mutex_t *)&pMutex->mutexId, &attr);
+            }
         }
         pthread_mutexattr_destroy(&attr); /*lint !e534 ignore return value */
     }

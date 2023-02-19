@@ -18,6 +18,11 @@
  *
  * $Id$
  *
+ *     CWE 2023-01-27: Ticket #416: Interface change for tau_getCstInfo(): test fixed
+ *     AHW 2023-01-24: Ticket #416: Interface change for tau_getCstInfo(), tau_getStaticCstInfo(), tau_getVehInfo()
+ *     AHW 2023-01-24: Naming #416: unified tau_getTrDir()/tau_getOpTrDir() -> tau_getTrnDir()/tau_getOpTrnDir()
+ *     CWE 2022-12-21: Ticket #404 Fix compile error - Test does not need to run, it is only used to verify bugfixes. It requires a special network-setup to run
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2019-08-27: Interval timing in test 9 changed
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  */
@@ -33,7 +38,6 @@
 #include <string.h>
 
 #if defined(POSIX)
-#include <sys/select.h>
 #include <unistd.h>
 #elif (defined(WIN32) || defined(WIN64))
 #include "getopt.h"
@@ -91,8 +95,8 @@ typedef struct
 
 } TRDP_THREAD_SESSION_T;
 
-TRDP_THREAD_SESSION_T gSession1 = {NULL, 0x0A000364u, 0, 0};
-TRDP_THREAD_SESSION_T gSession2 = {NULL, 0x0A000365u, 0, 0};
+TRDP_THREAD_SESSION_T gSession1 = {NULL, 0x0A000364u, 0, 0};        // 10.0.3.100
+TRDP_THREAD_SESSION_T gSession2 = {NULL, 0x0A000365u, 0, 0};        // 10.0.3.101
 
 /* number of consists/vehicles/etbs/functions and  */
 #define OP_CST_CNT (2u)
@@ -688,7 +692,7 @@ static void trdp_loop(void *pArg)
          Select() will wait for ready descriptors or time out,
          what ever comes first.
          */
-        rv = vos_select(noDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select(noDesc, &rfds, NULL, NULL, &tv);
 
         /*
          Check for overdue PDs (sending and receiving)
@@ -1271,6 +1275,7 @@ void cstInfoMdCallback(
 
 static int test3()
 {
+
     PREPARE("Ticket #362 / #363 / #364 / #365 / #366: OwnIds invalid resolved to a group name", "test"); /* allocates appHandle1, appHandle2, failed = 0, err */
 
     /* ------------------------- test code starts here --------------------------- */
@@ -1282,7 +1287,7 @@ static int test3()
         TRDP_LABEL_T deviceId = { 0 }, vehicleId = { 0 }, cstId = { 0 };
 
         UINT8                callbackFlags = 0u;
-        TRDP_CONSIST_INFO_T  consistInfo;
+        TRDP_CONSIST_INFO_T  *pConsistInfo;       // see ticket # 416
         TRDP_TRAIN_NET_DIR_T receivedTrnNetDir;
 
 #define TEST2_INTERVAL 100000u
@@ -1319,6 +1324,9 @@ static int test3()
             NULL, NULL);
 
         IF_ERROR("tlm_addListener");
+
+        err = tlc_setOpTrainTopoCount(gSession2.appHandle, OP_TRN_TOPO_CNT);
+        IF_ERROR("tlc_setOpTrainTopoCount")
 
         /* setup TTI on gSession1 */
 
@@ -1373,7 +1381,7 @@ static int test3()
             /* TODO: twice marshalled */
             err = tau_getCstInfo(
                 gSession1.appHandle,
-                &consistInfo,
+                &pConsistInfo,
                 CST_1_ID);
             if (TRDP_NO_ERR == err)
             {
@@ -1409,17 +1417,17 @@ static int test3()
         }
 
         /* #365: check function info list */
-        if (FCT_CNT != consistInfo.fctCnt)
+        if (FCT_CNT != pConsistInfo->fctCnt)
         {
             FAILED("#365: Too few function list entries")
         }
 
-        for (UINT8 counter = 0u; counter < consistInfo.fctCnt; counter++)
+        for (UINT8 counter = 0u; counter < pConsistInfo->fctCnt; counter++)
         {
             TRDP_FUNCTION_INFO_T expectedFctInfo = gCstInfo.test_ar_FctInfoList[counter];
             expectedFctInfo.fctId                = SWAP_16(expectedFctInfo.fctId);
 
-            if (memcmp(&expectedFctInfo, &consistInfo.pFctInfoList[counter], sizeof(TRDP_FUNCTION_INFO_T)) != 0)
+            if (memcmp(&expectedFctInfo, &pConsistInfo->pFctInfoList[counter], sizeof(TRDP_FUNCTION_INFO_T)) != 0)
             {
                 char buf[50];
                 sprintf(buf, "#365: invalid function info (index= %u)", counter);
@@ -1430,22 +1438,22 @@ static int test3()
         /* #364: check vehicle, ETB and closed train info list */
 
         /* vehicle info */
-        if (VEH_CNT != consistInfo.vehCnt)
+        if (VEH_CNT != pConsistInfo->vehCnt)
         {
             FAILED("#364: Too few vehicle list entries")
         }
 
-        for (UINT8 counter = 0u; counter < consistInfo.vehCnt; counter++)
+        for (UINT8 counter = 0u; counter < pConsistInfo->vehCnt; counter++)
         {
             TRDP_VEHICLE_INFO_T expectedVehInfo;
 
             memset(&expectedVehInfo, 0, sizeof(expectedVehInfo));
             memcpy(&expectedVehInfo, &gCstInfo.test_ar_VehInfoList[counter], sizeof(gCstInfo.test_ar_VehInfoList[counter]));
 
-            expectedVehInfo.vehProp.len = SWAP_16(expectedVehInfo.vehProp.len);
+            expectedVehInfo.pVehProp->len = SWAP_16(expectedVehInfo.pVehProp->len);
 
             /** @TODO: check, if Padding needs to be considered */
-            if (memcmp(&expectedVehInfo, &consistInfo.pVehInfoList[counter], sizeof(TRDP_VEHICLE_INFO_T)) != 0)
+            if (memcmp(&expectedVehInfo, &pConsistInfo->pVehInfoList[counter], sizeof(TRDP_VEHICLE_INFO_T)) != 0)
             {
                 char buf[50];
                 sprintf(buf, "#364: invalid vehicle info (index= %u)", counter);
@@ -1454,17 +1462,17 @@ static int test3()
         }
 
         /* ETB info */
-        if (ETB_CNT != consistInfo.etbCnt)
+        if (ETB_CNT != pConsistInfo->etbCnt)
         {
             FAILED("#364: Too few ETB list entries")
         }
 
-        for (UINT8 counter = 0u; counter < consistInfo.etbCnt; counter++)
+        for (UINT8 counter = 0u; counter < pConsistInfo->etbCnt; counter++)
         {
             TRDP_ETB_INFO_T expectedEtbInfo = gCstInfo.test_ar_EtbInfoList[counter];
 
             /** @TODO: check, if Padding needs to be considered */
-            if (memcmp(&expectedEtbInfo, &consistInfo.pEtbInfoList[counter], sizeof(TRDP_ETB_INFO_T)) != 0)
+            if (memcmp(&expectedEtbInfo, &pConsistInfo->pEtbInfoList[counter], sizeof(TRDP_ETB_INFO_T)) != 0)
             {
                 char buf[50];
                 sprintf(buf, "#364: invalid ETB info (index= %u)", counter);
@@ -1473,17 +1481,17 @@ static int test3()
         }
 
         /* closed train info */
-        if (OP_CST_CNT != consistInfo.cltrCstCnt)
+        if (OP_CST_CNT != pConsistInfo->cltrCstCnt)
         {
             FAILED("#364: Too few closed train list entries")
         }
 
-        for (UINT8 counter = 0u; counter < consistInfo.cltrCstCnt; counter++)
+        for (UINT8 counter = 0u; counter < pConsistInfo->cltrCstCnt; counter++)
         {
             TRDP_CLTR_CST_INFO_T expectedCltrCstInfo = gCstInfo.test_ar_CltrCstInfoList[counter];
 
             /** @TODO: check, if Padding needs to be considered */
-            if (memcmp(&expectedCltrCstInfo, &consistInfo.pCltrCstInfoList[counter], sizeof(TRDP_CLTR_CST_INFO_T)) != 0)
+            if (memcmp(&expectedCltrCstInfo, &pConsistInfo->pCltrCstInfoList[counter], sizeof(TRDP_CLTR_CST_INFO_T)) != 0)
             {
                 char buf[50];
                 sprintf(buf, "#364: invalid closed train info (index= %u)", counter);
@@ -1513,6 +1521,8 @@ static int test3()
             }
         }
         tau_deInitDnr(gSession1.appHandle);
+        
+        vos_memFree(pConsistInfo);
     }
 
     /* ------------------------- test code ends here --------------------------- */

@@ -10,7 +10,7 @@
  *
  * @note            Project: TCNOpen TRDP prototype stack
  *
- * @author          Anders Öberg, Bombardier Transportation GmbH
+ * @author          Anders Ã–berg, Bombardier Transportation GmbH
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *          If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,10 +19,11 @@
 /*
 * $Id$
 *
-*      AÖ 2021-12-17: Ticket #384: Added #include <windows.h>
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+*      AÃ– 2021-12-17: Ticket #384: Added #include <windows.h>
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
-*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, Requires SimTecc from 2020 or later
-*      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
+*      AÃ– 2020-05-04: Ticket #331: Add VLAN support for Sim, Requires SimTecc from 2020 or later
+*      AÃ– 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
 */
 
@@ -81,7 +82,7 @@
  *  @retval         VOS_PARAM_ERR   Parameter error
  */
 EXT_DECL VOS_ERR_T vos_sockOpenTSN (
-    SOCKET                  *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     VOS_ERR_T res = vos_sockOpenUDP(pSock, pOptions);
@@ -126,7 +127,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
  *
  *  @retval         VOS_NO_ERR      if ok
  */
-EXT_DECL void vos_sockPrintOptions (SOCKET sock)
+EXT_DECL void vos_sockPrintOptions (VOS_SOCK_T sock)
 {
     /* Not supported */
 }
@@ -150,7 +151,7 @@ EXT_DECL void vos_sockPrintOptions (SOCKET sock)
  *  @retval         VOS_BLOCK_ERR   Call would have blocked in blocking mode
  */
 EXT_DECL VOS_ERR_T vos_sockSendTSN (
-    SOCKET          sock,
+    VOS_SOCK_T      sock,
     const UINT8     *pBuffer,
     UINT32          *pSize,
     VOS_IP4_ADDR_T  srcIpAddress,
@@ -186,13 +187,13 @@ EXT_DECL VOS_ERR_T vos_sockSendTSN (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveTSN (
-    SOCKET  sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize,
-    UINT32  *pSrcIPAddr,
-    UINT16  *pSrcIPPort,
-    UINT32  *pDstIPAddr,
-    BOOL8   peek)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize,
+    UINT32     *pSrcIPAddr,
+    UINT16     *pSrcIPPort,
+    UINT32     *pDstIPAddr,
+    BOOL8      peek)
 {
     return vos_sockReceiveUDP(sock, pBuffer, pSize,
                               pSrcIPAddr, pSrcIPPort,

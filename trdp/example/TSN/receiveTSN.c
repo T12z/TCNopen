@@ -13,6 +13,8 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+ *
  */
 
 /***********************************************************************************************************************
@@ -24,7 +26,6 @@
 
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif defined (WIN32)
 #include "getopt.h"
 #endif
@@ -262,7 +263,7 @@ static void *comThread (void *arg)
 
         //vos_printLog(VOS_LOG_USR, "noDesc: %d, fdset: 0x%x\n", noDesc, rfds.fds_bits[0]);
 
-        rv = vos_select(noDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select(noDesc, &rfds, NULL, NULL, &tv);
 
         //vos_printLog(VOS_LOG_USR, "rv    : %d, fdset: 0x%x\n", rv, rfds.fds_bits[0]);
 
@@ -289,7 +290,7 @@ int main (int argc, char *argv[])
 
     TRDP_SEND_PARAM_T       pdConfigurationDefault  = TRDP_PD_DEFAULT_SEND_PARAM;
     TRDP_SEND_PARAM_T       pdConfigurationTSN      = {3u, 64u, 0u, TRUE, 10};
-    TRDP_PROCESS_CONFIG_T   processConfig = {"receiveTSN", "", 10000, 255, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig = {"receiveTSN", "", "", 10000, 255, TRDP_OPTION_BLOCK};
     UINT32 ownIP    = 0u;
     UINT32 destIP   = vos_dottedIP(PD_COMID_DEST);
     VOS_THREAD_T            myComThread;

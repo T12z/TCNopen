@@ -18,6 +18,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2019-08-27: Interval timing in test 9 changed
  *      BL 2018-03-06: Ticket #101 Optional callback function on PD send
  */
@@ -34,7 +35,6 @@
 
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif (defined (WIN32) || defined (WIN64))
 #include "getopt.h"
 #endif
@@ -490,7 +490,7 @@ static void trdp_loop (void *pArg)
          Select() will wait for ready descriptors or time out,
          what ever comes first.
          */
-        rv = vos_select(noDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select(noDesc, &rfds, NULL, NULL, &tv);
 
         /*
          Check for overdue PDs (sending and receiving)

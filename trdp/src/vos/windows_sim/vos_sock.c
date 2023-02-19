@@ -10,7 +10,7 @@
  *
  * @note            Project: TCNOpen TRDP prototype stack
  *
- * @author          Anders Öberg, Bombardier Transportation GmbH
+ * @author          Anders Ã–berg, Bombardier Transportation GmbH
  *
  *
  * @remarks This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
@@ -18,14 +18,17 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2019. All rights reserved.
  */
 /*
-* $Id$*
+* $Id$
 *
-*      AÖ 2021-12-17: Ticket #384: Added #include <windows.h>
+*      AÃ– 2023-01-16: Ticket #414: Fix compiler warnings in VOS Windows_sim
+*      AÃ– 2023-01-13: Ticket #410 Don't perform a delay after SimSelect if any socket is signaled
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+*      AÃ– 2021-12-17: Ticket #384: Added #include <windows.h>
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
-*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim, removed old SimTecc workarounds, Requires SimTecc from 2020 or later
-*      AÖ 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
-*      AÖ 2019-12-18: Ticket #295: vos_sockSendUDP some times report err 183 in Windows Sim
-*      AÖ 2019-11-11: Ticket #290: Add support for Virtualization on Windows
+*      AÃ– 2020-05-04: Ticket #331: Add VLAN support for Sim, removed old SimTecc workarounds, Requires SimTecc from 2020 or later
+*      AÃ– 2019-12-18: Ticket #307: Avoid vos functions to block TimeSync
+*      AÃ– 2019-12-18: Ticket #295: vos_sockSendUDP some times report err 183 in Windows Sim
+*      AÃ– 2019-11-11: Ticket #290: Add support for Virtualization on Windows
 *
 */
 
@@ -93,7 +96,7 @@ CHAR    ifName[] = "SimIf";
  *
  *  @retval         A SimSocket
  */
-SIM_SOCKET socketToSimSocket(SOCKET s)
+SIM_SOCKET socketToSimSocket(VOS_SOCK_T s)
 {
     if (s < 0)
     {
@@ -109,7 +112,7 @@ SIM_SOCKET socketToSimSocket(SOCKET s)
  *
  *  @retval         A Socket
  */
-SOCKET simSocketToSocket(SIM_SOCKET s)
+VOS_SOCK_T simSocketToSocket(SIM_SOCKET s)
 {
     if (s == INVALID_SIM_SOCKET)
     {
@@ -210,13 +213,16 @@ int simFdsToVosFds(sim_fd_set* pSim_fds, VOS_FDS_T* pVos_fds)
  *
  *  @retval         number of received bytes, -1 for error
  */
-INT32 recvmsg(SOCKET sock, SIM_MSG* pMessage, int flags)
+INT32 recvmsg(VOS_SOCK_T sock, SIM_MSG* pMessage, int flags)
 {
     DWORD   numBytes = 0;
     int     res;
+    SIM_SOCKET simSocket;
+
+    simSocket = socketToSimSocket(sock);
 
     pMessage->flags = flags;
-    res = SimRecvMsg(sock, pMessage, &numBytes);
+    res = SimRecvMsg(simSocket, pMessage, &numBytes);
     if (0 != res)
     {
         DWORD err = WSAGetLastError();
@@ -504,7 +510,7 @@ EXT_DECL BOOL8 vos_netIfUp (
  *  Set the ready sockets in the supplied sets.
  *    Note: Some target systems might define this function as NOP.
  *
- *  @param[in]      highDesc          max. socket descriptor + 1
+ *  @param[in]      highDesc          max. socket descriptor
  *  @param[in,out]  pReadableFD       pointer to readable socket set
  *  @param[in,out]  pWriteableFD      pointer to writeable socket set
  *  @param[in,out]  pErrorFD          pointer to error socket set
@@ -514,7 +520,7 @@ EXT_DECL BOOL8 vos_netIfUp (
  */
 
 EXT_DECL INT32 vos_select(
-    SOCKET           highDesc,
+    VOS_SOCK_T highDesc,
     VOS_FDS_T* pReadableFD,
     VOS_FDS_T* pWriteableFD,
     VOS_FDS_T* pErrorFD,
@@ -555,8 +561,12 @@ EXT_DECL INT32 vos_select(
                 return -1;
             }
 
-            ret = SimSelect((int)highDesc, pReadFds, pWriteFds,
+            ret = SimSelect((int)(highDesc + 1), pReadFds, pWriteFds,
                 pErrorFds, (struct timeval*) &delyNull);
+
+            if (ret != 0) {
+                break;
+            }
 
             if (vos_cmpTime(&remTime, &delyTime) == -1)
             {
@@ -569,7 +579,7 @@ EXT_DECL INT32 vos_select(
                 vos_threadDelay(delyTime.tv_usec);
                 vos_subTime(&remTime, &delyTime);
             }
-        } while (ret == 0 && (remTime.tv_sec != 0 || remTime.tv_usec != 0));
+        } while (remTime.tv_sec != 0 || remTime.tv_usec != 0);
     }
 
     if (ret == -1)
@@ -666,7 +676,7 @@ EXT_DECL VOS_ERR_T vos_sockGetMAC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenUDP (
-    SOCKET                   *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     SIM_SOCKET sock;
@@ -728,7 +738,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenTCP (
-    SOCKET                   *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     SIM_SOCKET sock;
@@ -775,7 +785,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTCP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockClose (
-    SOCKET  sock)
+    VOS_SOCK_T sock)
 {
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
@@ -812,7 +822,7 @@ EXT_DECL VOS_ERR_T vos_sockClose (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSetOptions (
-   SOCKET                     sock,
+   VOS_SOCK_T               sock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     SIM_SOCKET simSock = socketToSimSocket(sock);
@@ -863,15 +873,15 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
  */
 
 EXT_DECL VOS_ERR_T vos_sockJoinMC (
-    SOCKET   sock,
-    UINT32  mcAddress,
-    UINT32  ipAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcAddress,
+    UINT32     ipAddress)
 {
     struct ip_mreq  mreq;
     VOS_ERR_T       result = VOS_NO_ERR;
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
-    if (sock == (SOCKET)INVALID_SOCKET)
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET)
     {
         result = VOS_PARAM_ERR;
     }
@@ -931,15 +941,15 @@ EXT_DECL VOS_ERR_T vos_sockJoinMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockLeaveMC (
-    SOCKET   sock,
-    UINT32  mcAddress,
-    UINT32  ipAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcAddress,
+    UINT32     ipAddress)
 {
     struct ip_mreq  mreq;
     VOS_ERR_T       result = VOS_NO_ERR;
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         result = VOS_PARAM_ERR;
     }
@@ -1001,7 +1011,7 @@ EXT_DECL VOS_ERR_T vos_sockLeaveMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendUDP (
-    SOCKET       sock,
+    VOS_SOCK_T  sock,
     const UINT8 *pBuffer,
     UINT32      *pSize,
     UINT32      ipAddress,
@@ -1013,7 +1023,7 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
     int err         = 0;
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
-    if ((sock == (SOCKET)INVALID_SOCKET)
+    if ((sock == (VOS_SOCK_T)INVALID_SOCKET)
         || (pBuffer == NULL)
         || (pSize == NULL))
     {
@@ -1103,14 +1113,14 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
-    SOCKET   sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize,
-    UINT32  *pSrcIPAddr,
-    UINT16  *pSrcIPPort,
-    UINT32  *pDstIPAddr,
-	UINT32  *pSrcIFAddr,
-    BOOL8   peek)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize,
+    UINT32     *pSrcIPAddr,
+    UINT16     *pSrcIPPort,
+    UINT32     *pDstIPAddr,
+    UINT32     *pSrcIFAddr,
+    BOOL8      peek)
 {
     struct sockaddr_in  srcAddr;
     INT32 rcvSize = 0;
@@ -1119,7 +1129,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
     SIM_BUF                simbuf;
     SIM_MSG                Msg;
 
-    if (sock == (SOCKET)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
     {
         return VOS_PARAM_ERR;
     }
@@ -1229,16 +1239,16 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockBind (
-    SOCKET  sock,
-    UINT32  ipAddress,
-    UINT16  port)
+    VOS_SOCK_T sock,
+    UINT32     ipAddress,
+    UINT16     port)
 {
     struct sockaddr_in srcAddress;
     u_short dynPortNr = DYN_PORT_RANGE_FIRST;
     
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         return VOS_PARAM_ERR;
     }
@@ -1261,7 +1271,7 @@ EXT_DECL VOS_ERR_T vos_sockBind (
                  inet_ntoa(srcAddress.sin_addr), port);
 
     /*  Try to bind the socket to the PD port.    */
-    if (SimBind(sock, (struct sockaddr*) & srcAddress, sizeof(srcAddress)) == SOCKET_ERROR)
+    if (SimBind(simSock, (struct sockaddr*) & srcAddress, sizeof(srcAddress)) == SOCKET_ERROR)
     {
         int err = GetLastError();
 
@@ -1286,12 +1296,12 @@ EXT_DECL VOS_ERR_T vos_sockBind (
  */
 
 EXT_DECL VOS_ERR_T vos_sockListen (
-    SOCKET  sock,
-    UINT32  backlog)
+    VOS_SOCK_T sock,
+    UINT32     backlog)
 {
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         return VOS_PARAM_ERR;
     }
@@ -1323,10 +1333,10 @@ EXT_DECL VOS_ERR_T vos_sockListen (
  */
 
 EXT_DECL VOS_ERR_T vos_sockAccept (
-    SOCKET   sock,
-    SOCKET   *pSock,
-    UINT32  *pIPAddress,
-    UINT16  *pPort)
+    VOS_SOCK_T sock,
+    VOS_SOCK_T *pSock,
+    UINT32     *pIPAddress,
+    UINT16     *pPort)
 {
     struct sockaddr_in srcAddress;
     SIM_SOCKET  simConnFd = SOCKET_ERROR;
@@ -1398,14 +1408,14 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
  */
 
 EXT_DECL VOS_ERR_T vos_sockConnect (
-    SOCKET   sock,
-    UINT32  ipAddress,
-    UINT16  port)
+    VOS_SOCK_T sock,
+    UINT32     ipAddress,
+    UINT16     port)
 {
     struct sockaddr_in dstAddress;
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
-    if (sock == (SOCKET)INVALID_SOCKET )
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET )
     {
         return VOS_PARAM_ERR;
     }
@@ -1455,7 +1465,7 @@ EXT_DECL VOS_ERR_T vos_sockConnect (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendTCP (
-    SOCKET       sock,
+    VOS_SOCK_T  sock,
     const UINT8 *pBuffer,
     UINT32      *pSize)
 {
@@ -1464,7 +1474,7 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
     int err = 0;
     SIM_SOCKET simSock = socketToSimSocket(sock);
 
-    if ((sock == (SOCKET)INVALID_SOCKET)
+    if ((sock == (VOS_SOCK_T)INVALID_SOCKET)
         || (pBuffer == NULL)
         || (pSize == NULL))
     {
@@ -1530,9 +1540,9 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
-    SOCKET   sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize)
 {
     int rcvSize     = 0;
     int bufferSize  = (int) *pSize;
@@ -1541,7 +1551,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
 
     *pSize = 0;
 
-    if (sock == (SOCKET)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
+    if (sock == (VOS_SOCK_T)INVALID_SOCKET || pBuffer == NULL || pSize == NULL)
     {
         return VOS_PARAM_ERR;
     }
@@ -1613,8 +1623,8 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
  *  @retval         VOS_PARAM_ERR       sock descriptor unknown, parameter error
  */
 EXT_DECL VOS_ERR_T vos_sockSetMulticastIf (
-    SOCKET   sock,
-    UINT32  mcIfAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcIfAddress)
 {
 
     return VOS_NO_ERR;

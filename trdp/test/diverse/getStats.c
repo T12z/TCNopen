@@ -16,6 +16,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *      SB 2021-08-09: Compiler warnings
  *      BL 2019-02-01: Ticket #234 Correcting Statistics ComIds
@@ -33,7 +34,6 @@
 #include <string.h>
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif (defined (WIN32) || defined (WIN64))
 #include "getopt.h"
 #endif
@@ -405,7 +405,7 @@ int main (int argc, char * *argv)
     while (gKeepOnRunning)
     {
         fd_set  rfds;
-        INT32   noOfDesc;
+        TRDP_SOCK_T     noOfDesc; /* #399 */
         struct timeval  tv;
         struct timeval  max_tv = {5, 0};
 
@@ -440,7 +440,7 @@ int main (int argc, char * *argv)
             what ever comes first.
          */
 
-        rv = select((int)noOfDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select((int)noOfDesc, &rfds, NULL, NULL, &tv);
 
         /*
             Check for overdue PDs (sending and receiving)

@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced
  *     AHW 2021-05-26: Ticket #322: Subscriber multicast message routing in multi-home device
  *      BL 2020-07-27: Ticket #333: Insufficient memory allocation in posix vos_semaCreate
  *
@@ -48,18 +49,19 @@ extern "C" {
 /* The VOS version can be predefined as CFLAG   */
 #ifndef VOS_VERSION
 #define VOS_VERSION            2u
-#define VOS_RELEASE            1u    /* 322: interface change in vos_sockReceiveUDP() */
+#define VOS_RELEASE            2u /* 399: Socket abstraction added, vos_select(), highDesc is NOT anymore incremented in call */
 #define VOS_UPDATE             0u
 #define VOS_EVOLUTION          0u
 #endif
 
-/* Defines for Linux TSN ready sockets */
+/* Defines for Linux TSN ready sockets (see socket.h) */
 #ifndef SO_TXTIME
 #define SO_TXTIME           61
 #define SCM_TXTIME          SO_TXTIME
+#endif
+
 #define SCM_DROP_IF_LATE    62
 #define SCM_CLOCKID         63
-#endif
 
 struct VOS_MUTEX
 {
@@ -112,7 +114,7 @@ void        vos_mutexLocalDelete (struct VOS_MUTEX *pMutex);
     }
 #endif
 
-EXT_DECL    VOS_ERR_T   vos_sockSetBuffer (SOCKET sock);
+EXT_DECL    VOS_ERR_T   vos_sockSetBuffer (VOS_SOCK_T sock);
 
 #ifdef __cplusplus
 }

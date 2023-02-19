@@ -15,6 +15,11 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2015-2021. All rights reserved.
  */
 /*
+ * $Id$
+ *
+ *     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed - Comments adapted for base 2 cycle time support
+ *     AHW 2023-01-11: Lint warnigs
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08.09: Ticket #375 Replaced parameters of vos_memCount to prevent alignment issues
  *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      BL 2020-07-10: Ticket #321 Move TRDP_TIMER_GRANULARITY to public API
@@ -181,6 +186,12 @@ typedef VOS_TIMEVAL_T TRDP_TIME_T;
 /**    File descriptor set compatible with fd_set / select.
  */
 typedef VOS_FDS_T TRDP_FDS_T;
+
+/**    Socket descriptor set compatible with fd_set / select.
+ */
+typedef VOS_SOCK_T TRDP_SOCK_T;
+#define TRDP_INVALID_SOCKET  VOS_INVALID_SOCKET      /**< Invalid socket number */
+
 
 /**********************************************************************************************************************/
 /**                          TRDP data transfer type definitions.                                                     */
@@ -735,7 +746,7 @@ typedef struct
 {
     TRDP_LABEL_T        hostName;       /**< Host name  */
     TRDP_LABEL_T        leaderName;     /**< Leader name dependant on redundancy concept   */
-    TRDP_LABEL_T        type;           /**< process type #349 */
+    TRDP_LABEL_T        type;           /**< type #349 */
     UINT32              cycleTime;      /**< TRDP main process cycle time in us  */
     UINT32              priority;       /**< TRDP main process priority (0-255, 0=default, 255=highest)   */
     TRDP_OPTION_T       options;        /**< TRDP options */
@@ -746,16 +757,16 @@ typedef struct
  */
 typedef struct
 {
-    UINT32  maxNoOfLowCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <= 100ms  */
-    UINT32  maxNoOfMidCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <= 1000ms */
-    UINT32  maxNoOfHighCatSubscriptions;        /**< Max. number of expected subscriptions with intervals > 1000ms  */
-    UINT32  maxNoOfLowCatPublishers;            /**< Max. number of expected publishers with intervals <= 100ms     */
-    UINT32  maxDepthOfLowCatPublishers;         /**< depth / overlapped publishers with intervals <= 100ms          */
-    UINT32  maxNoOfMidCatPublishers;            /**< Max. number of expected publishers with intervals <= 1000ms    */
-    UINT32  maxDepthOfMidCatPublishers;         /**< depth / overlapped publishers with intervals <= 1000ms         */
-    UINT32  maxNoOfHighCatPublishers;           /**< Max. number of expected publishers with intervals <= 10000ms   */
-    UINT32  maxDepthOfHighCatPublishers;        /**< depth / overlapped publishers with intervals <= 10000ms        */
-    UINT32  maxNoOfExtPublishers;               /**< Max. number of expected publishers with intervals > 10000ms    */
+    UINT32  maxNoOfLowCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <=   100ms (base 2: <=  128ms) */
+    UINT32  maxNoOfMidCatSubscriptions;         /**< Max. number of expected subscriptions with intervals <=  1000ms (base 2: <= 1024ms) */
+    UINT32  maxNoOfHighCatSubscriptions;        /**< Max. number of expected subscriptions with intervals >   1000ms (base 2: >  1024ms) */
+    UINT32  maxNoOfLowCatPublishers;            /**< Max. number of expected publishers with intervals    <=   100ms (base 2: <=  128ms) */
+    UINT32  maxDepthOfLowCatPublishers;         /**< depth / overlapped publishers with intervals         <=   100ms (base 2: <=  128ms) */
+    UINT32  maxNoOfMidCatPublishers;            /**< Max. number of expected publishers with intervals    <=  1000ms (base 2: <= 1024ms) */
+    UINT32  maxDepthOfMidCatPublishers;         /**< depth / overlapped publishers with intervals         <=  1000ms (base 2: <= 1024ms) */
+    UINT32  maxNoOfHighCatPublishers;           /**< Max. number of expected publishers with intervals    <= 10000ms (base 2: <= 8192ms) */
+    UINT32  maxDepthOfHighCatPublishers;        /**< depth / overlapped publishers with intervals         <= 10000ms (base 2: <= 8192ms) */
+    UINT32  maxNoOfExtPublishers;               /**< Max. number of expected publishers with intervals    >  10000ms (base 2: >  8192ms) */
 } TRDP_IDX_TABLE_T;
 
 

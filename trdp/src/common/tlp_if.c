@@ -15,8 +15,11 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2021. All rights reserved.
  */
 /*
-* $Id$
+* $Id$*
 *
+*      AÖ 2023-01-13: Ticket #412 Added tlp_republishService
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+*     AHW 2022-03-24: Ticket #391 Allow PD request without reply
 *     IBO 2021-08-12: Ticket #355 Redundant PD default state should be follower
 *     AHW 2021-05-04: Ticket #354 Sequence counter synchronization error working in redundancy mode
 *      BL 2020-07-27: Ticket #304 The reception of any incorrect message causes it to exit the loop
@@ -96,7 +99,7 @@ EXT_DECL TRDP_ERR_T tlp_getInterval (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_TIME_T         *pInterval,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc)
+    TRDP_SOCK_T         *pNoDesc)
 {
     TRDP_ERR_T ret = TRDP_NOINIT_ERR;
 
@@ -585,7 +588,7 @@ EXT_DECL TRDP_ERR_T tlp_publish (
                             sockType,
                             appHandle->option,
                             FALSE,
-                            -1,
+                            VOS_INVALID_SOCKET,
                             &pNewElement->socketIdx,
                             0u);
                 }
@@ -715,6 +718,83 @@ EXT_DECL TRDP_ERR_T tlp_publish (
 
     return ret;
 }
+
+#ifdef SOA_SUPPORT
+/**********************************************************************************************************************/
+/** Prepare for sending PD messages.
+*  Reinitialize and queue a PD message, it will be send when tlc_publish has been called
+*
+*  NOTE! This function is only needed until RNat is provided in the switches for NG-TCN
+*
+*  @param[in]      appHandle           the handle returned by tlc_openSession
+*  @param[in]      pubHandle           handle for related unpublish
+*  @param[in]      etbTopoCnt          ETB topocount to use, 0 if consist local communication
+*  @param[in]      opTrnTopoCnt        operational topocount, != 0 for orientation/direction sensitive communication
+*  @param[in]      srcIpAddr           own IP address, 0 - srcIP will be set by the stack
+*  @param[in]      destIpAddr          where to send the packet to
+*  @param[in]      serviceId           Service Id containing
+*
+*  @retval         TRDP_NO_ERR         no error
+*  @retval         TRDP_PARAM_ERR      parameter error
+*  @retval         TRDP_MEM_ERR        could not insert (out of memory)
+*  @retval         TRDP_NOINIT_ERR     handle invalid
+*/
+EXT_DECL TRDP_ERR_T tlp_republishService(
+    TRDP_APP_SESSION_T  appHandle,
+    TRDP_PUB_T          pubHandle,
+    UINT32              etbTopoCnt,
+    UINT32              opTrnTopoCnt,
+    TRDP_IP_ADDR_T      srcIpAddr,
+    TRDP_IP_ADDR_T      destIpAddr,
+    UINT32              serviceId)
+{
+    /* This sources is a copy of tlp_republish */
+    /*    Check params    */
+
+    if (!trdp_isValidSession(appHandle))
+    {
+        return TRDP_NOINIT_ERR;
+    }
+
+    if (pubHandle->magic != TRDP_MAGIC_PUB_HNDL_VALUE)
+    {
+        return TRDP_NOSUB_ERR;
+    }
+
+    /*    Reserve mutual access    */
+    if (vos_mutexLock(appHandle->mutexTxPD) != VOS_NO_ERR)
+    {
+        return TRDP_NOINIT_ERR;
+    }
+
+    /*  Change the addressing item   */
+    pubHandle->addr.srcIpAddr = srcIpAddr;
+    pubHandle->addr.destIpAddr = destIpAddr;
+
+    pubHandle->addr.etbTopoCnt = etbTopoCnt;
+    pubHandle->addr.opTrnTopoCnt = opTrnTopoCnt;
+    pubHandle->addr.serviceId = serviceId; /* This is the only extra line in tlp_republishService*/
+
+    if (vos_isMulticast(destIpAddr))
+    {
+        pubHandle->addr.mcGroup = destIpAddr;
+    }
+    else
+    {
+        pubHandle->addr.mcGroup = 0u;
+    }
+
+    /*    Compute the header fields */
+    trdp_pdInit(pubHandle, TRDP_MSG_PD, etbTopoCnt, opTrnTopoCnt, 0u, 0u, pubHandle->addr.serviceId);
+
+    if (vos_mutexUnlock(appHandle->mutexTxPD) != VOS_NO_ERR)
+    {
+        vos_printLogStr(VOS_LOG_INFO, "vos_mutexUnlock() failed\n");
+    }
+
+    return TRDP_NO_ERR;
+}
+#endif
 
 /**********************************************************************************************************************/
 /** Prepare for sending PD messages.
@@ -1044,14 +1124,14 @@ EXT_DECL TRDP_ERR_T tlp_request (
 
     /*    Check params    */
     if ((appHandle == NULL)
-        || (subHandle == NULL)
+        || ((subHandle == NULL) && ((replyComId != 0) || (replyIpAddr != 0)))  /* #391 allow reply request without reply */
         || ((comId == 0u) && (replyComId == 0u))
         || (destIpAddr == 0u))
     {
         return TRDP_PARAM_ERR;
     }
 
-    if (pSubPD->magic != TRDP_MAGIC_SUB_HNDL_VALUE)
+    if ((pSubPD != NULL) && (pSubPD->magic != TRDP_MAGIC_SUB_HNDL_VALUE))     /* #391 allow reply request without reply */
     {
         return TRDP_NOSUB_ERR;
     }
@@ -1124,7 +1204,7 @@ EXT_DECL TRDP_ERR_T tlp_request (
                                          TRDP_SOCK_PD,
                                          appHandle->option,
                                          FALSE,
-                                         -1,
+                                         VOS_INVALID_SOCKET,
                                          &pReqElement->socketIdx,
                                          0u);
 
@@ -1188,9 +1268,12 @@ EXT_DECL TRDP_ERR_T tlp_request (
         if (ret == TRDP_NO_ERR && pReqElement != NULL)
         {
 
-            if (replyComId == 0u)
+            if (pSubPD != NULL)   /* #391 only if reply requested */
             {
-                replyComId = pSubPD->addr.comId;
+                if (replyComId == 0u)
+                {
+                    replyComId = pSubPD->addr.comId;
+                }
             }
 
             pReqElement->addr.destIpAddr    = destIpAddr;
@@ -1208,12 +1291,15 @@ EXT_DECL TRDP_ERR_T tlp_request (
             /*  This flag triggers sending in tlc_process (one shot)  */
             pReqElement->privFlags |= TRDP_REQ_2B_SENT;
 
-            /*    Set the current time and start time out of subscribed packet  */
-            if (timerisset(&pSubPD->interval))
+            if (pSubPD != NULL)   /* #391 only if reply requested */
             {
-                vos_getTime(&pSubPD->timeToGo);
-                vos_addTime(&pSubPD->timeToGo, &pSubPD->interval);
-                pSubPD->privFlags &= (unsigned)~TRDP_TIMED_OUT;   /* Reset time out flag (#151) */
+                /*    Set the current time and start time out of subscribed packet  */
+                if (timerisset(&pSubPD->interval))
+                {
+                    vos_getTime(&pSubPD->timeToGo);
+                    vos_addTime(&pSubPD->timeToGo, &pSubPD->interval);
+                    pSubPD->privFlags &= (unsigned)~TRDP_TIMED_OUT;   /* Reset time out flag (#151) */
+                }
             }
         }
 
@@ -1346,7 +1432,7 @@ EXT_DECL TRDP_ERR_T tlp_subscribe (
                                  usage,
                                  appHandle->option,
                                  TRUE,
-                                 -1,
+                                 VOS_INVALID_SOCKET,
                                  &lIndex,
                                  0u);
 
@@ -1583,7 +1669,7 @@ EXT_DECL TRDP_ERR_T tlp_resubscribe (
                                      TRDP_SOCK_PD,
                                      appHandle->option,
                                      TRUE,
-                                     -1,
+                                     VOS_INVALID_SOCKET,
                                      &subHandle->socketIdx,
                                      0u);
             if (ret != TRDP_NO_ERR)

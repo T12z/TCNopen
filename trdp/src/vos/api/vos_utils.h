@@ -17,6 +17,8 @@
  /*
  * $Id$
  *
+ *      AÖ 2023-01-13: Ticket #413 In Windows export gPDebugFunction and gRefCon
+ *     AHW 2023-01-11: Lint warnigs
  *      BL 2019-01-23: Ticket #231: XML config from stream buffer
  *     AHW 2018-11-28: Doxygen comment errors
  *      BL 2017-05-08: Compiler warnings, doxygen comment errors
@@ -46,8 +48,8 @@ extern "C" {
  * DEFINES
  */
 
-extern VOS_PRINT_DBG_T gPDebugFunction;
-extern void *gRefCon;
+extern EXT_DECL VOS_PRINT_DBG_T gPDebugFunction; /* #413 */
+extern EXT_DECL void *gRefCon; /* #413 */
 
 /** String size definitions for the debug output functions */
 #define VOS_MAX_PRNT_STR_SIZE   256u         /**< Max. size of the debug/error string of debug function */
@@ -59,6 +61,13 @@ extern void *gRefCon;
 #define VOS_DIR_SEP     '\\'
 #else
 #define VOS_DIR_SEP     '/'
+#endif
+
+/** This is the abstraction to set errno */
+#if (defined (WIN32) || defined (WIN64))
+#define VOS_SET_ERRNO(VAL)   (void) _set_errno(VAL)
+#else
+#define VOS_SET_ERRNO(VAL)   errno = (VAL)
 #endif
 
 /** Safe printf function */

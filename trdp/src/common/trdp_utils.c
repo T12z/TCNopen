@@ -17,8 +17,9 @@
 /*
 * $Id$
 *
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *      BL 2020-08-07: Ticket #317 Bug in trdp_indexedFindSubAddr() (HIGH_PERFORMANCE)
-*      AÖ 2020-05-04: Ticket #331: Add VLAN support for Sim
+*      AÃ– 2020-05-04: Ticket #331: Add VLAN support for Sim
 *      SB 2020-03-30: Ticket #311: removed trdp_getSeqCnt() because redundant publisher should not run on the same interface
 *      SB 2019-08-20: Fixed lint errors and warnings
 *      SB 2019-08-15: Ticket #269: tau_initTTI: leave standard MC fails
@@ -118,11 +119,11 @@ void printSocketUsage (
     vos_printLogStr(VOS_LOG_DBG, "------- Socket usage -------\n");
     for (lIndex = 0; lIndex < trdp_getCurrentMaxSocketCnt(iface[0].type); lIndex++)
     {
-        if (iface[lIndex].sock == -1)
+        if (iface[lIndex].sock == VOS_INVALID_SOCKET)
         {
             continue;
         }
-        vos_printLog(VOS_LOG_DBG, "iface[%d].sock = %d\n", lIndex, (int) iface[lIndex].sock);
+        vos_printLog(VOS_LOG_DBG, "iface[%d].sock = %d\n", lIndex, vos_sockId(iface[lIndex].sock));
         vos_printLog(VOS_LOG_DBG, "iface[%d].bindAddr = %x\n", lIndex, iface[lIndex].bindAddr);
         vos_printLog(VOS_LOG_DBG, "iface[%d].type = %s \n", lIndex, (iface[lIndex].type == TRDP_SOCK_PD ? "PD_UDP" :
                                                                      (iface[lIndex].type == TRDP_SOCK_MD_UDP ? "MD_UDP" :
@@ -984,7 +985,7 @@ TRDP_ERR_T  trdp_requestSocket (
     TRDP_SOCK_TYPE_T        type,
     TRDP_OPTION_T           options,
     BOOL8                   rcvMostly,
-    SOCKET                  useSocket,
+    VOS_SOCK_T              useSocket,
     INT32                   *pIndex,
     TRDP_IP_ADDR_T          cornerIp)
 {
@@ -1012,7 +1013,7 @@ TRDP_ERR_T  trdp_requestSocket (
     {
         /*  Check if the wanted socket is already in our list; if yes, increment usage */
         if (useSocket != VOS_INVALID_SOCKET &&
-            useSocket == iface[lIndex].sock)
+            vos_sockCmp(useSocket, iface[lIndex].sock) == 0)
         {
             /* Use that socket */
             *pIndex = lIndex;
@@ -1051,7 +1052,8 @@ TRDP_ERR_T  trdp_requestSocket (
                         }
                         continue;   /* No, socket cannot join more MC groups */
                     }
-                    vos_printLog(VOS_LOG_INFO, "socket %d joined %s!\n", (int) iface[lIndex].sock, vos_ipDotted(mcGroup));
+                    vos_printLog(VOS_LOG_INFO, "socket %d joined %s!\n", vos_sockId(iface[lIndex].sock),
+                                 vos_ipDotted(mcGroup));
                 }
             }
 
@@ -1436,7 +1438,9 @@ void  trdp_releaseSocket (
         {
             if (iface[lIndex].tcpParams.morituri == TRUE)
             {
-                vos_printLog(VOS_LOG_INFO, "The socket (Num = %d) will be closed\n", (int) iface[lIndex].sock);
+                INT32 sock_id = vos_sockId(iface[lIndex].sock);
+
+                vos_printLog(VOS_LOG_INFO, "The socket (Num = %d) will be closed\n", sock_id);
 
                 err = (TRDP_ERR_T) vos_sockClose(iface[lIndex].sock);
                 if (err != TRDP_NO_ERR)
@@ -1447,8 +1451,8 @@ void  trdp_releaseSocket (
                 /* Delete the socket from the iface */
                 vos_printLog(VOS_LOG_INFO,
                              "Deleting socket from the iface (Sock: %d, lIndex: %d)\n",
-                             (int) iface[lIndex].sock, lIndex);
-                iface[lIndex].sock = TRDP_INVALID_SOCKET_INDEX;
+                             sock_id, lIndex);
+                iface[lIndex].sock = VOS_INVALID_SOCKET;
                 iface[lIndex].sendParam.qos = 0;
                 iface[lIndex].sendParam.ttl = 0;
                 iface[lIndex].usage         = 0;
@@ -1476,7 +1480,7 @@ void  trdp_releaseSocket (
         {
             vos_printLog(VOS_LOG_DBG,
                          "Decrement the socket %d usage = %d\n",
-                         (int) iface[lIndex].sock,
+                         vos_sockId(iface[lIndex].sock),
                          iface[lIndex].usage);
             iface[lIndex].usage--;
 
@@ -1484,6 +1488,7 @@ void  trdp_releaseSocket (
                 iface[lIndex].usage <= 0)
             {
                 /* Close that socket, nobody uses it anymore */
+                INT32 sock_id = vos_sockId(iface[lIndex].sock);
                 err = (TRDP_ERR_T) vos_sockClose(iface[lIndex].sock);
                 if (err != TRDP_NO_ERR)
                 {
@@ -1491,7 +1496,7 @@ void  trdp_releaseSocket (
                 }
                 else
                 {
-                    vos_printLog(VOS_LOG_DBG, "Closed socket %d\n", (int) iface[lIndex].sock);
+                    vos_printLog(VOS_LOG_DBG, "Closed socket %d\n", sock_id);
                 }
                 iface[lIndex].sock = VOS_INVALID_SOCKET;
             }
@@ -1522,7 +1527,7 @@ void  trdp_releaseSocket (
             {
                 vos_printLog(VOS_LOG_DBG,
                              "Decrement the socket %d usage = %d\n",
-                             (int) iface[lIndex].sock,
+                             vos_sockId(iface[lIndex].sock),
                              iface[lIndex].usage);
 
                 iface[lIndex].usage--;
@@ -1536,7 +1541,7 @@ void  trdp_releaseSocket (
 
                     vos_printLog(VOS_LOG_INFO,
                                  "The Socket (Num = %d usage=0) ConnectionTimeout will be started\n",
-                                 (int) iface[lIndex].sock);
+                                 vos_sockId(iface[lIndex].sock));
 
                     tmpt_interval.tv_sec    = connectTimeout / 1000000;
                     tmpt_interval.tv_usec   = connectTimeout % 1000000;

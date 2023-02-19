@@ -5,16 +5,20 @@ PD tests verify exchange of process data between two devices A and B. All define
 Test cases and their parameters are summarized in table bellow. 
 All the test cases are run in parallel during the test session.
 
+The exact period depends on the high performance index table base.
+Standard with HIGH_PERF_INDEXED=1 is base 10: 1, 10, 100ms.
+With additional HIGH_PERF_BASE2=1 the index is switched to base 2: 1, 8, 64ms.
+
 Pattern     Destination     Data size   PD Period       Direction
 -------------------------------------------------------------------------
-PUSH        unicast              256B       100ms       A->B, B->A
-PUSH        unicast              256B       250ms       A->B, B->A
-PUSH        unicast             1432B       100ms       A->B, B->A
-PUSH        unicast             1432B       250ms       A->B, B->A
-PUSH        multicast            256B       100ms       A->B, B->A
-PUSH        multicast            256B       250ms       A->B, B->A
-PUSH        multicast           1432B       100ms       A->B, B->A
-PUSH        multicast           1432B       250ms       A->B, B->A
+PUSH        unicast              256B   100/128ms       A->B, B->A
+PUSH        unicast              256B   250/256ms       A->B, B->A
+PUSH        unicast             1432B   100/128ms       A->B, B->A
+PUSH        unicast             1432B   250/256ms       A->B, B->A
+PUSH        multicast            256B   100/128ms       A->B, B->A
+PUSH        multicast            256B   250/256ms       A->B, B->A
+PUSH        multicast           1432B   100/128ms       A->B, B->A
+PUSH        multicast           1432B   250/256ms       A->B, B->A
 PULL        unicast/unicast      256B       500ms       A->B->A, B->A->B
 PULL        unicast/unicast     1432B       500ms       A->B->A, B->A->B
 PULL        multicast/multicast  256B       500ms       A->B->A, B->A->B

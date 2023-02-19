@@ -58,20 +58,20 @@
  */
 UINT16 cstInfoGetPropSize (TRDP_CONSIST_INFO_T *pCstInfo)
 {
-    return vos_ntohs(pCstInfo->cstProp.len);
+    return vos_ntohs(pCstInfo->pCstProp->len);
 }
 
 void cstInfoGetProperty (TRDP_CONSIST_INFO_T    *pCstInfo,
                          UINT8                  *pValue)
 {
-    memcpy(pValue, pCstInfo->cstProp.prop, vos_ntohs(pCstInfo->cstProp.len));
+    memcpy(pValue, pCstInfo->pCstProp->prop, vos_ntohs(pCstInfo->pCstProp->len));
 }
 
 void cstInfoGetETBInfo (TRDP_CONSIST_INFO_T *pCstInfo,
                         UINT32              l_index,
                         TRDP_ETB_INFO_T     *pValue)
 {
-    UINT8   *pSrc   = (UINT8 *)&pCstInfo->cstProp + vos_ntohs(pCstInfo->cstProp.len) + 4 + 2;   /* pCstInfo->etbCnt   */
+    UINT8   *pSrc   = (UINT8 *)&pCstInfo->pCstProp + vos_ntohs(pCstInfo->pCstProp->len) + 4 + 2;   /* pCstInfo->etbCnt   */
     UINT16  etbCnt  = vos_ntohs(*pSrc);
     TRDP_ETB_INFO_T     *pCurInfo;
     if (l_index> etbCnt)
@@ -89,7 +89,7 @@ UINT32  cstInfoGetVehInfoSize (UINT8 *pVehList)
                 plus size of properties
                 minus 4 bytes of static array element [0] */
     return sizeof(TRDP_VEHICLE_INFO_T) +
-           (vos_ntohs(((TRDP_VEHICLE_INFO_T *)pVehList)->vehProp.len) * sizeof(TRDP_PROP_T) - 4);
+           (vos_ntohs(((TRDP_VEHICLE_INFO_T *)pVehList)->pVehProp->len) * sizeof(TRDP_PROP_T) - 4);
 }
 
 void cstInfoGetVehInfo (TRDP_CONSIST_INFO_T *pCstInfo,
@@ -97,7 +97,7 @@ void cstInfoGetVehInfo (TRDP_CONSIST_INFO_T *pCstInfo,
                         TRDP_VEHICLE_INFO_T *pValue,
                         UINT32              *pSize)
 {
-    UINT8   *pSrc   = (UINT8 *)&pCstInfo->cstProp + vos_ntohs(pCstInfo->cstProp.len) + 4 + 2;   /* pCstInfo->etbCnt   */
+    UINT8   *pSrc   = (UINT8 *)&pCstInfo->pCstProp + vos_ntohs(pCstInfo->pCstProp->len) + 4 + 2;   /* pCstInfo->etbCnt   */
     UINT16  etbCnt  = vos_ntohs(*pSrc);
     UINT16  vehCnt;
     UINT32  i;
@@ -125,7 +125,7 @@ void cstInfoGetFctInfo (TRDP_CONSIST_INFO_T     *pCstInfo,
                         TRDP_FUNCTION_INFO_T    *pValue,
                         UINT32                  *pSize)
 {
-    UINT8   *pSrc   = (UINT8 *)&pCstInfo->cstProp + vos_ntohs(pCstInfo->cstProp.len) + 4 + 2;   /* pCstInfo->etbCnt   */
+    UINT8   *pSrc   = (UINT8 *)&pCstInfo->pCstProp + vos_ntohs(pCstInfo->pCstProp->len) + 4 + 2;   /* pCstInfo->etbCnt   */
     UINT16  etbCnt  = vos_ntohs(*pSrc);
     UINT16  vehCnt;
     UINT16  fctCnt;
@@ -170,7 +170,7 @@ void cstInfoGetCltrCstInfo (
     TRDP_FUNCTION_INFO_T    *pValue,
     UINT32                  *pSize)
 {
-    UINT8   *pSrc   = (UINT8 *)&pCstInfo->cstProp + vos_ntohs(pCstInfo->cstProp.len) + 4 + 2;   /* pCstInfo->etbCnt   */
+    UINT8   *pSrc   = (UINT8 *)&pCstInfo->pCstProp + vos_ntohs(pCstInfo->pCstProp->len) + 4 + 2;   /* pCstInfo->etbCnt   */
     UINT16  etbCnt  = vos_ntohs(*pSrc);
     UINT16  vehCnt;
     UINT16  fctCnt;

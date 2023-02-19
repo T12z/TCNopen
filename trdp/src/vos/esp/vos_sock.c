@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      BL 2019-08-27: Changed send failure from ERROR to WARNING
  *      BL 2019-02-22: lwip patch: recvfrom to return destIP
@@ -86,13 +87,13 @@ EXT_DECL VOS_ERR_T  vos_createVlanIF (UINT16            vlanId,
     return VOS_NO_ERR;
 }
 
-EXT_DECL VOS_ERR_T  vos_sockOpenTSN (SOCKET                 *pSock,
+EXT_DECL VOS_ERR_T  vos_sockOpenTSN (VOS_SOCK_T             *pSock,
                                      const VOS_SOCK_OPT_T   *pOptions)
 {
     return VOS_NO_ERR;
 }
 
-EXT_DECL VOS_ERR_T  vos_sockSendTSN (SOCKET         sock,
+EXT_DECL VOS_ERR_T  vos_sockSendTSN (VOS_SOCK_T     sock,
                                      const UINT8    *pBuffer,
                                      UINT32         *pSize,
                                      VOS_IP4_ADDR_T srcIpAddress,
@@ -103,25 +104,25 @@ EXT_DECL VOS_ERR_T  vos_sockSendTSN (SOCKET         sock,
     return VOS_NO_ERR;
 }
 
-EXT_DECL VOS_ERR_T vos_sockReceiveTSN (SOCKET   sock,
-                                       UINT8    *pBuffer,
-                                       UINT32   *pSize,
-                                       UINT32   *pSrcIPAddr,
-                                       UINT16   *pSrcIPPort,
-                                       UINT32   *pDstIPAddr,
-                                       BOOL8    peek)
+EXT_DECL VOS_ERR_T vos_sockReceiveTSN (VOS_SOCK_T sock,
+                                       UINT8      *pBuffer,
+                                       UINT32     *pSize,
+                                       UINT32     *pSrcIPAddr,
+                                       UINT16     *pSrcIPPort,
+                                       UINT32     *pDstIPAddr,
+                                       BOOL8      peek)
 {
     return VOS_NO_ERR;
 }
 
-EXT_DECL VOS_ERR_T  vos_sockBind2IF (SOCKET         sock,
+EXT_DECL VOS_ERR_T  vos_sockBind2IF (VOS_SOCK_T     sock,
                                      VOS_IF_REC_T   *pIFace,
                                      BOOL8          doBind)
 {
     return VOS_NO_ERR;
 }
 
-EXT_DECL void       vos_sockPrintOptions (SOCKET sock)
+EXT_DECL void       vos_sockPrintOptions (VOS_SOCK_T sock)
 {
     return;
 }
@@ -232,7 +233,7 @@ EXT_DECL BOOL8 vos_isMulticast (
  *  Set the ready sockets in the supplied sets.
  *    Note: Some target systems might define this function as NOP.
  *
- *  @param[in]      highDesc          max. socket descriptor + 1
+ *  @param[in]      highDesc          max. socket descriptor
  *  @param[in,out]  pReadableFD       pointer to readable socket set
  *  @param[in,out]  pWriteableFD      pointer to writeable socket set
  *  @param[in,out]  pErrorFD          pointer to error socket set
@@ -242,13 +243,13 @@ EXT_DECL BOOL8 vos_isMulticast (
  */
 
 EXT_DECL INT32 vos_select (
-    SOCKET          highDesc,
+    VOS_SOCK_T      highDesc,
     VOS_FDS_T       *pReadableFD,
     VOS_FDS_T       *pWriteableFD,
     VOS_FDS_T       *pErrorFD,
     VOS_TIMEVAL_T   *pTimeOut)
 {
-    return select(highDesc, (fd_set *) pReadableFD, (fd_set *) pWriteableFD,
+    return select(highDesc + 1, (fd_set *) pReadableFD, (fd_set *) pWriteableFD,
                   (fd_set *) pErrorFD, (struct timeval *) pTimeOut);
 }
 
@@ -372,7 +373,7 @@ EXT_DECL VOS_ERR_T vos_sockGetMAC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenUDP (
-    SOCKET                  *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     int sock;
@@ -403,7 +404,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
         return VOS_SOCK_ERR;
     }
 
-    *pSock = (SOCKET) sock;
+    *pSock = (VOS_SOCK_T) sock;
 
     vos_printLog(VOS_LOG_DBG, "vos_sockOpenUDP: socket()=%d success\n", sock);
     return VOS_NO_ERR;
@@ -423,7 +424,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockOpenTCP (
-    SOCKET                  *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     int sock;
@@ -445,7 +446,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTCP (
         return VOS_SOCK_ERR;
     }
 
-    *pSock = (SOCKET) sock;
+    *pSock = (VOS_SOCK_T) sock;
 
     vos_printLog(VOS_LOG_INFO, "vos_sockOpenTCP: socket()=%d success\n", sock);
     return VOS_NO_ERR;
@@ -461,7 +462,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTCP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockClose (
-    SOCKET sock)
+    VOS_SOCK_T sock)
 {
     if (close(sock) == -1)
     {
@@ -490,7 +491,7 @@ EXT_DECL VOS_ERR_T vos_sockClose (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSetOptions (
-    SOCKET                  sock,
+    VOS_SOCK_T              sock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     int sockOptValue = 0;
@@ -649,9 +650,9 @@ EXT_DECL VOS_ERR_T vos_sockSetOptions (
  */
 
 EXT_DECL VOS_ERR_T vos_sockJoinMC (
-    SOCKET  sock,
-    UINT32  mcAddress,
-    UINT32  ipAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcAddress,
+    UINT32     ipAddress)
 {
     struct ip_mreq  mreq;
     VOS_ERR_T       result = VOS_NO_ERR;
@@ -734,9 +735,9 @@ EXT_DECL VOS_ERR_T vos_sockJoinMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockLeaveMC (
-    SOCKET  sock,
-    UINT32  mcAddress,
-    UINT32  ipAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcAddress,
+    UINT32     ipAddress)
 {
     struct ip_mreq  mreq;
     VOS_ERR_T       result = VOS_NO_ERR;
@@ -802,7 +803,7 @@ EXT_DECL VOS_ERR_T vos_sockLeaveMC (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendUDP (
-    SOCKET      sock,
+    VOS_SOCK_T  sock,
     const UINT8 *pBuffer,
     UINT32      *pSize,
     UINT32      ipAddress,
@@ -885,14 +886,14 @@ EXT_DECL VOS_ERR_T vos_sockSendUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
-    SOCKET  sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize,
-    UINT32  *pSrcIPAddr,
-    UINT16  *pSrcIPPort,
-    UINT32  *pDstIPAddr,
-	UINT32  *pSrcIFAddr,
-    BOOL8   peek)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize,
+    UINT32     *pSrcIPAddr,
+    UINT16     *pSrcIPPort,
+    UINT32     *pDstIPAddr,
+    UINT32     *pSrcIFAddr,
+    BOOL8      peek)
 {
     struct sockaddr_in si_other;
     int     slen    = sizeof(si_other), rcvSize;
@@ -984,9 +985,9 @@ EXT_DECL VOS_ERR_T vos_sockReceiveUDP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockBind (
-    SOCKET  sock,
-    UINT32  ipAddress,
-    UINT16  port)
+    VOS_SOCK_T sock,
+    UINT32     ipAddress,
+    UINT16     port)
 {
     struct sockaddr_in srcAddress;
 
@@ -1032,8 +1033,8 @@ EXT_DECL VOS_ERR_T vos_sockBind (
  */
 
 EXT_DECL VOS_ERR_T vos_sockListen (
-    SOCKET  sock,
-    UINT32  backlog)
+    VOS_SOCK_T sock,
+    UINT32     backlog)
 {
     if (sock == -1)
     {
@@ -1059,10 +1060,10 @@ EXT_DECL VOS_ERR_T vos_sockListen (
  */
 
 EXT_DECL VOS_ERR_T vos_sockAccept (
-    SOCKET  sock,
-    SOCKET  *pSock,
-    UINT32  *pIPAddress,
-    UINT16  *pPort)
+    VOS_SOCK_T sock,
+    VOS_SOCK_T *pSock,
+    UINT32     *pIPAddress,
+    UINT16     *pPort)
 {
     return VOS_NO_ERR;
 }
@@ -1081,9 +1082,9 @@ EXT_DECL VOS_ERR_T vos_sockAccept (
  */
 
 EXT_DECL VOS_ERR_T vos_sockConnect (
-    SOCKET  sock,
-    UINT32  ipAddress,
-    UINT16  port)
+    VOS_SOCK_T sock,
+    UINT32     ipAddress,
+    UINT16     port)
 {
     return VOS_NO_ERR;
 }
@@ -1104,7 +1105,7 @@ EXT_DECL VOS_ERR_T vos_sockConnect (
  */
 
 EXT_DECL VOS_ERR_T vos_sockSendTCP (
-    SOCKET      sock,
+    VOS_SOCK_T  sock,
     const UINT8 *pBuffer,
     UINT32      *pSize)
 {
@@ -1131,9 +1132,9 @@ EXT_DECL VOS_ERR_T vos_sockSendTCP (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
-    SOCKET  sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize)
 {
     return VOS_NO_ERR;
 }
@@ -1149,8 +1150,8 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTCP (
  *  @retval         VOS_SOCK_ERR                option not supported
  */
 EXT_DECL VOS_ERR_T vos_sockSetMulticastIf (
-    SOCKET  sock,
-    UINT32  mcIfAddress)
+    VOS_SOCK_T sock,
+    UINT32     mcIfAddress)
 {
     VOS_ERR_T result = VOS_NO_ERR;
 

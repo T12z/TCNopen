@@ -31,7 +31,6 @@
 // stuff needed for posix
 #include <unistd.h>
 #include <sys/time.h>
-#include <sys/select.h>
 #endif
 
 // needed imports
@@ -149,7 +148,7 @@ static int test_tau_init(
     TRDP_APP_SESSION_T      appHandle; /*    Our identifier to the library instance    */
     TRDP_ERR_T              err;
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, 0, {0}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0, 0, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", "", 0, 0, TRDP_OPTION_BLOCK};
     int ret = 1;
     
     /*    Init the TRDP library */

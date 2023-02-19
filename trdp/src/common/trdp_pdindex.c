@@ -17,6 +17,10 @@
 /*
  * $Id$
  *
+ *     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed when send-cycles were set to 256ms
+ *     CWE 2023-02-02: Ticket #380 Added base 2 cycle time support for high performance PD: set HIGH_PERF_BASE2=1 in make config file (see LINUX_HP2_config)
+ *     AHW 2023-01-05: Ticket #407 Interval not updated in trdp_indexCheckPending if Hight performance index with no subscriptions
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2020-08-07: Ticket #317 Bug in trdp_indexedFindSubAddr() (HIGH_PERFORMANCE)
  *      BL 2020-08-06: Ticket #314 Timeout supervision does not restart after PD request
  *      BL 2020-07-15: Formatting (indenting)
@@ -121,7 +125,7 @@ static INLINE void setElement (
 
 #ifdef DEBUG
 /**********************************************************************************************************************/
-/** Print an index table
+/** Print a receiver (subscriber) index table
  *
  *  @param[in]      pRcvTable           pointer to the array
  *  @param[in]      noOfEntries         no of entries in the array
@@ -156,7 +160,7 @@ static void   print_rcv_tables (
 }
 
 /**********************************************************************************************************************/
-/** Print an index table
+/** Print a transmitter index table
  *
  *  @param[in]      pSlots              pointer to the array
  *
@@ -167,11 +171,11 @@ static void   print_table (
 {
     UINT32 slot, depth;
     static CHAR8 buffer[1024] = {0};
-
+    UINT32 cycleTime = pSlots->slotCycle / 1000u;
+    
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
     vos_printLog(VOS_LOG_INFO,
-                 "----- Time Slots for %4ums cycled packets  -----\n",
-                 (unsigned int) pSlots->slotCycle / 1000u);
+                 "----- Time Slots for %4ums cycled packets  -----\n", cycleTime);
     vos_printLogStr(VOS_LOG_INFO, "----- SlotNo: ComId (Tx-Interval) x depth   -----\n");
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
     for (slot = 0; slot < pSlots->noOfTxEntries; slot++)
@@ -193,7 +197,7 @@ static void   print_table (
             }
             strncat(buffer, strBuf, n);
         }
-        vos_printLog(VOS_LOG_INFO, "%3u: %s\n", slot, buffer);
+        vos_printLog(VOS_LOG_INFO, "%3u(%5u): %s\n", slot, slot*cycleTime, buffer);
         buffer[0] = 0;
     }
     vos_printLogStr(VOS_LOG_INFO, "-------------------------------------------------\n");
@@ -233,14 +237,15 @@ static int removePub (
 }
 
 /**********************************************************************************************************************/
-/** Return the category for the index tables
+/** Return the category for the transmitter index tables
  *
  *  @param[in]      pElement         pointer to the packet element to send
  *
  *  @retval         PERF_IGNORE         do not count
- *                  PERF_LOW_TABLE      low table
+ *                  PERF_LOW_TABLE      fast interval times
  *                  PERF_MID_TABLE      medium interval times
- *                  PERF_HIGH_TABLE     slow
+ *                  PERF_HIGH_TABLE     slow interval times
+ *                  PERF_EXT_TABLE      extreme long intervals
  */
 static PERF_TABLE_TYPE_T   perf_table_category (
     PD_ELE_T *pElement)
@@ -261,8 +266,8 @@ static PERF_TABLE_TYPE_T   perf_table_category (
             return PERF_MID_TABLE;
         }
     }
-    else if ((pElement->interval.tv_sec == 1u) &&   /* special case 1 sec. */
-             (pElement->interval.tv_usec == 0))
+    else if ((pElement->interval.tv_sec == 1u) &&      /* special case: up to mid-cycle-limit 1.0s (1.024s upon base 2) */
+             (pElement->interval.tv_usec <= (TRDP_MID_CYCLE_LIMIT - 1000000u)))
     {
         return PERF_MID_TABLE;
     }
@@ -272,12 +277,14 @@ static PERF_TABLE_TYPE_T   perf_table_category (
     }
     else
     {
-        return PERF_EXT_TABLE;      /* This PD has a higher interval time than 10s */
+        return PERF_EXT_TABLE;      /* This PD has a higher interval time than 10.0s (8.192s upon base 2) */
     }
 }
 
 /**********************************************************************************************************************/
 /** Evenly distribute the PD over the array
+ *  By now: a free slot is searched by simply decrementing the index. There are better strategies, to more evenly distribute transmitters,
+ *  but since high perf is meant for usecases with lots of transmitters, most of the slots will get filled with more than depth 1 anyway
  *
  *  @param[in,out]  pCat            pointer to the array to fill
  *  @param[in]      pElement        pointer to the packet element to be handled
@@ -286,6 +293,8 @@ static PERF_TABLE_TYPE_T   perf_table_category (
  *                  TRDP_PARAM_ERR      incompatible table size
  *                  TRDP_MEM_ERR        table too small (depth)
  */
+
+
 static TRDP_ERR_T distribute (
     TRDP_HP_CAT_SLOT_T  *pCat,
     PD_ELE_T            *pElement)
@@ -323,8 +332,7 @@ static TRDP_ERR_T distribute (
     /* Find a first empty slot */
     for (depthIdx = 0u; depthIdx < pCat->depthOfTxEntries; depthIdx++)
     {
-        /* for (startIdx = 0u; (startIdx < pCat->noOfTxEntries); startIdx++) */
-        for (startIdx = (INT32) maxStartIdx - 1; startIdx >= 0; startIdx--)
+        for (startIdx = (INT32) maxStartIdx - 1; startIdx >= 0; startIdx--)  /* simply search backwards for a free slot by decrementing the index */
         {
             if (getElement(pCat, (UINT32) startIdx, depthIdx) == NULL)
             {
@@ -392,12 +400,12 @@ static TRDP_ERR_T distribute (
 }
 
 /**********************************************************************************************************************/
-/** Create an index table
+/** Create an index table for a transmit-time category (low, mid, high)
  *
- *  @param[in]      rangeMax            time range this table shall support (e.g. 100000us for low table)
- *  @param[in]      cat_noOfTxEntries   interval of callers, i.e. cycle time of calls into each slot (e.g. 1000us for low table)
+ *  @param[in]      rangeMax            time range this index table shall support (e.g. 100000µs for low table upon base 10, or 128000µs upon base 2)
+ *  @param[in]      cat_noOfTxEntries   number of transmitters in this category
  *  @param[in]      cat_Depth           preset depth, used if proposed value is smaller
- *  @param[out]     pCat                pointer to slot / category entry holding the resulting table
+ *  @param[out]     pCat                pointer to entry holding the resulting index table
  */
 static TRDP_ERR_T indexCreatePubTable (
     UINT32              rangeMax,
@@ -405,8 +413,7 @@ static TRDP_ERR_T indexCreatePubTable (
     UINT32              cat_Depth,
     TRDP_HP_CAT_SLOT_T  *pCat)
 {
-    /* Number of needed array entries for the lower range */
-    /* First dimension / number of slots is rangeMax (e.g. 100ms) / processCycle */
+    /* First array dimension == number of time-slots (e.g. 100 upon base 10 or 128 upon base 2) */
     UINT32 slots = rangeMax / pCat->slotCycle;
 
 
@@ -415,6 +422,7 @@ static TRDP_ERR_T indexCreatePubTable (
      optimised by determining the exact max. depth needed for any category, either by pre-computation or by
      iterating (e.g. using a trial & error scheme, starting with lower depth values) */
 
+    /* Second array dimension == number of elements per time slot */
     UINT32 depth = cat_noOfTxEntries * 10u / slots + 5u;
     if (depth < cat_Depth)
     {
@@ -549,9 +557,9 @@ TRDP_ERR_T  trdp_indexInit (TRDP_SESSION_PT appHandle)
         }
 
         /* prevent division with zero during initialisation */
-        appHandle->pSlot->lowCat.slotCycle  = TRDP_LOW_CYCLE;   /* the lowest table can be called with 1ms cycle      */
-        appHandle->pSlot->midCat.slotCycle  = TRDP_MID_CYCLE;   /* the mid table will always be called in 10ms steps  */
-        appHandle->pSlot->highCat.slotCycle = TRDP_HIGH_CYCLE;  /* the hi table will always be called in 100ms steps  */
+        appHandle->pSlot->lowCat.slotCycle  = TRDP_LOW_CYCLE;   /* the low table is based on 1ms slots and can be called with up to 1ms cycle    */
+        appHandle->pSlot->midCat.slotCycle  = TRDP_MID_CYCLE;   /* the mid table will always be called in  10ms steps (base 10) or  8ms (base 2) */
+        appHandle->pSlot->highCat.slotCycle = TRDP_HIGH_CYCLE;  /* the hi  table will always be called in 100ms steps (base 10) or 64ms (base 2) */
         /* The index tables will be allocated later */
     }
     return TRDP_NO_ERR;
@@ -824,18 +832,21 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
         (processCycle > TRDP_MAX_CYCLE))
     {
         vos_printLog(VOS_LOG_ERROR,
-                     "trdp_indexCreatePubTables Failed! processCycle %d : Not between 1000 to 10000...\n",
-                     processCycle);
+                     "trdp_indexCreatePubTables Failed! processCycle %dµs : Not between %dµs to %dµs...\n",
+                     processCycle, TRDP_MIN_CYCLE, TRDP_MAX_CYCLE);
         return TRDP_PARAM_ERR;
     }
 
     pSlot = appHandle->pSlot;
 
     /* Initialize the table entries */
-    pSlot->processCycle         = processCycle;      /* cycle time in us with which we will be called      */
-    pSlot->lowCat.slotCycle     = TRDP_LOW_CYCLE;    /* the lowest table can be called with 1ms cycle     */
-    pSlot->midCat.slotCycle     = TRDP_MID_CYCLE;    /* the mid table will always be called in 10ms steps  */
-    pSlot->highCat.slotCycle    = TRDP_HIGH_CYCLE;   /* the hi table will always be called in 100ms steps  */
+    pSlot->processCycle         = processCycle;      /* cycle time in µs with which we will be called                                    */
+    pSlot->currentCycle         = 0;                 /* index cycles start: sum up expected cycle time in µs (0 .. TRDP_..._CYCLE_LIMIT) */
+    vos_getTime(&pSlot->latestCycleStartTimeStamp);  /* index cycles start: clock timestamp to compare with expected cycle time          */
+    
+    pSlot->lowCat.slotCycle     = TRDP_LOW_CYCLE;    /* the low table is based on 1ms slots and can be called with up to 1ms cycle       */
+    pSlot->midCat.slotCycle     = TRDP_MID_CYCLE;    /* the mid table will always be called in  10ms steps (base 10) or  8ms (base 2)    */
+    pSlot->highCat.slotCycle    = TRDP_HIGH_CYCLE;   /* the hi  table will always be called in 100ms steps (base 10) or 64ms (base 2)    */
 
     /* get the number of PDs to be sent and allocate enough pointer space    */
     {
@@ -868,8 +879,8 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
     {
         if (extCat_noOfTxEntries > 255)
         {
-            vos_printLog(VOS_LOG_ERROR, "More than 255 PDs with interval > %us are not supported!\n",
-                         TRDP_HIGH_CYCLE_LIMIT / 1000000u);
+            vos_printLog(VOS_LOG_ERROR, "More than 255 PDs with interval > %ums are not supported!\n",
+                         TRDP_HIGH_CYCLE_LIMIT / 1000u);
             return TRDP_PARAM_ERR;
         }
         /* create the extended list, if not yet done or needed  */
@@ -950,7 +961,7 @@ TRDP_ERR_T trdp_indexCreatePubTables (TRDP_SESSION_PT appHandle)
         while ((pPDsend != NULL) &&
                (err == TRDP_NO_ERR))
         {
-            /* Decide whitch array to fill */
+            /* Decide which array to fill */
             switch (perf_table_category(pPDsend))
             {
                 case PERF_LOW_TABLE:
@@ -1078,11 +1089,21 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
         return TRDP_BLOCK_ERR;
     }
 
+/*
+    vos_printLog(VOS_LOG_INFO, 
+                 "Process Cycle = %d, Current Cycle = cycleN = %d, idxLow = %d, idxMid = %d, idxHigh = %d\n", 
+                 pSlot->processCycle,
+                 pSlot->currentCycle, 
+                 (pSlot->currentCycle / pSlot->lowCat.slotCycle) % pSlot->lowCat.noOfTxEntries,
+                 (pSlot->currentCycle / pSlot->midCat.slotCycle) % pSlot->midCat.noOfTxEntries,
+                 (pSlot->currentCycle / pSlot->highCat.slotCycle) % pSlot->highCat.noOfTxEntries
+                );
+*/
 
     /* In case we are called less often than 1ms, we'll loop over the index table */
     for (i = 0u; i < pSlot->processCycle; i += TRDP_MIN_CYCLE)
     {
-        /* cycleN is the Nth send cycle in us */
+        /* cycleN is the Nth send cycle in µs */
         UINT32 cycleN = pSlot->currentCycle;
 
         idxLow = (cycleN / pSlot->lowCat.slotCycle) % pSlot->lowCat.noOfTxEntries;
@@ -1102,7 +1123,8 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
             }
         }
 
-        if ((idxLow % 10) == 5u)
+        /* #419: base-independant align mid-index-action to the middle of the time-slot to reduce overlapping with low-index-actions */
+        if ((idxLow % (TRDP_MID_CYCLE / TRDP_LOW_CYCLE)) == (TRDP_MID_CYCLE / TRDP_LOW_CYCLE / 2))
         {
             idxMid = (cycleN / pSlot->midCat.slotCycle) % pSlot->midCat.noOfTxEntries;
 
@@ -1178,10 +1200,33 @@ TRDP_ERR_T trdp_pdSendIndexed (TRDP_SESSION_PT appHandle)
                 }
             }
         }
-        /* We count the numbers of cycles, an overflow does not matter! */
-        pSlot->currentCycle += TRDP_MIN_CYCLE;
+        /* Proceed minimum TRDP cycle-time and check the next lowCat index */
+        pSlot->currentCycle += TRDP_MIN_CYCLE;   /* current cycle time (µs) of the send loop (0 .. TRDP_..._CYCLE_LIMIT) */
         if (pSlot->currentCycle >= (pSlot->highCat.noOfTxEntries * pSlot->highCat.slotCycle))
         {
+            VOS_TIMEVAL_T   clockTimeStamp;              /* actual clock time (seconds, µs) */
+            VOS_TIMEVAL_T   timeDiff;                    /* actual clock time minus clock time at last index table start (seconds, µs) */
+            UINT32          clockTimeSpentInCycle;       /* clock time spent in the cycle (µs) */
+            REAL32          percentClockUsed;            /* how much clock time was spent, compared tith the expected time (percent) */
+            UINT32          logLevel = VOS_LOG_DBG;
+
+            vos_getTime(&clockTimeStamp);
+            timeDiff = clockTimeStamp;
+            vos_subTime(&timeDiff, &pSlot->latestCycleStartTimeStamp);
+            clockTimeSpentInCycle = timeDiff.tv_sec * 1000000 + timeDiff.tv_usec;
+            percentClockUsed = 100.0 * clockTimeSpentInCycle / pSlot->currentCycle;  /* optimal: 100%, on slow hardware > 100% */
+
+            if (percentClockUsed > CLOCK_PERCENT_ERROR_LIMIT) {            /* consider to improve setup */
+                logLevel = VOS_LOG_ERROR;
+            } else if (percentClockUsed > CLOCK_PERCENT_WARNING_LIMIT) {   /* might be critical */
+                logLevel = VOS_LOG_WARNING;
+            } else if (percentClockUsed > CLOCK_PERCENT_INFO_LIMIT) {      /* should be acceptable */
+                logLevel = VOS_LOG_INFO;
+            } 
+            vos_printLog(logLevel, "ALL process index-tables finished in %d cycles. Expected time %d ms, clock time %d ms. Time needed: %9.2f percent\n\n\n", 
+                pSlot->currentCycle / pSlot->processCycle, pSlot->currentCycle / 1000, clockTimeSpentInCycle / 1000, percentClockUsed);
+    
+            pSlot->latestCycleStartTimeStamp = clockTimeStamp;
             pSlot->currentCycle = 0u;
         }
     }
@@ -1355,14 +1400,15 @@ void trdp_indexCheckPending (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_TIME_T         *pInterval,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc)
+    TRDP_SOCK_T         *pNoDesc)    /* #399 */
 {
     PD_ELE_T    * *iterPD;
     UINT32      idx;
-    TRDP_TIME_T delay = {0u, 10000};     /* This determines the max. delay to report a timeout, 10ms should be OK */
+    TRDP_TIME_T delay = {0u, TRDP_HIGH_CYCLE_LIMIT / 1000};      /* #380: This determines the max. delay to report a timeout. 10000ms upon base 10 or 8192ms upon base 2  */
 
     if ((appHandle->pSlot == NULL) || (appHandle->pSlot->pRcvTableTimeOut == NULL))
     {
+        *pInterval = delay;   /* #407 */
         return;
     }
 
@@ -1391,7 +1437,7 @@ void trdp_indexCheckPending (
         if ((appHandle->ifacePD[idx].sock != -1) &&
             (appHandle->ifacePD[idx].rcvMostly == TRUE))
         {
-            FD_SET(appHandle->ifacePD[idx].sock, (fd_set *)pFileDesc);       /*lint !e573 !e505
+            VOS_FD_SET(appHandle->ifacePD[idx].sock, (fd_set *)pFileDesc);       /*lint !e573 !e505
                                                                               signed/unsigned division in macro /
                                                                               Redundant left argument to comma */
             if (appHandle->ifacePD[idx].sock > *pNoDesc)

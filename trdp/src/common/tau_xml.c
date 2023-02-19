@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *     AHW 2023-01-11: Lint warnigs
  *     AHW 2021-04-30: Ticket #349 support for parsing "dataset name" and "device type"
  *      SB 2021-02-04: Ticket #359: fixed parsing of 'service-device' elements
  *      SB 2020-06-29: Ticket #338: Attribute Callback always does not work
@@ -1178,7 +1179,7 @@ static TRDP_ERR_T readXmlDatasets (
                         }
                         else if (vos_strnicmp(attribute, "offset", MAX_TOK_LEN) == 0)
                         {
-                            errno = 0;
+                            VOS_SET_ERRNO(0);
                             (*papDataset)[idx]->pElement[i].offset = (INT32) strtol(value, NULL, 10);
                             /* Note: The behaviour of strtol in case of overflow depends on the data model (32/64).
                                     We check the errno for overflow and set the offset to zero, anyway */

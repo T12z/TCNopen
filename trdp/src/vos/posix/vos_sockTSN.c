@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *      BL 2019-06-17: Ticket #191 Add provisions for TSN / Hard Real Time (open source)
 *
@@ -357,7 +358,7 @@ done:
 
 
 EXT_DECL VOS_ERR_T vos_sockOpenTSN (
-    SOCKET                  *pSock,
+    VOS_SOCK_T              *pSock,
     const VOS_SOCK_OPT_T    *pOptions)
 {
     int sock;
@@ -411,7 +412,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
         return VOS_SOCK_ERR;
     }
 
-    *pSock = (SOCKET) sock;
+    *pSock = (VOS_SOCK_T) sock;
 
     vos_printLog(VOS_LOG_DBG, "vos_sockOpenTSN: socket()=%d success\n", (int)sock);
     return VOS_NO_ERR;
@@ -422,7 +423,7 @@ EXT_DECL VOS_ERR_T vos_sockOpenTSN (
 /* Debug output main socket options */
 /**********************************************************************************************************************/
 EXT_DECL void vos_sockPrintOptions (
-    SOCKET sock)
+    VOS_SOCK_T sock)
 {
     int     i = 0;
     INT32   optionValues[10] = {0};
@@ -526,7 +527,7 @@ EXT_DECL void vos_sockPrintOptions (
  *  @retval         VOS_BLOCK_ERR   Call would have blocked in blocking mode
  */
 EXT_DECL VOS_ERR_T vos_sockSendTSN (
-    SOCKET          sock,
+    VOS_SOCK_T      sock,
     const UINT8     *pBuffer,
     UINT32          *pSize,
     VOS_IP4_ADDR_T  srcIpAddress,
@@ -680,13 +681,13 @@ EXT_DECL VOS_ERR_T vos_sockSendTSN (
  */
 
 EXT_DECL VOS_ERR_T vos_sockReceiveTSN (
-    SOCKET  sock,
-    UINT8   *pBuffer,
-    UINT32  *pSize,
-    UINT32  *pSrcIPAddr,
-    UINT16  *pSrcIPPort,
-    UINT32  *pDstIPAddr,
-    BOOL8   peek)
+    VOS_SOCK_T sock,
+    UINT8      *pBuffer,
+    UINT32     *pSize,
+    UINT32     *pSrcIPAddr,
+    UINT16     *pSrcIPPort,
+    UINT32     *pDstIPAddr,
+    BOOL8      peek)
 {
     return vos_sockReceiveUDP(sock, pBuffer, pSize,
                               pSrcIPAddr, pSrcIPPort,
@@ -709,7 +710,7 @@ EXT_DECL VOS_ERR_T vos_sockReceiveTSN (
  */
 
 EXT_DECL VOS_ERR_T vos_sockBind2IF (
-    SOCKET          sock,
+    VOS_SOCK_T      sock,
     VOS_IF_REC_T    *iFace,
     BOOL8           doBind)
 {

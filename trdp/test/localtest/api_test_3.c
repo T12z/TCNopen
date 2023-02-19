@@ -18,6 +18,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08-09: Compiler warnings
  * 
  */
@@ -34,7 +35,6 @@
 
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif (defined (WIN32) || defined (WIN64))
 #include "getopt.h"
 #endif
@@ -274,7 +274,7 @@ static void *receiverThreadPD (void *pArg)
         {
             vos_printLog(VOS_LOG_ERROR, "tlp_getInterval failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
         }
-        noDesc  = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        noDesc  = vos_select(noDesc, &fileDesc, NULL, NULL, &interval);
         result  = tlp_processReceive(pSession->appHandle, &fileDesc, &noDesc);
         if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
         {
@@ -324,7 +324,7 @@ static void *transceiverThreadMD (void *pArg)
         {
             vos_printLog(VOS_LOG_ERROR, "tlm_getInterval failed: %s\n", vos_getErrorString((VOS_ERR_T) result));
         }
-        noDesc  = vos_select(noDesc + 1, &fileDesc, NULL, NULL, &interval);
+        noDesc  = vos_select(noDesc, &fileDesc, NULL, NULL, &interval);
         result  = tlm_process(pSession->appHandle, &fileDesc, &noDesc);
         if ((result != TRDP_NO_ERR) && (result != TRDP_BLOCK_ERR))
         {

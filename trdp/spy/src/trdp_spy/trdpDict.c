@@ -10,11 +10,13 @@
  *
  * @author          Florian Weispfenning, Bombardier Transportation
  * @author          Thorsten Schulz, Universität Rostock
+ * @author          Thorsten Schulz, Stadler Deutschland GmbH
  *
  * @copyright       This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
  *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
+ * @copyright       Copyright Stadler Deutschland GmbH, 2022 (Updates to support multiple dictionaries.)
  *
  * $Id: $
  *
@@ -56,6 +58,8 @@ const char * const SEMPTY = "";
 #define ATTR_COMPAR             "com-parameter-id"
 #define ATTR_CREATE             "create"
 
+#define FILE_SUFFIX_LOWCASE     ".xml"
+#define FILE_SUFFIX_UPCASE      ".XML"
 
 /*******************************************************************************
  * some Definitions for "early" use internal functions
@@ -70,8 +74,12 @@ static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, gu
 static Element *Element_new                (const char *typeS, const char *name, const char *unit,
 											const char *array_size, const char *scale, const char *offset, guint index,
 											guint32 def_bitset_subtype, GError **error);
-static Dataset *Dataset_new                (const char *dsId, const char *aname, GError **error);
-static ComId   *ComId_new                  (const char *id, const char *aname, const char *dsId, GError **error);
+static Dataset *Dataset_new                (const char *dsId, const char *aname, const gchar *filename, GError **error);
+static ComId   *ComId_new                  (const char *id, const char *aname, const char *dsId, const char *filename, GError **error);
+
+static gboolean Element_equals             (const Element *self, const Element *other, GError **error);
+static gboolean Dataset_equals             (const Dataset *self, const Dataset *other, GError **error);
+static gboolean ComId_equals               (const ComId   *self, const ComId   *other, GError **error);
 
 static void     Element_delete             (Element *self);
 static void     Dataset_delete             (Dataset *self, gint parent_id);
@@ -102,8 +110,8 @@ static ElementType decodeType(const char *type, guint32 subtype) {
 				return ElBasics[i];
 			}
 	}
-	if (numeric.id == TRDP_BITSET8) /* there is currently only one case of subtypes */
-		numeric.subtype = subtype;
+	/* there is currently only one case of subtypes */
+	numeric.subtype = (numeric.id == TRDP_BITSET8) ? subtype : 0;
 	strncpy(numeric.name, type, sizeof(numeric.name)-1);
 	return numeric;
 }
@@ -152,6 +160,9 @@ static gint Markup_checkHierarchy(GMarkupParseContext *context, const gchar *ele
 			0 == g_ascii_strcasecmp((const gchar *)tagtree->next->data, "data-set-list") &&
 			0 == g_ascii_strcasecmp((const gchar *)tagtree->next->next->data, "device")) tagtype = 3;
 
+	} else if (0 == g_ascii_strcasecmp((const gchar *)tagtree->data, "device")) {
+		if (!tagtree->next) tagtype = 4;
+
 	} else tagtype = 0; /* ignore other */
 
 	if (tagtype == -1)
@@ -171,7 +182,10 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 
 	/* check tree */
 	gint tagtype = Markup_checkHierarchy(context, element_name, &err);
-	if (err) g_propagate_error(error, err); /* only if one happened */
+	if (err) {
+		g_propagate_error(error, err); /* only if one happened */
+		return;
+	}
 
 	/* Found a new comId, add that to the hash map */
 	if (tagtype == 1) {
@@ -187,16 +201,18 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 				G_MARKUP_COLLECT_INVALID);
 
 		if (!err) {
-			ComId *com = ComId_new(id, name, ds_id, &err);
+			ComId *com = ComId_new(id, name, ds_id, self->xml_file, &err);
 			if (com) {
-				const ComId *com2 = TrdpDict_lookup_ComId(self, com->comId);
-				if (!com2 || (com2->dataset == com->dataset)) {
+				ComId *com2 = TrdpDict_lookup_ComId(self, com->comId);
+				if (!com2) {
 					com->next = self->mTableComId;
 					self->mTableComId = com;
 					self->knowledge++;
 				} else {
-					g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
-								"Ooops, duplicate ComId: \"%d\".", com->comId);
+					if (!ComId_equals(com2, com, &err)) {
+						g_propagate_error(error, err);
+					}
+					com2->duplicates++;
 					ComId_delete(com);
 				}
 			} else
@@ -213,18 +229,13 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 				G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, ATTR_NAME, &name,  /* may-len=30 */
 				G_MARKUP_COLLECT_INVALID);
 		if (!err) {
-			Dataset *ds = Dataset_new(id, name, &err);
+			Dataset *ds = Dataset_new(id, name, self->xml_file, &err);
 			if (ds) {
-				if (!TrdpDict_get_Dataset(self, ds->datasetId)) {
-					ds->next = self->mTableDataset;
-					self->mTableDataset = ds;
-					element_cnt = 0;
-				} else {
-					g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
-								"Ooops, duplicate Dataset-Id: \"%d\".", ds->datasetId);
-					Dataset_delete(ds, -1);
-				}
-
+				ds->next = self->mTableDataset;
+				self->mTableDataset = ds;
+				self->datasets++;
+				element_cnt = 0;
+				/* we need to duplicate-check at the end */
 			} else
 				g_propagate_error(error, err);
 
@@ -259,14 +270,30 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 				g_propagate_error(error, err);
 		}
 	}
-
 }
 
 static void Markup_end_element(GMarkupParseContext *context, const gchar *element_name,
-		gpointer user_data _U_, GError **error) {
+		gpointer user_data, GError **error) {
 
+	GError *err = NULL;
+	TrdpDict *self = (TrdpDict *)user_data;
 	/* identify structure issues. Maybe already handled by GMarkup itself */
-	Markup_checkHierarchy(context, element_name, error);
+	gint tagtype = Markup_checkHierarchy(context, element_name, error);
+
+	if (tagtype == 2) {
+		Dataset *newest = self->mTableDataset;
+		self->mTableDataset = newest->next; /* unqueue the newest Dataset for a sec */
+		Dataset *preExists = TrdpDict_get_Dataset(self, newest->datasetId);
+		if (preExists) {
+			if (!Dataset_equals(preExists, newest, &err)) g_propagate_error(error, err);
+			preExists->duplicates++;
+			Dataset_delete(newest, -1);
+			self->datasets--;
+		} else {
+			self->mTableDataset = newest;
+		}
+	}
+
 }
 
 
@@ -283,55 +310,93 @@ GMarkupParser parser = {
  */
 
 
-TrdpDict *TrdpDict_new(const char *xmlconfigFile, guint32 _subtype, GError **error) {
-
+TrdpDict *TrdpDict_new(const char *xmlconfigFile, guint32 _subtype, gboolean readAllInPath, GError **error) {
 	GError *err = NULL;
 
-	GMappedFile *gmf = g_mapped_file_new(xmlconfigFile, FALSE, &err);
-	if (err) {
-		g_propagate_prefixed_error(error, err, "XML reading failed.\n");
-
+// check, if path is a file or folder, check permissions
+	if (!g_file_test(xmlconfigFile, G_FILE_TEST_EXISTS)) {
+		g_propagate_prefixed_error(error, err, "Cannot access XML source location.\n");
 	} else {
+		GDir *dir = NULL;
+		gchar *dirname = NULL;
+		const gchar *potentialNextFile = NULL;
+		gchar *currentPath = NULL;
 		TrdpDict *self = g_new0(TrdpDict, 1);
-		const gchar *contents = g_mapped_file_get_contents(gmf);
-		gsize len = g_mapped_file_get_length(gmf);
-		GMarkupParseContext *xml = g_markup_parse_context_new(&parser, G_MARKUP_PREFIX_ERROR_POSITION, self, NULL);
-		self->def_bitset_subtype = _subtype;
-		if (!g_markup_parse_context_parse(xml, contents, len, &err)) {
-			g_propagate_prefixed_error(error, err, "Parsing \"%s\" failed.\n", xmlconfigFile);
-			self->knowledge = 0; /* it's dubious knowledge, better get rid of it it */
-		} else if (!g_markup_parse_context_end_parse(xml, &err)) {
-			g_propagate_prefixed_error(error, err, "Configuration \"%s\" was incomplete.\n", xmlconfigFile);
-			self->knowledge = 0;
-		} else if (!self->knowledge) {
-			g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_MISSING_ATTRIBUTE, // error code
-					"\"%s\" parsed ok, but did not provide any ComId.", xmlconfigFile);
+
+		if (g_file_test(xmlconfigFile, G_FILE_TEST_IS_DIR)) {
+			dirname = g_strdup(xmlconfigFile);
+			dir = g_dir_open(dirname, 0, &err);
+			if (!dir) g_propagate_prefixed_error(error, err, "Entering XML source location (%s) failed.\n", xmlconfigFile);
 		} else {
-			ComId *com;
-			for( com = self->mTableComId; com; com=com->next) {
-				if (ComId_preCalculate(com, self) < 0) break; /* oops, logical inconsistency */
-			}
-			if (com) {
-				g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
-						"\"%s\" parsed ok and found %d ComIDs. However, %d FAILED to compute.", xmlconfigFile, self->knowledge, com->comId);
-				self->knowledge = 0;
+			dirname = g_path_get_dirname(xmlconfigFile);
+			potentialNextFile = xmlconfigFile+strlen(dirname)+1;
+			if (readAllInPath) {
+				dir = g_dir_open(dirname, 0, &err);
+				if (!dir) g_propagate_prefixed_error(error, err, "Entering XML source location (%s) failed.\n", dirname);
 			}
 		}
+		if (dir) potentialNextFile = g_dir_read_name(dir);
 
-		g_markup_parse_context_free(xml);
-		g_mapped_file_unref(gmf);
-		if (self->knowledge) {
-			self->xml_file = g_strdup(xmlconfigFile); /* just for verbose info, no known use. */
-			return self;
-		} else
+		while (potentialNextFile && !*error) {
+			g_free(currentPath);
+			self->xml_file = (gchar *)potentialNextFile;
+			currentPath = g_strdup_printf("%s/%s",dirname,potentialNextFile);
+			potentialNextFile = dir ? g_dir_read_name(dir) : NULL;
+
+			if (dir && (!g_str_has_suffix(currentPath, FILE_SUFFIX_LOWCASE) && !g_str_has_suffix(currentPath, FILE_SUFFIX_UPCASE))) {
+
+			} else {
+				GMappedFile *gmf = g_mapped_file_new(currentPath, FALSE, &err);
+				if (err) {
+					g_propagate_prefixed_error(error, err, "XML reading failed.\n");
+
+				} else {
+
+					const gchar *contents = g_mapped_file_get_contents(gmf);
+					gsize len = g_mapped_file_get_length(gmf);
+					GMarkupParseContext *xml = g_markup_parse_context_new(&parser, G_MARKUP_PREFIX_ERROR_POSITION, self, NULL);
+					self->def_bitset_subtype = _subtype;
+					if (!g_markup_parse_context_parse(xml, contents, len, &err)) {
+						g_propagate_prefixed_error(error, err, "Parsing \"%s\" failed.\n", currentPath);
+						self->knowledge = 0; /* it's dubious knowledge, better get rid of it it */
+					} else if (!g_markup_parse_context_end_parse(xml, &err)) {
+						g_propagate_prefixed_error(error, err, "Configuration \"%s\" was incomplete.\n", currentPath);
+						self->knowledge = 0;
+					} else if (!self->knowledge && !potentialNextFile) {
+						g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_MISSING_ATTRIBUTE, // error code
+								"\"%s\" parsed ok, but did not provide any ComId.", currentPath);
+					} else {
+						ComId *com;
+						for( com = self->mTableComId; com; com=com->next) {
+							if (ComId_preCalculate(com, self) < 0) break; /* oops, logical inconsistency */
+						}
+						if (com && !potentialNextFile) {
+							g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
+									"\"%s\" parsed ok and found %d ComIDs. However, %d FAILED to compute.", currentPath, self->knowledge, com->comId);
+							self->knowledge = 0;
+						}
+					}
+
+					g_markup_parse_context_free(xml);
+					g_mapped_file_unref(gmf);
+				}
+			}
+		}
+		g_free(dirname);
+		self->xml_file = currentPath; /* hand it over to the dict */
+		if (dir) g_dir_close(dir);
+		if (!self->knowledge) {
 			TrdpDict_delete(self, -1);
+			self = NULL;
+		}
+		return self;
 	}
 	return NULL;
 }
 
 gchar *TrdpDict_summary(const TrdpDict *self) {
 	return (self && self->xml_file) ?
-			  g_strdup_printf(PROTO_TAG_TRDP " | %s parsed and contains %d ComIDs.", self->xml_file, self->knowledge)
+			  g_strdup_printf(PROTO_TAG_TRDP " | %s parsed and contains %d ComIDs / %d Datasets.", self->xml_file, self->knowledge, self->datasets)
 			: g_strdup(PROTO_TAG_TRDP " | XML file invalid.");
 }
 
@@ -346,15 +411,16 @@ void TrdpDict_delete(TrdpDict *self, gint parent_id) {
 			Dataset *ds = self->mTableDataset;
 			self->mTableDataset=self->mTableDataset->next;
 			Dataset_delete(ds, parent_id);
+			self->datasets--;
 		}
 		g_free(self->xml_file);
 		g_free(self);
 	}
 }
 
-const ComId * TrdpDict_lookup_ComId(const TrdpDict *self, guint32 comId) {
+ComId * TrdpDict_lookup_ComId(const TrdpDict *self, guint32 comId) {
 	if (self)
-		for (const ComId *com = self->mTableComId; com; com=com->next) if (com->comId == comId) return com;
+		for (ComId *com = self->mTableComId; com; com=com->next) if (com->comId == comId) return com;
 	return NULL;
 }
 
@@ -448,6 +514,31 @@ static Element *Element_new(const char *_type, const char *_name, const char *_u
 	return self;
 }
 
+static gboolean Element_equals(const Element *self, const Element *other, GError **error) {
+	gboolean eq = (
+       (self == other)
+	|| ((self->type.id == other->type.id)
+	 && (self->type.subtype == other->type.subtype)
+	 && !g_ascii_strcasecmp(self->name, other->name)
+	 && ((!self->unit && !other->unit) || (self->unit && other->unit && !g_ascii_strcasecmp(self->unit, other->unit)))
+	 && (self->array_size == other->array_size)
+	 && (self->scale      == other->scale     )
+	 && (self->offset     == other->offset    )
+	   ));
+
+	if (!eq && error) {
+		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT,
+			"Type: %s / %s, Name: %s / %s, Unit: %s / %s, Array: %d / %d, Scale: %f / %f, Offset: %d / %d\n",
+			self->type.name, other->type.name,
+			self->name, other->name,
+			self->unit?self->unit:"nil", other->unit?other->unit:"nil",
+			self->array_size, other->array_size,
+			self->scale, other->scale,
+			self->offset, other->offset);
+	}
+	return eq;
+}
+
 static void Element_delete(Element *self) {
 	if (self) {
 		g_free(self->name);
@@ -465,7 +556,7 @@ gint32 TrdpDict_element_size(const Element *self, guint32 array_size /* = 1*/) {
  *                          DATASET
  ************************************************************************************/
 
-static Dataset *Dataset_new(const char *_id, const char *_name, GError **error) {
+static Dataset *Dataset_new(const char *_id, const char *_name, const gchar *filename, GError **error) {
 	/* check params */
 	char *endptr;
 	errno = 0;
@@ -479,8 +570,29 @@ static Dataset *Dataset_new(const char *_id, const char *_name, GError **error) 
 	Dataset *self = g_new0(Dataset, 1);
 	self->datasetId = id;
 	self->ett_id = -1;
+	self->duplicates = 0;
 	self->name = g_strdup( (_name && *_name) ? _name : _id);
+	self->source = g_strdup(filename);
 	return self;
+}
+
+static gboolean Dataset_equals(const Dataset *self, const Dataset *other, GError **error) {
+	if (self == other) return TRUE;
+	GError *err = NULL;
+	if ((self->datasetId == other->datasetId) && !g_ascii_strcasecmp(self->name, other->name)) {
+		Element *elSelf = self->listOfElements;
+		Element *elOther = other->listOfElements;
+		while (elSelf && elOther && Element_equals(elSelf, elOther, error?&err:NULL)) {
+			elSelf = elSelf->next;
+			elOther = elOther->next;
+		}
+		if (error && err) g_propagate_prefixed_error(error, err, "Dataset %d differs between \"%s\" and \"%s\" error-causing element: ", self->datasetId, self->source, other->source);
+		return (!elSelf && !elOther);
+	} else {
+		g_set_error(error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT,
+			"Dataset %d differ between \"%s\" and \"%s\" in name: %s / %s", self->datasetId, self->source, other->source, self->name, other->name);
+	}
+	return FALSE;
 }
 
 /* this must be called for all DS *after* config reading */
@@ -526,6 +638,7 @@ static void Dataset_delete(Dataset *self, gint parent_id) {
 		/* no idea how to clean up subtree handler el->ett_id */
 		Element_delete(el);
 	}
+	g_free(self->source);
 	g_free(self->name);
 	g_free(self);
 }
@@ -537,10 +650,11 @@ static void Dataset_delete(Dataset *self, gint parent_id) {
 static void ComId_delete(ComId *self) {
 	if (self->name && self->name != SEMPTY)
 		g_free(self->name);
+	g_free(self->source);
 	g_free(self);
 }
 
-static ComId *ComId_new(const char *_id, const char *aname, const char *_dsId, GError **error) {
+static ComId *ComId_new(const char *_id, const char *aname, const char *_dsId, const gchar *file, GError **error) {
 	/* check params */
 	char *endptr;
 	errno = 0;
@@ -562,7 +676,20 @@ static ComId *ComId_new(const char *_id, const char *aname, const char *_dsId, G
 	self->dataset = dsId;
 	self->ett_id = -1;
 	self->name = aname ? g_strdup(aname) : (gchar *)SEMPTY; /* TODO check length */
+	self->source = g_strdup(file);
 	return self;
+}
+
+static gboolean ComId_equals(const ComId *self, const ComId *other, GError **error) {
+	/* the good thing is, we don't really care about sub-tag such as source/sink/com-parameters. */
+	/* Name should be ignored */
+	gboolean eq = (self == other || (self->comId == other->comId && self->dataset == other->dataset));
+	if (!eq) {
+		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT,
+				"ComId %d differ in Dataset-ID %d / %d. Check \"%s\" and \"%s\".",
+				 self->comId, self->dataset, other->dataset, self->source, other->source);
+	}
+	return eq;
 }
 
 /* Tries to get the size for the comId-related DS. Will only work, if all DS are non-variable. */
