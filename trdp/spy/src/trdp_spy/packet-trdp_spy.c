@@ -35,7 +35,7 @@
  *
  */
 
-# include "config.h"
+//# include "config.h"
 
 #include <glib.h>
 #include <stdio.h>
@@ -53,6 +53,7 @@
 #include <wsutil/report_message.h>
 #include "trdp_env.h"
 #include "trdpDict.h"
+#include "packet-trdp_spy.h"
 
 //To Debug
 //#define PRINT_DEBUG2
@@ -87,7 +88,6 @@
 
 /* Initialize the protocol and registered fields */
 static int proto_trdp_spy = -1;
-static int proto_trdp_spy_TCP = -1;
 
 /*For All*/
 static int hf_trdp_spy_sequencecounter = -1;    /*uint32*/
@@ -938,10 +938,8 @@ static void add_element_reg_info(const char *parentName, Element *el) {
 		}
 		break;
 	case TRDP_CHAR8:
-		add_reg_info( &el->hf_id, name, abbrev, el->array_size?FT_STRING:FT_STRINGZ, STR_ASCII, blurb );
-		break;
 	case TRDP_UTF16:
-		add_reg_info( &el->hf_id, name, abbrev, el->array_size?FT_STRING:FT_STRINGZ, STR_UNICODE, blurb );
+		add_reg_info( &el->hf_id, name, abbrev, el->array_size?FT_STRING:FT_STRINGZ, BASE_NONE, blurb );
 		break;
 //	case TRDP_INT8 ... TRDP_INT64: not supported in MSVC :(
 	case TRDP_INT8:
@@ -1152,7 +1150,7 @@ void proto_reg_handoff_trdp(void)
 	if(!initialized )
 	{
 		trdp_spy_handle     = create_dissector_handle((dissector_t) dissect_trdp, proto_trdp_spy);
-		trdp_spy_TCP_handle = create_dissector_handle((dissector_t) dissect_trdp_tcp, proto_trdp_spy_TCP);
+		trdp_spy_TCP_handle = create_dissector_handle((dissector_t) dissect_trdp_tcp, proto_trdp_spy);
 		initialized = TRUE;
 	}
 	else

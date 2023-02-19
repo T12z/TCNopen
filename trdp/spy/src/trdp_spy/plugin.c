@@ -6,7 +6,7 @@
  * Generated automatically from /home/thorsten/Projekte/debian/wireshark-{2.6.7,3.2.0}/tools/make-plugin-reg.py.
  */
 
-#include "config.h"
+//#include "config.h"
 
 #include <gmodule.h>
 
@@ -24,7 +24,7 @@ void proto_reg_handoff_trdp(void);
 WS_DLL_PUBLIC_DEF const gchar plugin_version[] = PLUGIN_VERSION;
 #if VERSION_MAJOR < 3
 #if VERSION_MAJOR < 2 || VERSION_MINOR < 6
-#warning Very old Wireshark - this plugin source will probably not work.
+#warning Very old Wireshark - this plugin source probably wont work.
 #endif
 WS_DLL_PUBLIC_DEF const gchar plugin_release[] = VERSION_RELEASE;
 #else

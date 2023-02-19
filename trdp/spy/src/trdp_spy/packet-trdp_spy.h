@@ -152,4 +152,13 @@ void dissect_trdp(tvbuff_t *tvb, packet_info *pinfo, proto_tree *tree);
 
 #endif
 
+/* Work-around for vanished config.h in Debian dev-packages */
+
+#ifndef VERSION_MAJOR
+#include <ws_version.h>
+#define VERSION_MAJOR WIRESHARK_VERSION_MAJOR
+#define VERSION_MINOR WIRESHARK_VERSION_MINOR
+#define VERSION_MICRO WIRESHARK_VERSION_MICRO
+#endif
+
 /** @} */

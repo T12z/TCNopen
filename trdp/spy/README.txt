@@ -11,6 +11,10 @@ You can apply your XML-config-file (for setup go [Edit]->Preferences->Protocols-
 
 N E W S
 =======
+2023-01 Thorsten <thorsten.schulz@stadlerrail.com>
+
+  * Build for Wireshark 4.0 added. Minor cleanup due to API-deprecation and a bug in the protocol handler variable.
+
 2022-07 Palauqui <georges.palauqui@leroy-autom.com>
 
  * Add support for Little Endian user data value (use non standard type in XML config file)
@@ -31,7 +35,7 @@ N E W S
 
 2021-08 Florian <florian.weispfenning@alstomgroup.com>
 
- * 	fix for #371 ComIDs > 2147483647 wrong displayed
+ * fix for #371 ComIDs > 2147483647 wrong displayed
  
 2020-12 Thorsten <t12z@tractionpad.de>
 
@@ -85,9 +89,9 @@ U S A G E
 On Linux, use your distribution's package manager to install wireshark or wireshark-qt.
 On Windows, download from [1].
 (Compared to earlier releases, you don't need the QtXML library any more.)
-If Wireshark happens to be a version of 2.6.*, 3.0.*, 3.2.*, 3.4.* or 3.6.*, you may be lucky with the pre-compiled plugin-libraries. For version 3.6 (Linux) find them here:
+If Wireshark happens to be a version of 2.6.*, 3.0.*, 3.2.*, 3.4.*, 3.6.* or 4.0.* you may be lucky with the pre-compiled plugin-libraries. For version 4.0 (Linux) find them here:
 
-cp   plugins/3.6/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/3.6/epan/
+cp   plugins/4.0/epan/trdp_spy.so   ~/.local/lib/wireshark/plugins/4.0/epan/
 
 Or copy with a file manager of your choice.
 On Windows, obviously, take the *.dll files instead. The folder path for user plugins can be found when running Wireshark, go into [Help]->About Wireshark->Folders and check where "Personal Plugins" should go. You can double click on the path to open your platform's file-manager. Then put it into the *sub-folder "epan"* and restart Wireshark.
@@ -179,7 +183,7 @@ Open the VS2017 prompt (search Start menu for "x64 Native Tools [..]") and chang
 [2] https://www.wireshark.org/docs/wsdg_html_chunked/ChSetupWin32.html#ChWin32Build
 [3] https://sourceforge.net/projects/winflexbison/files/
 
-Last modified by Thorsten, 2020-Dec
+Last modified by Thorsten, 2022-Dec
 
 --
 notes to self for rebuilding:
