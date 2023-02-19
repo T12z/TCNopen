@@ -97,7 +97,11 @@
 #define PTHREAD_MUTEX_RECURSIVE  PTHREAD_MUTEX_RECURSIVE_NP     /*lint !e652 Does Lint ignore the #ifndef ? */
 #endif
 
-const size_t    cDefaultStackSize   = 4u * PTHREAD_STACK_MIN;
+/*
+ * actually done at run-time due to becomming dynamic for _GNU_SOURCE
+*/
+const size_t    cDefaultStackSize   = 0x10000;
+
 const UINT32    cMutextMagic        = 0x1234FEDCu;
 
 int             vosThreadInitialised = FALSE;
@@ -561,7 +565,8 @@ EXT_DECL VOS_ERR_T vos_threadCreateSync (
     }
     else
     {
-        retCode = pthread_attr_setstacksize(&threadAttrib, cDefaultStackSize);
+        size_t    defaultStackSize   = 4u * PTHREAD_STACK_MIN;
+        retCode = pthread_attr_setstacksize(&threadAttrib, defaultStackSize);
     }
 
     if (retCode != 0)
