@@ -16,7 +16,7 @@
  *                  If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * @copyright       Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013. All rights reserved.
  * @copyright       Copyright Universität Rostock, 2019 (substantial changes leading to GLib-only version and update to v2.0, Wirshark 3.)
- * @copyright       Copyright Stadler Deutschland GmbH, 2022 (Updates to support multiple dictionaries.)
+ * @copyright       Copyright Stadler Deutschland GmbH, 2022-2023 (Updates to support multiple dictionaries.)
  *
  * $Id: $
  *
@@ -320,7 +320,8 @@ TrdpDict *TrdpDict_new(const char *xmlconfigFile, guint32 _subtype, gboolean rea
 
 // check, if path is a file or folder, check permissions
 	if (!g_file_test(xmlconfigFile, G_FILE_TEST_EXISTS)) {
-		g_propagate_prefixed_error(error, err, "Cannot access XML source location.\n");
+		g_set_error(error, G_FILE_ERROR, G_FILE_ERROR_NOENT, // error code
+					"The configured XML-file \"%s\" could not be accessed. Check the Wireshark settings -> Protocols -> TRDP.", xmlconfigFile);
 	} else {
 		GDir *dir = NULL;
 		gchar *dirname = NULL;
