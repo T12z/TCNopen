@@ -15,6 +15,7 @@
  *          Copyright Toshiba Corporation, Japan, 2013. All rights reserved.
  *
  * $Id$
+ * 
  *          ### NOTE: This code is not supported, nor updated or tested!
  *          ###       It is left here for reference, only, and might be removed from the next major
  *          ###       release.
@@ -27,7 +28,6 @@
 #include <errno.h>
 #include <memory.h>
 #include <unistd.h>
-#include <sys/select.h>
 #include <mqueue.h>
 #include <time.h>
 #include <sys/types.h>

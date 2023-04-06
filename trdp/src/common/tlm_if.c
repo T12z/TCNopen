@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *     AHW 2021-05-26: Ticket #370 Number of Listeners in MD statistics not counted correctly
 *      BL 2020-09-08: Ticket #343 userStatus parameter size in tlm_reply and tlm_replyQuery
 *      BL 2020-08-10: Ticket #309 revisited: tlm_abortSession shall return noError if morituri is not set
@@ -86,7 +87,7 @@ EXT_DECL TRDP_ERR_T tlm_getInterval (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_TIME_T         *pInterval,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc)
+    TRDP_SOCK_T         *pNoDesc)
 {
     TRDP_ERR_T ret = TRDP_NOINIT_ERR;
 
@@ -508,7 +509,7 @@ EXT_DECL TRDP_ERR_T  tlm_addListener (
                             TRDP_SOCK_MD_UDP,
                             appHandle->option,
                             TRUE,
-                            -1,
+                            VOS_INVALID_SOCKET,
                             &pNewElement->socketIdx,
                             0);
                 }
@@ -743,7 +744,7 @@ EXT_DECL TRDP_ERR_T tlm_readdListener (
                                      TRDP_SOCK_MD_UDP,
                                      appHandle->option,
                                      TRUE,
-                                     -1,
+                                     VOS_INVALID_SOCKET,
                                      &pListener->socketIdx,
                                      0u);
 

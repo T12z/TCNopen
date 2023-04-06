@@ -11,6 +11,7 @@ libtau-hp.so.2 libtrdp2 #MINVER#
  tau_addr2Uri@Base 2.0
  tau_calcDatasetSize@Base 2.0
  tau_calcDatasetSizeByComId@Base 2.0
+ tau_copyCstInfo@Base 2.0
  tau_deInitDnr@Base 2.0
  tau_deInitTTI@Base 2.0
  tau_freeTelegrams@Base 2.0
@@ -21,7 +22,7 @@ libtau-hp.so.2 libtrdp2 #MINVER#
  tau_getCstInfo@Base 2.0
  tau_getCstVehCnt@Base 2.0
  tau_getEcspStat@Base 2.0
- tau_getOpTrDirectory@Base 2.0
+ tau_getOpTrnDirectory@Base 2.0
  tau_getOpTrnDirectoryStatusInfo@Base 2.0
  tau_getOwnAddr@Base 2.0
  tau_getOwnIds@Base 2.0
@@ -30,7 +31,7 @@ libtau-hp.so.2 libtrdp2 #MINVER#
  tau_getResultString@Base 2.0
  tau_getStaticCstInfo@Base 2.0
  tau_getTTI@Base 2.0
- tau_getTrDirectory@Base 2.0
+ tau_getTrnDirectory@Base 2.0
  tau_getTrnCstCnt@Base 2.0
  tau_getTrnVehCnt@Base 2.0
  tau_getVehInfo@Base 2.0
@@ -103,6 +104,7 @@ libtau.so.2 libtrdp2 #MINVER#
  tau_addr2Uri@Base 2.0
  tau_calcDatasetSize@Base 2.0
  tau_calcDatasetSizeByComId@Base 2.0
+ tau_copyCstInfo@Base 2.0
  tau_deInitDnr@Base 2.0
  tau_deInitTTI@Base 2.0
  tau_freeTelegrams@Base 2.0
@@ -113,7 +115,7 @@ libtau.so.2 libtrdp2 #MINVER#
  tau_getCstInfo@Base 2.0
  tau_getCstVehCnt@Base 2.0
  tau_getEcspStat@Base 2.0
- tau_getOpTrDirectory@Base 2.0
+ tau_getOpTrnDirectory@Base 2.0
  tau_getOpTrnDirectoryStatusInfo@Base 2.0
  tau_getOwnAddr@Base 2.0
  tau_getOwnIds@Base 2.0
@@ -122,7 +124,7 @@ libtau.so.2 libtrdp2 #MINVER#
  tau_getResultString@Base 2.0
  tau_getStaticCstInfo@Base 2.0
  tau_getTTI@Base 2.0
- tau_getTrDirectory@Base 2.0
+ tau_getTrnDirectory@Base 2.0
  tau_getTrnCstCnt@Base 2.0
  tau_getTrnVehCnt@Base 2.0
  tau_getVehInfo@Base 2.0

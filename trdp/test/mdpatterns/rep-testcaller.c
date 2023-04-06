@@ -15,7 +15,8 @@
  *          Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2014. All rights reserved.
  *
  * $Id$
- * 
+ *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08-09: Compiler warnings
  *      BL 2018-01-29: Ticket #188 Typo in the TRDP_VAR_SIZE definition
  *      BL 2017-11-28: Ticket #180 Filtering rules for DestinationURI does not follow the standard
@@ -31,7 +32,6 @@
 #if defined (POSIX)
 #include <unistd.h>
 #include <sys/time.h>
-#include <sys/select.h>
 #include <sys/ioctl.h>
 #include <time.h>
 #endif
@@ -293,12 +293,12 @@ static  void mdCallback(
  */
 int main(int argc, char** argv)
 {
-    TRDP_ERR_T err;
-    UINT32 callerIP=0;
-    UINT32 replierIP=0; 
-    TRDP_FDS_T      rfds;
-    TRDP_TIME_T     tv;
-    INT32           noOfDesc;
+    TRDP_ERR_T       err;
+    UINT32           callerIP=0;
+    UINT32           replierIP=0; 
+    TRDP_FDS_T       rfds;
+    TRDP_TIME_T      tv;
+    TRDP_SOCK_T      noOfDesc;
      struct timeval  tv_null = { 0, 0 };
      int rv;
 
@@ -461,7 +461,7 @@ int main(int argc, char** argv)
         FD_ZERO(&rfds);
         noOfDesc = 0;
         tlc_getInterval(appSessionCaller, &tv, &rfds, &noOfDesc);
-        rv = select(noOfDesc + 1, &rfds, NULL, NULL, &tv_null);
+        rv = vos_select(noOfDesc, &rfds, NULL, NULL, &tv_null);    /* #399 */
         tlc_process(appSessionCaller, &rfds, &rv);
 
         /* very basic locking to keep everything no frenzy and simple */

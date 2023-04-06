@@ -17,6 +17,12 @@
 /*
 * $Id$
 *
+*     CWE 2023-02-14: Ticket #419 PDTestFastBase2 failed - prepared debug code for logging pdReceive and pdSend packets
+*     AHW 2023-01-11: Lint warnigs and Ticket #409 In updateTCNDNSentry(), the parameter noDesc of vos_select() is uninitialized if tlc_getInterval() fails
+*     CWE 2023-01-09: Ticket #395 PD subscriber statistics when publisher start earlier
+*     CWE 2023-01-09: Ticket #394 Statistics of missed PD packets when publisher restarts
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+*     AHW 2022-03-24: Ticket #391 Allow PD request without reply
 *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
 *     AHW 2021-04-30: Ticket #369 Variable sized arrays are not supported if marshall is active
 *      BL 2020-11-03: Ticket #347 Allow dynamic sized arrays for PD (Ticket #207 undone)
@@ -736,11 +742,11 @@ TRDP_ERR_T  trdp_pdSendQueued (
  */
 TRDP_ERR_T  trdp_pdReceive (
     TRDP_SESSION_PT appHandle,
-    SOCKET          sock)
+    VOS_SOCK_T      sock)
 {
     PD_HEADER_T         *pNewFrameHead      = &appHandle->pNewFrame->frameHead;
     PD_ELE_T            *pExistingElement   = NULL;
-    PD_ELE_T            *pPulledElement;
+    PD_ELE_T            *pPulledElement     = NULL;
     TRDP_ERR_T          err             = TRDP_NO_ERR;
     UINT32              recSize         = TRDP_MAX_PD_PACKET_SIZE;
     int                 informUser      = FALSE;
@@ -824,6 +830,12 @@ TRDP_ERR_T  trdp_pdReceive (
         subAddresses.serviceId      = vos_ntohl(pNewFrameHead->reserved);
         msgType = vos_ntohs(pNewFrameHead->msgType);
 
+/*
+        if (subAddresses.comId > 0) {
+            vos_printLog(VOS_LOG_DBG, "Received PD with ComID %d (size %d) from IP %s\n",
+                subAddresses.comId, recSize, vos_ipDotted(subAddresses.srcIpAddr));
+        }
+*/
 
     }
 
@@ -893,17 +905,16 @@ TRDP_ERR_T  trdp_pdReceive (
                     return TRDP_NO_ERR;      /* Ignore packet, too old or duplicate */
             }
 
-            if ((newSeqCnt > 0u) && (newSeqCnt > (pExistingElement->curSeqCnt + 1u)))
+            if ((newSeqCnt > 0u) && (newSeqCnt > (pExistingElement->curSeqCnt + 1u)) && (pExistingElement->numRxTx > 0))  /* #395 */
             {
                 pExistingElement->numMissed += newSeqCnt - pExistingElement->curSeqCnt - 1u;
             }
-            else if (pExistingElement->curSeqCnt > newSeqCnt)
-            {
-                pExistingElement->numMissed += UINT32_MAX - pExistingElement->curSeqCnt + newSeqCnt;
-            }
 
             /* Store last received sequence counter here, too (pd_get et. al. may access it).   */
-            pExistingElement->curSeqCnt = vos_ntohl(pNewFrameHead->sequenceCounter);
+            if ((newSeqCnt == 0) || (newSeqCnt > pExistingElement->curSeqCnt))   /* #394 */
+            {
+                pExistingElement->curSeqCnt = newSeqCnt;
+            }
 
             /*  This might have not been set!   */
 #ifdef TSN_SUPPORT
@@ -989,15 +1000,22 @@ TRDP_ERR_T  trdp_pdReceive (
                 }
                 else
                 {
-                    UINT32 replyComId = vos_ntohl(pNewFrameHead->replyComId);
-
-                    if (replyComId == 0u)
+                    if ((pNewFrameHead->replyComId == 0u) && (pNewFrameHead->replyIpAddress == 0))
                     {
-                        replyComId = vos_ntohl(pNewFrameHead->comId);
+                       informUser = TRUE;   /* #391 request without reply */
                     }
+                    else
+                    {
+                        UINT32 replyComId = vos_ntohl(pNewFrameHead->replyComId);
 
-                    /*  Find requested publish element  */
-                    pPulledElement = trdp_queueFindComId(appHandle->pSndQueue, replyComId);
+                        if (replyComId == 0u)
+                        {
+                            replyComId = vos_ntohl(pNewFrameHead->comId);
+                        }
+
+                        /*  Find requested publish element  */
+                        pPulledElement = trdp_queueFindComId(appHandle->pSndQueue, replyComId);
+                    }
                 }
 
                 if (pPulledElement != NULL)
@@ -1103,7 +1121,7 @@ TRDP_ERR_T  trdp_pdReceive (
 void trdp_pdCheckPending (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc,
+    TRDP_SOCK_T         *pNoDesc,
     int                 checkSend)
 {
     PD_ELE_T *iterPD;
@@ -1125,17 +1143,20 @@ void trdp_pdCheckPending (
 
         /*    Check and set the socket file descriptor, if not already done    */
         if (iterPD->socketIdx != -1 &&
-            appHandle->ifacePD[iterPD->socketIdx].sock != -1 &&
-            !FD_ISSET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pFileDesc))     /*lint !e573 !e505
+            appHandle->ifacePD[iterPD->socketIdx].sock != VOS_INVALID_SOCKET &&
+            !VOS_FD_ISSET(appHandle->ifacePD[iterPD->socketIdx].sock, (VOS_FDS_T *)pFileDesc))     /*lint !e573 !e505
                                                                                           signed/unsigned division in macro /
                                                                                           Redundant left argument to comma */
         {
-            FD_SET(appHandle->ifacePD[iterPD->socketIdx].sock, (fd_set *)pFileDesc);       /*lint !e573 !e505
+            VOS_FD_SET(appHandle->ifacePD[iterPD->socketIdx].sock, (VOS_FDS_T *)pFileDesc);       /*lint !e573 !e505
                                                                                           signed/unsigned division in macro /
                                                                                           Redundant left argument to comma */
-            if (appHandle->ifacePD[iterPD->socketIdx].sock > *pNoDesc)
+            if  (
+                     (vos_sockCmp(appHandle->ifacePD[iterPD->socketIdx].sock, *pNoDesc) == 1)
+                  || (*pNoDesc == VOS_INVALID_SOCKET)
+                )
             {
-                *pNoDesc = (INT32) appHandle->ifacePD[iterPD->socketIdx].sock;
+                *pNoDesc = appHandle->ifacePD[iterPD->socketIdx].sock;
             }
         }
     }
@@ -1286,8 +1307,8 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
         /*    Check and set the socket file descriptor by going thru the socket list    */
         for (idx = 0; idx < (UINT32) trdp_getCurrentMaxSocketCnt(TRDP_SOCK_PD); idx++)
         {
-            if ((appHandle->ifacePD[idx].sock != -1) &&
-                (FD_ISSET(appHandle->ifacePD[idx].sock, (fd_set *) pRfds)))  /*lint !e573 signed/unsigned division in
+            if ((appHandle->ifacePD[idx].sock != VOS_INVALID_SOCKET) &&
+                (VOS_FD_ISSET(appHandle->ifacePD[idx].sock, (VOS_FDS_T *) pRfds)))  /*lint !e573 signed/unsigned division in
                                                                                macro */
             {
                 VOS_LOG_T logType = VOS_LOG_ERROR;
@@ -1320,7 +1341,7 @@ TRDP_ERR_T   trdp_pdCheckListenSocks (
                         break;
                 }
                 (*pCount)--;
-                FD_CLR(appHandle->ifacePD[idx].sock, (fd_set *)pRfds); /*lint !e502 !e573 !e505
+                VOS_FD_CLR(appHandle->ifacePD[idx].sock, (VOS_FDS_T *)pRfds); /*lint !e502 !e573 !e505
                                                                                       signed/unsigned division in macro */
             }
         }
@@ -1490,7 +1511,7 @@ TRDP_ERR_T trdp_pdCheck (
  *  @retval         TRDP_IO_ERR
  */
 TRDP_ERR_T  trdp_pdSend (
-    SOCKET      pdSock,
+    VOS_SOCK_T  pdSock,
     PD_ELE_T    *pPacket,
     UINT16      port)
 {
@@ -1505,6 +1526,13 @@ TRDP_ERR_T  trdp_pdSend (
     }
 
     pPacket->sendSize = pPacket->grossSize;
+
+/*
+    if (pPacket->addr.comId > 0) {
+        vos_printLog(VOS_LOG_DBG, "Send PD with ComID %d (size %d) to IP %s\n", 
+                     pPacket->addr.comId, pPacket->grossSize, vos_ipDotted(destIp));
+    }
+*/
 
     err = vos_sockSendUDP(pdSock,
                           (UINT8 *)&pPacket->pFrame->frameHead,

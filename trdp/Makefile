@@ -9,6 +9,8 @@
 #// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #// Copyright Bombardier Transportation Inc. or its subsidiaries and others, 2013-2018. All rights reserved.
 #//
+#//CWE 2023-02-14: new target "make debug" added as alias for: "make DEBUG=TRUE all"
+#//CWE 2023-01-30: Ticket #380 new compile option: HIGH_PERF_BASE2 (is sub-option of HIGH_PERF_INDEXED), see LINUX_HP2_config
 #// Tz 2020-01-21: Adding support for shared library building
 #//	SB 2019-08-09: Added new lib target including tti, marshalling, xml parsing etc. and added install option
 #//	BL 2019-06-18: V2 changes: dividing trdp_if.c into tlc_if.c, tlp_if.c and tlm_if.c
@@ -168,6 +170,11 @@ ifeq ($(HIGH_PERF_INDEXED),1)
 	TRDP_OBJS += trdp_pdindex.o
 	CFLAGS += -DHIGH_PERF_INDEXED
 #	Option: Building high performance stack
+endif
+
+ifeq ($(HIGH_PERF_BASE2),1)
+	CFLAGS += -DHIGH_PERF_BASE2
+#	Option for HIGH_PERF_INDEXED only: switch from base 10 to base 2
 endif
 
 # Do a full build

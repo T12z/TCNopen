@@ -28,24 +28,28 @@ On hostB, use this command to start the test:
 Test creates these datasets with PUSH pattern
 (both publish/subscribe on each side):
 
-<comid>  <destination>  <size>  <period>     <data>
- 10046    unicast        256b    100 msec     generated
- 20046    unicast        256b    100 msec     copied from incoming 10046
- 10086    unicast        256b    250 msec     generated
- 20086    unicast        256b    250 msec     copied from incoming 10086
- 10049    unicast       1432b    100 msec     generated
- 20049    unicast       1432b    100 msec     copied from incoming 10049
- 10089    unicast       1432b    250 msec     generated
- 20089    unicast       1432b    250 msec     copied from incoming 10089
+The exact period depends on the high performance index table base.
+Standard with HIGH_PERF_INDEXED=1 is base 10: 1, 10, 100ms.
+With additional HIGH_PERF_BASE2=1 the index is switched to base 2: 1, 8, 64ms.
 
- 10146    multicast      256b    100 msec     generated
- 20146    multicast      256b    100 msec     copied from incoming 10146
- 10186    multicast      256b    250 msec     generated
- 20186    multicast      256b    250 msec     copied from incoming 10186
- 10149    multicast     1432b    100 msec     generated
- 20149    multicast     1432b    100 msec     copied from incoming 10149
- 10189    multicast     1432b    250 msec     generated
- 20189    multicast     1432b    250 msec     copied from incoming 10189
+<comid>  <destination>  <size>  <period>     <data>
+ 10046    unicast        256b   100/128ms     generated
+ 20046    unicast        256b   100/128ms     copied from incoming 10046
+ 10086    unicast        256b   250/256ms     generated
+ 20086    unicast        256b   250/256ms     copied from incoming 10086
+ 10049    unicast       1432b   100/128ms     generated
+ 20049    unicast       1432b   100/128ms     copied from incoming 10049
+ 10089    unicast       1432b   250/256ms     generated
+ 20089    unicast       1432b   250/256ms     copied from incoming 10089
+
+ 10146    multicast      256b   100/128ms     generated
+ 20146    multicast      256b   100/128ms     copied from incoming 10146
+ 10186    multicast      256b   250/256ms     generated
+ 20186    multicast      256b   250/256ms     copied from incoming 10186
+ 10149    multicast     1432b   100/128ms     generated
+ 20149    multicast     1432b   100/128ms     copied from incoming 10149
+ 10189    multicast     1432b   250/256ms     generated
+ 20189    multicast     1432b   250/256ms     copied from incoming 10189
  
 Data generated into every dataset are refreshed every 500 msec on incremented
 offset using this pattern:

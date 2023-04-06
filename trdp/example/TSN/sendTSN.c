@@ -13,6 +13,9 @@
  *
  * $Id$
  *
+ *     CWE 2022-12-21: Ticket #404 Fix compile error - Test does not need to run, it is only used to verify bugfixes. It requires a special network-setup to run
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
+ * 
  */
 
 /***********************************************************************************************************************
@@ -24,7 +27,6 @@
 
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif defined (WIN32)
 #include "getopt.h"
 #endif
@@ -188,7 +190,7 @@ static void *comThread (
             tv = min_tv;
         }
 
-        rv = vos_select(noDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select(noDesc, &rfds, NULL, NULL, &tv);
 
         (void) tlc_process(appHandle, &rfds, &rv);
 
@@ -235,7 +237,7 @@ int main (int argc, char *argv[])
     TRDP_ERR_T              err;
     TRDP_SEND_PARAM_T       pdConfiguration     = {PD_COMID2_DEF_PRIO, 64u, 0u, FALSE, 0};
     TRDP_SEND_PARAM_T       pdConfigurationTSN  = {PD_COMID_DEF_PRIO, 64u, 0u, TRUE, PD_COMID_DEF_VLAN};
-    TRDP_PROCESS_CONFIG_T   processConfig       = {"Me", "", PD_COMID2_CYCLE, 255, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig       = {"Me", "", "", PD_COMID2_CYCLE, 255, TRDP_OPTION_BLOCK};
     UINT32                  ownIP   = 0u;
     int                     rv  = 0;
     UINT32                  destIP  = vos_dottedIP(PD_COMID_DEST);

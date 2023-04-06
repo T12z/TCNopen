@@ -27,4 +27,8 @@ VOS_OBJS        += vos_sockTSN.o
 
 TSN_SUPPORT = 1
 SOA_SUPPORT = 1
+
+# High performance support (HIGH_PERF_INDEXED defaults to base 10, with additional HIGH_PERF_BASE2 it switches to base 2)
+
+# enable high performance
 HIGH_PERF_INDEXED = 1

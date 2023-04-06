@@ -297,8 +297,8 @@
     <ClCompile Include="..\..\test\localtest\api_test_2.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TRDP_HighPerformance\TRDP_HighPerformance.vcxproj">
-      <Project>{816cd0d9-c99d-40b9-94bb-56d979ba9af9}</Project>
+    <ProjectReference Include="..\TRDP_HighPerformanceBase10\TRDP_HighPerformanceBase10.vcxproj">
+      <Project>{ed7c32c3-ef61-4b9e-8227-5157834728fd}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

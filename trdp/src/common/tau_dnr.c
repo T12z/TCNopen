@@ -17,6 +17,9 @@
  /*
  * $Id$
  *
+ *     AHW 2023-01-11: Lint warnigs and Ticket #409 In updateTCNDNSentry(), the parameter noDesc of vos_select() is uninitialized if tlc_getInterval() fails
+ *     AHW 2023-01-10: Ticket #409 In updateTCNDNSentry(), the parameter noDesc of vos_select() is uninitialized if tlc_getInterval() fails
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08-09: Lint warnings
  *     AHW 2021-05-06: Ticket #322 Subscriber multicast message routing in multi-home device
  *      AÖ 2021-04-26: Ticket #296: updateTCNDNSentry: vos_threadDelay() used instead of vos_semaTake() if we run single threaded
@@ -356,7 +359,7 @@ static TRDP_ERR_T readHostsFile (
  */
 static TRDP_ERR_T createSendQuery (
     TAU_DNR_DATA_T  *pDNR,
-    SOCKET           sock,
+    VOS_SOCK_T      sock,
     const CHAR8     *pUri,
     UINT16          id,
     UINT32          *pSize)
@@ -572,7 +575,7 @@ static void updateDNSentry (
     TAU_DNR_ENTRY_T     *pTemp,
     const CHAR8         *pUri)
 {
-    SOCKET          my_socket;
+    VOS_SOCK_T      my_socket;
     VOS_ERR_T       err;
     UINT8           packetBuffer[TAU_MAX_DNS_BUFFER_SIZE];
     UINT32          size;
@@ -609,14 +612,14 @@ static void updateDNSentry (
         tv.tv_sec   = pDNR->timeout;
         tv.tv_usec  = 0;
 
-        FD_ZERO(&rfds);
-        FD_SET(my_socket, &rfds);      /*lint !e573 !e505
-                                         signed/unsigned division in macro / 
+        VOS_FD_ZERO(&rfds);
+        VOS_FD_SET(my_socket, &rfds);  /*lint !e573 !e505
+                                         signed/unsigned division in macro /
                                          Redundant left argument to comma */
-        rv = vos_select(my_socket + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select(my_socket, &rfds, NULL, NULL, &tv);
 
-        if (rv > 0 && FD_ISSET(my_socket, &rfds))      /*lint !e573 !e505
-                                                         signed/unsigned division in macro / 
+        if (rv > 0 && VOS_FD_ISSET(my_socket, &rfds))  /*lint !e573 !e505
+                                                         signed/unsigned division in macro /
                                                          Redundant left argument to comma */
         {
             /* Clear our packet buffer  */
@@ -626,7 +629,7 @@ static void updateDNSentry (
             /* Get what was announced */
             (void) vos_sockReceiveUDP(my_socket, packetBuffer, &size, &pDNR->dnsIpAddr, &pDNR->dnsPort, NULL, NULL, FALSE); /* 322 */
 
-            FD_CLR(my_socket, &rfds); /*lint !e573 !e502 !e505 Signed/unsigned mix in std-header */
+            VOS_FD_CLR(my_socket, &rfds); /*lint !e573 !e502 !e505 Signed/unsigned mix in std-header */
 
             if (size == 0u)
             {
@@ -964,14 +967,14 @@ static void updateTCNDNSentry (
 
             /* switch context for the reply */
 
-            TRDP_FDS_T          rfds;
-            INT32               noDesc;
-            TRDP_TIME_T         tv = { 0, 0 };
+            TRDP_FDS_T          rfds = {0};
+            TRDP_SOCK_T         noDesc = TRDP_INVALID_SOCKET;        /* #409 */
+            TRDP_TIME_T         tv = { 0, 0 };                       /* #409 */
             const TRDP_TIME_T   max_tv  = { 0, 100000 };
-            INT32               rv;
-            TRDP_TIME_T         timeNow;
+            INT32               rv = 0;                              /* #409 */
+            TRDP_TIME_T         timeNow = {0, 0};                    /* #409 */
 
-            FD_ZERO(&rfds);
+            VOS_FD_ZERO(&rfds);
 
             (void) tlc_getInterval(appHandle, &tv, &rfds, &noDesc);
 
@@ -981,9 +984,12 @@ static void updateTCNDNSentry (
             }
 
             /* wait for the reply */
-            rv = vos_select(noDesc + 1, &rfds, NULL, NULL, &tv);
+            rv = vos_select(noDesc, &rfds, NULL, NULL, &tv);
 
-            (void)tlc_process(appHandle, &rfds, &rv);
+            if (rv > 0) 
+            {
+                (void)tlc_process(appHandle, &rfds, &rv);
+            }
 
             if (vos_semaTake(dnsSema, 0) == VOS_NO_ERR)
             {

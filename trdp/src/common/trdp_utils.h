@@ -17,6 +17,7 @@
 /*
 * $Id$
 *
+*      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
 *      BL 2020-08-07: Ticket #317 Bug in trdp_indeedFindSubAddr() (HIGH_PERFORMANCE)
 *      SB 2020-03-30: Ticket #311: removed trdp_getSeqCnt() because redundant publisher should not run on the same interface
 *      BL 2019-06-17: Ticket #264 Provide service oriented interface
@@ -170,7 +171,7 @@ TRDP_ERR_T      trdp_requestSocket(
     TRDP_SOCK_TYPE_T type,
     TRDP_OPTION_T options,
     BOOL8 rcvMostly,
-    SOCKET useSocket,
+    VOS_SOCK_T useSocket,
     INT32                   * pIndex,
     TRDP_IP_ADDR_T cornerIp);
 

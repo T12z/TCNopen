@@ -14,6 +14,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  */
 
@@ -25,7 +26,6 @@
 #include <string.h>
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif (defined (WIN32) || defined (WIN64))
 #include "getopt.h"
 #endif
@@ -217,7 +217,7 @@ int main (int argc, char * *argv)
     TRDP_PD_CONFIG_T        pdConfiguration = {myPDcallBack, NULL, TRDP_PD_DEFAULT_SEND_PARAM, TRDP_FLAGS_CALLBACK,
                                                10000000u, TRDP_TO_SET_TO_ZERO, 0u};
     TRDP_MEM_CONFIG_T       dynamicConfig   = {NULL, RESERVED_MEMORY, {}};
-    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", 0u, 0u, TRDP_OPTION_BLOCK};
+    TRDP_PROCESS_CONFIG_T   processConfig   = {"Me", "", "", 0u, 0u, TRDP_OPTION_BLOCK};
     int rv = 0;
     int ch;
     unsigned int ip[4], i;
@@ -392,7 +392,7 @@ int main (int argc, char * *argv)
          what ever comes first.
          */
 
-        rv = vos_select(noOfDesc + 1, &rfds, NULL, NULL, &tv);
+        rv = vos_select(noOfDesc, &rfds, NULL, NULL, &tv);
 
         /* printf("Pending events: %d\n", rv); */
         /*

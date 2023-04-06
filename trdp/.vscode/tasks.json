@@ -1,0 +1,129 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Make Linux Config",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${userHome}/sourceforge/trdp",
+                "LINUX_config"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Make Linux HP10 Config (fast, base 10)",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${userHome}/sourceforge/trdp",
+                "LINUX_HP10_config"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Make Linux HP2 Config (fast, base 2)",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${userHome}/sourceforge/trdp",
+                "LINUX_HP2_config"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Make Linux-TSN Config",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "--directory=${userHome}/sourceforge/trdp",
+                "LINUX_TSN_config"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Make Debug",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "all",
+                "--directory=${userHome}/sourceforge/trdp",
+                "DEBUG=TRUE"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Make Exec",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "all",
+                "--directory=${userHome}/sourceforge/trdp"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Make Clean",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "clean",
+                "--directory=${userHome}/sourceforge/trdp",
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        }
+
+
+    ]
+}

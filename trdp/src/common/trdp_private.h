@@ -17,6 +17,7 @@
 /*
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2020-07-10: Ticket #321 Move TRDP_TIMER_GRANULARITY to public API
  *      CK 2020-04-06: Ticket #318 Added pointer to list of seqCnt used per comId for PD Requests in TRDP_SESSION_T
  *      SB 2020-03-30: Ticket #309 Added pointer to a Session's Listener
@@ -67,7 +68,7 @@
 #define TRDP_VERSION    2
 #define TRDP_RELEASE    2
 #define TRDP_UPDATE     23
-#define TRDP_EVOLUTION  17              /* Evolution > 0 denotes trunk! */
+#define TRDP_EVOLUTION  76              /* Evolution > 0 denotes trunk! */
 #endif
 
 /* Version as a string, this can also be for example 1.2.3.4.RC1 */
@@ -215,7 +216,7 @@ typedef struct TRDP_SOCKET_TCP
 /** Socket item    */
 typedef struct TRDP_SOCKETS
 {
-    SOCKET              sock;                            /**< vos socket descriptor to use                */
+    VOS_SOCK_T          sock;                            /**< vos socket descriptor to use                */
     TRDP_IP_ADDR_T      bindAddr;                        /**< Defines the interface to use                */
     TRDP_IP_ADDR_T      srcAddr;                         /**< Defines the source interface to use         */
     TRDP_SEND_PARAM_T   sendParam;                       /**< Send parameters                             */
@@ -407,8 +408,8 @@ typedef struct MD_ELE
 /**    TCP file descriptor parameters   */
 typedef struct
 {
-    SOCKET  listen_sd;          /**< TCP general socket listening connection requests   */
-    SOCKET  max_sd;             /**< Maximum socket number in the file descriptor   */
+    VOS_SOCK_T  listen_sd;         /**< TCP general socket listening connection requests   */
+    VOS_SOCK_T  max_sd;            /**< Maximum socket number in the file descriptor   */
     /* fd_set  master_set;         / **< Local file descriptor   * / */
 } TRDP_TCP_FD_T;
 #endif

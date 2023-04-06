@@ -29,7 +29,6 @@
 // stuff needed for posix
 #include <unistd.h>
 #include <sys/time.h>
-#include <sys/select.h>
 #endif
 
 // needed imports

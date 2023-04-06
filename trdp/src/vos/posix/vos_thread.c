@@ -19,6 +19,9 @@
  *
  * $Id$
  *
+ *     AHW 2023-01-10: Ticket #405 Problem with GLIBC > 2.34
+ *     CEW 2023-01-09: Ticket #408: thread-safe localtime - but be aware of static pTimeString
+ *      CK 2023-01-03: Ticket #403: Mutexes now honour PTHREAD_PRIO_INHERIT protocol
  *      SB 2021-08-09: Lint warnings
  *      BL 2020-11-03: Ticket #345: Blocked indefinitely in the nanosleep() call
  *      TS 2020-08-28: Update RT_THREADS-code and the EDF-scheduler threads. (EDF-params still broken!)
@@ -101,7 +104,6 @@
  * actually done at run-time due to becomming dynamic for _GNU_SOURCE
 */
 const size_t    cDefaultStackSize   = 0x10000;
-
 const UINT32    cMutextMagic        = 0x1234FEDCu;
 
 int             vosThreadInitialised = FALSE;
@@ -997,10 +999,10 @@ EXT_DECL void vos_getNanoTime (
 
 /**********************************************************************************************************************/
 /** Get a time-stamp string.
- *  Get a time-stamp string for debugging in the form "yyyymmdd-hh:mm:ss.ms"
+ *  Get a time-stamp string for debugging in the form "yyyymmdd-hh:mm:ss.µs"
  *  Depending on the used OS / hardware the time might not be a real-time stamp but relative from start of system.
  *
- *  @retval         timestamp      "yyyymmdd-hh:mm:ss.ms"
+ *  @retval         timestamp      "yyyymmdd-hh:mm:ss.µs"
  */
 
 EXT_DECL const CHAR8 *vos_getTimeStamp (void)
@@ -1010,7 +1012,8 @@ EXT_DECL const CHAR8 *vos_getTimeStamp (void)
     struct tm       curTimeTM;
 
     (void)gettimeofday(&curTime, NULL);
-    localtime_r(&curTime.tv_sec, &curTimeTM);
+    /* thread-safe localtime - but be aware of static pTimeString */
+   if (localtime_r(&curTime.tv_sec, &curTimeTM) != NULL) {
 
     snprintf(pTimeString, sizeof(pTimeString), "%04d%02d%02d-%02d:%02d:%02d.%06ld ",
                       curTimeTM.tm_year + 1900,
@@ -1019,7 +1022,9 @@ EXT_DECL const CHAR8 *vos_getTimeStamp (void)
                       curTimeTM.tm_hour,
                       curTimeTM.tm_min,
                       curTimeTM.tm_sec,
+
                       (long) curTime.tv_usec);
+    }
     return pTimeString;
 }
 
@@ -1269,7 +1274,11 @@ EXT_DECL VOS_ERR_T vos_mutexCreate (
         err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
         if (err == 0)
         {
-            err = pthread_mutex_init((pthread_mutex_t *)&(*pMutex)->mutexId, &attr);
+            err = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+            if (err == 0)
+            {
+                err = pthread_mutex_init((pthread_mutex_t *)&(*pMutex)->mutexId, &attr);
+            }
         }
         pthread_mutexattr_destroy(&attr); /*lint !e534 ignore return value */
     }
@@ -1317,7 +1326,11 @@ EXT_DECL VOS_ERR_T vos_mutexLocalCreate (
         err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
         if (err == 0)
         {
-            err = pthread_mutex_init((pthread_mutex_t *)&pMutex->mutexId, &attr);
+            err = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+            if (err == 0)
+            {
+                err = pthread_mutex_init((pthread_mutex_t *)&pMutex->mutexId, &attr);
+            }
         }
         pthread_mutexattr_destroy(&attr); /*lint !e534 ignore return value */
     }

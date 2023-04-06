@@ -13,6 +13,7 @@
  *
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      SB 2021-08-09: Compiler warnings
  *      BL 2017-06-30: Compiler warnings, local prototypes added
  */
@@ -25,7 +26,6 @@
 #include <string.h>
 #if defined (POSIX)
 #include <unistd.h>
-#include <sys/select.h>
 #elif (defined (WIN32) || defined (WIN64))
 #include "getopt.h"
 #endif
@@ -574,7 +574,7 @@ int main (int argc, char *argv[])
     while (sSessionData.sLoop || sSessionData.sLastRun)
     {
         fd_set      rfds;
-        INT32       noDesc  = 0;
+        TRDP_SOCK_T noDesc  = 0;     /* #399 */
         TRDP_TIME_T tv      = {0, 0};
         TRDP_TIME_T max_tv  = {0, 100000};           /* 0.1 second  */
 
@@ -613,7 +613,7 @@ int main (int argc, char *argv[])
                 Select() will wait for ready descriptors or time out,
                 what ever comes first.
             */
-            rv = vos_select((int)noDesc + 1, &rfds, NULL, NULL, &tv);
+            rv = vos_select((int)noDesc, &rfds, NULL, NULL, &tv);
             /* vos_printLog(VOS_LOG_USR, "%d descriptors ready: 0x%04x\n", rv, rfds.fds_bits[0]); */
             (void) tlm_process(sSessionData.appHandle, (TRDP_FDS_T *) &rfds, &rv);
         }

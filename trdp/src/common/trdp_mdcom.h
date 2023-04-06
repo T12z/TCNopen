@@ -17,6 +17,7 @@
  /*
  * $Id$
  *
+ *      AM 2022-12-01: Ticket #399 Abstract socket type (VOS_SOCK_T, TRDP_SOCK_T) introduced, vos_select function is not anymore called with '+1'
  *      BL 2020-07-29: Ticket #286 tlm_reply() is missing a sourceURI parameter as defined in the standard
  *     AHW 2017-11-08: Ticket #179 Max. number of retries (part of sendParam) of a MD request needs to be checked
  *      BL 2014-07-14: Ticket #46: Protocol change: operational topocount needed
@@ -58,7 +59,7 @@ TRDP_ERR_T  trdp_mdSend (
 void        trdp_mdCheckPending (
     TRDP_APP_SESSION_T  appHandle,
     TRDP_FDS_T          *pFileDesc,
-    INT32               *pNoDesc);
+    TRDP_SOCK_T         *pNoDesc);
 
 void trdp_mdCheckListenSocks (
     const TRDP_SESSION_PT appHandle,
