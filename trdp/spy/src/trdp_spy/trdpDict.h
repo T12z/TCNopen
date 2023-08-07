@@ -181,6 +181,7 @@ typedef struct TrdpDict {
 	struct ComId *mTableComId;  /**< first item of linked list of ComId items. Use it to iterate if necessary or use TrdpDict_lookup_ComId for a pointer. */
 	gchar        *xml_file;     /**< cached name of last parsed file */
 	guint32 def_bitset_subtype; /**< default subtype value for numeric bitset types */
+	guint32 def_endian_subtype; /**< default subtype value for numeric types [0,1] */
 } TrdpDict;
 
 /** @fn  TrdpDict *TrdpDict_new    (const char *xmlconfigFile, gint parent_id, GError **error)
@@ -188,12 +189,14 @@ typedef struct TrdpDict {
  *  @brief Create a new TrdpDict container
  *
  *  @param xmlconfigFile  Path to xml file on disk.
+ *  @param def_bitset_subtype sets the bitmap subtype, if XML contains numeric values
+ *  @param def_endian_subtype sets the endian subtype, if XML contains numeric values
  *  @param readAllInPath  when set, will discard the filename in xmlconfigFile and read all files in the path
  *  @param error          Will be set to non-null on any error.
  *
  *  @return pointer to the container or NULL on problems. See error then for the cause.
  */
-extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, guint32 def_subtype, gboolean readAllInPath, GError **error);
+extern TrdpDict *TrdpDict_new    (const char *xmlconfigFile, guint32 def_bitset_subtype, guint32 def_endian_subtype, gboolean readAllInPath, GError **error);
 
 /** @fn  TrdpDict *TrdpDict_delete(TrdpDict *self)
  *

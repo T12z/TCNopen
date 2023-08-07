@@ -73,7 +73,7 @@ static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, gu
 
 static Element *Element_new                (const char *typeS, const char *name, const char *unit,
 											const char *array_size, const char *scale, const char *offset, guint index,
-											guint32 def_bitset_subtype, GError **error);
+											guint32 def_bitset_subtype, guint32 def_endian_subtype, GError **error);
 static Dataset *Dataset_new                (const char *dsId, const char *aname, const gchar *filename, GError **error);
 static ComId   *ComId_new                  (const char *id, const char *aname, const char *dsId, const char *filename, GError **error);
 
@@ -96,17 +96,21 @@ static void     ComId_delete               (ComId *self);
 const ElementType ElBasics[] = {
 	{ "BITSET8", TRDP_BITSET8, TRDP_BITSUBTYPE_BITSET8 }, { "BOOL8", TRDP_BITSET8, TRDP_BITSUBTYPE_BOOL8 }, { "ANTIVALENT8", TRDP_BITSET8, TRDP_BITSUBTYPE_ANTIVALENT8 },
 	{ "CHAR8",   TRDP_CHAR8,  0}, { "UTF16",  TRDP_UTF16,  0 },
-	{ "INT8",    TRDP_INT8,   0}, { "INT16",     TRDP_INT16,  TRDP_ENDSUBTYPE_BIG }, { "INT32",     TRDP_INT32,  TRDP_ENDSUBTYPE_BIG },   { "INT64",      TRDP_INT64,  TRDP_ENDSUBTYPE_BIG },
-	                              { "INT16_LE",  TRDP_INT16,  TRDP_ENDSUBTYPE_LIT }, { "INT32_LE",  TRDP_INT32,  TRDP_ENDSUBTYPE_LIT },   { "INT64_LE",   TRDP_INT64,  TRDP_ENDSUBTYPE_LIT },
-	{ "UINT8",   TRDP_UINT8,  0}, { "UINT16",    TRDP_UINT16, TRDP_ENDSUBTYPE_BIG }, { "UINT32",    TRDP_UINT32, TRDP_ENDSUBTYPE_BIG },   { "UINT64",     TRDP_UINT64, TRDP_ENDSUBTYPE_BIG },
-	                              { "UINT16_LE", TRDP_UINT16, TRDP_ENDSUBTYPE_LIT }, { "UINT32_LE", TRDP_UINT32, TRDP_ENDSUBTYPE_LIT },   { "UINT64_LE",  TRDP_UINT64, TRDP_ENDSUBTYPE_LIT },
-	{ "REAL32",     TRDP_REAL32, TRDP_ENDSUBTYPE_BIG}, { "REAL64",    TRDP_REAL64, TRDP_ENDSUBTYPE_BIG },
-	{ "REAL32_LE",  TRDP_REAL32, TRDP_ENDSUBTYPE_LIT}, { "REAL64_LE", TRDP_REAL64, TRDP_ENDSUBTYPE_LIT },
+	{ "INT8",    TRDP_INT8,   0},
+	{ "INT16",   TRDP_INT16,  TRDP_ENDSUBTYPE_BIG }, { "INT16_LE", TRDP_INT16,  TRDP_ENDSUBTYPE_LIT },
+	{ "INT32",   TRDP_INT32,  TRDP_ENDSUBTYPE_BIG }, { "INT32_LE", TRDP_INT32,  TRDP_ENDSUBTYPE_LIT },
+	{ "INT64",   TRDP_INT64,  TRDP_ENDSUBTYPE_BIG }, { "INT64_LE", TRDP_INT64,  TRDP_ENDSUBTYPE_LIT },
+	{ "UINT8",   TRDP_UINT8,  0},
+	{ "UINT16",  TRDP_UINT16, TRDP_ENDSUBTYPE_BIG }, { "UINT16_LE", TRDP_UINT16, TRDP_ENDSUBTYPE_LIT },
+	{ "UINT32",  TRDP_UINT32, TRDP_ENDSUBTYPE_BIG }, { "UINT32_LE", TRDP_UINT32, TRDP_ENDSUBTYPE_LIT },
+	{ "UINT64",  TRDP_UINT64, TRDP_ENDSUBTYPE_BIG }, { "UINT64_LE", TRDP_UINT64, TRDP_ENDSUBTYPE_LIT },
+	{ "REAL32",  TRDP_REAL32, TRDP_ENDSUBTYPE_BIG }, { "REAL32_LE", TRDP_REAL32, TRDP_ENDSUBTYPE_LIT },
+	{ "REAL64",  TRDP_REAL64, TRDP_ENDSUBTYPE_BIG }, { "REAL64_LE", TRDP_REAL64, TRDP_ENDSUBTYPE_LIT },
 	{ "TIMEDATE32", TRDP_TIMEDATE32, 0 }, { "TIMEDATE48", TRDP_TIMEDATE48, 0 }, { "TIMEDATE64", TRDP_TIMEDATE64, 0 },
 	{ "SC32",    TRDP_SC32,   0},
 };
 
-static ElementType decodeType(const char *type, guint32 subtype) {
+static ElementType decodeType(const char *type, guint32 bitmap_subtype, guint32 endian_subtype) {
 	ElementType numeric;
 	numeric.id = (guint32)g_ascii_strtoull(type, NULL, 10);
 	if (!numeric.id) {
@@ -115,8 +119,8 @@ static ElementType decodeType(const char *type, guint32 subtype) {
 				return ElBasics[i];
 			}
 	}
-	/* there is currently only one case of subtypes */
-	numeric.subtype = subtype;
+	gboolean isNumber = (numeric.id >= TRDP_INT8) && (numeric.id <= TRDP_REAL64);
+	numeric.subtype = (numeric.id == TRDP_BITSET8) ? bitmap_subtype : (isNumber ? endian_subtype : 0);
 	strncpy(numeric.name, type, sizeof(numeric.name)-1);
 	return numeric;
 }
@@ -260,7 +264,7 @@ static void Markup_start_element(GMarkupParseContext *context, const gchar *elem
 					G_MARKUP_COLLECT_INVALID);
 
 			if (!err) {
-				Element *el = Element_new(type, name, unit, array_size, scale, offset, ++element_cnt, self->def_bitset_subtype, &err);
+				Element *el = Element_new(type, name, unit, array_size, scale, offset, ++element_cnt, self->def_bitset_subtype, self->def_endian_subtype, &err);
 				if (el) {
 					/* update the element in the list */
 					if (!self->mTableDataset->listOfElements)
@@ -315,7 +319,7 @@ GMarkupParser parser = {
  */
 
 
-TrdpDict *TrdpDict_new(const char *xmlconfigFile, guint32 _subtype, gboolean readAllInPath, GError **error) {
+TrdpDict *TrdpDict_new(const char *xmlconfigFile, guint32 bitset_subtype, guint32 endian_subtype, gboolean readAllInPath, GError **error) {
 	GError *err = NULL;
 
 // check, if path is a file or folder, check permissions
@@ -361,7 +365,8 @@ TrdpDict *TrdpDict_new(const char *xmlconfigFile, guint32 _subtype, gboolean rea
 					const gchar *contents = g_mapped_file_get_contents(gmf);
 					gsize len = g_mapped_file_get_length(gmf);
 					GMarkupParseContext *xml = g_markup_parse_context_new(&parser, G_MARKUP_PREFIX_ERROR_POSITION, self, NULL);
-					self->def_bitset_subtype = _subtype;
+					self->def_bitset_subtype = bitset_subtype;
+					self->def_endian_subtype = endian_subtype;
 					if (!g_markup_parse_context_parse(xml, contents, len, &err)) {
 						g_propagate_prefixed_error(error, err, "Parsing \"%s\" failed.\n", currentPath);
 						self->knowledge = 0; /* it's dubious knowledge, better get rid of it it */
@@ -472,7 +477,7 @@ static gboolean Element_checkConsistency(Element *self, const TrdpDict *dict, gu
 }
 
 static Element *Element_new(const char *_type, const char *_name, const char *_unit, const char *_array_size,
-		const char *_scale, const char *_offset, guint cnt, guint32 def_subtype, GError **error) {
+		const char *_scale, const char *_offset, guint cnt, guint32 def_bitset_subtype, guint32 def_endian_subtype, GError **error) {
 	gdouble scale;
 	gint32 offset;
 	gint32 array_size;
@@ -497,7 +502,7 @@ static Element *Element_new(const char *_type, const char *_name, const char *_u
 				ATTR_SCALE "=\"%s\" What is this? <" TAG_ELEMENT ">'s attribute was unparsible. (%s)", endptr, g_strerror (errno));
 		return NULL;
 	}
-	type = decodeType(_type, def_subtype);
+	type = decodeType(_type, def_bitset_subtype, def_endian_subtype);
 	if (!type.id) {
 		g_set_error (error, G_MARKUP_ERROR, G_MARKUP_ERROR_INVALID_CONTENT, // error code
 				ATTR_TYPE "=\"%s\" What is this? <" TAG_ELEMENT ">'s attribute was unparsible.", _type);

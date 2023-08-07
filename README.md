@@ -1,5 +1,13 @@
 # TCNopen fork
 
+## Bug fixes for TRDP spy
+
+Currently I only rebuild the plugin for [Wireshark 4.0 Linux](trdp/spy/plugins/4.0/epan). I do not have the infrastructure to build other versions.
+
+2023-August: The patch that brought little-endian interpretation was not complete and would do the wrong thing at times. Proper plugin-config-option added.
+
+2023-April: Wireshark would crash if xml-file went missing.
+
 ## Repo is put to rest
 
 As I wrote [before](#in-2021-and-2022):

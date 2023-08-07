@@ -138,6 +138,7 @@ static gboolean g_0strings = FALSE;
 static gboolean g_time_local = TRUE;
 static gboolean g_time_raw = FALSE;
 static guint g_bitset_subtype = TRDP_BITSUBTYPE_BOOL8;
+static guint g_endian_subtype = TRDP_ENDSUBTYPE_BIG;
 static guint g_sid = TRDP_DEFAULT_SC32_SID;
 
 /* Initialize the subtree pointers */
@@ -1059,7 +1060,7 @@ static void register_trdp_fields(void) {
 			API_TRACE;
 
 			GError *err = NULL;
-			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, g_bitset_subtype, FALSE, &err);
+			pTrdpParser = TrdpDict_new(gbl_trdpDictionary_1, g_bitset_subtype, g_endian_subtype, FALSE, &err);
 			API_TRACE;
 			if (err) {
 				report_failure("TRDP | XML input failed [%d]:\n%s", err->code, err->message);
@@ -1187,6 +1188,14 @@ void proto_register_trdp(void) {
 		bitsetenumvals[i].value = (gint)ElBasics[i].subtype;
 	}
 
+	enum_val_t *endianenumvals = g_new0(enum_val_t, 2+1);
+	endianenumvals[0].description = "BE";
+	endianenumvals[0].name = "be";
+	endianenumvals[0].value = TRDP_ENDSUBTYPE_BIG;
+	endianenumvals[1].description = "LE (non-standard)";
+	endianenumvals[1].name = "le";
+	endianenumvals[1].value = TRDP_ENDSUBTYPE_LIT;
+
 	API_TRACE;
 
 	/* Register the protocol name and description */
@@ -1214,6 +1223,14 @@ void proto_register_trdp(void) {
 			"type is not given literally.",
 			&g_bitset_subtype, bitsetenumvals, FALSE);
 	prefs_set_preference_effect_fields(trdp_spy_module, "bitset.subtype");
+
+	prefs_register_enum_preference(trdp_spy_module, "numeric.subtype",
+			"Select default sub-type for TRDP-Element types (5-7,9-13)",
+			"Number types can be interpreted differently, as BE or LE (non-standard). Select the fallback, if the element "
+			"type is not given literally.",
+			&g_endian_subtype, endianenumvals, FALSE);
+	prefs_set_preference_effect_fields(trdp_spy_module, "numeric.subtype");
+
 	prefs_register_bool_preference(trdp_spy_module, "time.local",
 			"Display time-types as local time, untick for UTC / no offsets.",
 			"Time types should be based on UTC. When ticked, Wireshark adds on local timezone offset. Untick if you "
